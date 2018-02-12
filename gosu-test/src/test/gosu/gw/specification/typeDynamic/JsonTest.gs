@@ -370,10 +370,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes\n" +
       "  }\n" +
       "  static function fromJsonUrl( url: String ): YahooQuotes {\n" +
-      "    return new java.net.URL( url ).JsonContent\n" +
+      "    return new java.net.URL( url ).JsonContent as Dynamic\n" +
       "  }\n" +
       "  static function fromJsonUrl( url: java.net.URL ): YahooQuotes {\n" +
-      "    return url.JsonContent\n" +
+      "    return url.JsonContent as Dynamic\n" +
       "  }\n" +
       "  static function fromJsonFile( file: java.io.File ) : YahooQuotes {\n" +
       "    return fromJsonUrl( file.toURI().toURL() )\n" +
@@ -725,10 +725,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       "    return gw.lang.reflect.json.Json.fromJson( jsonText ) as Amazon\n" +
       "  }\n" +
       "  static function fromJsonUrl( url: String ): Amazon {\n" +
-      "    return new java.net.URL( url ).JsonContent\n" +
+      "    return new java.net.URL( url ).JsonContent as Dynamic\n" +
       "  }\n" +
       "  static function fromJsonUrl( url: java.net.URL ): Amazon {\n" +
-      "    return url.JsonContent\n" +
+      "    return url.JsonContent as Dynamic\n" +
       "  }\n" +
       "  static function fromJsonFile( file: java.io.File ) : Amazon {\n" +
       "    return fromJsonUrl( file.toURI().toURL() )\n" +
@@ -773,8 +773,6 @@ class JsonTest extends gw.BaseVerifyErrantTest {
 
   function testStructureFromJson() {
     var results: Dynamic = Json.fromJson( _yahoo_finance_quotes_json )
-    var structr = results.toStructure( "YahooQuotes", true )
-    assertEquals( _structure, structr )
 
     var structureResults = YahooQuotes.fromJson( _yahoo_finance_quotes_json )
     for( stock in structureResults.query.results.quote ) {
@@ -788,8 +786,6 @@ class JsonTest extends gw.BaseVerifyErrantTest {
 
   function testStructureFromJson_AmazonEcs() {
     var results: Dynamic = Json.fromJson( _amazon_ecs_json )
-    var structr = results.toStructure( "Amazon", false )
-    assertEquals( _amazon_ecs_structure, structr )
 
     var amazon = Amazon.fromJson( _amazon_ecs_json )
     var output: String = ""
@@ -846,10 +842,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelList
     }
     static function fromJsonUrl( url: String ): TopLevelList {
-      return new java.net.URL( url ).JsonContent
+      return new java.net.URL( url ).JsonContent  as Dynamic
     }
     static function fromJsonUrl( url: java.net.URL ): TopLevelList {
-      return url.JsonContent
+      return url.JsonContent as Dynamic
     }
     static function fromJsonFile( file: java.io.File ) : TopLevelList {
       return fromJsonUrl( file.toURI().toURL() )
@@ -872,10 +868,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       return gw.lang.reflect.json.Json.fromJson( jsonText ) as TopLevelValue
     }
     static function fromJsonUrl( url: String ): TopLevelValue {
-      return new java.net.URL( url ).JsonContent
+      return new java.net.URL( url ).JsonContent as Dynamic
     }
     static function fromJsonUrl( url: java.net.URL ): TopLevelValue {
-      return url.JsonContent
+      return url.JsonContent as Dynamic
     }
     static function fromJsonFile( file: java.io.File ) : TopLevelValue {
       return fromJsonUrl( file.toURI().toURL() )
@@ -901,6 +897,7 @@ class JsonTest extends gw.BaseVerifyErrantTest {
     assertEquals( 51, json.hi[1].bye[1][1] )
   }
 
+/* using Manifold for Json now, which uses Java structures
   function testTypeMerge() {
     verifyJsonType( "[{'a': 1}, {'a': 'hi'}]", {"a"->String} )
     verifyJsonType( "[{'a': 'hi'}, {'a': 1}]", {"a"->String} )
@@ -918,6 +915,7 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       assertEquals( e.Value, eval( struct + " return Merge1.value.TypeInfo.getProperty( \"${e.Key}\" ).FeatureType" ) as Type )
     }
   }
+*/
 
   // Generated
   structure YahooQuotes {
@@ -925,10 +923,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       return gw.lang.reflect.json.Json.fromJson( jsonText ) as YahooQuotes
     }
     static function fromJsonUrl( url: String ): YahooQuotes {
-      return new java.net.URL( url ).JsonContent
+      return new java.net.URL( url ).JsonContent as Dynamic
     }
     static function fromJsonUrl( url: java.net.URL ): YahooQuotes {
-      return url.JsonContent
+      return url.JsonContent as Dynamic
     }
     static function fromJsonFile( file: java.io.File ) : YahooQuotes {
       return fromJsonUrl( file.toURI().toURL() )
@@ -1007,10 +1005,10 @@ class JsonTest extends gw.BaseVerifyErrantTest {
       return gw.lang.reflect.json.Json.fromJson( jsonText ) as Amazon
     }
     static function fromJsonUrl( url: String ): Amazon {
-      return new java.net.URL( url ).JsonContent
+      return new java.net.URL( url ).JsonContent as Dynamic
     }
     static function fromJsonUrl( url: java.net.URL ): Amazon {
-      return url.JsonContent
+      return url.JsonContent as Dynamic
     }
     static function fromJsonFile( file: java.io.File ) : Amazon {
       return fromJsonUrl( file.toURI().toURL() )

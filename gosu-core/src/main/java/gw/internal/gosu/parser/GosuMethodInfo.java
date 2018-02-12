@@ -298,7 +298,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
         List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
         Class[] paramClasses = new Class[allParameterTypes.size()];
         for (int i = 0; i < allParameterTypes.size(); i++) {
-          paramClasses[i] = IRElement.maybeEraseStructuralType( allParameterTypes.get( i ) ).getJavaClass();
+          paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
         }
         Method method = getMethod( clazz, NameResolver.getFunctionName( dfs ), paramClasses );
         return method.invoke( gsClassInstance, args );

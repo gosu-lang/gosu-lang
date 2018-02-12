@@ -25,6 +25,7 @@ import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
+import manifold.ext.api.Structural;
 import manifold.internal.javac.IJavaParser;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.GosuParserFactory;
@@ -1365,6 +1366,12 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
       }
     }
     return _fileHandle;
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    return isAnnotationPresent( Structural.class );
   }
 
   @Override

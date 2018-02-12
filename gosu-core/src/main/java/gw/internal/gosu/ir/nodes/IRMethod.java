@@ -4,13 +4,16 @@
 
 package gw.internal.gosu.ir.nodes;
 
+import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.ir.IRType;
 
 import java.util.List;
+import manifold.ext.ExtensionMethod;
 
 public interface IRMethod {
 
@@ -41,4 +44,15 @@ public interface IRMethod {
   IFunctionType getFunctionType();
 
   boolean isGeneratedEnumMethod();
+
+  default boolean isManifoldExtension()
+  {
+    IAnnotatedFeatureInfo fi = getFeatureInfo();
+    return fi != null && fi.getAnnotation( TypeSystem.getByFullNameIfValid( ExtensionMethod.class.getName() ) ) != null;
+  }
+
+  default IAnnotatedFeatureInfo getFeatureInfo()
+  {
+    return null;
+  }
 }

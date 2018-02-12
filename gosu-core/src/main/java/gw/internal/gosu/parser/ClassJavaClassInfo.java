@@ -39,6 +39,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import manifold.ext.api.Structural;
 
 public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaClassInfo {
   private Class<?> _class;
@@ -304,7 +305,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public String getRelativeName() {
-    return getName().substring( getNamespace().length() + 1 );
+    return isPrimitive() ? getName() : getName().substring( getNamespace().length() + 1 );
   }
 
   @Override
@@ -492,6 +493,12 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   @Override
   public ISourceFileHandle getSourceFileHandle() {
     return _fileHandle;
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    return _class.isAnnotationPresent( Structural.class );
   }
 
   @Override

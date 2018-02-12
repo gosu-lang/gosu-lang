@@ -19,7 +19,6 @@ import editor.run.IRunConfig;
 import editor.tabpane.ITab;
 import editor.tabpane.TabPane;
 import gw.lang.reflect.Expando;
-import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.module.IProject;
 
 import java.nio.file.Files;
@@ -233,7 +232,7 @@ public class Experiment implements IProject
 
     try( Writer fw = PathUtil.createWriter( userFile ) )
     {
-      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      String json = (String)bindings.toJson();
       fw.write( json );
     }
     catch( IOException e )
@@ -262,7 +261,7 @@ public class Experiment implements IProject
     try
     {
       System.setProperty( "user.dir", PathUtil.getAbsolutePathName( getExperimentDir() ) );
-      Bindings bindings = (Bindings)ReflectUtil.getProperty( getOrMakeExperimentFile().toUri().toURL(), "JsonContent" );
+      Bindings bindings = (Bindings)getOrMakeExperimentFile().toUri().toURL().getJsonContent();
 
       setName( (String)bindings.getOrDefault( "Name", PathUtil.getName( getExperimentDir() ) ) );
 

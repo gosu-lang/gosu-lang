@@ -4,6 +4,7 @@
 
 package gw.lang.reflect;
 
+import java.util.HashSet;
 import manifold.api.fs.IDirectory;
 import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
@@ -25,6 +26,34 @@ public abstract class SimpleTypeLoader extends TypeLoaderBase
   }
 
   public abstract Set<String> getExtensions();
+
+  @Override
+  public Set<ITypeManifold> findTypeManifoldsFor( String fqn )
+  {
+    Set<ITypeManifold> sps = new HashSet<>( 2 );
+    for( ITypeManifold sp : getTypeManifolds() )
+    {
+      if( sp.isType( fqn ) )
+      {
+        sps.add( sp );
+      }
+    }
+    return sps;
+  }
+
+  @Override
+  public Set<ITypeManifold> findTypeManifoldsFor( IFile file )
+  {
+    Set<ITypeManifold> sps = new HashSet<>( 2 );
+    for( ITypeManifold sp : getTypeManifolds() )
+    {
+      if( sp.handlesFile( file ) )
+      {
+        sps.add( sp );
+      }
+    }
+    return sps;
+  }
 
   @Override
   public String[] getTypesForFile( IFile file )
@@ -94,10 +123,11 @@ public abstract class SimpleTypeLoader extends TypeLoaderBase
       }
       else
       {
+        fqn = fqn.replace( '$', '.' );
         int iLastDot = fqn.lastIndexOf( '.' );
         String enclosingClass = fqn.substring( 0, iLastDot );
         String simpleName = fqn.substring( iLastDot + 1 );
-        return GosuShop.createInnerClassSourceFileHandle( tm.getClassType( fqn ), enclosingClass, simpleName, false );
+        return GosuShop.createInnerClassSourceFileHandle( tm.getClassType( enclosingClass ), enclosingClass, simpleName, false );
       }
     }
     return null;

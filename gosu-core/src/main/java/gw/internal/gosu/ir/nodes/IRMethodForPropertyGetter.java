@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.ir.nodes;
 
+import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IFunctionType;
@@ -99,5 +100,11 @@ public class IRMethodForPropertyGetter extends IRFeatureBase implements IRMethod
   public boolean isGeneratedEnumMethod()
   {
     return false;
+  }
+
+  @Override
+  public IAnnotatedFeatureInfo getFeatureInfo()
+  {
+    return _owningProperty.getTerminalProperty();
   }
 }

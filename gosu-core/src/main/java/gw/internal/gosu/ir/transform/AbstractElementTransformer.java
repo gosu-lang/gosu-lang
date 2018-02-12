@@ -92,6 +92,8 @@ import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
 import gw.lang.reflect.ClassLazyTypeResolver;
 import gw.lang.reflect.FunctionType;
+import gw.lang.reflect.IAnnotatedFeatureInfo;
+import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IEnumConstant;
@@ -147,6 +149,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import manifold.ext.ExtensionMethod;
 
 /**
  */
@@ -260,11 +263,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     List<IRElement> namedArgElements = handleNamedArgs( explicitArgs, namedArgOrder );
 
-    if( owner instanceof IGosuEnhancement && !method.isStatic() )
+    if( (owner instanceof IGosuEnhancement || method.isManifoldExtension()) && !method.isStatic() )
     {
       // For enhancements, we want argument/root evaluation to happen the same as for a normal method
-      // So we evaluate all the arguments to temp variables, then evaluate the root and null check-it,
-      // and lastly invoke the method
+      // So we evaluate all the arguments to temp variables, then evaluate the root and invoke the method
       List<IRExpression> tempArgs = new ArrayList<IRExpression>();
       pushEnhancementTypeParams( method, owner, tempArgs );
       pushTypeParams( method, tempArgs );
@@ -284,17 +286,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       compositeElements.addAll( namedArgElements );
 
       // Now store all the arguments to temp variables
-      for( IRExpression tempArg : tempArgs )
-      {
-        IRSymbol tempArgSymbol = _cc().makeAndIndexTempSymbol( tempArg.getType() );
-        compositeElements.add( buildAssignment( tempArgSymbol, tempArg ) );
-        actualArgs.add( identifier( tempArgSymbol ) );
-      }
+      actualArgs.addAll( tempArgs );
 
-      // Null-check the temp root
-      compositeElements.add( nullCheckVar( tempRoot ) );
+// It is more convenient and powerful and deus vult to let the enhancement method handle null
+//      // Null-check the temp root
+//      compositeElements.add( nullCheckVar( tempRoot ) );
 
-      // Push the root expression on as the first argument to the method
+      // Insert the root expression as the first argument to the method
       actualArgs.add( 0, identifier( tempRoot ) );
 
       // Now call the method as if it were a static method
@@ -390,6 +388,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       rootType = method.getOwningIRType();
     }
+    method = maybeUseManifoldExtensionMethod( method );
     if( !special && _cc().shouldUseReflection( owner, rootType, method.getAccessibility() ) )
     {
       return callMethodReflectively( owner, method.getName(), method.getReturnType(), method.getAllParameterTypes(), root, actualArgs );
@@ -398,6 +397,30 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       return callMethodDirectly( method, root, special, owner, actualArgs );
     }
+  }
+
+  private IRMethod maybeUseManifoldExtensionMethod( IRMethod method )
+  {
+    if( !method.isManifoldExtension() )
+    {
+      return method;
+    }
+
+    List<IRType> paramTypes = new ArrayList<>();
+    if( !method.isStatic() )
+    {
+      paramTypes.add( method.getOwningIRType() );
+    }
+    paramTypes.addAll( method.getExplicitParameterTypes() );
+    return IRMethodFactory.createIRMethod( getExtensionClass( method ), method.getName(), method.getReturnType(), paramTypes, method.getAccessibility(), method.isStatic() );
+  }
+
+  private IType getExtensionClass( IRMethod method )
+  {
+    IAnnotatedFeatureInfo fi = method.getFeatureInfo();
+    IAnnotationInfo extAnno = fi.getAnnotation( JavaTypes.EXTENSION_METHOD() );
+    String extensionClass = (String)extAnno.getFieldValue( "extensionClass" );
+    return TypeSystem.getByFullNameIfValid( extensionClass );
   }
 
   private IRMethodCallExpression callMethodDirectly( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs )
@@ -417,7 +440,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private void pushEnhancementTypeParams( IRMethod irMethod, IType enhancementType, List<IRExpression> args )
   {
     IFunctionType funcType = irMethod.getFunctionType();
-    if( !Modifier.isReified( funcType.getModifiers() ) )
+    if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
     {
       return;
     }

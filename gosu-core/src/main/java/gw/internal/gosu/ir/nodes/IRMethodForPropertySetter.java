@@ -8,6 +8,7 @@ import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRTypeConstants;
+import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
@@ -117,5 +118,11 @@ public class IRMethodForPropertySetter extends IRFeatureBase implements IRMethod
   public boolean isGeneratedEnumMethod()
   {
     return false;
+  }
+
+  @Override
+  public IAnnotatedFeatureInfo getFeatureInfo()
+  {
+    return _owningProperty.getTerminalProperty();
   }
 }

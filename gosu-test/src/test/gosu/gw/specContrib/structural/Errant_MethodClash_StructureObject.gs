@@ -12,6 +12,6 @@ class Errant_MethodClash_StructureObject {
     return null
   }
   //IDE-1787 - Error expected as all structure types erase to Object at runtime
-  function foo1(O : Object) : KK { return null}   //## issuekeys: ERROR
+  function foo1(O : Object) : KK { return null}   //## NO ERROR, a structure as a parameter type is no longer erased, therefore this method is no longer a duplicate
 
 }

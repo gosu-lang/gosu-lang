@@ -436,7 +436,9 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public void initializeTypeManifolds()
   {
     _typeManifolds = LocklessLazyVar.make( () -> {
-      Set<ITypeManifold> typeManifols = new HashSet<>( super.loadTypeManifolds() );
+      Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
+        .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Gosu )
+        .collect( Collectors.toSet() );
       typeManifols.forEach( tp -> tp.init( this ) );
       return typeManifols;
     } );

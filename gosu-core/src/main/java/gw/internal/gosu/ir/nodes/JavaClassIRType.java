@@ -179,7 +179,7 @@ public class JavaClassIRType implements IJavaClassIRType {
 
   @Override
   public boolean isStructural() {
-    return false;
+    return !isArray() && _class.isStructure();
   }
 
   @Override

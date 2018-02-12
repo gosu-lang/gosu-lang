@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import manifold.api.fs.IDirectory;
 import manifold.api.fs.IFile;
+import manifold.ext.api.Structural;
 
 public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJavaClassInfo {
   private AsmClass _class;
@@ -535,6 +536,12 @@ public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJ
       _sourceFileHandle = findSourceFile();
     }
     return _sourceFileHandle;
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    return _class.isAnnotationPresent( Structural.class );
   }
 
   private ISourceFileHandle findSourceFile()

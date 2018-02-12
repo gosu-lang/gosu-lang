@@ -116,6 +116,8 @@ public interface IJavaClassInfo extends IJavaAnnotatedElement, IJavaClassType, I
 
   ISourceFileHandle getSourceFileHandle();
 
+  boolean isStructure();
+
   /**
    * Two IJavaClassInfo instances are equal if they are both non-arrays and have the same
    * name and module. If the two instances are arrays, then they are equal if their

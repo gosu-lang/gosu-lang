@@ -73,6 +73,7 @@ public class TypeIsTransformer extends AbstractExpressionTransformer<TypeIsExpre
 
   private boolean isStructure(IType type)
   {
-    return type instanceof IGosuClass && ((IGosuClass) type).isStructure();
+    return type instanceof IGosuClass && ((IGosuClass) type).isStructure() ||
+           type instanceof IJavaType && ((IJavaType)type).isStructure();
   }
 }

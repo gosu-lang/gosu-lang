@@ -5,6 +5,8 @@
 package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
+import gw.util.concurrent.LocklessLazyVar;
+import java.util.stream.Collectors;
 import manifold.api.fs.IFile;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
@@ -45,7 +47,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
   private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<>( 1000 );
   private Set<String> _namespaces;
- // private LocklessLazyVar<Set<ITypeManifold>> _typeManifolds = LocklessLazyVar.make( Collections::emptySet );
+  private LocklessLazyVar<Set<ITypeManifold>> _typeManifolds = LocklessLazyVar.make( Collections::emptySet );
 
   public static DefaultTypeLoader instance(IModule module) {
     if (module == null) {
@@ -480,20 +482,19 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   @Override
   public Set<ITypeManifold> getTypeManifolds()
   {
-    return Collections.emptySet(); // _typeManifolds.get();
+    return _typeManifolds.get();
   }
   @Override
   public void initializeTypeManifolds()
   {
-//## don't really need to separate type manifolds by java/gosu, all them them can be managed by the
-//## gosu class typeloader, the typeloader really has nothing to do with it so much as the Module
-//    _typeManifolds = LocklessLazyVar.make( () -> {
-//      Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
-//        .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Java )
-//        .collect( Collectors.toSet() );
-//      typeManifols.forEach( tp -> tp.init( this ) );
-//      return typeManifols;
-//    } );
+    // DefaultTypeLoader includes only Javas-based type manifolds, Gosu-baseed manifolds are excluded (they are handled in GosuClassTypeLoader)
+    _typeManifolds = LocklessLazyVar.make( () -> {
+      Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
+        .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Java )
+        .collect( Collectors.toSet() );
+      typeManifols.forEach( tp -> tp.init( this ) );
+      return typeManifols;
+    } );
   }
 
   @Override

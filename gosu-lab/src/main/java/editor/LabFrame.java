@@ -13,7 +13,6 @@ import manifold.api.fs.IFile;
 import manifold.api.fs.IResource;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.reflect.Expando;
-import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.json.IJsonIO;
 import gw.lang.reflect.json.Json;
 import manifold.api.fs.IFileSystem;
@@ -520,7 +519,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
       try( Writer fw = PathUtil.createWriter( file ) )
       {
-        String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+        String json = (String)bindings.toJson();
         fw.write( json );
       }
       catch( Exception e )
@@ -533,7 +532,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
   public static Integer getVersion( GosuPanel gosuPanel ) throws MalformedURLException
   {
-    Bindings bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toUri().toURL(), "JsonContent" );
+    Bindings bindings = (Bindings)getUserFile( gosuPanel ).toUri().toURL().getJsonContent();
     return (Integer)bindings.get( "Version" );
   }
 
@@ -542,7 +541,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     Bindings bindings;
     try
     {
-      bindings = (Bindings)ReflectUtil.getProperty( getUserFile( gosuPanel ).toUri().toURL(), "JsonContent" );
+      bindings = (Bindings)getUserFile( gosuPanel ).toUri().toURL().getJsonContent();
     }
     catch( MalformedURLException e )
     {
@@ -574,7 +573,7 @@ public class LabFrame extends JFrame implements IGosuEditor
 
       saveScreenProps( bindings );
 
-      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      String json = (String)bindings.toJson();
       fw.write( json );
     }
     catch( Exception e )
@@ -705,7 +704,7 @@ public class LabFrame extends JFrame implements IGosuEditor
     {
       Expando bindings = new Expando();
       IJsonIO.writeList( "Settings", new ArrayList<>( _settings.values() ), bindings );
-      String json = (String)ReflectUtil.invokeMethod( bindings, "toJson" );
+      String json = (String)bindings.toJson();
       fw.write( json );
     }
     catch( IOException e )

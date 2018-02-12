@@ -195,13 +195,13 @@ class JsonStructureType implements IJsonParentType
     indent( sb, indent );
     sb.append( "static function fromJsonUrl( url: String ): " ).append( getName() ).append( " {\n" );
     indent( sb, indent );
-    sb.append( "  return new java.net.URL( url ).JsonContent\n" );
+    sb.append( "  return new java.net.URL( url ).JsonContent as Dynamic\n" );
     indent( sb, indent );
     sb.append( "}\n" );
     indent( sb, indent );
     sb.append( "static function fromJsonUrl( url: java.net.URL ): " ).append( getName() ).append( " {\n" );
     indent( sb, indent );
-    sb.append( "  return url.JsonContent\n" );
+    sb.append( "  return url.JsonContent as Dynamic\n" );
     indent( sb, indent );
     sb.append( "}\n" );
     indent( sb, indent );

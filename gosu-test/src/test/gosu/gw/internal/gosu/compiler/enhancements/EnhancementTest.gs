@@ -76,7 +76,7 @@ class EnhancementTest extends gw.test.TestClass
 
   function testMethodOnNullValue() {
     var x : _Enhanced
-    assertCausesException(\ -> x.simpleMethod(), NullPointerException )
+    x.simpleMethod()
   }
 
   function testMethodOnNullValueWArg() {
