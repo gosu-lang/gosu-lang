@@ -18,7 +18,7 @@ public class IRFieldGetExpression extends IRExpression {
   public IRFieldGetExpression(IRExpression lhs, String name, IRType fieldType, IRType ownersType) {
     _lhs = lhs;
     _name = name;
-    _fieldType = maybeEraseStructuralType( ownersType, fieldType );
+    _fieldType = fieldType;
     _ownersType = ownersType;
 
     if (lhs != null) {

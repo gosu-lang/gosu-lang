@@ -29,7 +29,7 @@ public class IRFieldDecl extends IRStatement {
     _modifiers = modifiers;
     _explicitInternal = explicitInternal;
     _name = name;
-    _type = maybeEraseStructuralType( type );
+    _type = type;
     _value = value;
     _genericSignature = makeGenericSignature(iType);
   }
