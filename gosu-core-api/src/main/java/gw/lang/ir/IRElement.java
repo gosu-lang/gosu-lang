@@ -7,9 +7,6 @@ package gw.lang.ir;
 import gw.lang.GosuShop;
 import gw.lang.UnstableAPI;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @UnstableAPI
 public abstract class IRElement {
   private IRElement _parent;
@@ -73,30 +70,5 @@ public abstract class IRElement {
       type = originalType;
     }
     return type;
-  }
-
-  protected List<IRType> maybeEraseStructuralTypes( IRType ownersType, List<IRType> types ) {
-    List<IRType> altTypes = null;
-    for( int i = 0; i < types.size(); i++ ) {
-      IRType csr = types.get( i );
-      IRType type = maybeEraseStructuralType( ownersType, csr );
-      if( type != csr ) {
-        if( altTypes == null ) {
-          altTypes = new ArrayList<IRType>( types );
-        }
-        altTypes.set( i, type );
-      }
-    }
-    return altTypes == null ? types : altTypes;
-  }
-
-  protected List<IRSymbol> maybeEraseStructuralSymbolTypes( List<IRSymbol> parameters ) {
-    for( IRSymbol csr: parameters ) {
-      IRType type = maybeEraseStructuralType( null, csr.getType() );
-      if( type != csr.getType() ) {
-        csr.setType( type );
-      }
-    }
-    return parameters;
   }
 }
