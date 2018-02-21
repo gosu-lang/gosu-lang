@@ -31,7 +31,7 @@ class ToStructureTest {
   function SimpleIntVsLongs() {
     print("About to evaluate: \n" + simpleArrayOfNumbersJson)
 
-    var x = Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers")
+    var x = Json.fromJson(simpleArrayOfNumbersJson).toGosuStructure("ArrayOfSimpleNumbers")
 
     print(x)
 
@@ -39,7 +39,7 @@ class ToStructureTest {
 
     Json.setParserName("gw.lang.reflect.json.DefaultParser_Big")
 
-    x = Json.fromJson(simpleArrayOfNumbersJson).toStructure("ArrayOfSimpleNumbers")
+    x = Json.fromJson(simpleArrayOfNumbersJson).toGosuStructure("ArrayOfSimpleNumbers")
 
     print(x)
     
@@ -50,7 +50,7 @@ class ToStructureTest {
   function IntVsLongs() {
     print("About to evaluate: \n" + arrayOfNumbersJson)
 
-    var x = Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers")
+    var x = Json.fromJson(arrayOfNumbersJson).toGosuStructure("ArrayOfNumbers")
 
     print(x)
     
@@ -58,7 +58,7 @@ class ToStructureTest {
     
     Json.setParserName("gw.lang.reflect.json.DefaultParser_Big")
 
-    x = Json.fromJson(arrayOfNumbersJson).toStructure("ArrayOfNumbers")
+    x = Json.fromJson(arrayOfNumbersJson).toGosuStructure("ArrayOfNumbers")
     
     print(x)
     

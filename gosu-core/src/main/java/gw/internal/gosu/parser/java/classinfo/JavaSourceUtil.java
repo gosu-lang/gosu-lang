@@ -17,6 +17,8 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
 
+import static manifold.api.type.ITypeManifold.ProducerKind.Supplemental;
+
 
 public class JavaSourceUtil {
 
@@ -24,7 +26,7 @@ public class JavaSourceUtil {
     if( isProxy( cls ) ) {
       return getJavaClassInfo( cls, module );
     } else {
-      if( !ExecutionMode.isIDE() ) { //## todo: refine this so that a compiler, for example, could cross-compile java source with gosu source
+      if( !ExecutionMode.isIDE() && !isExtendedClass( cls.getName(), module ) ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.
@@ -65,7 +67,7 @@ public class JavaSourceUtil {
       IModule module = classInfo.getModule();
       return loader.getJavaClassInfo(aClass, module);
     } else {
-      if( ExecutionMode.isRuntime() ) {
+      if( !ExecutionMode.isIDE() && !isExtendedClass( aClass.getTypeName(), gosuModule ) ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.
@@ -76,6 +78,13 @@ public class JavaSourceUtil {
       }
       return getClassInfo(aClass.getName().replace('$', '.'), gosuModule);
     }
+  }
+
+  private static boolean isExtendedClass( String fqn, IModule gosuModule )
+  {
+    // a supplemental type manifold is indicative of an extended class
+    return gosuModule.findTypeManifoldsFor( fqn ).stream()
+      .anyMatch( tm -> tm.getProducerKind() == Supplemental );
   }
 
   private static boolean isProxy(AsmClass aClass) {

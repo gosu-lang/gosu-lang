@@ -1,5 +1,7 @@
 package org.gosulang.plexus.compiler.gosu;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.codehaus.plexus.compiler.AbstractCompilerTest;
 import org.codehaus.plexus.compiler.Compiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
@@ -118,7 +120,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     String sourceDir = getBasedir() + "/src/test-input/src/main/gosu";
 
     @SuppressWarnings("unchecked") List<String> filenames =
-        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst,**/*.java", null, false, true);
+        FileUtils.getFileNames(new File(sourceDir), "**/*.gs,**/*.gsx,**/*.gst", null, false, true);
     Collections.sort(filenames);
 
     List<CompilerConfiguration> compilerConfigurations = new ArrayList<>();
@@ -126,30 +128,41 @@ public class GosuCompilerTest extends AbstractCompilerTest {
     int index = 0;
     for (Iterator<String> it = filenames.iterator(); it.hasNext(); index++) {
       String filename = it.next();
-
       CompilerConfiguration compilerConfig = new CompilerConfiguration();
-
       compilerConfig.setClasspathEntries(getClasspath());
-
       compilerConfig.addSourceLocation(sourceDir);
-
       compilerConfig.addInclude(filename);
-
       compilerConfig.setSourceFiles(Collections.singleton(new File(sourceDir + File.separator + filename)));
-
       compilerConfig.setOutputLocation(getBasedir() + "/target/" + getRoleHint() + "/classes-" + index);
-
       FileUtils.deleteDirectory(compilerConfig.getOutputLocation());
-
       compilerConfig.setFork(false);
-
       compilerConfig.setVerbose(true);
-
       compilerConfigurations.add(compilerConfig);
-
     }
 
+    addJavaConfig( sourceDir, compilerConfigurations, index );
+
     return compilerConfigurations;
+  }
+
+  /** all java source files go in a single config */
+  private void addJavaConfig( String sourceDir, List<CompilerConfiguration> compilerConfigurations, int index ) throws Exception
+  {
+    List<String> filenames = FileUtils.getFileNames( new File( sourceDir), "**/*.java", null, false, true);
+    CompilerConfiguration compilerConfig = new CompilerConfiguration();
+    compilerConfig.setClasspathEntries(getClasspath());
+    compilerConfig.addSourceLocation(sourceDir);
+    filenames.forEach( compilerConfig::addInclude );
+
+    Set<File> src = new HashSet<>();
+    filenames.forEach( e -> src.add( new File( sourceDir + File.separator + e ) ) );
+    compilerConfig.setSourceFiles( src );
+
+    compilerConfig.setOutputLocation(getBasedir() + "/target/" + getRoleHint() + "/classes-" + index);
+    FileUtils.deleteDirectory(compilerConfig.getOutputLocation());
+    compilerConfig.setFork(false);
+    compilerConfig.setVerbose(true);
+    compilerConfigurations.add(compilerConfig);
   }
 
   private List<String> normalizePaths( Collection<String> relativePaths ) {

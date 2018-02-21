@@ -4,11 +4,15 @@ import gw.internal.ext.com.beust.jcommander.JCommander;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.cli.CommandLineCompiler;
 import gw.lang.gosuc.cli.CommandLineOptions;
-import gw.lang.gosuc.simple.ICompilerDriver;
-import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
+import manifold.internal.runtime.UrlClassLoaderWrapper;
+import manifold.util.PathUtil;
 import org.codehaus.plexus.compiler.AbstractCompiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerException;
@@ -117,12 +121,8 @@ public class GosuCompiler extends AbstractCompiler {
       cli.addArguments(new String[] {"-Xdock:name=Gosuc"});
     }
 
-    try {
-      getLogger().info("Initializing gosuc compiler");
-      cli.addArguments(new String[] {"-classpath", String.join(File.pathSeparator, GosucUtil.getGosuBootstrapJars())});
-    } catch(ClassNotFoundException cnfe) {
-      throw new CompilerException("Unable to locate Gosu libraries in classpath.  Please add Gosu as a project dependency.", cnfe);
-    }
+    getLogger().info("Initializing gosuc compiler");
+    cli.addArguments(new String[] {"-classpath", String.join( File.pathSeparator, inheritClasspath())});
 
     cli.addArguments(new String[] {"gw.lang.gosuc.cli.CommandLineCompiler"});
 
@@ -169,6 +169,60 @@ public class GosuCompiler extends AbstractCompiler {
     }
 
     return new CompilerResult(exitCode == 0, messages);
+  }
+
+  private List<String> inheritClasspath()
+  {
+    UrlClassLoaderWrapper cl = UrlClassLoaderWrapper.wrap( getClass().getClassLoader() );
+    if( cl == null )
+    {
+      return Collections.emptyList();
+    }
+
+    List<String> classpath = new ArrayList<>();
+
+    for( URL url: cl.getURLs() )
+    {
+      try
+      {
+        URI uri = url.toURI();
+        if( url.toURI().getScheme().equals( "file") )
+        {
+          String path = PathUtil.create( uri ).toFile().getAbsolutePath();
+          if( !classpath.contains( path ) && isGosuJar( path ) )
+          {
+            classpath.add( path );
+          }
+        }
+      }
+      catch( URISyntaxException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+
+    try
+    {
+      List<String> bootstrapJars = GosucUtil.getGosuBootstrapJars();
+      for( String path: bootstrapJars )
+      {
+        if( !classpath.contains( path ) )
+        {
+          classpath.add( path );
+        }
+      }
+    }
+    catch( ClassNotFoundException e )
+    {
+      throw new RuntimeException( e );
+    }
+
+    return classpath;
+  }
+
+  private boolean isGosuJar( String path )
+  {
+    return path.contains( "gosu" ) || path.contains( "manifold" );
   }
 
   CompilerResult compileInProcess( CompilerConfiguration config ) throws CompilerException

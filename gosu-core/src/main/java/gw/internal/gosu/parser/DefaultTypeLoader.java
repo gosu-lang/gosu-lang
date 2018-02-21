@@ -42,6 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import manifold.api.type.TypeName;
 import manifold.internal.runtime.Bootstrap;
 
+
+import static manifold.api.type.ITypeManifold.ProducerKind.Supplemental;
+
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
@@ -92,6 +95,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals(TypeSystem.getGlobalModule())) {
       return null;
     }
+
+    fullyQualifiedName = fullyQualifiedName.replace( '$', '.' );
 
     // strip off all trailing array brackets "[]"
     String fqnNoArrays = ModuleTypeLoader.stripArrayBrackets(fullyQualifiedName);
@@ -201,7 +206,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     // references a Gosu class e.g., in a method return type.  Gosu needs to get
     // the type info at the *IJavaClassInfo* level for the the Gosu class.
 
-    if( !ExecutionMode.isIDE() && classFileExists( fqn ) )
+    if( !ExecutionMode.isIDE() && classFileExists( fqn ) && !isExtendedClass( fqn ) )
     {
       // If not in an IDE, favor .class files as the basis for Java types.
       //
@@ -223,7 +228,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       return getByClass( fqn, _module, _module );
     }
 
-    // First check for a .java file and load a JavaSourceType...
+    // First check for a .java file or a type manifold projection and load a JavaSourceType...
     ISourceFileHandle fileHandle = getSourceFileHandle( fqn );
     if( fileHandle == null )
     {
@@ -259,6 +264,13 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     }
 
     return JavaSourceClass.createTopLevel( fileHandle, _module );
+  }
+
+  private boolean isExtendedClass( String fqn )
+  {
+    // a supplemental type manifold is indicative of an extended class
+    return getModule().findTypeManifoldsFor( fqn ).stream()
+      .anyMatch( tm -> tm.getProducerKind() == Supplemental );
   }
 
   @Override
@@ -487,14 +499,24 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   @Override
   public void initializeTypeManifolds()
   {
-    // DefaultTypeLoader includes only Javas-based type manifolds, Gosu-baseed manifolds are excluded (they are handled in GosuClassTypeLoader)
-    _typeManifolds = LocklessLazyVar.make( () -> {
-      Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
-        .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Java )
-        .collect( Collectors.toSet() );
-      typeManifols.forEach( tp -> tp.init( this ) );
-      return typeManifols;
-    } );
+    ClassLoader loader = getClass().getClassLoader();
+    ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader( loader );
+    try
+    {
+      // DefaultTypeLoader includes only Javas-based type manifolds, Gosu-baseed manifolds are excluded (they are handled in GosuClassTypeLoader)
+      _typeManifolds = LocklessLazyVar.make( () -> {
+        Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
+          .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Java )
+          .collect( Collectors.toSet() );
+        typeManifols.forEach( tp -> tp.init( this ) );
+        return typeManifols;
+      } );
+    }
+    finally
+    {
+      Thread.currentThread().setContextClassLoader( oldLoader );
+    }
   }
 
   @Override

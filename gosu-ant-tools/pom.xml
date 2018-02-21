@@ -49,6 +49,18 @@
 
   <build>
     <plugins>
+      
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xplugin:Manifold</arg>
+          </compilerArgs>
+          <proc>none</proc>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -57,6 +69,7 @@
           <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
+      
     </plugins>
   </build>
 

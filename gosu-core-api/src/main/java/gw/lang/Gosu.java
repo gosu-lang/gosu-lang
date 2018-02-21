@@ -5,6 +5,7 @@
 package gw.lang;
 
 import gw.config.CommonServices;
+import gw.internal.gosu.parser.TypeSystemState;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
@@ -365,6 +366,11 @@ public class Gosu
 
   public static boolean bootstrapGosuWhenInitiatedViaClassfile()
   {
+    if( TypeSystem.getState() != TypeSystemState.STOPPED )
+    {
+      return false;
+    }
+    
     if( GosuInitialization.isAnythingInitialized() &&
         GosuInitialization.instance( TypeSystem.getExecutionEnvironment() ).isInitialized() )
     {

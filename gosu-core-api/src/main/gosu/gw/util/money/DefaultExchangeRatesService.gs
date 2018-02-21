@@ -57,7 +57,7 @@ class DefaultExchangeRatesService implements IExchangeRatesService
     args.env = "store://datatables.org/alltableswithkeys"
     args.callback = ""
     var ratesUrl = URL.makeUrl( "https://query.yahooapis.com/v1/public/yql", args )
-    var json = ratesUrl.JsonContent
+    var json: Dynamic = ratesUrl.JsonContent
     var rateTable = new ExpiringRateTable()
     for( r in json.query.results.rate ) {
       var id =  r.id
@@ -99,7 +99,7 @@ class DefaultExchangeRatesService implements IExchangeRatesService
   
   private function getCurrencies( currency: Currency ) : String {
     var ratesUrl = new URL( "https://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote?format=json" )
-    var json = ratesUrl.JsonContent
+    var json: Dynamic = ratesUrl.JsonContent
     var currencies = new StringBuilder()
     for( x in json.list.resources ) {
       var symbol_x =  x.resource.fields.symbol

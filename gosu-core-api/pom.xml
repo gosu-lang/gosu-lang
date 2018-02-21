@@ -14,6 +14,7 @@
   <properties>
     <generated.version.dir>${project.build.directory}/generated-sources/version</generated.version.dir>
     <gosu.version.properties>${generated.version.dir}/gw/lang/gosu-version.properties</gosu.version.properties>
+    <manifold-version>0.11-SNAPSHOT</manifold-version>
   </properties>
 
   <dependencies>
@@ -35,22 +36,22 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>${manifold-version}</version>
     </dependency>
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-ext</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>${manifold-version}</version>
     </dependency>
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-json</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>${manifold-version}</version>
     </dependency>
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-js</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>${manifold-version}</version>
     </dependency>
   </dependencies>
   

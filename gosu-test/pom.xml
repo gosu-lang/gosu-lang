@@ -34,6 +34,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xplugin:Manifold</arg>
+          </compilerArgs>
+          <proc>none</proc>
+        </configuration>
         <executions>
           <execution>
             <id>Compile Gosu test sources</id>
