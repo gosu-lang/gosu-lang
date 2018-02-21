@@ -17,52 +17,8 @@ enhancement CoreBindingsEnhancement : Bindings {
    *   <li> Otherwise, if the value is a List, the property is a List parameterized with the component type where the component type is the structural union inferred from the values of the List recursively following these rules for each value
    * </ul>
    */
-  function toStructure( nameForStructure: String, mutable: boolean = false ) : String {
+  function toGosuStructure( nameForStructure: String, mutable: boolean = false ) : String {
     return Json.makeStructureTypes( nameForStructure, this, mutable )
-  }
-
-  /**
-   * Serializes this Bindings instance to a JSON formatted String
-   */
-  function toJson() : String {
-    var sb = new StringBuilder()
-    toJson( sb, 0 )
-    return sb.toString()
-  }
-
-  /**
-   * Serializes this Bindings instance into a JSON formatted StringBuilder with the specified indent of spaces
-   */
-  function toJson( sb: StringBuilder, indent: int ) : void {
-    var iKey = 0
-    if( isNewLine( sb ) ) {
-      indent( sb, indent )
-    }
-    if( this.size() > 0 ) {
-      sb.append( "{\n" )
-      for( key in this.keySet() ) {
-        indent( sb, indent + 2 )
-        sb.append( '\"' ).append( key ).append( '\"' ).append( ": " )
-        var value : Object = this.get( key )
-        if( value typeis Bindings ) {
-          value.toJson( sb, indent + 2 )
-        }
-        else if( value typeis List ) {
-          listToJson( sb, indent, value )
-        }
-        else {
-          appendGosuValue( sb, value )
-        }
-        appendCommaNewLine( sb, iKey < this.size() - 1 )
-        iKey++
-      }
-    }
-    indent( sb, indent )
-    sb.append( "}" )
-  }
-
-  private function isNewLine( sb: StringBuilder ) : boolean {
-    return sb.length() > 0 && sb.charAt( sb.length() -1 ) == '\n'
   }
 
   function listToJson( sb: StringBuilder, indent: int, value: List ) {
@@ -164,67 +120,6 @@ enhancement CoreBindingsEnhancement : Bindings {
     }
     indent( sb, indent + 2 )
     sb.append( "}" )
-  }
-
-  /**
-   * Serializes this Bindings instance to XML
-   */
-  public function toXml() : String {
-    return toXml( "object" )
-  }
-  /**
-   * Serializes this Bindings instance to XML
-   */
-  public function toXml( name: String ) : String {
-    var sb = new StringBuilder()
-    toXml( name, sb, 0 )
-    return sb.toString()
-  }
-  public function toXml( name: String, sb: StringBuilder, indent: int ) {
-    indent( sb, indent )
-    sb.append( '<' ).append( name )
-    if( this.size() > 0) {
-      sb.append( ">\n" )
-      for( key in this.keySet() ) {
-        var value : Object = this.get( key )
-        if( value typeis Bindings ) {
-          value.toXml( key, sb, indent + 2 )
-        }
-        else if( value typeis List ) {
-          var len : int = value.size()
-          indent( sb, indent + 2 )
-          sb.append( "<" ).append( key )
-          if( len > 0 ) {
-            sb.append( ">\n" )
-            for( comp in value ) {
-              if( comp typeis Bindings ) {
-                comp.toXml( "li", sb, indent + 4 )
-              }
-              else {
-                indent( sb, indent + 4 )
-                sb.append( "<li>" ).append( comp ).append( "</li>\n" )
-              }
-            }
-            indent( sb, indent + 2 )
-            sb.append( "</" ).append( key ).append( ">\n" )
-          }
-          else {
-            sb.append( "/>\n" )
-          }
-        }
-        else {
-          indent( sb, indent + 2 )
-          sb.append( '<' ).append( key ).append( ">" )
-          sb.append( value )
-          sb.append( "</" ).append( key ).append( ">\n" )
-        }
-      }
-      indent( sb, indent )
-      sb.append( "</" ).append( name ).append( ">\n" )
-    }
-    else {
-      sb.append( "/>\n" )
-    }
   }
 
   private function appendCommaNewLine( sb: StringBuilder, bComma: boolean ) {

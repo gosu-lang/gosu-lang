@@ -5,6 +5,7 @@
 package gw.internal.gosu.module;
 
 import gw.config.CommonServices;
+import gw.config.ExecutionMode;
 import gw.internal.gosu.dynamic.DynamicTypeLoader;
 import gw.internal.gosu.parser.DefaultTypeLoader;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository;
@@ -55,6 +56,7 @@ import manifold.api.fs.IDirectory;
 import manifold.api.fs.jar.JarFileDirectoryImpl;
 import manifold.api.type.ITypeManifold;
 import manifold.internal.javac.GeneratedJavaStubFileObject;
+import manifold.internal.javac.SourceJavaFileObject;
 import manifold.internal.javac.SourceSupplier;
 
 public class Module implements IModule
@@ -64,12 +66,7 @@ public class Module implements IModule
   private String _strName;
 
   private List<Dependency> _dependencies = new ArrayList<>();
-  private LocklessLazyVar<IModule[]> _traversalList = new LocklessLazyVar<IModule[]>() {
-    @Override
-    protected IModule[] init() {
-      return buildTraversalList();
-    }
-  };
+  private LocklessLazyVar<IModule[]> _traversalList;
   private ModuleTypeLoader _modTypeLoader;
 
   // Paths
@@ -87,6 +84,7 @@ public class Module implements IModule
     _execEnv = execEnv;
     _strName = strName;
     _pathCache = LocklessLazyVar.make( this::makePathCache );
+    _traversalList = LocklessLazyVar.make( this::buildTraversalList );
   }
 
   public final IExecutionEnvironment getExecutionEnvironment()
@@ -293,10 +291,16 @@ public class Module implements IModule
         if( sourceFileHandle != null )
         {
           Set<ITypeManifold> typeManifold = sourceFileHandle.getTypeManifolds();
-          if(! typeManifold.isEmpty() )
+          if( !typeManifold.isEmpty() )
           {
             // The source for this type is not on disk, but is instead generated on demand
             file = produceSource( (IFileRepositoryBasedType)type );
+          }
+          else if( ExecutionMode.isRuntime() && sourceFileHandle instanceof FileSystemGosuClassRepository.FileSystemSourceFileHandle )
+          {
+            // The Java source file is loaded dynamically at runtime
+            file = new SourceJavaFileObject( sourceFileHandle.getFile().toURI() );
+            ((SourceJavaFileObject)file).setFqn( fqn );
           }
         }
       }
@@ -419,7 +423,7 @@ public class Module implements IModule
             }
           }
         }
-        catch( Exception e )
+        catch( Throwable e )
         {
           throw GosuExceptionUtil.forceThrow( e );
         }

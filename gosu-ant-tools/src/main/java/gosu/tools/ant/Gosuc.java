@@ -1,10 +1,22 @@
 package gosu.tools.ant;
 
 import gosu.tools.ant.util.AntLoggingHelper;
+import gw.config.CommonServices;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+import gw.util.GosuExceptionUtil;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import manifold.api.fs.IDirectory;
+import manifold.api.fs.IFile;
+import manifold.api.fs.jar.JarFileDirectoryImpl;
+import manifold.internal.runtime.UrlClassLoaderWrapper;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.Path;
@@ -282,6 +294,7 @@ public class Gosuc extends GosuMatchingTask {
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll(Arrays.asList(_compileClasspath.list()));
+    addOtherDeps( classpath );
     classpath.addAll( GosucUtil.getJreJars());
 
     String startupMsg = "Initializing Gosu compiler";
@@ -385,4 +398,108 @@ public class Gosuc extends GosuMatchingTask {
     }
     
   }
+
+  private void addOtherDeps( List<String> classpath )
+  {
+    if( classpath.stream().noneMatch( e -> e.toLowerCase().contains( "manifold" ) ) )
+    {
+      UrlClassLoaderWrapper cl = UrlClassLoaderWrapper.wrap( getClass().getClassLoader() );
+      if( cl == null )
+      {
+        return;
+      }
+
+      List<URL> urls = addFromManifestClassPath( cl.getURLs() );
+      urls.forEach( url -> {
+        try
+        {
+          if( url.getProtocol().equals( "file" ) )
+          {
+            String path = new File( url.toURI() ).getAbsolutePath();
+            if( isGosuJar( path ) )
+            {
+              classpath.add( path );
+            }
+          }
+        }
+        catch( URISyntaxException e )
+        {
+          throw new RuntimeException( e );
+        }
+      } );
+    }
+  }
+
+  private boolean isGosuJar( String path )
+  {
+    return path.contains( "gosu" ) || path.contains( "manifold" );
+  }
+
+  private List<URL> addFromManifestClassPath( List<URL> classpath )
+    {
+      if( classpath == null )
+      {
+        return classpath;
+      }
+
+      ArrayList<URL> newClasspath = new ArrayList<>();
+      for( URL root : classpath )
+      {
+        if( !root.getProtocol().equals( "file" ) )
+        {
+          continue;
+        }
+
+        //add the root JAR itself first, preserving ordering
+        if( !newClasspath.contains( root ) )
+        {
+          newClasspath.add( root );
+        }
+        IFile file = CommonServices.getFileSystem().getIFile( root );
+        if( file instanceof JarFileDirectoryImpl )
+        {
+          JarFile jarFile = ((JarFileDirectoryImpl)file).getJarFile();
+          try
+          {
+            Manifest manifest = jarFile.getManifest();
+            if( manifest != null )
+            {
+              Attributes man = manifest.getMainAttributes();
+              String paths = man.getValue( Attributes.Name.CLASS_PATH );
+              if( paths != null && !paths.isEmpty() )
+              {
+                // We found a Jar with a Class-Path listing.
+                // Note sometimes happens when running from IntelliJ where the
+                // classpath would otherwise make the command line to java.exe
+                // too long.
+                for( String j : paths.split( " " ) )
+                {
+                  // Add each of the paths to our classpath
+                  URL url;
+                  try {
+                    url = new URL( j );
+                  } catch (MalformedURLException e) {
+                    //Class-Path contained an invalid URL, skip it
+                    continue;
+                  }
+                  File dirOrJar = new File( url.toURI() );
+                  IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
+                  URL urlPath = new File( idir.toURI() ).toURI().toURL();
+                  if( !newClasspath.contains( urlPath ) )
+                  {
+                    newClasspath.add( urlPath );
+                  }
+                }
+              }
+            }
+          }
+          catch( Throwable e )
+          {
+            throw GosuExceptionUtil.forceThrow( e );
+          }
+        }
+      }
+
+      return newClasspath;
+    }
 }

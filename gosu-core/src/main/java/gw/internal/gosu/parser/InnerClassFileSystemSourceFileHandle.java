@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import java.util.Set;
 import manifold.api.fs.IFile;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
@@ -14,6 +15,7 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import manifold.api.type.ClassType;
 import gw.lang.reflect.TypeSystem;
 import gw.util.StringPool;
+import manifold.api.type.ITypeManifold;
 
 /**
  */
@@ -54,7 +56,18 @@ public class InnerClassFileSystemSourceFileHandle implements ISourceFileHandle
   @Override
   public ISource getSource()
   {
-    IFileRepositoryBasedType enclosingType = (IFileRepositoryBasedType)TypeSystem.getByFullNameIfValid(_strEnclosingType);
+    return getEnclosingSourceFileHandle().getSource();
+  }
+
+  @Override
+  public Set<ITypeManifold> getTypeManifolds()
+  {
+    return getEnclosingSourceFileHandle().getTypeManifolds();
+  }
+
+  private ISourceFileHandle getEnclosingSourceFileHandle()
+  {
+    IFileRepositoryBasedType enclosingType = (IFileRepositoryBasedType)TypeSystem.getByFullNameIfValid( _strEnclosingType);
     if( enclosingType == null )
     {
       IType myType = TypeSystem.getByFullNameIfValid( _strEnclosingType + '.' + _strInnerClass );
@@ -63,7 +76,7 @@ public class InnerClassFileSystemSourceFileHandle implements ISourceFileHandle
         enclosingType = (IFileRepositoryBasedType)myType.getEnclosingType();
       }
     }
-    return enclosingType == null ? null : enclosingType.getSourceFileHandle().getSource();
+    return enclosingType == null ? null : enclosingType.getSourceFileHandle();
   }
 
   public String getParentType()

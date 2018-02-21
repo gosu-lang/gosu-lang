@@ -8,9 +8,14 @@ import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import manifold.internal.runtime.UrlClassLoaderWrapper;
+import manifold.util.PathUtil;
 
 public class CommandLineCompiler
 {
@@ -57,6 +62,7 @@ public class CommandLineCompiler
     List<String> classpath = new ArrayList<>();
     classpath.addAll( Arrays.asList( options.getClasspath().split( File.pathSeparator ) ) );
     classpath.addAll( GosucUtil.getJreJars() );
+    addClassLoaderPaths( classpath );
     try
     {
       classpath.addAll( GosucUtil.getGosuBootstrapJars() );
@@ -83,6 +89,40 @@ public class CommandLineCompiler
     gosuc.uninitializeGosu();
     
     return thresholdExceeded;
+  }
+
+  private void addClassLoaderPaths( List<String> classpath )
+  {
+    UrlClassLoaderWrapper cl = UrlClassLoaderWrapper.wrap( getClass().getClassLoader() );
+    if( cl == null )
+    {
+      return;
+    }
+
+    for( URL url: cl.getURLs() )
+    {
+      try
+      {
+        URI uri = url.toURI();
+        if( url.toURI().getScheme().equals( "file") )
+        {
+          String path = PathUtil.create( uri ).toFile().getAbsolutePath();
+          if( !classpath.contains( path ) && isGosuJar( path ) )
+          {
+            classpath.add( path );
+          }
+        }
+      }
+      catch( URISyntaxException e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+  }
+
+  private boolean isGosuJar( String path )
+  {
+    return path.contains( "gosu" ) || path.contains( "manifold" );
   }
 
   /**
