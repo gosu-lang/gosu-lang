@@ -25,7 +25,7 @@ class Errant_GetterSetterInSuperSubJava {
     javaSub.Age = 42      //## issuekeys: PROPERTY 'AGE' IS NOT WRITABLE
     javaSub.setAge(42)      //## issuekeys: CANNOT RESOLVE METHOD 'SETAGE(INT)'
 
-    javaSub.Name = "Mick"      //## issuekeys: CANNOT RESOLVE SYMBOL 'NAME'
+    javaSub.Name = "Mick"
     javaSub.setName("Jack")
   }
 

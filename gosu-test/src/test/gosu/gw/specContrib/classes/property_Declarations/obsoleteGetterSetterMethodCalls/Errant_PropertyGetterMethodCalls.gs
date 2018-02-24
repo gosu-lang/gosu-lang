@@ -15,7 +15,7 @@ class Errant_PropertyGetterMethodCalls {
 
   function fooAge() {
     var y1 = Age
-    var y2 = getAge()      // CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    var y2 = getAge()      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
     Age = 42
     setAge(42)      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
   }
@@ -24,8 +24,8 @@ class Errant_PropertyGetterMethodCalls {
 
   function fooEmpStatus() {
     var z1 = EmpStatus
-    var z2 = getEmpStatus()     //todo this needs to be fixed once compiler is fixed IDE-3760
-    var z3 = isEmpStatus()      // CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    var z2 = getEmpStatus()     //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    var z3 = isEmpStatus()      //## issuekeys: MSG_NO_SUCH_FUNCTION
     EmpStatus = true
     setEmpStatus(false)      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
   }

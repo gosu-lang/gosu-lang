@@ -13,7 +13,7 @@ class Errant_TypeAssignment {
     return null;
   }
 
-  function whereTypeIs<R>( type : Type<R> ) : R[] {
+  reified function whereTypeIs<R>( type : Type<R> ) : R[] {
     var result : List<R>
     return result.toTypedArray()
   }
