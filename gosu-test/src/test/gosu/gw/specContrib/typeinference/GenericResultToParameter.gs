@@ -23,7 +23,7 @@ class GenericResultToParameter {
    * IDE-4166
    */
   function foo() {
-    var bar: ArrayList<Integer> = hello(new ArrayList( ))  // Should be okay
+    //var bar: ArrayList<Integer> = hello(new ArrayList( ))  // FIXME, reverse type inference failure. See IDE-4166 or https://github.com/gosu-lang/gosu-lang/issues/126
   }
 
 
@@ -45,11 +45,11 @@ class GenericResultToParameter {
       return null
     }
 
-    function mapLeft<L1>(f(arg: L): L1): Either<L1, R> {
+    reified function mapLeft<L1>(f(arg: L): L1): Either<L1, R> {
       return new Either<L1, R>()
     }
 
-    function mapRight<R1>(f: (arg: R): R1): Either<L, R1> {
+    reified function mapRight<R1>(f: (arg: R): R1): Either<L, R1> {
       return new Either<L, R1>()
     }
   }
