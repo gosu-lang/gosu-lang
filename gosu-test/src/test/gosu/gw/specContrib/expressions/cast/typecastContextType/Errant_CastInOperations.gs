@@ -19,9 +19,8 @@ class Errant_CastInOperations {
     var bool8 = (new Integer[]{1, 2, 3}).equals({1, 2, 3} as Integer[])                //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>' TO 'JAVA.LANG.INTEGER[]'
 
     //IDE-4106
-//    var bool9 = (new Integer[]{1, 2, 3}) == ({1, 2, 3} as Integer[])  //Roperand in parenthesis
-    //IDE-4106
-//    var bool10 = (new Integer[]{1, 2, 3}) == {1, 2, 3} as Integer[]
+    var bool9 = (new Integer[]{1, 2, 3}) == ({1, 2, 3} as Integer[])  //Roperand in parenthesis //## issuekeys: MSG_UNNECESSARY_COERCION
+    var bool10 = (new Integer[]{1, 2, 3}) == {1, 2, 3} as Integer[] //## issuekeys: MSG_UNNECESSARY_COERCION
 
     var bb = {1, 2, 3}.addAll(new Integer[]{1, 2, 3} as ArrayList<Integer>)      //## issuekeys: INCONVERTIBLE TYPES; CANNOT CAST 'JAVA.LANG.INTEGER[]' TO 'JAVA.UTIL.ARRAYLIST<JAVA.LANG.INTEGER>'
 
