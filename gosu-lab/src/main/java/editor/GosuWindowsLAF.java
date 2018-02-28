@@ -4,6 +4,7 @@ import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 import editor.util.PlatformUtil;
 
 import javax.swing.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 /**
  */
@@ -11,9 +12,19 @@ public class GosuWindowsLAF extends WindowsLookAndFeel
 {
   public static void setLookAndFeel()
   {
+    String lfName;
+    if( PlatformUtil.isWindows() ) 
+    {
+      lfName = UIManager.getSystemLookAndFeelClassName();
+    }
+    else 
+    {
+      lfName = MetalLookAndFeel.class.getName();
+    }
+    
     try
     {
-      UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+      UIManager.setLookAndFeel( lfName );
     }
     catch( Exception e )
     {
