@@ -24,4 +24,21 @@ class Errant_BlocksRetunTypeCheck {
     var block5125: block(): Integer = \-> "hello"      //## issuekeys: MSG_TYPE_MISMATCH, MSG_TYPE_MISMATCH
   }
 
+  class Human{
+    construct(s : String) { _name = s }
+    var _name : String
+    property get name() : String { return _name }
+    property set name(s : String) { _name = s }
+  }
+
+  public function testAmbiguousReturnNonNumeric() {
+    var humans : List<Human> = new ArrayList<Human>()
+    humans.add(new Human("Sarah"))
+    humans.add(new Human("Jack"))
+    humans.sort(\h1, h2 -> h1.name.compareTo(h2.name));
+    humans.sort(\h1, h2 -> { throw new RuntimeException("Ha") })
+    humans.sort(\h1, h2 -> { if (true) throw new RuntimeException("Ha") return false })
+    humans.sort(\h1, h2 -> { })      //## issuekeys: MISSING RETURN STATEMENT
+  }
+
 }
