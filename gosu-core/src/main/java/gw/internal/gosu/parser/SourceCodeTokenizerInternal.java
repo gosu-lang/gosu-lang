@@ -1310,6 +1310,7 @@ final public class SourceCodeTokenizerInternal
       {
         consumeBlockComment();
         prev = -1;
+        c = _peekc;
       }
       else
       {
