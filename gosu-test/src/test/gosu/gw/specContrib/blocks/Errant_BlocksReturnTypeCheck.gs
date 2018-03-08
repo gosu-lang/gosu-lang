@@ -2,7 +2,7 @@ package gw.specContrib.blocks
 
 uses java.lang.Integer
 
-class Errant_BlocksRetunTypeCheck {
+class Errant_BlocksReturnTypeCheck {
 
   function testReturnType() {
     var block5111: String = \-> {      //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
