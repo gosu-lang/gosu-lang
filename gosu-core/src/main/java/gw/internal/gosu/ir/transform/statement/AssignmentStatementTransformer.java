@@ -57,7 +57,7 @@ public class AssignmentStatementTransformer extends AbstractStatementTransformer
       // Lhs is a Property
       final DynamicPropertySymbol dps = (DynamicPropertySymbol)symbol;
       IRProperty irProperty = IRPropertyFactory.createIRProperty(dps);
-      IRExpression rhsValue = transformRHS( symbol );
+      IRExpression rhsValue = transformRHS( dps );
       IRExpression root= pushRoot(dps, irProperty);
       return buildMethodCall( callMethod( irProperty.getSetterMethod(), root, exprList( rhsValue ) ) );
     }
@@ -119,7 +119,9 @@ public class AssignmentStatementTransformer extends AbstractStatementTransformer
 
   private IRExpression transformRHS(ISymbol symbol) {
     IRExpression rhsValue = ExpressionTransformer.compile( _stmt().getExpression(), _cc() );
-    IRType symbolType = getDescriptor(symbol.getType());
+    IRType symbolType = getDescriptor( symbol instanceof DynamicPropertySymbol
+                                       ? ((DynamicPropertySymbol)symbol).getAssignableType()
+                                       : symbol.getType() );
     if (!(rhsValue instanceof IRNullLiteral) && !symbolType.isAssignableFrom(rhsValue.getType())) {
       rhsValue = buildCast( symbolType, rhsValue );
     }

@@ -42,7 +42,13 @@ class Errant_TheForStatementTest  {
       j++
     }
     for("012") {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
+    for(c in "abc") {}
     for(3) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH, MSG_EXPECTING_ARRAYTYPE_FOREACH
+
+    var list1 = {1, 2, 3}
+    for(list1) {}  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED, MSG_EXPECTING_IN_FOREACH, MSG_SYNTAX_ERROR
+    for(i in list1) {}
+    for({4, 5, 6}) {}  //## issuekeys: MSG_EXPECTING_IDENTIFIER_FOREACH, MSG_EXPECTING_IN_FOREACH
   }
 
   function testLoopVariable() {
@@ -83,6 +89,35 @@ class Errant_TheForStatementTest  {
     for(x in intList iterator i index i ) { }  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
     for(x in intList iterator it iterator i ) { }  //## issuekeys: MSG_EXPECTING_RIGHTPAREN_FE, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN
     for(x in intList index it index i ) { }  //## issuekeys: MSG_EXPECTING_RIGHTPAREN_FE, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_NOT_A_STATEMENT, MSG_BAD_IDENTIFIER_NAME, MSG_UNEXPECTED_TOKEN
+  }
+
+  //IDE-3017
+  //Index, iterator not writable
+  //Also checks in nested for loop
+  function bar() {
+    for (i in {1, 2, 3} index i1 iterator i2) {
+      i = 2 //should not show error
+      i1 = 33      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+      i2 = null      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+      print(i1) //should not show error
+      print(i2)
+
+      var xxx = 333
+      xxx = 444
+
+      for (ii in {1, 2, 3} index ii1 iterator ii2) {
+        i1 = 323344      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+        i2 = 44      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE, MSG_TYPE_MISMATCH
+        print(i1)
+        print(i2)
+
+        ii = 44
+        ii1 = 44      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+        ii2 = null      //## issuekeys: MSG_PROPERTY_NOT_WRITABLE
+        print(ii1)
+        print(ii2)
+      }
+    }
   }
 
   function testLoneInterval() {

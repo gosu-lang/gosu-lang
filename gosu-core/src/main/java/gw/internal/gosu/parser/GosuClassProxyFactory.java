@@ -33,7 +33,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
 import gw.util.GosuClassUtil;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.List;
 
 /**
@@ -733,10 +733,11 @@ public class GosuClassProxyFactory
         IPropertyInfo pi = ti instanceof IRelativeTypeInfo
                            ? ((IRelativeTypeInfo)ti).getProperty( mi.getOwnersType(), strProp )
                            : ti.getProperty( strProp );
-        if( pi != null && pi.isReadable() && mi.isStatic() == pi.isStatic() &&
+        if( pi != null && mi.isStatic() == pi.isStatic() &&
             pi.getFeatureType().getName().equals( mi.getParameters()[0].getFeatureType().getName() ) )
         {
-          return !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
+          return (!(pi instanceof IJavaPropertyInfo) || ((IJavaPropertyInfo)pi).getPropertyDescriptor().getWriteMethod() != null && ((IJavaPropertyInfo)pi).getPropertyDescriptor().getWriteMethod().getName().equals( mi.getDisplayName() )) &&
+                 !Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() );
         }
       }
     }
@@ -756,9 +757,10 @@ public class GosuClassProxyFactory
         IPropertyInfo pi = ti instanceof IRelativeTypeInfo
                            ? ((IRelativeTypeInfo)ti).getProperty( mi.getOwnersType(), strProp )
                            : ti.getProperty( strProp );
-        if( pi != null && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
+        if( pi != null && mi.isStatic() == pi.isStatic() && pi.getFeatureType().getName().equals( mi.getReturnType().getName() ) )
         {
-          return (!(pi instanceof IJavaPropertyInfo) || ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName().equals( mi.getDisplayName() )) &&
+          return (!(pi instanceof IJavaPropertyInfo) ||
+                  ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod() != null && ((IJavaPropertyInfo)pi).getPropertyDescriptor().getReadMethod().getName().equals( mi.getDisplayName() )) &&
                  (!Keyword.isKeyword( pi.getName() ) || Keyword.isValueKeyword( pi.getName() ));
         }
       }
@@ -773,31 +775,32 @@ public class GosuClassProxyFactory
       genStaticProperty( pi, sb );
       return;
     }
-    if( !pi.isReadable() )
-    {
-      return;
-    }
+
     if( !(pi instanceof JavaBaseFeatureInfo) )
     {
       // It is possible that a methodinfo on a java type originates outside of java.
       // E.g., enhancement methods. Gosu does not support extending these.
       return;
     }
+
     IType type = pi.getFeatureType();
     if( pi.getDescription() != null )
     {
       sb.append( "\n/** " ).append( pi.getDescription() ).append( " */\n" );
     }
-    sb.append( " property get " ).append( pi.getName() ).append( "() : " ).append( type.getName() ).append( "\n" );
-    IMethodInfo mi = getPropertyGetMethod( pi, javaType );
-    if( mi != null && !mi.isAbstract() )
+    if( pi.isReadable() )
     {
-      generateStub( sb, mi.getReturnType() );
+      sb.append( " property get " ).append( pi.getName() ).append( "() : " ).append( type.getName() ).append( "\n" );
+      IMethodInfo mi = getPropertyGetMethod( pi, javaType );
+      if( mi != null && !mi.isAbstract() )
+      {
+        generateStub( sb, mi.getReturnType() );
+      }
     }
     if( pi.isWritable( pi.getOwnersType() ) )
     {
       sb.append( " property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( type.getName() ).append( " )\n" );
-      mi = getPropertySetMethod( pi, javaType );
+      IMethodInfo mi = getPropertySetMethod( pi, javaType );
       if( mi != null && !mi.isAbstract() )
       {
         generateStub( sb, mi.getReturnType() );
@@ -851,85 +854,74 @@ public class GosuClassProxyFactory
     else
     {
       IMethodInfo mi = getPropertyGetMethod( pi, type );
-      boolean bFinal = false;
+      boolean bFinal;
       if( mi != null )
       {
         int iMethodModifiers = ((IJavaMethodInfo)mi).getModifiers();
         bFinal = java.lang.reflect.Modifier.isFinal( iMethodModifiers );
-      }
 
-      if( mi != null && !bFinal )
-      {
-        if( mi.getDescription() != null )
+        if( !bFinal )
         {
-          sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
-        }
-        StringBuilder sbModifiers = buildModifiers( mi );
-        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
-        if( !mi.isAbstract() )
-        {
-          generateStub( sb, mi.getReturnType() );
-        }
-      }
-      else
-      {
-        StringBuilder sbModifiers;
-        boolean bAbstact = false;
-        if( bFinal )
-        {
-          bAbstact = mi.isAbstract();
-          sbModifiers = buildModifiers( mi );
+          if( mi.getDescription() != null )
+          {
+            sb.append( "\n/** " ).append( mi.getDescription() ).append( " */\n" );
+          }
+          StringBuilder sbModifiers = buildModifiers( mi );
+          sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
+          if( !mi.isAbstract() )
+          {
+            generateStub( sb, mi.getReturnType() );
+          }
         }
         else
         {
-          sbModifiers = appendVisibilityModifier( pi );
-        }
-        sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
-        if( !bAbstact )
-        {
-          generateStub( sb, pi.getFeatureType() );
+          StringBuilder sbModifiers;
+          boolean bAbstract = mi.isAbstract();
+          sbModifiers = buildModifiers( mi );
+          sb.append( "  " ).append( sbModifiers ).append( "property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
+          if( !bAbstract )
+          {
+            generateStub( sb, pi.getFeatureType() );
+          }
         }
       }
-
       mi = getPropertySetMethod( pi, type );
-      bFinal = false;
       if( mi != null )
       {
         int iMethodModifiers = ((IJavaMethodInfo)mi).getModifiers();
         bFinal = java.lang.reflect.Modifier.isFinal( iMethodModifiers );
-      }
-
-      if( mi != null && !bFinal )
-      {
-        StringBuilder sbModifiers = buildModifiers( mi );
-        if( pi.isWritable( pi.getOwnersType() ) )
+        if( !bFinal )
         {
-          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
-          if( !mi.isAbstract() )
+          StringBuilder sbModifiers = buildModifiers( mi );
+          if( pi.isWritable( pi.getOwnersType() ) )
           {
-            generateStub( sb, JavaTypes.pVOID() );
+            sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
+            if( !mi.isAbstract() )
+            {
+              generateStub( sb, JavaTypes.pVOID() );
+            }
           }
         }
-      }
-      else
-      {
-        if( pi.isWritable( type.getEnclosingType() != null ? null : pi.getOwnersType() ) )
+        else
         {
-          StringBuilder sbModifiers;
-          boolean bAbstact = false;
-          if( bFinal )
+          if( pi.isWritable( type.getEnclosingType() != null ? null : pi.getOwnersType() ) )
           {
-            bAbstact = mi.isAbstract();
-            sbModifiers = buildModifiers( mi );
-          }
-          else
-          {
-            sbModifiers = appendVisibilityModifier( pi );
-          }
-          sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
-          if( !bAbstact )
-          {
-            generateStub( sb, JavaTypes.pVOID() );
+            StringBuilder sbModifiers;
+            boolean bAbstact = false;
+            if( bFinal )
+            {
+              bAbstact = mi.isAbstract();
+              sbModifiers = buildModifiers( mi );
+            }
+            else
+            {
+              sbModifiers = appendVisibilityModifier( pi );
+            }
+            sb.append( "  " ).append( sbModifiers ).append( "property set " ).append( pi.getName() ).append( "( _proxy_arg_value : " ).append( pi.getFeatureType().getName() ).append( " )\n" );
+            if( !bAbstact )
+            {
+              generateStub( sb, JavaTypes.pVOID() );
+            }
           }
         }
       }
@@ -1057,13 +1049,15 @@ public class GosuClassProxyFactory
     }
     else
     {
-      StringBuilder sbModifiers = appendVisibilityModifier( pi );
-      sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
-      if( !pi.isAbstract() )
+      if( pi.isReadable( pi.getOwnersType() ) )
       {
-        generateStub( sb, pi.getFeatureType() );
+        StringBuilder sbModifiers = appendVisibilityModifier( pi );
+        sb.append( "  " ).append( sbModifiers ).append( "static property get " ).append( pi.getName() ).append( "() : " ).append( pi.getFeatureType().getName() ).append( "\n" );
+        if( !pi.isAbstract() )
+        {
+          generateStub( sb, pi.getFeatureType() );
+        }
       }
-
       if( pi.isWritable( pi.getOwnersType() ) )
       {
         sb

@@ -1,8 +1,11 @@
 package gw.specContrib.typeinference
 
+uses java.io.Writer
 uses java.util.Date
 uses java.util.List
 uses java.util.Map
+uses java.lang.Integer
+uses java.math.BigDecimal
 
 class Errant_IfTypeNarrowing {
   interface I1 {
@@ -61,25 +64,25 @@ class Errant_IfTypeNarrowing {
     }
 
     if (l.get(0) typeis A) {
-      l.get(0).foo1()                //## issuekeys: CANNOT RESOLVE 'foo1()'
+      l.get(0).foo1()                //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     var arr: Object[]
     if (arr[0] typeis A) {
-      arr[0].foo1()                 //## issuekeys: CANNOT RESOLVE 'foo1()'
+      arr[0].foo1()                 //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     var ind: int
     if (arr[ind] typeis A) {
-      arr[ind].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
+      arr[ind].foo1()               //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     var map: Map<String, Object>
     if (map["key"] typeis A) {
-      map["key"].foo1()             //## issuekeys: CANNOT RESOLVE 'foo1()'
+      map["key"].foo1()             //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     var key: String
     if (map[key] typeis A) {
-      map[key].foo1()               //## issuekeys: CANNOT RESOLVE 'foo1()'
+      map[key].foo1()               //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
   }
 
@@ -87,7 +90,7 @@ class Errant_IfTypeNarrowing {
 
   function testProperties(c: Errant_IfTypeNarrowingJava) {
     if (c.nonProp() typeis Errant_IfTypeNarrowingJava.A) {
-      c.nonProp().foo()  //## issuekeys: CANNOT RESOLVE 'foo()'
+      c.nonProp().foo()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
 
     // Java property
@@ -105,15 +108,15 @@ class Errant_IfTypeNarrowing {
       c.Prop.foo()
     }
 
-    // Gosu property
-    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
-      getProp().foo()
+    // Gosu property (no longer supporting fake getter calls, only Java now)
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      getProp().foo()  //## issuekeys: MSG_NO_SUCH_FUNCTION
     }
-    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {
-      Prop.foo()
+    if (getProp() typeis Errant_IfTypeNarrowingJava.A) {  //## issuekeys: MSG_NO_SUCH_FUNCTION
+      Prop.foo()  //## issuekeys: MSG_NO_METHOD_DESCRIPTOR_FOUND_FOR_METHOD
     }
     if (Prop typeis Errant_IfTypeNarrowingJava.A) {
-      getProp().foo()
+      getProp().foo()  //## issuekeys: MSG_NO_SUCH_FUNCTION
     }
     if (Prop typeis Errant_IfTypeNarrowingJava.A) {
       Prop.foo()
@@ -135,6 +138,71 @@ class Errant_IfTypeNarrowing {
 
   }
 
+  // IDE-3196
+  class Ide3196 {
+  class A { function write() : int { return 8 } }
+  class C extends A { }
+
+  function testTypeisCompatibility() {
+    var B : Boolean = true
+    var x = B typeis Integer             //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.BOOLEAN' TYPEIS 'JAVA.LANG.INTEGER'
+    var y = B as Integer            // This is good
+
+    var o : Object
+    var b : boolean
+
+    o = \ ->  {}
+    b = o typeis Runnable
+    b = o typeis  block()      // This is good
+
+    o = new A()
+    b = o typeis Writer
+    b = o typeis dynamic.Dynamic
+
+    var str : String = "123"
+    b = str typeis dynamic.Dynamic    // This is good
+
+    o = new LinkedList()
+    b = o typeis Deque & List
+  }
+
+  function testTypeis() {
+    var x: Dynamic = "Hello"
+    var y = x typeis String   // This is good
+    var b : boolean
+    var c: String & Comparator
+    b = c typeis Integer        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.INTEGER'
+    b = c typeis String         //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.STRING'
+    b = c typeis  CharSequence
+
+    var i: Integer
+    b = i typeis String & Comparator        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.INTEGER' TYPEIS 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR'
+
+    var d : C
+    var e : A
+    b = d typeis C
+    b = d typeis A
+    b = e typeis A
+    b = e typeis C
+  }
+}
+
+// IDE-4028
+  abstract class Ide4028 implements List<String[]> {
+
+    function hello() {
+        var i: List<Object>
+        var j: int
+
+        if (i typeis String) {}        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>' TYPEIS 'JAVA.LANG.STRING'
+        if (i typeis Set) {}
+        if (i typeis Ide4028) {}  // Good
+        if (i typeis BigDecimal) {}
+        if (i typeis List<Object[]>) {}
+    }
+
+  }
+
   static  abstract class DataBuilderExpression<T extends DataBuilder> {
 
     protected var _builder : T
@@ -147,8 +215,7 @@ class Errant_IfTypeNarrowing {
       return _builder
     }
   }
-
-
+  
   static public abstract class DataBuilder<B extends DataBuilder<B>> {}
 
   static  public class CA7LineSchedCovItemBuilder extends DataBuilder<CA7LineSchedCovItemBuilder> {}

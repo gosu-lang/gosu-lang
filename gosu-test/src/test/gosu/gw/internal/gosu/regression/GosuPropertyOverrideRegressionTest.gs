@@ -38,11 +38,11 @@ class GosuPropertyOverrideRegressionTest extends TestClass
     assertEquals(true, x.FooPBooleanWithSetter)
     assertEquals(true, x.FooPBoolean)
     
-    x.setFooPIntWithSetter(5)
+    x.FooPIntWithSetter = 5
     assertEquals(5, x.isFooPIntWithSetter())
     assertEquals(5, x.isFooPInt())
     
-    x.setFooStringWithSetter("test")
+    x.FooStringWithSetter = "test"
     assertEquals("test", x.isFooStringWithSetter())
     assertEquals("test", x.isFooString())
   }
@@ -87,46 +87,34 @@ class GosuPropertyOverrideRegressionTest extends TestClass
     var x = new AllOverridesViaProperties() 
     
     x.BarBooleanWithSetter = true
-    assertEquals(true, x.getBarBooleanWithSetter())   
-    assertEquals(true, x.isBarBooleanWithSetter())   
-    assertEquals(true, x.getBarBoolean())   
-    assertEquals(true, x.isBarBoolean())   
+    assertEquals(true, x.BarBooleanWithSetter)   
+    assertEquals(true, x.BarBoolean)   
     
     x.BarPBooleanWithSetter = true
-    assertEquals(true, x.getBarPBooleanWithSetter())
-    assertEquals(true, x.isBarPBooleanWithSetter())
-    assertEquals(true, x.getBarPBoolean())
-    assertEquals(true, x.isBarPBoolean())
+    assertEquals(true, x.BarPBooleanWithSetter)
+    assertEquals(true, x.BarPBoolean)
     
     x.BarPIntWithSetter = 5
-    assertEquals(5, x.getBarPIntWithSetter())
-    assertEquals(5, x.isBarPIntWithSetter())
-    assertEquals(5, x.getBarPInt())
-    assertEquals(5, x.isBarPInt())
+    assertEquals(5, x.BarPIntWithSetter)
+    assertEquals(5, x.BarPInt)
     
     x.BarStringWithSetter = "test"
-    assertEquals("test", x.getBarStringWithSetter())
-    assertEquals("test", x.isBarStringWithSetter())
-    assertEquals("test", x.getBarString())
-    assertEquals("test", x.isBarString())
+    assertEquals("test", x.BarStringWithSetter)
+    assertEquals("test", x.BarString)
     
     x.FooBooleanWithSetter = true
-    assertEquals(true, x.getFooBooleanWithSetter())
-    assertEquals(true, x.isFooBooleanWithSetter())
-    assertEquals(true, x.getFooBoolean())
-    assertEquals(true, x.isFooBoolean())
+    assertEquals(true, x.FooBooleanWithSetter)
+    assertEquals(true, x.FooBoolean)
     
     x.FooPBooleanWithSetter = true
-    assertEquals(true, x.getFooPBooleanWithSetter())
-    assertEquals(true, x.isFooPBooleanWithSetter())
-    assertEquals(true, x.getFooPBoolean())
-    assertEquals(true, x.isFooPBoolean())
+    assertEquals(true, x.FooPBooleanWithSetter)
+    assertEquals(true, x.FooPBoolean)
     
-    x.setFooPIntWithSetter(5)
+    x.FooPIntWithSetter = 5
     assertEquals(5, x.isFooPIntWithSetter())
     assertEquals(5, x.isFooPInt())
     
-    x.setFooStringWithSetter("test")
+    x.FooStringWithSetter = "test"
     assertEquals("test", x.isFooStringWithSetter())
     assertEquals("test", x.isFooString())    
   }
@@ -135,10 +123,8 @@ class GosuPropertyOverrideRegressionTest extends TestClass
     var x : GosuPropertyOverrideRegressionHelper = new AllOverridesViaProperties() 
     
     x.BarBooleanWithSetter = true
-    assertEquals(true, x.getBarBooleanWithSetter())   
-    assertEquals(true, x.isBarBooleanWithSetter())   
-    assertEquals(true, x.getBarBoolean())   
-    assertEquals(true, x.isBarBoolean())   
+    assertEquals(true, x.BarBooleanWithSetter)   
+    assertEquals(true, x.BarBoolean)   
     
     x.BarPBooleanWithSetter = true
     assertEquals(true, x.getBarPBooleanWithSetter())
@@ -148,15 +134,15 @@ class GosuPropertyOverrideRegressionTest extends TestClass
     
     x.BarPIntWithSetter = 5
     assertEquals(5, x.getBarPIntWithSetter())
-    assertEquals(5, x.isBarPIntWithSetter())
+    assertEquals(5, x.BarPIntWithSetter)
     assertEquals(5, x.getBarPInt())
-    assertEquals(5, x.isBarPInt())
+    assertEquals(5, x.BarPInt)
     
     x.BarStringWithSetter = "test"
     assertEquals("test", x.getBarStringWithSetter())
-    assertEquals("test", x.isBarStringWithSetter())
+    assertEquals("test", x.BarStringWithSetter)
     assertEquals("test", x.getBarString())
-    assertEquals("test", x.isBarString())
+    assertEquals("test", x.BarString)
     
     x.FooBooleanWithSetter = true
     assertEquals(true, x.getFooBooleanWithSetter())
@@ -397,11 +383,17 @@ class GosuPropertyOverrideRegressionTest extends TestClass
       return _fooPInt
     }
 
-    override function setFooStringWithSetter(value : String) {
+    override property get FooStringWithSetter() : String {
+      return _fooString
+    }
+    override property set FooStringWithSetter(value : String) {
       _fooString = value
     }
 
-    override function setFooPIntWithSetter(value : int) {
+    override property get FooPIntWithSetter() : int {
+      return _fooPInt
+    }
+    override property set FooPIntWithSetter(value : int) {
       _fooPInt = value
     }
     

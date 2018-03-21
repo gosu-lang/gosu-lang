@@ -27,8 +27,13 @@ class Errant_PropertyGetCovariance {
   function testSetter() {
     var base : Base
     var sub : Sub
-    var num : java.lang.Number
+    
+    var num : Number
     base.A = num
-    sub.A = num   //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    sub.A = num // contravariance 
+    
+    var intg: Integer
+    intg = base.A  //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+    intg = sub.A // covariance 
   }
 }

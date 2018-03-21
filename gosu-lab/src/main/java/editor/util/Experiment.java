@@ -6,11 +6,11 @@ import editor.LabFrame;
 import editor.run.FqnRunConfig;
 import editor.run.ProgramRunConfigFactory;
 import editor.run.ProgramRunConfigParameters;
+import editor.settings.CompilerSettings;
+import editor.settings.CompilerSettingsParameters;
 import editor.settings.ISettings;
 import editor.settings.Settings;
 import gw.lang.Gosu;
-import manifold.internal.javac.IJavaParser;
-import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.json.IJsonIO;
 import editor.run.IRunConfig;
@@ -20,6 +20,7 @@ import gw.lang.reflect.Expando;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.module.IProject;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import gw.util.PathUtil;
 import java.io.File;
@@ -55,7 +56,7 @@ public class Experiment implements IProject
   {
     _name = name;
     _gosuPanel = gosuPanel;
-    _sourcePath = Arrays.asList( PathUtil.getAbsolutePathName( PathUtil.create( dir, getRelativeGosuSourcePath() ) ) );
+    _sourcePath = Collections.singletonList( PathUtil.getAbsolutePathName( PathUtil.create( dir, getRelativeGosuSourcePath() ) ) );
     _backingSourcePath = Gosu.findJreSources();
     _experimentDir = dir;
     //noinspection ResultOfMethodCallIgnored
@@ -63,7 +64,7 @@ public class Experiment implements IProject
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
     _settings = Settings.makeDefaultSettings( this );
-    GosuParserFactory.getInterface( IJavaParser.class ).get( 0 ).clear();
+    addSettingsListeners();
   }
 
   public Experiment( Path dir, GosuPanel gosuPanel )
@@ -76,7 +77,6 @@ public class Experiment implements IProject
     _openFiles = Collections.emptyList();
     _runConfigs = Collections.emptyList();
     _settings = Settings.makeDefaultSettings( this );
-    GosuParserFactory.getInterface( IJavaParser.class ).get( 0 ).clear();
     load();
     FileWatcher.instance( this );
   }
@@ -308,19 +308,41 @@ public class Experiment implements IProject
 
       //noinspection unchecked
       _runConfigs = IJsonIO.readList( "RunConfigs", bindings );
-      _mruRunConfig = findRunConfig( rc -> rc.getName().equals( (String)bindings.get( "MruRunConfig" ) ) );
+      _mruRunConfig = findRunConfig( rc -> rc.getName().equals( bindings.get( "MruRunConfig" ) ) );
 
       _settings = new TreeMap<>();
       List<ISettings> settingList = IJsonIO.readList( "Settings", bindings );
       settingList.forEach( setting -> _settings.put( setting.getPath(), setting ) );
       _settings = Settings.mergeSettings( _settings, this );
+      addSettingsListeners();
 
-      _mruSettings = findSettings( settings -> settings.getName().equals( (String)bindings.get( "MruSettings" ) ) );
+      _mruSettings = findSettings( settings -> settings.getName().equals( bindings.get( "MruSettings" ) ) );
     }
     catch( IOException e )
     {
       throw new RuntimeException( e );
     }
+  }
+
+  private void addSettingsListeners()
+  {
+    CompilerSettings compilerSettings = (CompilerSettings)_settings.get( CompilerSettings.PATH );
+    compilerSettings.addChangeListener( (oldParams, newParams) -> {
+      if( newParams.isSourceBased() && !oldParams.isSourceBased() ||
+          !oldParams.getOutputPath().equals( newParams.getOutputPath() ) )
+      {
+        // clean .class files from output
+        String outputPath = oldParams.getOutputPath();
+        if( outputPath != null && !outputPath.isEmpty() )
+        {
+          Path path = PathUtil.create( outputPath );
+          if( Files.isDirectory( path ) )
+          {
+            PathUtil.delete( path, true );
+          }
+        }
+      }
+    } );
   }
 
   public static String getRelativeGosuSourcePath()

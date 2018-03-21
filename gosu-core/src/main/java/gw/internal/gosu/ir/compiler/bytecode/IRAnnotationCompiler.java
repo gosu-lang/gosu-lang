@@ -19,7 +19,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.List;
 
 public class IRAnnotationCompiler

@@ -6,6 +6,8 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.*;
 
+import gw.lang.reflect.IType;
+import gw.lang.reflect.java.JavaTypes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +38,20 @@ public class ReducedDynamicPropertySymbol extends ReducedSymbol implements IRedu
   public boolean isWritable()
   {
     return getSetterDfs() != null;
+  }
+
+  public IType getAssignableType()
+  {
+    ReducedDynamicFunctionSymbol setterDfs = getSetterDfs();
+    if( setterDfs != null )
+    {
+      List<IReducedSymbol> args = setterDfs.getArgs();
+      if( args.size() > 0 )
+      {
+        return args.get( 0 ).getType();
+      }
+    }
+    return JavaTypes.pVOID();
   }
 
   public boolean isPublic()

@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.CICS;
 import gw.lang.parser.ISource;
+import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IMethodInfo;
@@ -384,11 +385,13 @@ public class EnhancementIndex implements IEnhancementIndex
     }
     else
     {
-      if (exact) {
-      return typeEnhanced.isAssignableFrom( typeToEnhance );
-      } else {
-        return TypeLord.getPureGenericType(typeEnhanced).isAssignableFrom( TypeLord.getPureGenericType(typeToEnhance) );
+      if( !exact )
+      {
+        typeToEnhance = TypeLord.getPureGenericType( typeToEnhance );
+        typeEnhanced = TypeLord.getPureGenericType( typeEnhanced );
       }
+
+      return typeEnhanced.isAssignableFrom( typeToEnhance );
     }
   }
 

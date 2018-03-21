@@ -24,7 +24,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-      .withTest( "gw.specContrib.interop.java.InteropTest" );
+      .withTest( "gw.specContrib.classes.inner.InnerClassTest" );
     //  .withTest( "gw.internal.gosu.parser.classTests.gwtest.dynamic.JsonTest" );
   }
 
@@ -42,7 +42,7 @@ public class GosuScratchSuite extends Suite
         }
       }
       GosuInitialization.instance( TypeSystem.getExecutionEnvironment() )
-        .reinitializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ) );
+        .initializeRuntime( ClasspathToGosuPathEntryUtil.convertClasspathToGosuPathEntries( classpath ) );
     }
   }
 }

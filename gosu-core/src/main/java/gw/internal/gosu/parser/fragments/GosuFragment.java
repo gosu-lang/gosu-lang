@@ -45,7 +45,7 @@ import gw.util.GosuExceptionUtil;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

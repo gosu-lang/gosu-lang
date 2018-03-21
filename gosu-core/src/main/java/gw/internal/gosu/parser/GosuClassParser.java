@@ -86,7 +86,7 @@ import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.MethodList;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
-import manifold.api.sourceprod.ClassType;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuClassParser;
@@ -98,7 +98,7 @@ import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import manifold.util.DynamicArray;
+import gw.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
@@ -3290,7 +3290,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       }
       if( setter.getArgs().size() == 1 )
       {
-        IType setterType = setter.getArgTypes()[0];
+        IType setterType = ((FunctionType)setter.getType()).getParameterTypes()[0];
         IType returnType = getter.getReturnType();
         if( !setterType.isAssignableFrom( returnType ) ||
             !setterType.isAssignableFrom( propertySymbol.getType() ) )
@@ -4043,7 +4043,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
               }
               else if( dps.getSetterDfs().getArgTypes().length > 0 )
               {
-                verifyTypeVarVariance( Variance.CONTRAVARIANT, functionStmt, dps.getSetterDfs().getArgTypes()[0] );
+                verifyTypeVarVariance( Variance.CONTRAVARIANT, functionStmt, ((FunctionType)dps.getSetterDfs().getType()).getParameterTypes()[0] );
               }
             }
             verifyModifiers( functionStmt, modifiers, UsageTarget.PropertyTarget );
@@ -4627,7 +4627,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
 
     boolean bGet = dps.getGetterDfs() != null;
-    boolean bSet = dps.getSetterDfs() != null && dps.getSetterDfs().getArgTypes() != null && dps.getSetterDfs().getArgTypes().length > 0;
+    boolean bSet = dps.getSetterDfs() != null && dps.getSetterDfs().getArgTypes().length > 0;
     if( bGet && bSet )
     {
       verifyTypeVarVariance( Variance.INVARIANT, varStmt,  dps.getGetterDfs().getReturnType() );
@@ -4638,7 +4638,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     }
     else if( bSet )
     {
-      verifyTypeVarVariance( Variance.CONTRAVARIANT, varStmt, dps.getSetterDfs().getArgTypes()[0] );
+      verifyTypeVarVariance( Variance.CONTRAVARIANT, varStmt, ((FunctionType)dps.getSetterDfs().getType()).getParameterTypes()[0] );
     }
   }
 

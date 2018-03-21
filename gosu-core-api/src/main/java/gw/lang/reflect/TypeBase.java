@@ -12,7 +12,7 @@ import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.HashSet;
 import java.util.Set;
 

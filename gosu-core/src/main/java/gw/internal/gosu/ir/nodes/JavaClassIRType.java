@@ -19,7 +19,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuClassUtil;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 

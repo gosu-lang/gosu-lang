@@ -10,7 +10,7 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
 
   property get Text2(): Integer {
     return null
-  }
+  }  //## issuekeys: MSG_PROPERTIES_MUST_AGREE_ON_TYPE
 
   var myVar: Set<A> as Set1
 
@@ -25,6 +25,15 @@ class Errant_PropertyAcrossJavaAndGosu extends JavaClass2 {
   }
 
   // IDE-1238
-  class InnerClass2 extends JavaIntfImpl implements GosuIntf {  //## issuekeys: MUST BE DECLARED ABSTRACT OR IMPLEMENT 'isEditable()' in 'GosuIntf'
+  class InnerClass2 extends JavaIntfImpl implements GosuIntf {  //## issuekeys: MSG_UNIMPLEMENTED_METHOD, MSG_UNIMPLEMENTED_METHOD
+  }
+  
+  interface GosuIntf2 {
+    property get Pod(): String
+
+    property get Editable(): boolean
+  }
+
+  class InnerClass3 extends JavaIntfImpl implements GosuIntf2 { 
   }
 }

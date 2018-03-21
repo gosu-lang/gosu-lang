@@ -137,4 +137,14 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
   public String toString() {
     return getName() + " in " + _owner.toString();
   }
+
+  @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
 }

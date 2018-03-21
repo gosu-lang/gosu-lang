@@ -9,8 +9,8 @@ class Errant_PropertyVsFunctionConflict {
   }
 
   class SubClass1 extends Class1 {
-    property get MyProp1() : String { return null }   //## issuekeys: IMPLICITLY OVERRIDES PARENT CLASS FUNCTION
-    property set MyProp2(s: String) { }               //## issuekeys: IMPLICITLY OVERRIDES PARENT CLASS FUNCTION
+    property get MyProp1() : String { return null }   //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
+    property set MyProp2(s: String) { }               //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT, MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION
   }
 
 
@@ -20,8 +20,8 @@ class Errant_PropertyVsFunctionConflict {
   }
 
   class SubClass2 extends Class2 {
-    var myProp1 : String as MyProp1    //## issuekeys: IMPLICITLY OVERRIDES PARENT CLASS FUNCTION
-    var myProp2 : String as MyProp2    //## issuekeys: IMPLICITLY OVERRIDES PARENT CLASS FUNCTION
+    var myProp1 : String as MyProp1    //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
+    var myProp2 : String as MyProp2    //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT, MSG_PROPERTY_AND_FUNCTION_CONFLICT_UPON_REIFICATION
   }
 
   class Class3 {
@@ -29,12 +29,12 @@ class Errant_PropertyVsFunctionConflict {
   }
 
   class SubClass3 extends Class3 {
-    function getMyProp() : String { return null }  //## issuekeys: OVERRIDES PARENT CLASS IMPLICIT FUNCTION
-    function setMyProp(s: String) {}               //## issuekeys: OVERRIDES PARENT CLASS IMPLICIT FUNCTION
+    function getMyProp() : String { return null }  //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
+    function setMyProp(s: String) {}               //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
   }
 
   class SubClass4 extends JavaClass2 {
-    function getText1(): String { return null } //## issuekeys: OVERRIDES PARENT CLASS IMPLICIT FUNCTION
+    function getText1(): String { return null }  //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
   }
 
   class Class5 {
@@ -55,13 +55,13 @@ class Errant_PropertyVsFunctionConflict {
 
   // IDE-1192
   class SubClass7 extends JavaClass3 {
-    property set Text(s: String) {}         //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+    function setText(s: String) {}         //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
     override property set Text2(s: String) {}
 
   }
 
   class SubClass8 extends JavaClass3 {
-    var prop1: String as Text               //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+    var prop1: String as Text             
     var prop2: String as Text2
   }
 
@@ -69,6 +69,6 @@ class Errant_PropertyVsFunctionConflict {
     function getProp1() : void {}
   }
   class SubClass9 extends Class9 {
-    var something : String as Prop1      //## issuekeys: PROPERTY OVERRIDES PARENT CLASS FUNCTION
+    var something : String as Prop1      //## issuekeys: MSG_PROPERTY_AND_FUNCTION_CONFLICT
   }
 }

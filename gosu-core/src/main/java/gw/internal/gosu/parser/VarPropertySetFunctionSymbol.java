@@ -7,7 +7,6 @@ package gw.internal.gosu.parser;
 import gw.internal.gosu.parser.statements.SyntheticFunctionStatement;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.reflect.FunctionType;
-import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ScriptPartId;
@@ -45,10 +44,5 @@ public class VarPropertySetFunctionSymbol extends DynamicFunctionSymbol
   public String getVarIdentifier()
   {
     return _varIdentifier;
-  }
-
-  public DynamicFunctionSymbol getParameterizedVersion( IGosuClass gsClass )
-  {
-    return this;
   }
 }

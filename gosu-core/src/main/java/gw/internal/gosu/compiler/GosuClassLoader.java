@@ -11,8 +11,8 @@ import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.IGosuProgramInternal;
+import gw.internal.gosu.parser.JavaMethodCache;
 import gw.internal.gosu.parser.ModuleClassLoader;
-import gw.internal.gosu.parser.NewIntrospector;
 import gw.internal.gosu.parser.TypeLord;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.reflect.IGosuClassLoadingObserver;
@@ -133,23 +133,25 @@ public class GosuClassLoader implements IGosuClassLoader
   @Override
   public Class loadClass( String strName ) throws ClassNotFoundException
   {
+    String strGsName = strName.replace( '$', '.' );
+    //## hack:
+    if (strGsName.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
+      strGsName = "entity." + strGsName.substring(strName.lastIndexOf('.') + 1);
+    }
+
+    IType type = TypeSystem.getByFullNameIfValid( strGsName );
+    if( type instanceof IGosuClassInternal )
+    {
+      return ((IGosuClassInternal)type).getBackingClass();
+    }
+    else if( type instanceof IJavaBackedType )
+    {
+      return ((IJavaBackedType)type).getBackingClass();
+    }
+
     TypeSystemLockHelper.getTypeSystemLockWithMonitor(_loader);
     try
     {
-      String strGsName = strName.replace( '$', '.' );
-      //## hack:
-      if (strGsName.startsWith("com.guidewire.commons.metadata.proxy._generated.iface.")) {
-        strGsName = "entity." + strGsName.substring(strName.lastIndexOf('.') + 1);
-      }
-      IType type = TypeSystem.getByFullNameIfValid( strGsName );
-      if( type instanceof IGosuClassInternal )
-      {
-        return ((IGosuClassInternal)type).getBackingClass();
-      }
-      else if( type instanceof IJavaBackedType )
-      {
-        return ((IJavaBackedType)type).getBackingClass();
-      }
       return _loader.loadClass( strName );
     }
     finally
@@ -345,7 +347,7 @@ public class GosuClassLoader implements IGosuClassLoader
 
       if( BytecodeOptions.aggressivelyVerify() )
       {
-        NewIntrospector.getDeclaredMethods( cls );
+        JavaMethodCache.getDeclaredMethods( cls );
         cls.getDeclaredMethods(); //force verification
       }
 

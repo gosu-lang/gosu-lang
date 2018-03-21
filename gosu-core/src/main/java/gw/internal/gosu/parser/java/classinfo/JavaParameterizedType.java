@@ -90,6 +90,16 @@ public class JavaParameterizedType implements IJavaClassParameterizedType {
   }
 
   @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
+
+  @Override
   public IModule getModule() {
     return _rawType.getModule();
   }

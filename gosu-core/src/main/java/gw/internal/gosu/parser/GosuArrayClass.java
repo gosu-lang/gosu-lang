@@ -14,7 +14,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.util.Pair;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 /**
  */

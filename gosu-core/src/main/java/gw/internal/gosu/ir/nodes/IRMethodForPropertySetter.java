@@ -55,7 +55,7 @@ public class IRMethodForPropertySetter extends IRFeatureBase implements IRMethod
   public List<IRType> getAllParameterTypes() {
     List<IRType> paramTypes = new ArrayList<IRType>();
     addImplicitParameters(getOwningIType(), getFunctionType(), isStatic(), paramTypes);
-    paramTypes.add( _owningProperty.getType() );
+    paramTypes.add( _owningProperty.getAssignableType() );
     return paramTypes;
   }
 

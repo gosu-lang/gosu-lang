@@ -48,4 +48,14 @@ public class AsmGenericArrayTypeJavaClassGenericArrayType extends AsmTypeJavaCla
   {
     return null;
   }
+
+  @Override
+  public boolean isArray() {
+    return true;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return getGenericComponentType();
+  }
 }

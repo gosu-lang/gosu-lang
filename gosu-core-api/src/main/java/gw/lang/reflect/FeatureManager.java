@@ -536,7 +536,7 @@ public class FeatureManager<T extends CharSequence> {
   protected void mergeProperty(PropertyNameMap<T> props, IPropertyInfo propertyInfo, boolean replace) {
     boolean prependPrefix = _superPropertyPrefix != null && ! propertyInfo.getOwnersType().equals( _typeInfo.getOwnersType() );
     T cs = convertCharSequenceToCorrectSensitivity( prependPrefix ? ( _superPropertyPrefix + propertyInfo.getName() ) : propertyInfo.getName() );
-    if (replace || !props.containsKey( cs )) {
+    if ( replace || shouldReplace( props, cs, propertyInfo ) ) {
       if ( prependPrefix ) {
         props.put( cs, new PropertyInfoDelegate( propertyInfo.getContainer(), propertyInfo, cs.toString() ) );
       }
@@ -544,6 +544,22 @@ public class FeatureManager<T extends CharSequence> {
         props.put(cs, propertyInfo);
       }
     }
+  }
+
+  private boolean shouldReplace( PropertyNameMap<T> props, T cs, IPropertyInfo propertyInfo )
+  {
+    IPropertyInfo pi = props.get( cs );
+    if( pi == null )
+    {
+      return true;
+    }
+
+    if( propertyInfo.isReadable() && propertyInfo.isWritable( _typeInfo.getOwnersType() ) )
+    {
+      return !pi.isReadable() || !pi.isWritable();
+    }
+
+    return false;
   }
 
   protected void mergeMethods(MethodList methods, IType type, boolean replace) {

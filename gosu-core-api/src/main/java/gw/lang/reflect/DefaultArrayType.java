@@ -11,7 +11,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

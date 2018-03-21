@@ -22,12 +22,12 @@ import com.sun.source.util.SourcePositions;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 import gw.config.ExecutionMode;
-import gw.internal.gosu.parser.AsmClassJavaClassInfo;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
-import gw.lang.SimplePropertyProcessing;
-import manifold.internal.javac.IJavaParser;
+import gw.lang.javac.ClassJavaFileObject;
+import gw.lang.javac.IJavaParser;
+import gw.lang.javac.JavaCompileIssuesException;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -36,10 +36,8 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.ILocationInfo;
-import gw.lang.reflect.INonLoadableType;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ImplicitPropertyUtil;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
@@ -62,10 +60,10 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
 import gw.util.GosuExceptionUtil;
-import gw.util.GosuObjectUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,10 +71,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
-import manifold.internal.javac.InMemoryClassJavaFileObject;
-import manifold.internal.javac.JavaCompileIssuesException;
 
-public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJavaClassType, ITypeInfoResolver
+public abstract class JavaSourceType extends AbstractJavaClassInfo implements ITypeInfoResolver
 {
   public static final int IGNORE_NONE = 0;
   public static final int IGNORE_INTERFACES = 1;
@@ -194,7 +190,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   private static boolean parseJavaFile( ISourceFileHandle src, List<CompilationUnitTree> trees, SourcePositions[] sourcePositions, DiagnosticCollector<JavaFileObject> errorHandler, DocTrees[] docTrees )
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     return javaParser.parseText( src.getSource().getSource().replace( "\r\n", "\n" ), trees, sp -> sourcePositions[0] = sp, dc -> {if( docTrees != null ) docTrees[0] = dc;}, errorHandler );
   }
 
@@ -700,90 +696,9 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     if( _propertyDescriptors == null )
     {
-      _propertyDescriptors = initPropertyDescriptors();
+      _propertyDescriptors = PropertyDeriver.initPropertyDescriptors( this );
     }
     return _propertyDescriptors;
-  }
-
-  protected IJavaPropertyDescriptor[] initPropertyDescriptors()
-  {
-    Map<String, IJavaClassMethod> getters = new HashMap<>();
-    Map<String, IJavaClassMethod> setters = new HashMap<>();
-    List<IJavaClassMethod> methods = new ArrayList<>();
-    methods.addAll( Arrays.asList( getDeclaredMethods() ) );
-
-    boolean simplePropertyProcessing = getModifierList().isAnnotationPresent( SimplePropertyProcessing.class );
-
-    for( IJavaClassMethod method : methods )
-    {
-      ImplicitPropertyUtil.ImplicitPropertyInfo info = JavaSourceUtil.getImplicitProperty( method, simplePropertyProcessing );
-      if( info != null )
-      {
-        if( info.isGetter() && !getters.containsKey( info.getName() ) )
-        {
-          getters.put( info.getName(), method );
-        }
-        else if( info.isSetter() && !setters.containsKey( info.getName() ) )
-        {
-          setters.put( info.getName(), method );
-        }
-      }
-    }
-
-    List<IJavaPropertyDescriptor> propertyDescriptors = new ArrayList<>();
-    for( Map.Entry<String, IJavaClassMethod> entry : getters.entrySet() )
-    {
-      String propName = entry.getKey();
-      IJavaClassMethod setter = setters.get( propName );
-      IJavaClassMethod getter = entry.getValue();
-      IJavaClassType getterType = getter == null ? null : getter.getGenericReturnType();
-      if( setter != null )
-      {
-        setters.remove( propName );
-        if( getterType != null &&
-            !setter.getGenericParameterTypes()[0].equals( getterType ) &&
-            !GosuObjectUtil.equals( setter.getGenericParameterTypes()[0].getConcreteType(), getterType ) )
-        {
-          setter = null;
-        }
-      }
-      if( getterType != null )
-      {
-        if( setter == null )
-        {
-          setter = AsmClassJavaClassInfo.maybeFindSetterInSuper( getter, getSuperclass() );
-        }
-        propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-          propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
-      }
-      else
-      {
-        setter = setters.get( propName );
-        if( setter != null )
-        {
-          getter = AsmClassJavaClassInfo.maybeFindGetterInSuper( setter, getSuperclass() );
-          if( getter != null )
-          {
-            setters.remove( propName );
-            propertyDescriptors.add( new JavaSourcePropertyDescriptor(
-              propName, (IJavaClassInfo)getterType.getConcreteType(), getter, setter ) );
-          }
-        }
-      }
-    }
-    for( Map.Entry<String, IJavaClassMethod> entry : setters.entrySet() )
-    {
-      String propName = entry.getKey();
-      IJavaClassMethod setter = entry.getValue();
-      IJavaClassType propType = setter.getGenericReturnType();
-      IJavaClassMethod getter = AsmClassJavaClassInfo.maybeFindGetterInSuper( setter, getSuperclass() );
-      if( getter != null )
-      {
-        propType = getter.getGenericReturnType();
-      }
-      propertyDescriptors.add( new JavaSourcePropertyDescriptor( propName, (IJavaClassInfo)propType.getConcreteType(), getter, setter ) );
-    }
-    return propertyDescriptors.toArray( new IJavaPropertyDescriptor[propertyDescriptors.size()] );
   }
 
   @Override
@@ -791,7 +706,6 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   {
     return _javaType == null ? (_javaType = TypeSystem.get( this )) : _javaType;
   }
-
   public void setJavaType( IJavaType javaType )
   {
     _javaType = javaType;
@@ -973,7 +887,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isInterface()
   {
-    return false;
+    return this instanceof JavaSourceInterface;
   }
 
   @Override
@@ -1031,7 +945,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isEnum()
   {
-    return false;
+    return this instanceof JavaSourceEnum;
   }
 
   @Override
@@ -1042,7 +956,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   public boolean isAnnotation()
   {
-    return false;
+    return this instanceof JavaSourceAnnotation;
   }
 
   public boolean isPublic()
@@ -1260,20 +1174,16 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
 
   private IJavaClassInfo getClassInfo( String fqn )
   {
-    IType type = TypeSystem.getByFullNameIfValid( fqn );
-    if( type instanceof IJavaType )
+    IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
+    if( classInfo != null )
     {
-      IJavaClassInfo classInfo = JavaSourceUtil.getClassInfo( fqn, _gosuModule );
-      if( classInfo != null )
-      {
-        return classInfo;
-      }
+      return classInfo;
     }
 
     return maybeLoadJavaStubIfGosuType( fqn );
   }
 
-  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case where
+  // Java can reference Gosu directly from source and visa versa, therefore we must handle the case were
   // a Gosu class references a Java class that in turn references a Gosu class:
   //
   //  // from MyJavaClass.java
@@ -1288,11 +1198,11 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   private IJavaClassInfo maybeLoadJavaStubIfGosuType( String fqn )
   {
     IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
-    if( type != null && !(type instanceof IJavaType) && !(type instanceof INonLoadableType) )
+    if( type instanceof IGosuClass )
     {
       StringSourceFileHandle sfh =
         new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn,
-          () -> JavaStubGenerator.instance().genStub( type ),
+          () -> JavaStubGenerator.instance().genStub( (IGosuClass)type ),
           ((IGosuClass)type).getClassType() );
       return JavaSourceType.createTopLevel( sfh, TypeSystem.getCurrentModule() );
     }
@@ -1462,14 +1372,14 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IJ
   @Override
   public byte[] compile()
   {
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class ).get( 0 );
+    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    InMemoryClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();
     }
-    throw new JavaCompileIssuesException( fileObj.getClassName(), errorHandler );
+    throw new JavaCompileIssuesException( errorHandler );
   }
 
   @Override

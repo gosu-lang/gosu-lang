@@ -1119,7 +1119,16 @@ public abstract class ParserBase implements IParserPart
 
     if( isParsingBlock() || isOrIsEnclosedByAnonymousClass( getGosuClass() ) && !getOwner().isParsingAnnotation() )
     {
-      sym = captureSymbol( getCurrentEnclosingGosuClass(), strName, e );
+      ICompilableTypeInternal enclosingClass = getCurrentEnclosingGosuClass();
+      if( enclosingClass != null )
+      {
+        sym = captureSymbol( enclosingClass, strName, e );
+      }
+      else
+      {
+        // the enclosingClass can be null e.g., during method scoring
+        sym = null;
+      }
     }
     else
     {
@@ -1329,6 +1338,12 @@ public abstract class ParserBase implements IParserPart
         Keyword.KW_outer.equals( strName ) )
     {
       return findSymbol( strName, true );
+    }
+
+    if( anonClass == null )
+    {
+      // can be null in some cases e.g., during method scoring
+      return null;
     }
 
     try
@@ -1744,7 +1759,7 @@ public abstract class ParserBase implements IParserPart
         {
           getTokenizer().nextToken();
 
-          verify( elem, bIgnoreErrors || !Modifier.isFinal( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_reified, Keyword.KW_reified );
+          verify( elem, bIgnoreErrors || !Modifier.isReified( iModifiers ), Res.MSG_ILLEGAL_USE_OF_MODIFIER, Keyword.KW_reified, Keyword.KW_reified );
           iModifiers = Modifier.setReified( iModifiers, true );
         }
         else if( Keyword.KW_final == keyword )
@@ -2169,11 +2184,14 @@ public abstract class ParserBase implements IParserPart
 
     _blocks.push( block );
 
-    IBlockClassInternal blockClass = BlockClass.create( enclosingClass, block, _blocks.size() == 1 && getOwner().isParsingStaticFeature() );
-    block.setBlockGosuClass( blockClass );
-    if( enclosingClass != null )
+    if( !getOwner().getContextType().isMethodScoring() )
     {
-      enclosingClass.addBlock( blockClass );
+      IBlockClassInternal blockClass = BlockClass.create( enclosingClass, block, _blocks.size() == 1 && getOwner().isParsingStaticFeature() );
+      block.setBlockGosuClass( blockClass );
+      if( enclosingClass != null )
+      {
+        enclosingClass.addBlock( blockClass );
+      }
     }
   }
 

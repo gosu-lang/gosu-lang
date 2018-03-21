@@ -13,7 +13,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuClassUtil;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 public class GosuClassIRType implements IRType {
   private IType _type;

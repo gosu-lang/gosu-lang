@@ -75,4 +75,14 @@ public class UnparseableSourceTypeVariable implements IJavaClassTypeVariable {
   public void setVariance( Variance variance )
   {
   }
+
+  @Override
+  public boolean isArray() {
+    return false;
+  }
+
+  @Override
+  public IJavaClassType getComponentType() {
+    return null;
+  }
 }

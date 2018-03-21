@@ -1,6 +1,5 @@
 package gw.util;
 
-import com.sun.javafx.PlatformUtil;
 import com.sun.tools.javac.api.JavacTool;
 import manifold.api.fs.FileFactory;
 import manifold.api.fs.IFile;

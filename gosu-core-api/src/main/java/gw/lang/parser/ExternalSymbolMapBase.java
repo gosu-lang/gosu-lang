@@ -6,7 +6,7 @@ package gw.lang.parser;
 
 import gw.lang.reflect.gs.IExternalSymbolMap;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 
 public abstract class ExternalSymbolMapBase implements IExternalSymbolMap {
 

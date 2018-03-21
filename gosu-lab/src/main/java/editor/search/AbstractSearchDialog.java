@@ -757,13 +757,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     public boolean isEnabled()
     {
       String pattern = ((JTextComponent)_cbSearch.getEditor().getEditorComponent()).getText();
-      boolean enabled = pattern != null && !pattern.isEmpty();
-      if( _bReplace && enabled )
-      {
-        String replace = ((JTextComponent)_cbReplace.getEditor().getEditorComponent()).getText();
-        enabled = replace != null && !replace.isEmpty();
-      }
-      return enabled;
+      return pattern != null && !pattern.isEmpty();
     }
 
     @Override

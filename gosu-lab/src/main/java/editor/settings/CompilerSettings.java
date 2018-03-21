@@ -4,7 +4,6 @@ import editor.LabFrame;
 import editor.util.Experiment;
 import java.nio.file.Path;
 import gw.util.PathUtil;
-import java.io.File;
 import java.util.function.Consumer;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -25,7 +24,7 @@ public class CompilerSettings extends AbstractSettings<CompilerSettingsParameter
   {
     CompilerSettingsParameters params = new CompilerSettingsParameters();
     params.setSourceBased( true );
-    params.setOuputPath( PathUtil.getAbsolutePathName( experiment.getExperimentDir() ) + File.separatorChar + "classes" );
+    params.setOuputPath( "classes" );
     return params;
   }
 
@@ -61,8 +60,7 @@ public class CompilerSettings extends AbstractSettings<CompilerSettingsParameter
 
   public static boolean isStaticCompile()
   {
-    Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
-    CompilerSettings settings = (CompilerSettings)experiment.getSettings().get( CompilerSettings.PATH );
+    CompilerSettings settings = getCompilerSettings();
     return !settings.getParams().isSourceBased();
   }
 
@@ -73,8 +71,13 @@ public class CompilerSettings extends AbstractSettings<CompilerSettingsParameter
       return null;
     }
 
-    Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
-    CompilerSettings settings = (CompilerSettings)experiment.getSettings().get( CompilerSettings.PATH );
+    CompilerSettings settings = getCompilerSettings();
     return PathUtil.create( settings.getParams().getOutputPath() );
+  }
+
+  private static CompilerSettings getCompilerSettings()
+  {
+    Experiment experiment = LabFrame.instance().getGosuPanel().getExperiment();
+    return (CompilerSettings)experiment.getSettings().get( CompilerSettings.PATH );
   }
 }

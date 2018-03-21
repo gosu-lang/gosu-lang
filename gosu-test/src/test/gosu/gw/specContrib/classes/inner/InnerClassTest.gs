@@ -8,4 +8,12 @@ class InnerClassTest extends BaseVerifyErrantTest {
     var innerInstance = outerInstance.makeInner()
     assertEquals( NonstaticGosuInnerClassExtentingNonstaticJavaInnerClass.GosuInner, typeof innerInstance )
   }
+
+  function testFunctionalJavaFromJavaInnerClass() {
+    var x: String = null;
+    JavaWithInnerFunctionalInterface.runWith( \ msg -> {
+      x = msg
+    }, "hi" )
+    assertEquals( "hi", x )
+  }
 }

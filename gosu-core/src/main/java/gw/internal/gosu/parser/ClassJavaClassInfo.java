@@ -5,9 +5,9 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
+import gw.internal.gosu.parser.java.classinfo.PropertyDeriver;
 import gw.lang.GosuShop;
 import gw.lang.javadoc.IClassDocNode;
-import gw.lang.reflect.BeanInfoUtil;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
@@ -26,31 +26,22 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
-import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IModule;
-import gw.util.concurrent.LockingLazyVar;
 import gw.util.concurrent.LocklessLazyVar;
 
-import java.beans.BeanDescriptor;
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaClassInfo {
   private Class<?> _class;
-  private transient LockingLazyVar<GenericBeanInfo> _beanInfo = new LockingLazyVar<GenericBeanInfo>() {
-    @Override
-    protected GenericBeanInfo init() {
-      return NewIntrospector.getBeanInfo(_class);
-    }
-  };
   private IJavaClassMethod[] _declaredMethods;
   private IJavaClassInfo[] _interfaces;
   private IJavaClassInfo _superclass;
@@ -147,7 +138,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   @Override
   public IJavaClassMethod[] getDeclaredMethods() {
     if (_declaredMethods == null) {
-      Method[] rawMethods = NewIntrospector.getDeclaredMethods(_class);
+      Method[] rawMethods = JavaMethodCache.getDeclaredMethods(_class);
       IJavaClassMethod[] methods = new IJavaClassMethod[rawMethods.length];
       for (int i = 0; i < rawMethods.length; i++) {
         methods[i] = new MethodJavaClassMethod(rawMethods[i], _module);
@@ -225,7 +216,7 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   public IJavaClassConstructor[] getDeclaredConstructors() {
     if (_declaredConstructors == null) {
       Constructor<?>[] rawCtors = _class.getDeclaredConstructors();
-      List<IJavaClassConstructor> ctors = new ArrayList<IJavaClassConstructor>(rawCtors.length);
+      List<IJavaClassConstructor> ctors = new ArrayList<>(rawCtors.length);
       for (Constructor<?> rawCtor : rawCtors) {
         if (!rawCtor.isSynthetic()) {
           ctors.add(new ConstructorJavaClassConstructor(rawCtor, _module));
@@ -284,46 +275,41 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   }
 
   @Override
-  public IJavaPropertyDescriptor[] getPropertyDescriptors() {
-    if (_propertyDescriptors == null) {
-      PropertyDescriptor[] rawPropDesc = _beanInfo.get().getPropertyDescriptors();
-      IJavaPropertyDescriptor[] propDesc = new IJavaPropertyDescriptor[rawPropDesc.length];
-      for (int i = 0; i < rawPropDesc.length; i++) {
-        propDesc[i] = new PropertyDescriptorJavaPropertyDescriptor(rawPropDesc[i], _module);
-      }
-      _propertyDescriptors = propDesc;
+  public IJavaPropertyDescriptor[] getPropertyDescriptors()
+  {
+    if( _propertyDescriptors == null )
+    {
+      _propertyDescriptors = PropertyDeriver.initPropertyDescriptors( this );
     }
     return _propertyDescriptors;
   }
 
   @Override
-  public IJavaMethodDescriptor[] getMethodDescriptors() {
-    if (_methodDescriptors == null) {
-      GWMethodDescriptor[] rawMDs = _beanInfo.get().getGWMethodDescriptors();
-      IJavaMethodDescriptor[] mds = new IJavaMethodDescriptor[rawMDs.length];
-      for (int i = 0; i < rawMDs.length; i++) {
-        mds[i] = new MethodDescriptorJavaMethodDescriptor(rawMDs[i], _module);
-      }
-      _methodDescriptors = mds;
+  public IJavaMethodDescriptor[] getMethodDescriptors()
+  {
+    if( _methodDescriptors == null )
+    {
+      Method[] rawMethods = JavaMethodCache.getDeclaredMethods( _class );
+      _methodDescriptors = Arrays.stream( rawMethods ).filter( m -> !m.isSynthetic() )
+        .map( m -> new MethodDescriptorJavaMethodDescriptor( m, _module ) )
+        .toArray( IJavaMethodDescriptor[]::new );
     }
     return _methodDescriptors;
   }
 
   @Override
   public boolean hasCustomBeanInfo() {
-    return !(_beanInfo.get() instanceof GenericBeanInfo);
+    return false;
   }
 
   @Override
   public String getRelativeName() {
-    BeanDescriptor bd = _beanInfo.get().getBeanDescriptor();
-    return bd != null ? bd.getName() : getJavaType().getRelativeName();
+    return getName().substring( getNamespace().length() + 1 );
   }
 
   @Override
   public String getDisplayName() {
-    BeanDescriptor bd = _beanInfo.get().getBeanDescriptor();
-    return bd != null ? bd.getDisplayName() : getJavaType().getRelativeName();
+    return getSimpleName();
   }
 
   @Override
@@ -333,12 +319,12 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
 
   @Override
   public boolean isVisibleViaFeatureDescriptor(IScriptabilityModifier constraint) {
-    return _beanInfo.get().getBeanDescriptor() == null || BeanInfoUtil.isVisible(_beanInfo.get().getBeanDescriptor(), constraint);
+    return true;
   }
 
   @Override
   public boolean isHiddenViaFeatureDescriptor() {
-    return _beanInfo.get().getBeanDescriptor() != null && _beanInfo.get().getBeanDescriptor().isHidden();
+    return false;
   }
 
   @Override
@@ -434,14 +420,14 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
   @Override
   public IJavaClassInfo getArrayType() {
     DefaultTypeLoader defaultTypeLoader = (DefaultTypeLoader)_module.getModuleTypeLoader().getDefaultTypeLoader();
-    return defaultTypeLoader.getJavaClassInfo( Array.newInstance(_class, 0).getClass(), _module );
+    return defaultTypeLoader.getJavaClassInfo( Array.newInstance( _class, 0 ).getClass(), _module );
   }
 
   @Override
   public IJavaClassInfo[] getDeclaredClasses() {
     if (_declaredClasses == null) {
       Class[] rawClasses = _class.getDeclaredClasses();
-      ArrayList<IJavaClassInfo> declaredClasses = new ArrayList<IJavaClassInfo>(rawClasses.length);
+      ArrayList<IJavaClassInfo> declaredClasses = new ArrayList<>(rawClasses.length);
       for (int i = 0; i < rawClasses.length; i++) {
         if (!rawClasses[i].isAnonymousClass()) {
           DefaultTypeLoader defaultTypeLoader = (DefaultTypeLoader)_module.getModuleTypeLoader().getDefaultTypeLoader();
@@ -483,14 +469,15 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
     return Modifier.isPrivate( getCachedModifiers() );
   }
 
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
   @Override
   public boolean equals(Object obj) {
-    return AbstractJavaClassInfo.equals(this, obj);
+    return AbstractJavaClassInfo.equals( this, obj );
   }
 
   @Override
   public int hashCode() {
-    return AbstractJavaClassInfo.hashCode(this);
+    return AbstractJavaClassInfo.hashCode( this );
   }
 
   public String toString() {

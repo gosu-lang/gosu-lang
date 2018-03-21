@@ -6,7 +6,7 @@ package gw.lang.reflect.java.asm;
 
 import gw.internal.ext.org.objectweb.asm.Type;
 
-import java.lang.reflect.Array;
+import gw.util.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

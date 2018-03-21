@@ -106,7 +106,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     _mi = mi;
 
     if (!lazyTypes) {
-      initLazyMethodInfoState();
+      initLazyMethodInfoState_NoLock();
     }
     setName( mi.getDisplayName() );
 
@@ -131,35 +131,40 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
     TypeSystem.lock();
     try
     {
-      if( _paramTypes == null )
-      {
-        IParameterInfo[] pd = _mi.getParameters();
-        int iArgs = pd.length;
-        _paramTypes = new IType[iArgs];
-        for( int i = 0; i < iArgs; i++ )
-        {
-          _paramTypes[i] = pd[i].getFeatureType();
-        }
-        if( _paramTypes.length == 0 )
-        {
-          _paramTypes = EMPTY_ARGS;
-        }
-        _typeVars = EMPTY_TYPE_VARS;
-        if( _mi instanceof IGenericMethodInfo)
-        {
-          _typeVars = ((IGenericMethodInfo)_mi).getTypeVariables();
-        }
-        clearParamSignature();
-      }
-      _retType = _mi.getReturnType();
-      if( _retType == null )
-      {
-        _retType = JavaTypes.pVOID();
-      }
+      initLazyMethodInfoState_NoLock();
     }
     finally
     {
       TypeSystem.unlock();
+    }
+  }
+
+  private void initLazyMethodInfoState_NoLock()
+  {
+    if( _paramTypes == null )
+    {
+      IParameterInfo[] pd = _mi.getParameters();
+      int iArgs = pd.length;
+      _paramTypes = new IType[iArgs];
+      for( int i = 0; i < iArgs; i++ )
+      {
+        _paramTypes[i] = pd[i].getFeatureType();
+      }
+      if( _paramTypes.length == 0 )
+      {
+        _paramTypes = EMPTY_ARGS;
+      }
+      _typeVars = EMPTY_TYPE_VARS;
+      if( _mi instanceof IGenericMethodInfo )
+      {
+        _typeVars = ((IGenericMethodInfo)_mi).getTypeVariables();
+      }
+      clearParamSignature();
+    }
+    _retType = _mi.getReturnType();
+    if( _retType == null )
+    {
+      _retType = JavaTypes.pVOID();
     }
   }
 

@@ -9,12 +9,14 @@ import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IReducedDynamicPropertySymbol;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISymbol;
+import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.gs.IGosuClass;
 
+import gw.lang.reflect.java.JavaTypes;
 import java.util.List;
 
 /**
@@ -59,6 +61,19 @@ public class DynamicPropertySymbol extends AbstractDynamicSymbol implements IDyn
     return this;
   }
 
+  public IType getAssignableType()
+  {
+    DynamicFunctionSymbol setterDfs = getSetterDfs();
+    if( setterDfs != null )
+    {
+      IType[] argTypes = ((FunctionType)setterDfs.getType()).getParameterTypes();
+      if( argTypes.length > 0 )
+      {
+        return argTypes[0];
+      }
+    }
+    return JavaTypes.pVOID();
+  }
 
   public Object getValue()
   {
