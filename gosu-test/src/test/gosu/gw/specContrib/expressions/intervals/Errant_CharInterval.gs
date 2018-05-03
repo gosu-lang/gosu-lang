@@ -43,6 +43,7 @@ class Errant_CharInterval {
   var char1120 = ('c'.."mystring")
   var char1121 = ('c'..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'JAVA.UTIL.DATE'
   var char1122 = ('c'..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_CHAR.A'
+  var char1123 = ('c'..false)                  //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'CHAR', 'BOOLEAN'
 
   //Lower end point is char with step function
   var char1211 = ('c'..'c').step(1)

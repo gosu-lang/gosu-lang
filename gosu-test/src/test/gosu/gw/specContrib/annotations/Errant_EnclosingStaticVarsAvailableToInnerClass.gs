@@ -9,15 +9,28 @@ class Errant_EnclosingStaticVarsAvailableToInnerClass {
   class AInt {
   }
 
-  public static final var fint1: int = 42
-
-  @MyAnnoInt(fint1)
-  class AIntConst {
+  public static final var sfint1: int = 42
+  @MyAnnoInt(sfint1)
+  class AStaticIntConst {
   }
 
-  var int1 = 42
+  final var fint1 = 42
+  @MyAnnoInt(fint1)  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
+  class ANonStaticIntConst {
+  }
 
-  @MyAnnoInt(int1)  //## issuekeys: MSG_BAD_IDENTIFIER_NAME
-  class AIntNonConst {
+  static var sint1 = 42
+  @MyAnnoInt(sint1) //## issuekeys: MSG_COMPILE_TIME_CONSTANT_REQUIRED
+  class AStaticIntNonConst {
+  }
+  
+  final static var fsstr1 = "42"
+  @MyAnnoInt(fsstr1) //## issuekeys: MSG_TYPE_MISMATCH
+  class AStaticStringConst {
+  }
+  
+  final static var fslong1 = 42l
+  @MyAnnoInt(fslong1) //## issuekeys: MSG_IMPLICIT_COERCION_ERROR
+  class AStaticLongConst {
   }
 }

@@ -1,8 +1,11 @@
 package gw.specContrib.typeinference
 
+uses java.io.Writer
 uses java.util.Date
 uses java.util.List
 uses java.util.Map
+uses java.lang.Integer
+uses java.math.BigDecimal
 
 class Errant_IfTypeNarrowing {
   interface I1 {
@@ -131,6 +134,71 @@ class Errant_IfTypeNarrowing {
         var foo: CoverageBuilder = clauseExpression.DataBuilder
 
       }
+    }
+
+  }
+
+  // IDE-3196
+  class Ide3196 {
+  class A { function write() : int { return 8 } }
+  class C extends A { }
+
+  function testTypeisCompatibility() {
+    var B : Boolean = true
+    var x = B typeis Integer             //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.BOOLEAN' TYPEIS 'JAVA.LANG.INTEGER'
+    var y = B as Integer            // This is good
+
+    var o : Object
+    var b : boolean
+
+    o = \ ->  {}
+    b = o typeis Runnable
+    b = o typeis  block()      // This is good
+
+    o = new A()
+    b = o typeis Writer
+    b = o typeis dynamic.Dynamic
+
+    var str : String = "123"
+    b = str typeis dynamic.Dynamic    // This is good
+
+    o = new LinkedList()
+    b = o typeis Deque & List
+  }
+
+  function testTypeis() {
+    var x: Dynamic = "Hello"
+    var y = x typeis String   // This is good
+    var b : boolean
+    var c: String & Comparator
+    b = c typeis Integer        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.INTEGER'
+    b = c typeis String         //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR' TYPEIS 'JAVA.LANG.STRING'
+    b = c typeis  CharSequence
+
+    var i: Integer
+    b = i typeis String & Comparator        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.LANG.INTEGER' TYPEIS 'JAVA.LANG.STRING & JAVA.UTIL.COMPARATOR'
+
+    var d : C
+    var e : A
+    b = d typeis C
+    b = d typeis A
+    b = e typeis A
+    b = e typeis C
+  }
+}
+
+// IDE-4028
+  abstract class Ide4028 implements List<String[]> {
+
+    function hello() {
+        var i: List<Object>
+        var j: int
+
+        if (i typeis String) {}        //## issuekeys: THE TYPEIS OPERATOR CANNOT BE APPLIED: 'JAVA.UTIL.LIST<JAVA.LANG.OBJECT>' TYPEIS 'JAVA.LANG.STRING'
+        if (i typeis Set) {}
+        if (i typeis Ide4028) {}  // Good
+        if (i typeis BigDecimal) {}
+        if (i typeis List<Object[]>) {}
     }
 
   }

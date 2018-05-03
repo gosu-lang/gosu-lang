@@ -41,6 +41,7 @@ class Errant_BigDecimalInterval {
   var bigDecimal1120 = (BigDecimal.TEN.."mystring")      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'JAVA.LANG.STRING'
   var bigDecimal1121 = (BigDecimal.TEN..(new Date()))      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'JAVA.UTIL.DATE'
   var bigDecimal1122 = (BigDecimal.TEN..aaa)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'GW.SPECCONTRIB.AAA.PARSERVSOPENSOURCE.INTERVALSANDDIMENSIONS.INTERVALSBASIC.INTERVAL_BIGDECIMAL.A'
+  var bigDecimal1123 = (BigDecimal.TEN..false)      //## issuekeys: OPERATOR '..' CANNOT BE APPLIED TO 'JAVA.MATH.BIGDECIMAL', 'BOOLEAN'
 
   //Lower end point is BigDecimal with step function
   var bigDecimal1211 = (BigDecimal.ONE..'c').step(42)
