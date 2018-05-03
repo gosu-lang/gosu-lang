@@ -10,13 +10,14 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import manifold.api.fs.IDirectory;
+import manifold.api.host.IModuleComponent;
 import manifold.api.host.RefreshKind;
 import manifold.api.host.RefreshRequest;
 import manifold.api.service.IService;
 import manifold.api.type.IFileConnected;
 import manifold.api.type.TypeName;
 
-public interface ITypeLoader extends IFileConnected, IService, manifold.api.host.ITypeLoader
+public interface ITypeLoader extends IFileConnected, IService, IModuleComponent
 {
   String[] NO_TYPES = new String[0];
 

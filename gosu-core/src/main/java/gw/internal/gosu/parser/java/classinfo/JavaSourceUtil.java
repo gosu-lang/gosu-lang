@@ -17,8 +17,7 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
 
-import static manifold.api.type.ITypeManifold.ProducerKind.Supplemental;
-
+import static manifold.api.type.ContributorKind.Supplemental;
 
 public class JavaSourceUtil {
 
@@ -84,7 +83,7 @@ public class JavaSourceUtil {
   {
     // a supplemental type manifold is indicative of an extended class
     return gosuModule.findTypeManifoldsFor( fqn ).stream()
-      .anyMatch( tm -> tm.getProducerKind() == Supplemental );
+      .anyMatch( tm -> tm.getContributorKind() == Supplemental );
   }
 
   private static boolean isProxy(AsmClass aClass) {

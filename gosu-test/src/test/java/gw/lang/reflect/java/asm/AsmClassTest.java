@@ -10,6 +10,7 @@ import manifold.api.fs.IFile;
 import gw.internal.gosu.parser.DefaultPlatformHelper;
 import gw.lang.reflect.ReflectUtil;
 import gw.test.TestClass;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import java.io.File;
 import java.net.URL;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 /**
  */
+@DisableStringLiteralTemplates
 public class AsmClassTest extends TestClass {
   @Override
   public void beforeTestMethod() {

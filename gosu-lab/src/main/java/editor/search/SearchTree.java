@@ -13,6 +13,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.util.GosuEscapeUtil;
 import gw.util.PathUtil;
 import gw.util.StreamUtil;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
@@ -42,6 +43,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
   }
 
   @Override
+  @DisableStringLiteralTemplates
   public String getText()
   {
     String text = super.getText();
@@ -68,6 +70,7 @@ public class SearchTree extends AbstractTree<SearchTree, SearchTree.SearchTreeNo
     return getText();
   }
 
+  @DisableStringLiteralTemplates
   private String makeDirectoryText( SearchTreeNode node )
   {
     return "<html>" + node.getFile().getName() + "&nbsp;<font style=italic color=#808080>($count&nbsp;occurrences)</font>&nbsp;";

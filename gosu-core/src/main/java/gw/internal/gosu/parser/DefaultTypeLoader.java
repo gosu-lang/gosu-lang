@@ -22,6 +22,7 @@ import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import manifold.api.service.IService;
+import manifold.api.type.ISourceKind;
 import manifold.api.type.ITypeManifold;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
@@ -43,7 +44,7 @@ import manifold.api.type.TypeName;
 import manifold.internal.runtime.Bootstrap;
 
 
-import static manifold.api.type.ITypeManifold.ProducerKind.Supplemental;
+import static manifold.api.type.ContributorKind.Supplemental;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
@@ -270,7 +271,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   {
     // a supplemental type manifold is indicative of an extended class
     return getModule().findTypeManifoldsFor( fqn ).stream()
-      .anyMatch( tm -> tm.getProducerKind() == Supplemental );
+      .anyMatch( tm -> tm.getContributorKind() == Supplemental );
   }
 
   @Override
@@ -507,7 +508,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       // DefaultTypeLoader includes only Javas-based type manifolds, Gosu-baseed manifolds are excluded (they are handled in GosuClassTypeLoader)
       _typeManifolds = LocklessLazyVar.make( () -> {
         Set<ITypeManifold> typeManifols = super.loadTypeManifolds().stream()
-          .filter( sp -> sp.getSourceKind() == ITypeManifold.SourceKind.Java )
+          .filter( sp -> sp.getSourceKind() == ISourceKind.Java )
           .collect( Collectors.toSet() );
         typeManifols.forEach( tp -> tp.init( this ) );
         return typeManifols;

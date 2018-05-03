@@ -7,13 +7,14 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import manifold.api.fs.IFile;
+import manifold.api.type.ContributorKind;
 import manifold.api.type.ITypeManifold;
 import manifold.internal.javac.SourceJavaFileObject;
 import manifold.util.JavacDiagnostic;
 
 
-import static manifold.api.type.ITypeManifold.ProducerKind.Partial;
-import static manifold.api.type.ITypeManifold.ProducerKind.Primary;
+import static manifold.api.type.ContributorKind.Partial;
+import static manifold.api.type.ContributorKind.Primary;
 
 /**
  */
@@ -50,10 +51,10 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
     String result = "";
     for( ITypeManifold sp : sps )
     {
-      if( sp.getProducerKind() == Primary ||
-          sp.getProducerKind() == Partial )
+      if( sp.getContributorKind() == Primary ||
+          sp.getContributorKind() == Partial )
       {
-        if( found != null && (found.getProducerKind() == Primary || sp.getProducerKind() == Primary) )
+        if( found != null && (found.getContributorKind() == Primary || sp.getContributorKind() == Primary) )
         {
           List<IFile> files = sp.findFilesForType( fqn );
           JavaFileObject file = new SourceJavaFileObject( files.get( 0 ).toURI() );
@@ -67,15 +68,15 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
         else
         {
           found = sp;
-          result = sp.produce( fqn, result, errorHandler );
+          result = sp.contribute( fqn, result, errorHandler );
         }
       }
     }
     for( ITypeManifold sp : sps )
     {
-      if( sp.getProducerKind() == ITypeManifold.ProducerKind.Supplemental )
+      if( sp.getContributorKind() == ContributorKind.Supplemental )
       {
-        result = sp.produce( fqn, result, errorHandler );
+        result = sp.contribute( fqn, result, errorHandler );
       }
     }
     return result;

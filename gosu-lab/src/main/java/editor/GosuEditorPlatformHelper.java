@@ -5,6 +5,8 @@ import gw.util.PathUtil;
 import gw.config.AbstractPlatformHelper;
 import gw.config.ExecutionMode;
 import gw.lang.reflect.module.IModule;
+import manifold.api.templ.DisableStringLiteralTemplates;
+
 import java.io.File;
 
 /**
@@ -24,6 +26,7 @@ public class GosuEditorPlatformHelper extends AbstractPlatformHelper
   }
 
   @Override
+  @DisableStringLiteralTemplates
   public File getIndexFile( String id )
   {
     final File indexPath = LabFrame.getIndexDir().toFile();
