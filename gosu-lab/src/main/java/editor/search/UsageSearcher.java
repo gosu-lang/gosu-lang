@@ -1,6 +1,5 @@
 package editor.search;
 
-import editor.ExternalFileTree;
 import editor.FileTree;
 import editor.FileTreeUtil;
 import editor.GosuPanel;
@@ -43,6 +42,7 @@ import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.gs.IGosuClass;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
@@ -708,6 +708,7 @@ public class UsageSearcher extends AbstractSearcher
     return new TextSearcher( type.getName(), true, true, false ).search( tree, results );
   }
 
+  @DisableStringLiteralTemplates
   public void search( FileTree tree )
   {
     GosuPanel gosuPanel = LabFrame.instance().getGosuPanel();

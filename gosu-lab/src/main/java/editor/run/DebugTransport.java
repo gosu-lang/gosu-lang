@@ -1,7 +1,10 @@
 package editor.run;
 
+import manifold.api.templ.DisableStringLiteralTemplates;
+
 /**
  */
+@DisableStringLiteralTemplates
 public enum DebugTransport
 {
   AttachingSocket( "com.sun.jdi.SocketAttach", "Socket: Attach to already running process",

@@ -14,6 +14,7 @@ import gw.test.TestClass;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuTestUtil;
 import junit.framework.Assert;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 
 public class TemplateTest extends TestClass
@@ -82,6 +83,7 @@ public class TemplateTest extends TestClass
     template.getTemplateGenerator().verify( GosuParserFactory.createParser(""));
   }
 
+  @DisableStringLiteralTemplates
   public void testEscapingCurlyStyleExpression() {
     Assert.assertEquals("${foo}", GosuTestUtil.eval("return gw.internal.gosu.template.EscapedCurly.renderToString()"));
   }

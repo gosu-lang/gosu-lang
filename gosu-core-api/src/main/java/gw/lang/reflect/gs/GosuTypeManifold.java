@@ -1,7 +1,7 @@
 package gw.lang.reflect.gs;
 
 import manifold.api.type.IModel;
-import manifold.api.type.ITypeManifold;
+import manifold.api.type.ISourceKind;
 import manifold.api.type.ResourceFileTypeManifold;
 
 /**
@@ -11,9 +11,11 @@ import manifold.api.type.ResourceFileTypeManifold;
  */
 public abstract class GosuTypeManifold<M extends IModel> extends ResourceFileTypeManifold<M>
 {
+  public static final ISourceKind Gosu = new ISourceKind() {};
+
   @Override
-  public ITypeManifold.SourceKind getSourceKind()
+  public ISourceKind getSourceKind()
   {
-    return ITypeManifold.SourceKind.Gosu;
+    return Gosu;
   }
 }

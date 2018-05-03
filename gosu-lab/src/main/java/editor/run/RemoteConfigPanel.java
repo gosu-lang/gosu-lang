@@ -1,6 +1,7 @@
 package editor.run;
 
 import editor.Scheme;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -266,6 +267,7 @@ class RemoteConfigPanel extends JPanel
     }
   }
 
+  @DisableStringLiteralTemplates
   private void updateTransportMessage()
   {
     DebugTransport transport = _params.getTransport();

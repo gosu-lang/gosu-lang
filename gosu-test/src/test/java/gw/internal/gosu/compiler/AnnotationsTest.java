@@ -22,6 +22,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.util.AnnotationUtil;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -2763,6 +2764,7 @@ public class AnnotationsTest extends ByteCodeTestBase
     return AnnotationUtil.map( iType.getTypeInfo().getMethod( funcName, args ).getAnnotations() );
   }
 
+  @DisableStringLiteralTemplates
   public static Map<IType, List> map2(List annotations) {
     HashMap<IType, List> map = new HashMap<IType, List>();
     for (Object annotation : annotations) {

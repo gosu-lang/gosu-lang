@@ -13,6 +13,7 @@ import gw.internal.gosu.parser.classTests.gwtest.anonymous.IJavaInterface;
 import gw.internal.gosu.parser.classTests.gwtest.anonymous.JavaClass;
 import gw.internal.gosu.parser.classTests.gwtest.anonymous.JavaClassWithProtectedCtor;
 import gw.test.TestClass;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import java.util.List;
 
@@ -51,6 +52,7 @@ public class AnonymousClassTest extends TestClass
     assertTrue( value instanceof JavaClassWithProtectedCtor );
   }
 
+  @DisableStringLiteralTemplates
   public void testCanConstructInferredAnonymousType() throws ClassNotFoundException
   {
     Object instance = ReflectUtil.construct( "gw.internal.gosu.parser.classTests.gwtest.anonymous.CanConstructInferredAnonymousType" );

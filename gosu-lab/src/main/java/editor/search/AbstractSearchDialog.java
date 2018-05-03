@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import gw.util.PathUtil;
 import editor.util.ProgressFeedback;
 import gw.lang.reflect.json.IJsonIO;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -196,6 +197,7 @@ public abstract class AbstractSearchDialog extends AbstractDialog
     return _checkRegex.isSelected();
   }
 
+  @DisableStringLiteralTemplates
   protected void find()
   {
     setState( new State().save( this ) );

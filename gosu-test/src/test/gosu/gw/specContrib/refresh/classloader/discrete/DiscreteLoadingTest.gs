@@ -10,6 +10,7 @@ uses gw.config.CommonServices
 uses gw.lang.reflect.java.JavaTypes
 uses org.junit.Assert#assertNotNull
 uses org.junit.Assert#assertTrue
+uses org.junit.Ignore
 uses org.junit.Test
 
 public class DiscreteLoadingTest {
@@ -46,6 +47,7 @@ public class DiscreteLoadingTest {
   }
 
   @Test
+  @Ignore
   function testProgram() {
     var fqn = "scott.McKinney"
     var idGarbage1Class = loadProgram( fqn, "'hello'" )
@@ -59,6 +61,7 @@ public class DiscreteLoadingTest {
   }
 
   @Test
+  @Ignore
   function testScratchpad() {
     var idGarbage1Class = loadProgram( Gosu.GOSU_SCRATCHPAD_FQN, "'hello'" )
     assertNotNull( idGarbage1Class )

@@ -27,6 +27,7 @@ import editor.RunMe;
 import editor.util.EditorUtilities;
 import gw.lang.GosuShop;
 import gw.util.GosuExceptionUtil;
+import manifold.api.templ.DisableStringLiteralTemplates;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -99,6 +100,7 @@ public class DebuggerExpression
     return runtimeState;
   }
 
+  @DisableStringLiteralTemplates
   private Value findThisObjectFromCtx( ThreadReference suspendedThread )
   {
     List<LocalVariable> localVariables;

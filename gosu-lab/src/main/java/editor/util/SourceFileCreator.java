@@ -5,6 +5,7 @@ import editor.GosuPanel;
 import editor.LabFrame;
 import editor.NewIdentifierDialog;
 import editor.plugin.typeloader.ITypeFactory;
+import manifold.api.templ.DisableStringLiteralTemplates;
 import manifold.api.type.ClassType;
 
 import gw.util.PathUtil;
@@ -278,6 +279,7 @@ public class SourceFileCreator
     return true;
   }
 
+  @DisableStringLiteralTemplates
   private boolean writeTempateStub( Path file )
   {
     String strName = TypeNameUtil.getTypeNameForFile( file );

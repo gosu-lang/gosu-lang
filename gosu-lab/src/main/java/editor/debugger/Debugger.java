@@ -34,6 +34,8 @@ import editor.LabFrame;
 import editor.shipit.CompiledClass;
 import editor.shipit.ExperimentBuild;
 import editor.util.EditorUtilities;
+import manifold.api.templ.DisableStringLiteralTemplates;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -801,6 +803,7 @@ public class Debugger
     _refs.clear();
   }
 
+  @DisableStringLiteralTemplates
   public static String getOutermostType( ReferenceType type )
   {
     String name = type.name();
