@@ -406,16 +406,23 @@ public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaC
       Type[] rawIfaces = _class.getGenericInterfaces();
       IJavaClassType[] ifaces = new IJavaClassType[rawIfaces.length];
       for (int i = 0; i < rawIfaces.length; i++) {
-        ifaces[i] = TypeJavaClassType.createType(rawIfaces[i], _module);
+        Type rawIface = rawIfaces[i];
+        ifaces[i] = getJavaClassInfo(rawIface);
       }
       _genericInterfaces = ifaces;
     }
     return _genericInterfaces;
   }
 
+  private IJavaClassType getJavaClassInfo(Type rawIface) {
+    return rawIface instanceof Class
+                ? TypeSystem.getJavaClassInfo( (Class)rawIface, _module )
+                : TypeJavaClassType.createType( rawIface, _module );
+  }
+
   @Override
   public IJavaClassType getGenericSuperclass() {
-    return TypeJavaClassType.createType(_class.getGenericSuperclass(), _module);
+    return getJavaClassInfo( _class.getGenericSuperclass() );
   }
 
   @Override
