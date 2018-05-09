@@ -14,7 +14,7 @@
   <properties>
     <generated.version.dir>${project.build.directory}/generated-sources/version</generated.version.dir>
     <gosu.version.properties>${generated.version.dir}/gw/lang/gosu-version.properties</gosu.version.properties>
-    <manifold-version>0.13-SNAPSHOT</manifold-version>
+    <manifold-version>0.13-gosu-SNAPSHOT</manifold-version>
   </properties>
 
   <dependencies>
