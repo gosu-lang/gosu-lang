@@ -1,6 +1,8 @@
 package gw.lang.gosuc.simple;
 
+import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.util.Options;
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
 import gw.config.IMemoryMonitor;
@@ -78,15 +80,21 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     DiagnosticListener dc = ((JavacProcessingEnvironment)jpe).getContext().get( DiagnosticListener.class );
+    Options javacOptions = Options.instance(((JavacProcessingEnvironment)jpe).getContext());
+
+    boolean includeWarnings = javacOptions.get(Option.NOWARN) == null;
     //noinspection unchecked
-    JavacCompilerDriver driver = new JavacCompilerDriver( dc, jpe.getFiler(), false, true ); //## todo: get warnings option
-    return compileGosuSources( makeOptions( jpe, gosuInputFiles ), driver, gosuInputFiles );
+    JavacCompilerDriver driver = new JavacCompilerDriver( dc, jpe.getFiler(), false, includeWarnings );
+    return compileGosuSources( makeOptions( javacOptions, gosuInputFiles ), driver, gosuInputFiles );
   }
 
-  private CommandLineOptions makeOptions( ProcessingEnvironment jpe, List<String> gosuInputFiles )
+  private CommandLineOptions makeOptions( Options javacOptions, List<String> gosuInputFiles )
   {
-    //## todo: transfer options from javac command line
+    //## todo: transfer *remaining* options from javac command line
     CommandLineOptions clo = new CommandLineOptions();
+
+    clo.setVerbose(javacOptions.get(Option.VERBOSE) != null);
+    clo.setNoWarn(javacOptions.get(Option.NOWARN) != null);
     clo.setSourceFiles( gosuInputFiles );
     return clo;
   }

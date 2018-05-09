@@ -53,6 +53,9 @@ public class CommandLineOptions {
   public boolean isNoWarn() {
     return !(_nowarn == null || !_nowarn);
   }
+  public void setNoWarn(boolean nowarn) {
+    _nowarn = nowarn;
+  }
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
   private String _sourcepath;
@@ -69,6 +72,9 @@ public class CommandLineOptions {
    */
   public boolean isVerbose() {
     return !(_verbose == null || !_verbose);
+  }
+  public void setVerbose(boolean verbose) {
+    _verbose = verbose;
   }
 
   @Parameter(names = "-version", description = "Version information")
