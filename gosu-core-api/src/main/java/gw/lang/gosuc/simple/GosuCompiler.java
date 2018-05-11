@@ -2,6 +2,7 @@ package gw.lang.gosuc.simple;
 
 import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
@@ -79,12 +80,11 @@ public class GosuCompiler implements IGosuCompiler
       return true;
     }
 
-    DiagnosticListener dc = ((JavacProcessingEnvironment)jpe).getContext().get( DiagnosticListener.class );
     Options javacOptions = Options.instance(((JavacProcessingEnvironment)jpe).getContext());
 
     boolean includeWarnings = javacOptions.get(Option.NOWARN) == null;
-    //noinspection unchecked
-    JavacCompilerDriver driver = new JavacCompilerDriver( dc, jpe.getFiler(), false, includeWarnings );
+
+    JavacCompilerDriver driver = new JavacCompilerDriver( Log.instance( ((JavacProcessingEnvironment)jpe).getContext() ), jpe.getFiler(), false, includeWarnings );
     return compileGosuSources( makeOptions( javacOptions, gosuInputFiles ), driver, gosuInputFiles );
   }
 
