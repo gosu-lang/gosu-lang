@@ -1,26 +1,28 @@
 package gw.lang.gosuc.simple;
 
+import com.sun.tools.javac.util.Log;
 import gw.util.GosuExceptionUtil;
-import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
+import manifold.internal.javac.IDynamicJdk;
+
 import javax.annotation.processing.Filer;
 import javax.tools.Diagnostic;
-import javax.tools.DiagnosticListener;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 
 public class JavacCompilerDriver extends SoutCompilerDriver
 {
-  private final DiagnosticListener<JavaFileObject> _dc;
+  private final Log _log;
   private final Filer _filer;
 
-  public JavacCompilerDriver( DiagnosticListener<JavaFileObject> dc, Filer filer, boolean echo, boolean warnings )
+  public JavacCompilerDriver(Log log, Filer filer, boolean echo, boolean warnings )
   {
     super( echo, warnings );
-    _dc = dc;
-    _filer = filer;
+    _log = log;
+    _filer = filer; //TODO Objects.requireNonNull(filer, filer.getClass().toString() + " may not be null.");
   }
 
   @Override
@@ -32,7 +34,9 @@ public class JavacCompilerDriver extends SoutCompilerDriver
   @Override
   public void sendCompileIssue( Object file, int category, long offset, long line, long column, String message )
   {
-    _dc.report( new GosuDiagnostic( (JavaFileObject)file, category, offset, line, column, message ) );
+    GosuDiagnostic diagnostic = new GosuDiagnostic((JavaFileObject) file, category, offset, line, column, message);
+
+    IDynamicJdk.instance().report(_log, diagnostic);
   }
 
   @Override
