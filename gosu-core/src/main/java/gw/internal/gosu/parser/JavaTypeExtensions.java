@@ -16,6 +16,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
+import gw.util.concurrent.ConcurrentHashSet;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,6 +75,11 @@ class JavaTypeExtensions {
     return result;
   }
 
+  /**
+   * prevent cyclic references during javac compilation
+   */
+  private static final ConcurrentHashSet<IJavaType> SHORT_CIRCUIT = new ConcurrentHashSet<>();
+
   private static ExtendedTypeDataFactory getExtendedTypeDataFactory(IJavaType javaType) {
     boolean extendedType;
     if( ExecutionMode.isRuntime() ) {
@@ -83,7 +89,18 @@ class JavaTypeExtensions {
       extendedType = backingClass.isAnnotationPresent(ExtendedType.class);
     } else {
       // Studio case
-      extendedType = javaType.getBackingClassInfo().getAnnotation(ExtendedType.class) != null;
+      if( !SHORT_CIRCUIT.contains( javaType ) ) {
+        SHORT_CIRCUIT.add( javaType );
+        try {
+          extendedType = javaType.getBackingClassInfo().getAnnotation(ExtendedType.class) != null;
+        }
+        finally {
+          SHORT_CIRCUIT.remove( javaType );
+        }
+      }
+      else {
+        extendedType = false;
+      }
     }
     return extendedType ? CommonServices.getEntityAccess().getExtendedTypeDataFactory(javaType.getName()) : null;
   }
