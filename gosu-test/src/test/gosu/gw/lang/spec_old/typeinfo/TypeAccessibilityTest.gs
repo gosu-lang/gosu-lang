@@ -1,9 +1,9 @@
 package gw.lang.spec_old.typeinfo
-uses gw.lang.spec_old.typeinfo.public.PublicClass
+uses gw.lang.spec_old.typeinfo.accessibility.PublicClass
 uses gw.lang.spec_old.typeinfo.internal.AccessesInternalClass
-uses gw.lang.spec_old.typeinfo.public.Errant_AccessesPrivateClass
+uses gw.lang.spec_old.typeinfo.accessibility.Errant_AccessesPrivateClass
 uses gw.lang.parser.resources.Res
-uses gw.lang.spec_old.typeinfo.public.Errant_AccessesInternalClass
+uses gw.lang.spec_old.typeinfo.accessibility.Errant_AccessesInternalClass
 
 class TypeAccessibilityTest extends gw.test.TestClass
 {

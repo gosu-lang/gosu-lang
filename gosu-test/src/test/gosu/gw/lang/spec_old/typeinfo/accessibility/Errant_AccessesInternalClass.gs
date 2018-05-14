@@ -1,4 +1,4 @@
-package gw.lang.spec_old.typeinfo.public
+package gw.lang.spec_old.typeinfo.accessibility
 uses gw.testharness.DoNotVerifyResource
 
 @DoNotVerifyResource
