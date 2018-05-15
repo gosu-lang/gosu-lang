@@ -42,16 +42,7 @@
   <build>
     <!-- reset source/test roots to defaults, before adding src/main/gosu and src/test/gosu using build-helper-maven-plugin -->
     <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>src/test/gosu</testSourceDirectory>
-    <!-- the parent pom sets src/test/gosu as a resource root; if we don't undo this as below, all the tests will be copied to target/classes and packaged into the jar -->
-    <resources>
-      <resource>
-        <directory>src/test/gosu</directory>
-        <excludes>
-          <exclude>**/*</exclude>
-        </excludes>
-      </resource>
-    </resources>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -86,28 +77,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>Compile Gosu sources</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <compilerId>gosuc</compilerId>
-            </configuration>
-          </execution>
-          <execution>
-            <id>Compile Gosu test sources</id>
-            <phase>test-compile</phase>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-            <configuration>
-              <compilerId>gosuc</compilerId>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <compilerId>gosuc</compilerId>
+          <fork>true</fork>
+          <verbose>true</verbose>
+        </configuration>
         <dependencies>
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>

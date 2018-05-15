@@ -75,11 +75,17 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
         <configuration>
-          <compilerArgs>
-            <arg>-Xplugin:Manifold</arg>
-          </compilerArgs>
+          <compilerId>gosuc</compilerId>
+          <fork>true</fork>
           <proc>none</proc>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-maven-compiler</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>
