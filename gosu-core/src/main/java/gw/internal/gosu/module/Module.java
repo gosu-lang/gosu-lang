@@ -474,6 +474,7 @@ public class Module implements IModule
   public void initializeTypeLoaders() {
     maybeCreateModuleTypeLoader();
     createStandardTypeLoaders();
+    initializeTypeManifolds();
     if( CommonServices.getEntityAccess().getLanguageLevel().isStandard() ) {
       createExtensionTypeLoaders();
     }
@@ -485,6 +486,17 @@ public class Module implements IModule
     }
   }
 
+  private void initializeTypeManifolds()
+  {
+    for( ITypeLoader loader: getModuleTypeLoader().getTypeLoaderStack() )
+    {
+      if( loader instanceof SimpleTypeLoader)
+      {
+        ((SimpleTypeLoader)loader).initializeTypeManifolds();
+      }
+    }
+  }
+
   protected void createExtensionTypeLoaders() {
     createExtensionTypeloadersImpl();
   }
@@ -493,13 +505,6 @@ public class Module implements IModule
   {
     Set<String> typeLoaders = new HashSet<>();
     findExtensionClasses( typeLoaders );
-    for( ITypeLoader loader: getModuleTypeLoader().getTypeLoaderStack() )
-    {
-      if( loader instanceof SimpleTypeLoader )
-      {
-        ((SimpleTypeLoader)loader).initializeTypeManifolds();
-      }
-    }
     for( String additionalTypeLoader: typeLoaders )
     {
       try
