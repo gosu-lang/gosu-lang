@@ -37,6 +37,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dist.man.snapshotrepo.url>https://oss.sonatype.org/content/repositories/snapshots</dist.man.snapshotrepo.url>
     <scm.root>scm:git:git@github.com:gosu-lang</scm.root>
+    <maven.compiler.version>3.7.0</maven.compiler.version>
   </properties>
 
   <repositories>
@@ -102,7 +103,7 @@
         <plugin>
          <groupId>org.apache.maven.plugins</groupId>
          <artifactId>maven-compiler-plugin</artifactId>
-         <version>3.3</version>
+         <version>${maven.compiler.version}</version>
          <configuration>
            <source>1.8</source>
            <target>1.8</target>

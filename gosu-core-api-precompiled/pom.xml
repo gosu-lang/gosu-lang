@@ -47,18 +47,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>Compile Gosu sources</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <compilerId>gosuc</compilerId>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <compilerId>gosuc</compilerId>
+          <fork>true</fork>
+        </configuration>
         <dependencies>
           <dependency>
             <groupId>org.gosu-lang.gosu</groupId>

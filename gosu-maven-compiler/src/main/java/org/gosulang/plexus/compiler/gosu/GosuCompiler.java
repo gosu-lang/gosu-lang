@@ -1,369 +1,164 @@
 package org.gosulang.plexus.compiler.gosu;
 
-import gw.internal.ext.com.beust.jcommander.JCommander;
-import gw.lang.gosuc.GosucUtil;
-import gw.lang.gosuc.cli.CommandLineCompiler;
-import gw.lang.gosuc.cli.CommandLineOptions;
-import gw.lang.gosuc.simple.SoutCompilerDriver;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.stream.Collectors;
-import manifold.internal.runtime.UrlClassLoaderWrapper;
-import manifold.util.PathUtil;
-import org.codehaus.plexus.compiler.AbstractCompiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerException;
-import org.codehaus.plexus.compiler.CompilerMessage;
-import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.CompilerResult;
-import org.codehaus.plexus.util.Os;
+import org.codehaus.plexus.compiler.javac.JavacCompiler;
 import org.codehaus.plexus.util.StringUtils;
-import org.codehaus.plexus.util.cli.CommandLineException;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class GosuCompiler extends AbstractCompiler {
-
-  public GosuCompiler() {
-    super(CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE, "", ".class", null); // see MCOMPILER-199, mentioned in AbstractCompileMojo#getCompileSources.  It appears the empty string is the only workaround to have more than one static file suffix.
-  }
+public class GosuCompiler extends JavacCompiler {
 
   @Override
   public String[] createCommandLine(CompilerConfiguration config) throws CompilerException {
-    return new String[0];
+    return buildGosuCompilerArguments( config );
+  }
+
+  /**
+   * Adds javac arguments "-Xplugin:Manifold static" and "-J-Dgosu.source.list=_tmpdir_manifold-additional-sources.txt"
+   * @param config the compiler configuration values received from Maven
+   * @return the raw list of arguments; these will later be embedded in an @argfile
+   */
+  public String[] buildGosuCompilerArguments( CompilerConfiguration config) throws CompilerException {
+    Set<File> gosuSourceFiles = new HashSet<>();
+    Set<File> javaSourceFiles = new HashSet<>();
+
+    for( File file : config.getSourceFiles() ) {
+      String path = file.getAbsolutePath();
+      if (path.endsWith(".java")) {
+        javaSourceFiles.add(file);
+      } else {
+        gosuSourceFiles.add(file);
+      }
+    }
+
+    String[] javaSourcePaths = javaSourceFiles.stream().map(File::getAbsolutePath).toArray(String[]::new);
+    final Map<String, String> customCompilerArgs = config.getCustomCompilerArgumentsAsMap();
+    customCompilerArgs.put("-Xplugin:Manifold static", null);
+
+    if(!gosuSourceFiles.isEmpty()) {
+      config.setSourceFiles(javaSourceFiles);
+      File sourcesFile = createGosuSourcesList( gosuSourceFiles, config.getOutputLocation() );
+      customCompilerArgs.put( "-J-Dgosu.source.list=" + sourcesFile.getAbsolutePath(), null );
+    }
+
+    config.setCustomCompilerArgumentsAsMap(customCompilerArgs);
+    return buildCompilerArguments(config, javaSourcePaths);
+  }
+
+  private File createGosuSourcesList( Set<File> gosuSources, String outputLocation ) throws CompilerException {
+    final String suffix = "manifold-additional-sources.txt";
+    File sourcesFile;
+
+    File outputDir = new File( outputLocation );
+    if(!outputDir.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      outputDir.mkdirs();
+    }
+    try {
+      if ((getLogger() != null) && getLogger().isDebugEnabled()) {
+        sourcesFile = File.createTempFile(GosuCompiler.class.getName(), suffix, outputDir);
+      } else {
+        sourcesFile = File.createTempFile(GosuCompiler.class.getName(), suffix);
+        sourcesFile.deleteOnExit();
+      }
+    } catch (IOException e) {
+      throw new CompilerException("Error creating argfile with gosuc arguments", e);
+    }
+
+    List<String> sources = gosuSources.stream().map(File::getAbsolutePath).collect(Collectors.toList());
+
+    try {
+      Files.write(sourcesFile.toPath(), sources, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new CompilerException(String.format("Unable to write source list to %s", sourcesFile), e);
+    }
+
+    return sourcesFile;
   }
 
   @Override
-  public CompilerResult performCompile(CompilerConfiguration config) throws CompilerException {
+  public CompilerResult performCompile( CompilerConfiguration config )
+          throws CompilerException
+  {
 
-    File destinationDir = new File(config.getOutputLocation());
+    File destinationDir = new File( config.getOutputLocation() );
 
-    if (!destinationDir.exists()) {
+    if ( !destinationDir.exists() )
+    {
       destinationDir.mkdirs();
     }
 
-    String[] sourceFiles = getSourceFiles(config);
+    String[] sourceFiles = getSourceFiles( config );
 
-    if ((sourceFiles == null) || (sourceFiles.length == 0)) {
-      return new CompilerResult(); //defaults to 'success == true'
+    if ( ( sourceFiles == null ) || ( sourceFiles.length == 0 ) )
+    {
+      return new CompilerResult();
     }
 
-    if ((getLogger() != null) && getLogger().isInfoEnabled()) {
-      getLogger().info("Compiling " + sourceFiles.length + " " +
-          "source file" + (sourceFiles.length == 1 ? "" : "s") +
-          " to " + destinationDir.getAbsolutePath());
+    if ( ( getLogger() != null ) && getLogger().isInfoEnabled() )
+    {
+      getLogger().info( "Compiling " + sourceFiles.length + " " +
+              "source file" + ( sourceFiles.length == 1 ? "" : "s" ) +
+              " to " + destinationDir.getAbsolutePath() );
     }
+
+    String[] args = buildGosuCompilerArguments( config );
 
     CompilerResult result;
 
-    if (config.isFork()) {
+    if ( config.isFork() )
+    {
       String executable = config.getExecutable();
 
-      if (StringUtils.isEmpty(executable)) {
-        try {
-          executable = getJavaExecutable();
-        } catch (IOException e) {
-          getLogger().warn("Unable to autodetect 'java' path, using 'java' from the environment.");
-          executable = "java";
+      if ( StringUtils.isEmpty( executable ) )
+      {
+        try
+        {
+          Method getJavacExecutable = JavacCompiler.class.getDeclaredMethod("getJavacExecutable");
+          getJavacExecutable.setAccessible(true);
+          executable = (String) getJavacExecutable.invoke(null);
         }
-      }      
+        catch ( Exception e )
+        {
+          getLogger().warn( "Unable to autodetect 'javac' path, using 'javac' from the environment." );
+          executable = "javac";
+        }
+      }
 
-      config.setExecutable(executable);
-      
-      result = compileOutOfProcess(config);
-    } else {
-      result = compileInProcess(config);
+      result = compileOutOfProcess( config, executable, args );
+    }
+    else
+    {
+      throw new UnsupportedOperationException("gosuc requires forking compilation.");
+//      if ( isJava16() && !config.isForceJavacCompilerUse() )
+//      {
+//        // use fqcn to prevent loading of the class on 1.5 environment !
+//        result =
+//                org.codehaus.plexus.compiler.javac.JavaxToolsCompiler.compileInProcess( args, config, sourceFiles );
+//      }
+//      else
+//      {
+//        result = compileInProcess( args, config );
+//      }
     }
 
     return result;
   }
 
-  CompilerResult compileOutOfProcess(CompilerConfiguration config) throws CompilerException {
-    Commandline cli = new Commandline();
-    cli.setWorkingDirectory(config.getWorkingDirectory().getAbsolutePath());
-    cli.setExecutable(config.getExecutable());
-
-    //respect JAVA_OPTS, if it exists
-    String JAVA_OPTS = System.getenv("JAVA_OPTS");
-    if(JAVA_OPTS != null) {
-      cli.addArguments(new String[] {JAVA_OPTS});
-    }
-
-    if(!StringUtils.isEmpty(config.getMeminitial())) {
-      cli.addArguments(new String[] {"-Xms".concat(config.getMeminitial())});
-    }
-
-    if(!StringUtils.isEmpty(config.getMaxmem())) {
-      cli.addArguments(new String[] {"-Xmx".concat(config.getMaxmem())});
-    }
-
-    //compilerArgs - arguments to send to the forked JVM
-    Set<String> compilerArgs = config.getCustomCompilerArgumentsAsMap().keySet();
-    if(compilerArgs.size() > 0) {
-      cli.addArguments(compilerArgs.toArray(new String[(compilerArgs.size())]));
-    }
-
-    if(Os.isFamily(Os.FAMILY_MAC)) {
-      cli.addArguments(new String[] {"-Xdock:name=Gosuc"});
-    }
-
-    getLogger().info("Initializing gosuc compiler");
-    cli.addArguments(new String[] {"-classpath", String.join( File.pathSeparator, inheritClasspath())});
-
-    cli.addArguments(new String[] {"gw.lang.gosuc.cli.CommandLineCompiler"});
-
-    try {
-      File argFile = createArgFile(config);
-      cli.addArguments(new String[] { "@" + argFile.getCanonicalPath().replace(File.separatorChar, '/') });
-    } catch (IOException e) {
-      throw new CompilerException("Error creating argfile with gosuc arguments", e);
-    }
-
-    CommandLineUtils.StringStreamConsumer sysout = new CommandLineUtils.StringStreamConsumer();
-    CommandLineUtils.StringStreamConsumer syserr = new CommandLineUtils.StringStreamConsumer();
-    
-    int exitCode;
-    
-    try {
-      if(config.isVerbose()) {
-        getLogger().info("Executing gosuc in external process with command: " + cli.toString());
-      }
-      exitCode = CommandLineUtils.executeCommandLine(cli, sysout, syserr);
-    } catch (CommandLineException e) {
-      throw new CompilerException("Error while executing the external compiler.", e);
-    }
-
-    List<CompilerMessage> messages = parseMessages(exitCode, sysout.getOutput());
-
-    int warningCt = 0;
-    int errorCt = 0;
-    for(CompilerMessage message : messages) {
-      switch(message.getKind()) {
-        case WARNING:
-          warningCt++;
-          break;
-        case ERROR:
-          errorCt++;
-          break;
-      }
-    }
-
-    if(config.isShowWarnings()) {
-      getLogger().info(String.format("gosuc completed with %d warnings and %d errors.", warningCt, errorCt));
-    } else {
-      getLogger().info(String.format("gosuc completed with %d errors. Warnings were disabled.", errorCt));
-    }
-
-    return new CompilerResult(exitCode == 0, messages);
-  }
-
-  private List<String> inheritClasspath()
-  {
-    UrlClassLoaderWrapper cl = UrlClassLoaderWrapper.wrap( getClass().getClassLoader() );
-    if( cl == null )
-    {
-      return Collections.emptyList();
-    }
-
-    List<String> classpath = new ArrayList<>();
-
-    for( URL url: cl.getURLs() )
-    {
-      try
-      {
-        URI uri = url.toURI();
-        if( url.toURI().getScheme().equals( "file") )
-        {
-          String path = PathUtil.create( uri ).toFile().getAbsolutePath();
-          if( !classpath.contains( path ) && isGosuJar( path ) )
-          {
-            classpath.add( path );
-          }
-        }
-      }
-      catch( URISyntaxException e )
-      {
-        throw new RuntimeException( e );
-      }
-    }
-
-    try
-    {
-      List<String> bootstrapJars = GosucUtil.getGosuBootstrapJars();
-      for( String path: bootstrapJars )
-      {
-        if( !classpath.contains( path ) )
-        {
-          classpath.add( path );
-        }
-      }
-    }
-    catch( ClassNotFoundException e )
-    {
-      throw new RuntimeException( e );
-    }
-
-    return classpath;
-  }
-
-  private boolean isGosuJar( String path )
-  {
-    return path.contains( "gosu" ) || path.contains( "manifold" );
-  }
-
-  CompilerResult compileInProcess( CompilerConfiguration config ) throws CompilerException
-  {
-    List<String> cli = new ArrayList<>();
-    File workingDirectory = config.getWorkingDirectory();
-    if( workingDirectory != null )
-    {
-      System.setProperty( "user.dir", workingDirectory.getAbsolutePath() );
-    }
-
-    getLogger().info( "Initializing gosuc compiler" );
-
-    addGosucArgs( config, cli );
-
-    CommandLineOptions options = new CommandLineOptions();
-    new JCommander( options, cli.toArray( new String[cli.size()] ) );
-    options.setSourceFiles( Arrays.asList( getSourceFiles( config ) ) );
-    SoutCompilerDriver driver = new SoutCompilerDriver( true, !options.isNoWarn() );
-    boolean thresholdExceeded = CommandLineCompiler.invoke( options, driver );
-
-    if( config.isShowWarnings() )
-    {
-      getLogger().info( String.format( "gosuc completed with %d warnings and %d errors.", driver.getWarnings().size(), driver.getErrors().size() ) );
-    }
-    else
-    {
-      getLogger().info( String.format( "gosuc completed with %d errors. Warnings were disabled.", driver.getErrors().size() ) );
-    }
-
-    List<CompilerMessage> messages = driver.getWarnings().stream().map( warningMsg -> new CompilerMessage( warningMsg, CompilerMessage.Kind.WARNING ) ).collect( Collectors.toList() );
-    if( driver.hasErrors() )
-    {
-      messages.addAll( driver.getErrors().stream().map( errorMsg -> new CompilerMessage( errorMsg, CompilerMessage.Kind.ERROR ) ).collect( Collectors.toList() ) );
-    }
-    return new CompilerResult( !thresholdExceeded, messages );
-  }
-
-  private File createArgFile(CompilerConfiguration config) throws IOException {
-    File tempFile;
-    if ((getLogger() != null) && getLogger().isDebugEnabled()) {
-      tempFile = File.createTempFile(CommandLineCompiler.class.getName(), "arguments", new File(config.getOutputLocation()));
-    } else {
-      tempFile = File.createTempFile(CommandLineCompiler.class.getName(), "arguments");
-      tempFile.deleteOnExit();
-    }
-
-    List<String> fileOutput = new ArrayList<>();
-    addGosucArgs( config, fileOutput );
-
-    for(File sourceFile : config.getSourceFiles()) {
-      fileOutput.add(sourceFile.getPath());
-    }
-
-    Files.write(tempFile.toPath(), fileOutput, StandardCharsets.UTF_8);
-
-    return tempFile;
-  }
-
-  private void addGosucArgs( CompilerConfiguration config, List<String> fileOutput )
-  {
-    // The classpath used to initialize Gosu; CommandLineCompiler will supplement this with the JRE jars
-    fileOutput.add("-classpath");
-    fileOutput.add(String.join( File.pathSeparator, config.getClasspathEntries()));
-
-    fileOutput.add("-d");
-    fileOutput.add(config.getOutputLocation());
-
-    fileOutput.add("-sourcepath");
-    fileOutput.add(String.join(File.pathSeparator, config.getSourceLocations()));
-
-    if(!config.isShowWarnings()) {
-      fileOutput.add("-nowarn");
-    }
-
-    if(config.isVerbose()) {
-      fileOutput.add("-verbose");
-    }
-  }
-
-  private List<CompilerMessage> parseMessages(int exitCode, String sysout) {
-    List<CompilerMessage> messages = new ArrayList<>();
-
-    // $1: warning|error
-    final String soutPattern = "^.*:\\[\\d+,\\d+\\]\\s(warning|error):(?:.*\\n)?.*\\[line:\\d+\\scol:\\d+\\]\\sin$\\n(?:^line\\s+\\d+:.*\\n){1,3}";
-
-    Pattern regex = Pattern.compile(soutPattern, Pattern.MULTILINE);
-    Matcher regexMatcher = regex.matcher(sysout);
-    while(regexMatcher.find()) {
-      CompilerMessage.Kind kind = regexMatcher.group(1).equals("warning") ? CompilerMessage.Kind.WARNING : CompilerMessage.Kind.ERROR;
-      messages.add(new CompilerMessage(regexMatcher.group(), kind));
-    }
-
-    return messages;
-  }
-
-  /**
-   * Get the path of the java executable: try to find it depending the
-   * OS or the <code>java.home</code> system property or the
-   * <code>JAVA_HOME</code> environment variable.
-   *
-   * @return the absolute path of the java executable
-   * @throws IOException
-   *             if not found
-   */
-  private String getJavaExecutable() throws IOException {
-    String javaCommand = "java" + (Os.isFamily(Os.FAMILY_WINDOWS) ? ".exe" : "");
-
-    String javaHome = System.getProperty("java.home");
-    File javaExe;
-    if (Os.isName("AIX")) {
-      javaExe = new File(javaHome + File.separator + ".." + File.separator + "sh", javaCommand);
-    } else if (Os.isName("Mac OS X")) {
-      javaExe = new File(javaHome + File.separator + "bin", javaCommand);
-    } else {
-      javaExe = new File(javaHome + File.separator + ".." + File.separator + "bin", javaCommand);
-    }
-
-    // ----------------------------------------------------------------------
-    // Try to find javaExe from JAVA_HOME environment variable
-    // ----------------------------------------------------------------------
-    if (!javaExe.isFile()) {
-      Properties env = CommandLineUtils.getSystemEnvVars();
-      javaHome = env.getProperty("JAVA_HOME");
-      if (StringUtils.isEmpty(javaHome)) {
-        throw new IOException("The environment variable JAVA_HOME is not correctly set.");
-      }
-      if (!new File(javaHome).isDirectory()) {
-        throw new IOException("The environment variable JAVA_HOME=" + javaHome
-            + " doesn't exist or is not a valid directory.");
-      }
-
-      javaExe = new File(env.getProperty("JAVA_HOME") + File.separator + "bin", javaCommand);
-    }
-
-    if (!javaExe.isFile()) {
-      throw new IOException("The java executable '" + javaExe
-          + "' doesn't exist or is not a file. Verify the JAVA_HOME environment variable.");
-    }
-
-    return javaExe.getAbsolutePath();
+  @Override
+  public String getInputFileEnding( CompilerConfiguration configuration ) throws CompilerException {
+    return "";
   }
 
 }
