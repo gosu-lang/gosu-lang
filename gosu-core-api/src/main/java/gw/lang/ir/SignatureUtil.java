@@ -1,6 +1,7 @@
 package gw.lang.ir;
 
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
+import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
@@ -32,7 +33,7 @@ public class SignatureUtil {
       sv.visitBaseType(c);
     }
     else {
-      IType rawType = type.getGenericType() == null ? type : type.getGenericType();
+      IType rawType = makeRawType( type );
       String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType );
       sv.visitClassType( rawName );
       if( type.isParameterizedType() ) {
@@ -46,6 +47,17 @@ public class SignatureUtil {
         sv.visitEnd();
       }
     }
+  }
+
+  private static IType makeRawType( IType type ) {
+    IType ret;
+    if( type instanceof ICompoundType ) {
+      ret = makeRawType( ((ICompoundType)type).getTypes().iterator().next() );
+    }
+    else {
+      ret = type.getGenericType() == null ? type : type.getGenericType();
+    }
+    return ret;
   }
 
   public static IType getPureGenericType(IType type) {
