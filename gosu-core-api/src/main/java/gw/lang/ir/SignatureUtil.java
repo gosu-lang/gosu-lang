@@ -57,7 +57,7 @@ public class SignatureUtil
     }
     else
     {
-      IType rawType = type.getGenericType() == null ? type : type.getGenericType();
+      IType rawType = makeRawType( type );
       String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType );
       sv.visitClassType( rawName );
       if( type.isParameterizedType() )
