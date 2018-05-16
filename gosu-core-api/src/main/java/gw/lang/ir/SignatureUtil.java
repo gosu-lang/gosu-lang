@@ -57,7 +57,7 @@ public class SignatureUtil
     }
     else
     {
-      IType rawType = type.getGenericType() == null ? type : type.getGenericType();
+      IType rawType = makeRawType( type );
       String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType );
       sv.visitClassType( rawName );
       if( type.isParameterizedType() )
@@ -74,6 +74,17 @@ public class SignatureUtil
         sv.visitEnd();
       }
     }
+  }
+
+  private static IType makeRawType( IType type ) {
+    IType ret;
+    if( type instanceof ICompoundType ) {
+      ret = makeRawType( ((ICompoundType)type).getTypes().iterator().next() );
+    }
+    else {
+      ret = type.getGenericType() == null ? type : type.getGenericType();
+    }
+    return ret;
   }
 
   private static IJavaType getParamterizedArityType( IFunctionType funcType )
