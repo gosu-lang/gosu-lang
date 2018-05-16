@@ -17,6 +17,8 @@ class Errant_BooleanPropertyAccess {
 
     var a: A
     // IDE-2250
+    var b31 = a.getProp()      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    var b32 = a.isProp()      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
     var b33 = a.Prop
   }
 }

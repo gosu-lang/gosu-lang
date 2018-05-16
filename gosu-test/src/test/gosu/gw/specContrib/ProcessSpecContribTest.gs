@@ -4,6 +4,7 @@ uses gw.BaseVerifyErrantTest
 uses java.io.File
 uses java.lang.*
 uses java.util.ArrayList
+uses java.util.HashMap
 uses java.lang.StringBuilder
 uses gw.lang.reflect.gs.IGosuClass
 uses java.util.Collections
@@ -39,6 +40,7 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
                                            : gsClass.ParseResultsException.ParseIssues.partition( \ issue -> issue.Line )
     var iLine = 0
     var kbPattern =  Pattern.compile("//## KB\\([A-Z]+-[0-9]+\\)")
+    var missingDiag = new HashMap<Integer, String>()
     using( var reader = new BufferedReader( new StringReader( gsClass.Source ) ) ) {
       var line = reader.readLine()
       while( line != null ) {
@@ -54,7 +56,9 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
           var iOffset = line.indexOf( "//## issuekeys:" )
           if(iOffset != -1) {
             var issuesForLine = issuesByLine.get( iLine )
-            assertTrue( gsClass.Name + " : Found unexpected error[s] on line " + iLine, issuesForLine != null )
+	    if (issuesForLine == null) {
+	      missingDiag.put(iLine, line.substring(line.indexOf("//## issuekeys:")).replaceFirst("//## issuekeys:",""))
+	    }
             issuesByLine.remove(iLine)
           }
         }
@@ -64,13 +68,19 @@ class ProcessSpecContribTest extends BaseVerifyErrantTest {
     }
     var err = new StringBuilder()
     err.append(gsClass.Name)
+    if(!missingDiag.Empty) {
+      err.append("\nExpected errors not seen:")
+      for(l in missingDiag.Keys.toList().sort()) {
+        err.append("\n    Line " + l + ": " + missingDiag.get(l))
+      }
+    }
     if(!issuesByLine.Empty) {
       err.append("\nFound Unannotated Errors:");
       for(l in issuesByLine.Keys.toList().sort()) {
         err.append("\n    Line " + l + ": ").append(issuesByLine[l].map( \ el -> el.MessageKey.Key).join(","))
       }
     }
-    assertTrue(err.toString(), issuesByLine.Empty )
+    assertTrue(err.toString(), issuesByLine.Empty && missingDiag.Empty )
   }
 
   private function convertToClassPath(f : File) : String {

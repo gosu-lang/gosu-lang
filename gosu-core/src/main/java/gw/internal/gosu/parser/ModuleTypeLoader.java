@@ -303,6 +303,11 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   @Override
   public INamespaceType getNamespaceType( String strNamespace )
   {
+    if( !isValidNamespace( strNamespace ) )
+    {
+      return null;
+    }
+
     // First, look for the type in the map by name
     IType foundType = _namespaceTypesByName.get(strNamespace);
     if( foundType == null )
@@ -335,6 +340,14 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
     {
       return null;
     }
+  }
+
+  private boolean isValidNamespace( String strNamespace )
+  {
+    // invalid if empty, starts with dot, or ends with dot
+    return strNamespace.length() > 0 &&
+           strNamespace.charAt( 0 ) != '.' &&
+           strNamespace.charAt( strNamespace.length() - 1 ) != '.';
   }
 
   @Override
