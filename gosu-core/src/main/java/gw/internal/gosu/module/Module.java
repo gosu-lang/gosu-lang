@@ -25,6 +25,7 @@ import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
+
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticListener;
 import manifold.api.fs.IFile;
@@ -234,6 +235,14 @@ public class Module implements IModule
   {
     Set<ITypeManifold> all = new HashSet<>();
     GosuClassTypeLoader gosuLoader = GosuClassTypeLoader.getDefaultClassLoader( this );
+    if(gosuLoader == null) {
+      throw new IllegalStateException("No instance of GosuClassTypeLoader found");
+    }
+//    String diagnosticMessage = String.format("*** GosuClassTypeLoader is: %s ***", gosuLoader.toString());
+//    System.out.println(diagnosticMessage);
+//    if(gosuLoader.getTypeManifolds() == null) {
+//      throw new IllegalStateException("No TypeManifolds found for " + diagnosticMessage);
+//    }
     all.addAll( gosuLoader.getTypeManifolds() );
     DefaultTypeLoader defaultLoader = DefaultTypeLoader.instance( this );
     all.addAll( defaultLoader.getTypeManifolds() );
