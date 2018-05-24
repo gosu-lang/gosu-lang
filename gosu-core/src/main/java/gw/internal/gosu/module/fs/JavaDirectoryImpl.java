@@ -11,11 +11,12 @@ import gw.fs.IFile;
 import gw.fs.IResource;
 import gw.lang.reflect.module.IFileSystem;
 
-import java.io.IOException;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
 
@@ -75,7 +76,7 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
   }
 
   @Override
-  public boolean mkdir() throws IOException {
+  public boolean mkdir() {
     return _file.mkdir();
   }
 
@@ -101,18 +102,7 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
 
   @Override
   public boolean hasChildFile(String path) {
-    if (_fileRetrievalStrategy instanceof FullyCachedFileRetrievalStrategy && path.indexOf('/') == -1 && path.indexOf('\\') == -1) {
-      for (IFile file : listFiles()) {
-        if (file.getName().equals(path)) {
-          return true;
-        }
-      }
-
-      return false;
-    } else {
-      IFile childFile = file(path);
-      return childFile != null && childFile.exists();
-    }
+    return _fileRetrievalStrategy.hasChildFile(path);
   }
 
   @Override
@@ -124,6 +114,8 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
     List<? extends IDirectory> listDirs();
 
     List<? extends IFile> listFiles();
+
+    boolean hasChildFile(String path);
   }
 
   private class UncachedFileRetrievalStrategy implements FileRetrievalStrategy {
@@ -153,6 +145,12 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
         }
       }
       return results;
+    }
+
+    @Override
+    public boolean hasChildFile(String path) {
+      IFile childFile = file(path);
+      return childFile != null && childFile.exists();
     }
   }
 
@@ -210,6 +208,12 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
       } else {
         ((ArrayList) _files).trimToSize();
       }
+    }
+
+    @Override
+    public boolean hasChildFile(String path) {
+      IFile childFile = file(path);
+      return childFile != null && childFile.exists();
     }
 
     protected abstract void refreshIfNecessary();
@@ -292,16 +296,36 @@ public class JavaDirectoryImpl extends JavaResourceImpl implements IDirectory {
   }
 
   private class FullyCachedFileRetrievalStrategy extends CachingFileRetrievalStrategy {
+    private Set<String> fileNamesSet;
+
     @Override
     protected void refreshIfNecessary() {
       if (_files == null) {
         refreshInfo();
+        fileNamesSet =_files.stream().map(IFile::getName).collect(Collectors.toSet());
       }
     }
 
     @Override
     protected void maybeSetTimestamp(File javaFile) {
       // Do nothing
+    }
+
+    private Set<String> fileNamesSet() {
+      if (this.fileNamesSet==null) {
+        refreshIfNecessary();
+      }
+      return this.fileNamesSet;
+    }
+
+    @Override
+    public boolean hasChildFile(String path) {
+      if (path.indexOf('/') == -1 && path.indexOf('\\') == -1) {
+        return fileNamesSet().contains(path);
+      } else {
+        IFile childFile = file(path);
+        return childFile != null && childFile.exists();
+      }
     }
   }
 }
