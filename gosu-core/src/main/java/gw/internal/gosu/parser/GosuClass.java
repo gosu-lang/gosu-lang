@@ -744,14 +744,36 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   {
     if( isCompilingHeader() )
     {
-      return Collections.emptySet();
+      TypeSystem.lock();
+      try
+      {
+        if( isCompilingHeader() )
+        {
+          return Collections.emptySet();
+        }
+      }
+      finally
+      {
+        TypeSystem.unlock();
+      }
     }
 
     compileHeaderIfNeeded();
 
     if( !isHeaderCompiled() )
     {
-      return Collections.emptySet();
+      TypeSystem.lock();
+      try
+      {
+        if( !isHeaderCompiled() )
+        {
+          return Collections.emptySet();
+        }
+      }
+      finally
+      {
+        TypeSystem.unlock();
+      }
     }
 
     if( _setTypes == null )
