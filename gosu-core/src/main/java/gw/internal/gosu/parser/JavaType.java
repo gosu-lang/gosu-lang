@@ -991,14 +991,14 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       {
         Set<IType> types = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
         types.addAll( new HashSet<IType>( TypeLord.getArrayVersionsOfEachType( getComponentType().getAllTypesInHierarchy() ) ) );
-        _allTypesInHierarchy = new UnmodifiableArraySet<IType>( types );
+        _allTypesInHierarchy = Collections.unmodifiableSet( types );
       }
       else
       {
         _allTypesInHierarchy = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
         Set<IType> includeGenericTypes = new HashSet<IType>( _allTypesInHierarchy );
         addGenericTypes( thisRef(), includeGenericTypes );
-        _allTypesInHierarchy = new UnmodifiableArraySet<IType>(includeGenericTypes);
+        _allTypesInHierarchy = Collections.unmodifiableSet( includeGenericTypes );
       }
     }
     finally

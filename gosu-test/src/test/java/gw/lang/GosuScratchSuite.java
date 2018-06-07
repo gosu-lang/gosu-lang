@@ -25,6 +25,7 @@ public class GosuScratchSuite extends Suite
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
       .withTest( "gw.specContrib.classes.inner.InnerClassTest" );
+    //  .withTest( "gw.specContrib.rexpod.CoreIterableParallelizationTest" );
     //  .withTest( "gw.internal.gosu.parser.classTests.gwtest.dynamic.JsonTest" );
   }
 
