@@ -35,6 +35,7 @@ import manifold.api.type.TypeName;
 
 
 import static java.util.Collections.emptySet;
+import static manifold.api.type.ContributorKind.Supplemental;
 
 public class GosuClassTypeLoader extends SimpleTypeLoader
 {
@@ -331,10 +332,21 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
       return blockType;
     }
 
-    ISourceFileHandle sfh = _repository.findClass( fqn, getAllExtensions() );
-    if( sfh == null )
+
+    ISourceFileHandle sfh;
+    //noinspection unchecked
+    Set<ITypeManifold> typeManifolds = findTypeManifoldsFor( fqn, tm -> tm.getContributorKind() == Supplemental );
+    if( !typeManifolds.isEmpty() )
     {
-      sfh = loadFromTypeManifold( fqn, findTypeManifoldsFor( fqn ) );
+      sfh = loadFromTypeManifold( fqn, typeManifolds );
+    }
+    else
+    {
+      sfh = _repository.findClass( fqn, getAllExtensions() );
+      if( sfh == null )
+      {
+        sfh = loadFromTypeManifold( fqn, findTypeManifoldsFor( fqn ) );
+      }
     }
 
     if( sfh == null || !isValidSourceFileHandle( sfh ) || !sfh.isValid() || !fqn.endsWith( sfh.getRelativeName() ) )

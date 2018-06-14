@@ -276,12 +276,24 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   @Override
   public ISourceFileHandle getSourceFileHandle( String fqn ) {
-    ISourceFileHandle aClass = _module.getFileRepository().findClass( fqn, EXTENSIONS_ARRAY );
-    if( aClass == null ) {
-      aClass = loadFromTypeManifold( fqn, findTypeManifoldsFor( fqn ) );
+    ISourceFileHandle aClass;
+    //noinspection unchecked
+    Set<ITypeManifold> typeManifolds = findTypeManifoldsFor( fqn, tm -> tm.getContributorKind() == Supplemental );
+    if( !typeManifolds.isEmpty() )
+    {
+      aClass = loadFromTypeManifold( fqn, typeManifolds );
     }
-    else if( !aClass.getClassType().isJava() ) {
-      aClass = null;
+    else
+    {
+      aClass = _module.getFileRepository().findClass( fqn, EXTENSIONS_ARRAY );
+      if( aClass == null )
+      {
+        aClass = loadFromTypeManifold( fqn, findTypeManifoldsFor( fqn ) );
+      }
+      else if( !aClass.getClassType().isJava() )
+      {
+        aClass = null;
+      }
     }
     return aClass;
   }

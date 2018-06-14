@@ -26,6 +26,7 @@ import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticListener;
 import manifold.api.fs.IFile;
@@ -149,8 +150,8 @@ public class Module implements IModule
   public List<IDirectory> getCollectiveJavaClassPath()
   {
     List<IDirectory> all = new ArrayList<>();
-    //all.addAll( getJavaClassPath() );
-    all.addAll( getCollectiveSourcePath() );
+    all.addAll( getJavaClassPath() );
+    //all.addAll( getCollectiveSourcePath() );
     return all;
   }
 
@@ -249,19 +250,27 @@ public class Module implements IModule
     return all;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Set<ITypeManifold> findTypeManifoldsFor( String fqn )
+  public Set<ITypeManifold> findTypeManifoldsFor( String fqn, Predicate<ITypeManifold>... predicates )
   {
-    Set<ITypeManifold> sps = new HashSet<>( 2 );
-    for( ITypeManifold sp : getTypeManifolds() )
+    Set<ITypeManifold> tms = new HashSet<>( 2 );
+    Set<ITypeManifold> typeManifolds = getTypeManifolds();
+    if( predicates != null && predicates.length > 0 )
     {
-      if( sp.isType( fqn ) )
+      typeManifolds = typeManifolds.stream()
+        .filter( e -> Arrays.stream( predicates )
+          .anyMatch( p -> p.test( e ) ) )
+        .collect( Collectors.toSet() );
+    }
+    for( ITypeManifold tm : typeManifolds )
+    {
+      if( tm.isType( fqn ) )
       {
-        sps.add( sp );
+        tms.add( tm );
       }
     }
-    return sps;
-  }
+    return tms;  }
 
   @Override
   public Set<ITypeManifold> findTypeManifoldsFor( IFile file )

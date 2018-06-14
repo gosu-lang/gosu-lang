@@ -5,6 +5,8 @@
 package gw.lang.reflect;
 
 import java.util.HashSet;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import manifold.api.fs.IDirectory;
 import manifold.api.fs.IFile;
 import gw.lang.GosuShop;
@@ -28,17 +30,25 @@ public abstract class SimpleTypeLoader extends TypeLoaderBase
   public abstract Set<String> getExtensions();
 
   @Override
-  public Set<ITypeManifold> findTypeManifoldsFor( String fqn )
+  public Set<ITypeManifold> findTypeManifoldsFor( String fqn, Predicate<ITypeManifold>... predicates )
   {
-    Set<ITypeManifold> sps = new HashSet<>( 2 );
-    for( ITypeManifold sp : getTypeManifolds() )
+    Set<ITypeManifold> tms = new HashSet<>( 2 );
+    Set<ITypeManifold> typeManifolds = getTypeManifolds();
+    if( predicates != null && predicates.length > 0 )
     {
-      if( sp.isType( fqn ) )
+      typeManifolds = typeManifolds.stream()
+        .filter( e -> Arrays.stream( predicates )
+          .anyMatch( p -> p.test( e ) ) )
+        .collect( Collectors.toSet() );
+    }
+    for( ITypeManifold tm : typeManifolds )
+    {
+      if( tm.isType( fqn ) )
       {
-        sps.add( sp );
+        tms.add( tm );
       }
     }
-    return sps;
+    return tms;
   }
 
   @Override
