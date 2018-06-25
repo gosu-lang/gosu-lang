@@ -95,7 +95,7 @@ public class TypeLord
       String assignabilityCacheSize = System.getProperty("assignabilityCacheSize");
       if (assignabilityCacheSize != null)
       {
-        return Math.min(Integer.valueOf(assignabilityCacheSize), DEFAULT_ASSIGNABILITY_CACHE_SIZE);
+        return Math.max(Integer.valueOf(assignabilityCacheSize), DEFAULT_ASSIGNABILITY_CACHE_SIZE);
       }
     }
     catch (Exception e)
