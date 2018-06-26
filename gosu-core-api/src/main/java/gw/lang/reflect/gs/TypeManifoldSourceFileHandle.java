@@ -68,7 +68,7 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
         else
         {
           found = sp;
-          result = sp.contribute( fqn, result, errorHandler );
+          result = sp.contribute( null, fqn, result, errorHandler );
         }
       }
     }
@@ -76,7 +76,7 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
     {
       if( sp.getContributorKind() == ContributorKind.Supplemental )
       {
-        result = sp.contribute( fqn, result, errorHandler );
+        result = sp.contribute( null, fqn, result, errorHandler );
       }
     }
     return result;

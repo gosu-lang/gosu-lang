@@ -1,6 +1,7 @@
 package gw.lang.reflect.json;
 
 import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import manifold.api.host.IModuleComponent;
 import manifold.api.type.ClassType;
@@ -60,7 +61,7 @@ public class JsonTypeManifold extends GosuTypeManifold<Model>
   }
 
   @Override
-  protected String contribute( String topLevelFqn, String existing, Model model, DiagnosticListener<JavaFileObject> errorHandler )
+  protected String contribute(JavaFileManager.Location location, String topLevelFqn, String existing, Model model, DiagnosticListener<JavaFileObject> errorHandler )
   {
     StringBuilder sb = new StringBuilder();
     sb.append( "package " ).append( GosuClassUtil.getPackage( topLevelFqn ) ).append( "\n\n" );

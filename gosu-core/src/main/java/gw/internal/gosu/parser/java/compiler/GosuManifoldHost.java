@@ -133,9 +133,9 @@ public class GosuManifoldHost extends BaseService implements IManifoldHost
   }
 
   @Override
-  public JavaFileObject produceFile( String fqn, IModule module, DiagnosticListener<JavaFileObject> errorHandler )
+  public JavaFileObject produceFile(String fqn, JavaFileManager.Location location, IModule module, DiagnosticListener<JavaFileObject> errorHandler )
   {
-    return module.produceFile( fqn, errorHandler );
+    return module.produceFile( fqn, location, errorHandler );
   }
 
   @Override

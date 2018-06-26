@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import manifold.api.fs.Extensions;
 import manifold.api.fs.IDirectory;
@@ -293,7 +294,7 @@ public class Module implements IModule
   }
 
   @Override
-  public JavaFileObject produceFile( String fqn, DiagnosticListener<JavaFileObject> errorHandler )
+  public JavaFileObject produceFile(String fqn, JavaFileManager.Location location, DiagnosticListener<JavaFileObject> errorHandler )
   {
     IType type = TypeSystem.getByFullNameIfValid( fqn, this );
     JavaFileObject file = null;
