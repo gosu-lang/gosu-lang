@@ -22,6 +22,7 @@ import gw.test.TestClass;
 import gw.util.GosuTestUtil;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Arrays;
 
@@ -428,5 +429,47 @@ public class TypeLordTest extends TestClass
     IType actual = TypeLord.findLeastUpperBound( Arrays.asList( listOfWildcardOfString, listOfWildcardOfCharSequence ) );
     assertEquals(JavaTypes.LIST().getParameterizedType(JavaTypes.CHAR_SEQUENCE()), actual );
   }
+
+  private void setCacheSize(int value) {
+    System.setProperty("assignabilityCacheSize", String.valueOf(value));
+  }
+
+  private int getAssignabilityCacheSizeFromTypeLord() {
+    int size = 0;
+    TypeLord typeLord = new TypeLord();
+    try {
+      Method method = typeLord.getClass().getDeclaredMethod("getAssignabilityCacheSize");
+      method.setAccessible(true);
+      size = (int) method.invoke(typeLord);
+
+    } catch (Exception e) {
+      fail("Exception: " + e.getMessage());
+    }
+
+    return size;
+  }
+
+  public void testAssignabilityCacheSizeOveride() {
+
+    String originalPropertyValue = System.getProperty("assignabilityCacheSize");
+    try {
+      final int DEFAULT_CACHE_SIZE = 1000;
+      final int CACHE_SIZE_LESS_THAN_DEFAULT = 500;
+      final int CACHE_SIZE_GREATER_THAN_DEFAULT = 2000;
+
+      setCacheSize(CACHE_SIZE_LESS_THAN_DEFAULT);
+      assertEquals(DEFAULT_CACHE_SIZE, getAssignabilityCacheSizeFromTypeLord());
+
+      setCacheSize(CACHE_SIZE_GREATER_THAN_DEFAULT);
+      assertEquals(CACHE_SIZE_GREATER_THAN_DEFAULT, getAssignabilityCacheSizeFromTypeLord());
+
+    } finally {
+      if (originalPropertyValue == null)
+        System.clearProperty("assignabilityCacheSize");
+      else
+        System.setProperty("assignabilityCacheSize", originalPropertyValue);
+    }
+  }
+
 
 }
