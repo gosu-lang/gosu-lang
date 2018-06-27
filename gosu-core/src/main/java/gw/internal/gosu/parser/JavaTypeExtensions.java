@@ -20,6 +20,7 @@ import gw.util.concurrent.ConcurrentHashSet;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -79,8 +80,14 @@ class JavaTypeExtensions {
    * prevent cyclic references during javac compilation
    */
   private static final ConcurrentHashSet<IJavaType> SHORT_CIRCUIT = new ConcurrentHashSet<>();
-
+  private static final Set<String> whiteList = new HashSet<>( Arrays.asList( "entity", "typelist" ) );
   private static ExtendedTypeDataFactory getExtendedTypeDataFactory(IJavaType javaType) {
+    if( !whiteList.contains( javaType.getNamespace() ) )
+    {
+      // avoid unnecessary materialization of types, otherwise this method destroys the laziness of types
+      return null;
+    }
+
     boolean extendedType;
     if( ExecutionMode.isRuntime() ) {
       Class<?> backingClass = javaType.getBackingClass();
