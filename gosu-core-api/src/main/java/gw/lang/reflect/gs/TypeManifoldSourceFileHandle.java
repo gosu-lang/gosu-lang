@@ -5,10 +5,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import manifold.api.fs.IFile;
 import manifold.api.type.ContributorKind;
 import manifold.api.type.ITypeManifold;
+import manifold.internal.javac.JavacPlugin;
 import manifold.internal.javac.SourceJavaFileObject;
 import manifold.util.JavacDiagnostic;
 
@@ -79,7 +81,20 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
         result = sp.contribute( null, fqn, result, errorHandler );
       }
     }
+
+    if( result != null )
+    {
+      addToJavac( null, fqn );
+    }
+
     return result;
+  }
+
+  private static void addToJavac(JavaFileManager.Location location, String fqn) {
+    JavacPlugin javacPlugin = JavacPlugin.instance();
+    if (javacPlugin != null && javacPlugin.isStaticCompile()) {
+      javacPlugin.addClassForCompilation(location, fqn);
+    }
   }
 
 }
