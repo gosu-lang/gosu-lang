@@ -77,7 +77,7 @@ public class TypeLord
 {
   // LRUish cache of assignability results (recent tests indicate 99% hit rates)
   private static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
-    TypeSystemAwareCache.make( "Assignability Cache", 1000,
+    TypeSystemAwareCache.make( "Assignability Cache", getAssignabilityCacheSize(),
                                new Cache.MissHandler<Pair<IType, IType>, Boolean>()
                                {
                                  public final Boolean load( Pair<IType, IType> key )
@@ -85,6 +85,25 @@ public class TypeLord
                                    return areGenericOrParameterizedTypesAssignableInternal( key.getFirst(), key.getSecond() );
                                  }
                                } );
+
+  private static final int DEFAULT_ASSIGNABILITY_CACHE_SIZE = 1000;
+
+  private static int getAssignabilityCacheSize()
+  {
+    try
+    {
+      String assignabilityCacheSize = System.getProperty("assignabilityCacheSize");
+      if (assignabilityCacheSize != null)
+      {
+        return Math.max(Integer.valueOf(assignabilityCacheSize), DEFAULT_ASSIGNABILITY_CACHE_SIZE);
+      }
+    }
+    catch (Exception e)
+    {
+      new RuntimeException("Unable to set value of assignability cache due to an exception, the default value will be used", e).printStackTrace();
+    }
+    return DEFAULT_ASSIGNABILITY_CACHE_SIZE;
+  }
 
   public static Set<IType> getAllClassesInClassHierarchyAsIntrinsicTypes( IJavaClassInfo cls )
   {
