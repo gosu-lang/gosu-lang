@@ -17,7 +17,7 @@ public class CommandLineCompiler
   public static void main( String[] args )
   {
     CommandLineOptions options = new CommandLineOptions();
-    JCommander help = new JCommander( options, args );
+    JCommander help = JCommander.newBuilder().addObject( options ).args( args ).build();
     if( args.length == 0 || options.isHelp() )
     {
       //dump the summary when gosuc is called w/o any args

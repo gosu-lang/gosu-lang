@@ -30,7 +30,7 @@
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-jcommander</artifactId>
-      <version>1.48</version>
+      <version>1.72</version>
     </dependency>
   </dependencies>
   
