@@ -23,16 +23,16 @@ class CommandLineOptions {
   }
 
   @Parameter(:names = { "-help" }, :description = "Print a synopsis of standard options", :help = true)
-  var _help : Boolean
+  var _help : boolean
 
   /**
-   * @return true if and only if '-help' was specified on the command line
+   * @return true if '-help' was specified on the command line
    */
   property get Help() : boolean {
-    return _help ?: false
+    return _help
   }
 
-  @Parameter(:names = { "-inputDirs" }, :description = "List of source directories to process", :variableArity = true, :validateWith = FileExists)
+  @Parameter(:names = { "-inputDirs" }, :description = "List of source directories to process", :variableArity = true, :validateWith = { FileExists } )
   var _inputDirs : List<File>
   
   property get InputDirs() : List<File> {
@@ -47,13 +47,13 @@ class CommandLineOptions {
   }
 
   @Parameter(:names = { "-verbose" }, :description = "Output messages about what gosudoc is doing")
-  var _verbose : Boolean
+  var _verbose : boolean
 
   /**
-   * @return true if and only if '-verbose' was specified on the command line
+   * @return true if '-verbose' was specified on the command line
    */
   property get Verbose() : boolean {
-    return _verbose ?: false
+    return _verbose
   }
 
   protected static class FileExists implements IParameterValidator {
