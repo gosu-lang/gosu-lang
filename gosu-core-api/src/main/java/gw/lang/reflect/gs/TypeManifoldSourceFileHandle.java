@@ -82,10 +82,10 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
       }
     }
 
-    if( result != null )
-    {
-      addToJavac( null, fqn );
-    }
+//    if( result != null )
+//    {
+//      addToJavac( null, fqn );
+//    }
 
     return result;
   }
