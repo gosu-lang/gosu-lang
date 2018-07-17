@@ -11,13 +11,13 @@ public class CommandLineOptions {
   // using String parameter types with arity = 0 will suppress the annoying 'Default: false' help output
 
   @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
-  private Boolean _checkedarithmetic = null;
+  private boolean _checkedarithmetic;
 
   /**
-   * @return true if and only if '-ca' or '-checkedArithmetic' was specified on the command line
+   * @return true if '-ca' or '-checkedArithmetic' was specified on the command line
    */
   public boolean isCheckedArithmetic() {
-    return !(_checkedarithmetic == null || !_checkedarithmetic);
+    return _checkedarithmetic;
   }
 
   @Parameter(names = {"-cp", "-classpath"}, description = "Specify where to find user class files")
@@ -35,23 +35,23 @@ public class CommandLineOptions {
   }
 
   @Parameter(names = "-help", description = "Print a synopsis of standard options", help = true)
-  private Boolean _help = null;
+  private boolean _help;
 
   /**
-   * @return true if and only if '-help' was specified on the command line
+   * @return true if '-help' was specified on the command line
    */
   public boolean isHelp() {
-    return !(_help == null || !_help);
+    return _help;
   }
 
   @Parameter(names = "-nowarn", description = "Generate no warnings")
-  private Boolean _nowarn = null;
+  private boolean _nowarn;
 
   /**
-   * @return true if and only if '-nowarn' was specified on the command line
+   * @return true if '-nowarn' was specified on the command line
    */
   public boolean isNoWarn() {
-    return !(_nowarn == null || !_nowarn);
+    return _nowarn;
   }
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
@@ -62,23 +62,23 @@ public class CommandLineOptions {
   }
 
   @Parameter(names = "-verbose", description = "Output messages about what the compiler is doing")
-  private Boolean _verbose = null;
+  private boolean _verbose;
 
   /**
-   * @return true if and only if '-verbose' was specified on the command line
+   * @return true if '-verbose' was specified on the command line
    */
   public boolean isVerbose() {
-    return !(_verbose == null || !_verbose);
+    return _verbose;
   }
 
   @Parameter(names = "-version", description = "Version information")
-  private Boolean _version = null;
+  private boolean _version;
 
   /**
-   * @return true if and only if '-version' was specified on the command line
+   * @return true if '-version' was specified on the command line
    */
   public boolean isVersion() {
-    return !(_version == null || !_version);
+    return _version;
   }
 
   @Parameter(description = "<source files>")
