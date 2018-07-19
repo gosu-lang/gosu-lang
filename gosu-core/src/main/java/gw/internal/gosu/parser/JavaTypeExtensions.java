@@ -80,7 +80,7 @@ class JavaTypeExtensions {
    * prevent cyclic references during javac compilation
    */
   private static final ConcurrentHashSet<IJavaType> SHORT_CIRCUIT = new ConcurrentHashSet<>();
-  private static final Set<String> whiteList = new HashSet<>( Arrays.asList( "entity", "typelist" ) );
+  private static final Set<String> whiteList = new HashSet<>( Arrays.asList( "entity", "typekey" ) );
   private static ExtendedTypeDataFactory getExtendedTypeDataFactory(IJavaType javaType) {
     if( !whiteList.contains( javaType.getNamespace() ) )
     {
