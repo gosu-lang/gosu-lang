@@ -8,15 +8,20 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.VariableTree;
+import gw.internal.gosu.ir.nodes.IRMethodFactory;
+import gw.internal.gosu.ir.nodes.IRMethodFromMethodInfo;
 import gw.internal.gosu.parser.GenericTypeVariable;
 import gw.internal.gosu.parser.TypeLord;
+import gw.lang.ir.IRType;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.SimpleParameterInfo;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.ClassInfoUtil;
 import gw.lang.reflect.java.IJavaClassInfo;
@@ -24,14 +29,17 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaMethodInfo;
+import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.module.IModule;
+import manifold.ext.ExtensionMethod;
+import manifold.util.ReflectUtil;
 
 import javax.lang.model.element.Name;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -234,8 +242,79 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
   }
 
   @Override
-  public Object invoke(Object ctx, Object[] args) throws InvocationTargetException, IllegalAccessException {
-    throw new RuntimeException("Not supported");
+  public Object invoke( Object ctx, Object[] args )
+  {
+    IAnnotationInfo annotation = getAnnotation( ExtensionMethod.class );
+    if( annotation != null )
+    {
+      return invokeExtensionMethod( ctx, args, annotation );
+    }
+
+    IJavaClassInfo[] paramTypes = getParameterTypes();
+    List<IType> params = new ArrayList<>();
+    for( IJavaClassInfo paramType: paramTypes )
+    {
+      params.add( TypeSystem.get( paramType ) );
+    }
+    IType javaType = getEnclosingClass().getJavaType();
+    IMethodInfo mi = javaType.getTypeInfo().getMethod( getName(), params.toArray( IType.EMPTY_TYPE_ARRAY ) );
+
+    IRMethodFromMethodInfo irMethod = IRMethodFactory.createIRMethod( mi, new FunctionType( mi, false ) );
+    List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
+    Class[] paramClasses = new Class[allParameterTypes.size()];
+    for( int i = 0; i < allParameterTypes.size(); i++ )
+    {
+      paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
+    }
+
+    return ctx == null
+           ? ReflectUtil.method( getEnclosingClass().getBackingClass(), getName(), paramClasses ).invokeStatic( args )
+           : ReflectUtil.method( ctx, getName(), paramClasses ).invoke( args );
+  }
+
+  private Object invokeExtensionMethod( Object ctx, Object[] args, IAnnotationInfo annotation )
+  {
+    String extensionClass = (String)annotation.getFieldValue( ExtensionMethod.extensionClass );
+    boolean isStatic = (boolean)annotation.getFieldValue( ExtensionMethod.isStatic );
+
+    assert isStatic || ctx != null;
+
+    IJavaType extensionType = (IJavaType)TypeSystem.getByFullName( extensionClass, getModule() );
+
+    IJavaClassInfo[] paramTypes = getParameterTypes();
+    List<IType> params = new ArrayList<>();
+    for( IJavaClassInfo paramType: paramTypes )
+    {
+      params.add( TypeSystem.get( paramType ) );
+    }
+
+    if( !isStatic )
+    {
+      args = args == null ? new Object[0] : args;
+
+      String namespace = extensionType.getNamespace();
+      int iExt = namespace.lastIndexOf( "extensions." );
+      String fqn = namespace.substring( iExt + "extensions.".length() );
+
+      IType extendedClass = TypeSystem.getByFullName( fqn );
+      params.add( 0, extendedClass );
+
+      Object[] tempArgs = new Object[args.length + 1];
+      tempArgs[0] = ctx;
+      System.arraycopy( args, 0, tempArgs, 1, args.length );
+      args = tempArgs;
+    }
+
+    IMethodInfo mi = extensionType.getTypeInfo().getMethod( getName(), params.toArray( IType.EMPTY_TYPE_ARRAY ) );
+    IRMethodFromMethodInfo irMethod = IRMethodFactory.createIRMethod( mi, new FunctionType( mi, false ) );
+    List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
+    Class[] paramClasses = new Class[allParameterTypes.size()];
+    for( int i = 0; i < allParameterTypes.size(); i++ )
+    {
+      paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
+    }
+
+    return ReflectUtil.method( extensionType.getBackingClass(), getName(), paramClasses ).invokeStatic( args );
   }
 
   public IJavaClassTypeVariable[] getTypeParameters() {

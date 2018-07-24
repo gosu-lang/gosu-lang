@@ -82,19 +82,6 @@ public class TypeManifoldSourceFileHandle extends LazyStringSourceFileHandle
       }
     }
 
-//    if( result != null )
-//    {
-//      addToJavac( null, fqn );
-//    }
-
     return result;
   }
-
-  private static void addToJavac(JavaFileManager.Location location, String fqn) {
-    JavacPlugin javacPlugin = JavacPlugin.instance();
-    if (javacPlugin != null && javacPlugin.isStaticCompile()) {
-      javacPlugin.addClassForCompilation(location, fqn);
-    }
-  }
-
 }
