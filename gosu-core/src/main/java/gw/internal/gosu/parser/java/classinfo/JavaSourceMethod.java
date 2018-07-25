@@ -34,11 +34,13 @@ import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuExceptionUtil;
 import manifold.ext.ExtensionMethod;
 import manifold.util.ReflectUtil;
 
 import javax.lang.model.element.Name;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +58,7 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
   protected IJavaClassType[] _genericParameterTypes;
   protected IJavaClassInfo[] _parameterTypes;
   protected IJavaClassInfo _returnType;
+  private Method _javaMethod;
 
   public JavaSourceMethod(MethodTree method, JavaSourceType containingClass) {
     _containingClass = containingClass;
@@ -250,26 +253,44 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
       return invokeExtensionMethod( ctx, args, annotation );
     }
 
-    IJavaClassInfo[] paramTypes = getParameterTypes();
-    List<IType> params = new ArrayList<>();
-    for( IJavaClassInfo paramType: paramTypes )
+    if( _javaMethod == null )
     {
-      params.add( TypeSystem.get( paramType ) );
-    }
-    IType javaType = getEnclosingClass().getJavaType();
-    IMethodInfo mi = javaType.getTypeInfo().getMethod( getName(), params.toArray( IType.EMPTY_TYPE_ARRAY ) );
+      IJavaClassInfo[] paramTypes = getParameterTypes();
+      List<IType> params = new ArrayList<>();
+      for( IJavaClassInfo paramType : paramTypes )
+      {
+        params.add( TypeSystem.get( paramType ) );
+      }
+      IType javaType = getEnclosingClass().getJavaType();
+      IMethodInfo mi = javaType.getTypeInfo().getMethod( getName(), params.toArray( IType.EMPTY_TYPE_ARRAY ) );
 
-    IRMethodFromMethodInfo irMethod = IRMethodFactory.createIRMethod( mi, new FunctionType( mi, false ) );
-    List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
-    Class[] paramClasses = new Class[allParameterTypes.size()];
-    for( int i = 0; i < allParameterTypes.size(); i++ )
+      IRMethodFromMethodInfo irMethod = IRMethodFactory.createIRMethod( mi, new FunctionType( mi, false ) );
+      List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
+      Class[] paramClasses = new Class[allParameterTypes.size()];
+      for( int i = 0; i < allParameterTypes.size(); i++ )
+      {
+        paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
+      }
+
+      if( ctx == null )
+      {
+        _javaMethod = ReflectUtil.method( getEnclosingClass().getBackingClass(), getName(), paramClasses ).getMethod();
+      }
+      else
+      {
+        _javaMethod = ReflectUtil.method( ctx, getName(), paramClasses ).getMethod();
+      }
+    }
+    try
     {
-      paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
+      return ctx == null
+             ? _javaMethod.invoke( null, args )
+             : _javaMethod.invoke( ctx, args );
     }
-
-    return ctx == null
-           ? ReflectUtil.method( getEnclosingClass().getBackingClass(), getName(), paramClasses ).invokeStatic( args )
-           : ReflectUtil.method( ctx, getName(), paramClasses ).invoke( args );
+    catch( Exception e )
+    {
+      throw GosuExceptionUtil.forceThrow( e );
+    }
   }
 
   private Object invokeExtensionMethod( Object ctx, Object[] args, IAnnotationInfo annotation )
