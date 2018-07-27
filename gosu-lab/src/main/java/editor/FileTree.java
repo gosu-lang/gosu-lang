@@ -8,6 +8,7 @@ import gw.config.CommonServices;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.TypeSystem;
+import manifold.util.JsonUtil;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -551,12 +552,22 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
   private String _makeDotPath( FileTree sourcePathRoot )
   {
     String fqn = PathUtil.getAbsolutePathName( getFileOrDir() ).substring( PathUtil.getAbsolutePathName( sourcePathRoot.getFileOrDir() ).length() + 1 );
+    fqn = makeIdentifierName( fqn );
+    return fqn;
+  }
+
+  private String makeIdentifierName( String fqn )
+  {
     int iDot = fqn.lastIndexOf( '.' );
     if( iDot >= 0 )
     {
       fqn = fqn.substring( 0, iDot );
     }
     fqn = fqn.replace( File.separatorChar, '.' );
+    iDot = fqn.lastIndexOf( '.' );
+    String filePart = fqn.substring( iDot+1 );
+    filePart = JsonUtil.makeIdentifier( filePart );
+    fqn = fqn.substring( 0, iDot+1 ) + filePart;
     return fqn;
   }
 
