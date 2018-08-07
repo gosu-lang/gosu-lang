@@ -14244,7 +14244,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     for( int i = _locations.size(); i > iLocationsCount; i-- )
     {
-      _locations.remove( i-1 );
+      ParseTree removed = _locations.remove( i - 1 );
+      ParsedElement parsedElement = removed.getParsedElement();
+      if( parsedElement != null )
+      {
+        removeInnerClasses( parsedElement );
+      }
     }
   }
 
