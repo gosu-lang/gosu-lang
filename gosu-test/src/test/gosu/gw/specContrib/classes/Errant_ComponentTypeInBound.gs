@@ -21,19 +21,23 @@ class Errant_ComponentTypeInBound<F extends int & Comparable> {      //## issuek
   }
 
   function test1<T extends Integer & MyInterface>() { // No error because new D() => new D<Integer>()
-    var i = new D().do1().intValue()
+    var i = new D().do1()
   }
 
   function test2<T extends Integer & MyInterface>() { //## issuekeys: test2() must be declared with the "reified" modifier to access the type variable "T" at runtime
-    var i = new D<T>().do1().intValue()
+    var i = new D<T>().do1()
   }
 
   function test3<T extends Integer & MyInterface>() {  //## issuekeys: test3() must be declared with the "reified" modifier to access the type variable "T" at runtime
-    var i = new E<T>().do1().intValue()
+    var i = new E<T>().do1()
   }
 
-  function test4<T extends int & MyInterface>() { //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
-    var i = new D().do1().intValue()
+  function test4<T>() {             // No error because new D() => new D<Object>()
+    var i = new E().do1()
+  }
+
+  function test5<T extends int & MyInterface>() { //## issuekeys: PRIMITIVES ARE NOT ALLOWED IN A COMPONENT TYPE
+    var i = new D().do1()
   }
 }
 
