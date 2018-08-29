@@ -10239,8 +10239,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
         ParsedElement currentStmt = peekStatement();
         if( !(currentStmt instanceof NoOpStatement) && !(prevStmt instanceof NoOpStatement) )
         {
-          warn( currentStmt, prevStmt == null || prevStmt.getLineNum() != currentStmt.getLineNum() ||
-                  prevStmt.hasParseExceptions() || currentStmt.hasParseExceptions(),
+          warn( currentStmt,
+                prevStmt == null || prevStmt.getLineNum() != currentStmt.getLineNum()
+                || prevStmt.hasParseExceptions() || currentStmt.hasParseExceptions()
+                || (!ILanguageLevel.Util.STANDARD_GOSU() && hasSemicolon( prevStmt )),
                   Res.MSG_STATEMENT_ON_SAME_LINE );
         }
       }
@@ -10251,6 +10253,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       decStatementDepth();
     }
+  }
+
+  private boolean hasSemicolon( IParsedElement stmt )
+  {
+    if( stmt == null )
+    {
+      return false;
+    }
+
+    IParseTree location = stmt.getLocation();
+    String stmtText = getTokenizer().getSource().substring( location.getOffset(), location.getExtent() + 1 );
+    return stmtText.length() > 0 && stmtText.charAt( stmtText.length()-1 ) == ';';
   }
 
   boolean parseLoopStatement()
