@@ -7,6 +7,12 @@ class BlockMiscTest extends TestClass {
     assertEquals( "bye", runMe() )
   }
 
+  function testCharInit() {
+    var c: char
+    var fun = \-> print( c )
+    fun()
+  }
+
   function runMe(): String {
     var res = "hi"
 

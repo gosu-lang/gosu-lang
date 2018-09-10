@@ -1097,7 +1097,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       return numericLiteral(Byte.valueOf((byte) 0));
     }
     else if (type == JavaTypes.pCHAR()) {
-      return numericLiteral(0);
+      return charLiteral( (char)0 );
     }
     else if (type == JavaTypes.pSHORT()) {
       return numericLiteral(Short.valueOf((short) 0));
