@@ -4,8 +4,11 @@
 
 package gw.lang.reflect.module;
 
+import gw.config.CommonServices;
 import gw.lang.UnstableAPI;
+import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
+import gw.util.ILogger;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -118,11 +121,18 @@ public class TypeSystemLockHelper {
   private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {
     ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
     if( objectToLock != ctxLoader && ctxLoader != null ) {
-      try {
-        ctxLoader.wait( 100 );
-      }
-      catch (IllegalMonitorStateException e) {
-        // ok, only wait if this thread owns the monitor, otherwise keep rolling
+      if(!GosuInitialization._enableAlternateLockingStrategy) {
+        try {
+          ctxLoader.wait(100);
+        } catch (IllegalMonitorStateException e) {
+          // ok, only wait if this thread owns the monitor, otherwise keep rolling
+        }
+      } else {
+        ILogger logger = CommonServices.getEntityAccess().getLogger();
+        if(logger.isDebugEnabled() && isMonitorOwner(Thread.currentThread(), ctxLoader)) {
+          logger.debug("Holds context monitor, but not waiting on context loader " +
+                  ctxLoader.getClass().getSimpleName() + ctxLoader.hashCode());
+        }
       }
     }
   }
