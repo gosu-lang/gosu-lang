@@ -25,7 +25,7 @@ public class Breakpoint implements IJsonIO
     {
       protected Breakpoint init()
       {
-        Breakpoint anyException = new Breakpoint( "java.lang.Throwable", true, true, true );
+        Breakpoint anyException = new Breakpoint( Throwable.class.getName(), true, true, true );
         anyException.setActive( false );
         return anyException;
       }
