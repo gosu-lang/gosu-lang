@@ -222,14 +222,11 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * empty, null is returned.
    */
   function first() : T {
-    if( !HasElements ) {
-      return null
+    if( this typeis List ) {
+      return this.size() > 0 ? this[0] as T : null
     } else {
-      if( this typeis List ) {
-        return this[0] as T
-      } else {
-        return this.iterator().next()
-      }
+      var iter = this.iterator()
+      return iter.hasNext() ? this.iterator().next() : null
     }
   }
 
@@ -301,18 +298,14 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
    * empty, null is returned.
    */
   function last() : T {
-    if( !HasElements ) {
-      return null
+    if( this typeis List ) {
+      return this.size() > 0 ? this[this.size() - 1] as T : null
     } else {
-      if( this typeis List ) {
-        return this[this.size() - 1] as T
-      } else {
-        var ret : T = null
-        for( elt in this ) {
-          ret = elt
-        }
-        return ret
+      var ret : T = null
+      for( elt in this ) {
+        ret = elt
       }
+      return ret
     }
   }
   
