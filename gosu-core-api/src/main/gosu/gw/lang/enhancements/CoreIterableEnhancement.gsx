@@ -227,7 +227,7 @@ enhancement CoreIterableEnhancement<T> : java.lang.Iterable<T> {
       return this.size() > 0 ? this[0] as T : null
     } else {
       var iter = this.iterator()
-      return iter.hasNext() ? this.iterator().next() : null
+      return iter.hasNext() ? iter.next() : null
     }
   }
 
