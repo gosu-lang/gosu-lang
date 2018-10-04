@@ -4,6 +4,7 @@
 
 package gw.lang.parser;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
 import gw.config.BaseService;
 import gw.config.CommonServices;
 import gw.internal.gosu.parser.IParameterizableType;
@@ -49,7 +50,7 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   // LRUish cache of coercers
   public final TypeSystemAwareCache<Pair<IType, IType>, ICoercer> _coercerCache =
       TypeSystemAwareCache.make( "Coercer Cache", 1000,
-                                 new Cache.MissHandler<Pair<IType, IType>, ICoercer>()
+                                 new CacheLoader<Pair<IType, IType>, ICoercer>()
                                  {
                                    public final ICoercer load( Pair<IType, IType> key )
                                    {

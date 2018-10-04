@@ -13,7 +13,6 @@ import gw.lang.parser.coercers.BasePrimitiveCoercer;
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Pair;
-import gw.util.concurrent.Cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +28,7 @@ public class MethodScorer {
 
   private final TypeSystemAwareCache<Pair<IType, IType>, Integer> _typeScoreCache =
     TypeSystemAwareCache.make( "Type Score Cache", 1000,
-                               new Cache.MissHandler<Pair<IType, IType>, Integer>() {
-                                 public final Integer load( Pair<IType, IType> key ) {
-                                   return _addToScoreForTypes( Collections.<IType>emptyList(), key.getFirst(), key.getSecond() );
-                                 }
-                               } );
+      key -> _addToScoreForTypes( Collections.<IType>emptyList(), key.getFirst(), key.getSecond() ) );
 
   private final MethodScoreCache _methodScoreCache = new MethodScoreCache();
 

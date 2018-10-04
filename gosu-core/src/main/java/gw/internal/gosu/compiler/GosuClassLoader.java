@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.compiler;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
 import gw.config.CommonServices;
 import gw.internal.gosu.ir.TransformingCompiler;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
@@ -495,7 +496,7 @@ public class GosuClassLoader implements IGosuClassLoader
       {
         //noinspection Convert2Lambda
         super( "Discrete Loaders", 100,
-               new MissHandler<String, WeakReference<DiscreteClassLoader>>()
+               new CacheLoader<String, WeakReference<DiscreteClassLoader>>()
                {
                   @Override
                   public WeakReference<DiscreteClassLoader> load( String key )
