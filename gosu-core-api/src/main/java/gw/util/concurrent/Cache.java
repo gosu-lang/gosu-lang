@@ -21,7 +21,7 @@ public class Cache<K, V>
   private final String _name;
   private final int _size;
   private final CacheLoader<K, V> _loader;
-  private com.github.benmanes.caffeine.cache.Cache<Object, Object> _cacheImpl;
+  private com.github.benmanes.caffeine.cache.Cache<K, V> _cacheImpl;
 
   private ScheduledFuture<?> _loggingTask;
 
@@ -82,7 +82,7 @@ public class Cache<K, V>
    */
   public V get( K key )
   {
-    Object value = _cacheImpl.getIfPresent( key );
+    V value = _cacheImpl.getIfPresent( key );
     if( value == null )
     {
       try
@@ -98,7 +98,7 @@ public class Cache<K, V>
         throw new RuntimeException( e );
       }
     }
-    return (V)value;
+    return value;
   }
 
   public CacheStats getStats()
