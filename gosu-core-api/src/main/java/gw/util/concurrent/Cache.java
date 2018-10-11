@@ -165,4 +165,10 @@ public class Cache<K, V>
   {
     return new Cache<>( name, size, loader );
   }
+
+  /**
+   * @deprecated use {@link CacheLoader} instead
+   */
+  public interface MissHandler<L, W> extends CacheLoader<L,W> {
+  }
 }
