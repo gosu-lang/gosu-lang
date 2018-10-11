@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class Cache<K, V>
 {
+  // Note stats incur a perf penalty
+  private static final boolean ENABLE_STATS = System.getProperties().contains( "gosu.cache.stats" );
+
   private final String _name;
   private final int _size;
   private final CacheLoader<K, V> _loader;
@@ -44,10 +47,15 @@ public class Cache<K, V>
     //  - rsmckinney's comments in:
     //      https://stackoverflow.com/questions/28840047/recursive-concurrenthashmap-computeifabsent-call-never-terminates-bug-or-fea/28845674?noredirect=1#comment92206723_28845674
     //  - https://github.com/ben-manes/caffeine/wiki/Faq#recursive-computations
-    _cacheImpl = Caffeine.newBuilder()
-      .maximumSize( _size )
-      //.recordStats()
-      .build();
+    //noinspection unchecked
+    Caffeine<K, V> builder = (Caffeine<K, V>)Caffeine
+      .newBuilder()
+      .maximumSize( _size );
+    if( ENABLE_STATS )
+    {
+      builder.recordStats();
+    }
+    _cacheImpl = builder.build();
   }
 
   /**
