@@ -254,4 +254,6 @@ public interface ITypeSystem extends IService
   boolean isParameterizedWith( IType type, ITypeVariableType... typeVar );
 
   IType getCompoundType( Set<IType> types );
+
+  IType getFunctionalInterface( IFunctionType type );
 }

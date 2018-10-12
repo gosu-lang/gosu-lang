@@ -2,26 +2,26 @@ package gw.lang.ir;
 
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
 public class SignatureUtil {
-  public static void visitType( SignatureVisitor sv, IType arg, boolean[] bGeneric )
-  {
-    visitType( sv, arg, null, bGeneric );
-  }
-  static public void visitType( SignatureVisitor sv, IType type, IRSymbol javaType, boolean[] bGeneric ) {
+  static public void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
     if( type instanceof ITypeVariableType) {
       sv.visitTypeVariable( type.getRelativeName() );
     }
     else if( !TypeSystem.isBytecodeType(type) ) {
-      String classType = javaType == null
-                         ? Object.class.getName().replace( '.', '/' )
-                         : javaType.getType().getSlashName();
-      sv.visitClassType( classType );
-      sv.visitEnd();
+      if( type instanceof IFunctionType ) {
+        type = TypeSystem.getFunctionalInterface( (IFunctionType)type );
+        visitType( sv, type, bGeneric );
+      }
+      else {
+        sv.visitClassType( Object.class.getName().replace( '.', '/' ) );
+        sv.visitEnd();
+      }
     }
     else if( type.isArray() ) {
       SignatureVisitor arrSv = sv.visitArrayType();

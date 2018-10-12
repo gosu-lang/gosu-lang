@@ -946,5 +946,10 @@ public class TypeSystem
   public static IType getCompoundType( Set<IType> types ) {
     return CommonServices.getTypeSystem().getCompoundType( types );
   }
+
+  public static IType getFunctionalInterface( IFunctionType type )
+  {
+    return CommonServices.getTypeSystem().getFunctionalInterface( type );
+  }
 }
 

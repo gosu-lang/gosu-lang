@@ -638,40 +638,7 @@ public class JavaStubGenerator
 
   private String getFunctionalInterface( IFunctionType funcType )
   {
-    IType iface = IRTypeResolver.getDescriptor( funcType ).getType();
-    iface = TypeLord.getPureGenericType( iface );
-    if( iface.isGenericType() )
-    {
-      IGenericTypeVariable[] gtvs = iface.getGenericTypeVariables();
-      IType[] typeParams = new IType[gtvs.length];
-      IType returnType = funcType.getReturnType();
-      boolean hasReturn = returnType != JavaTypes.pVOID();
-      for( int i = 0; i < gtvs.length; i++ )
-      {
-        if( i == 0 && hasReturn )
-        {
-          if( returnType.isPrimitive() )
-          {
-            returnType = TypeSystem.getBoxType( returnType );
-          }
-          typeParams[i] = returnType;
-        }
-        else if( funcType.getParameterTypes().length > 0 )
-        {
-          IType paramType = funcType.getParameterTypes()[i - (hasReturn ? 1 : 0)];
-          if( paramType.isPrimitive() )
-          {
-            paramType = TypeSystem.getBoxType( paramType );
-          }
-          typeParams[i] = paramType;
-        }
-        else if( i == 0 )
-        {
-          iface = TypeLord.getDefaultParameterizedType( iface );
-        }
-      }
-      iface = iface.getParameterizedType( typeParams );
-    }
+    IType iface = TypeLord.getFunctionalInterface( funcType );
     return getTypeName( iface );
   }
 }

@@ -1508,4 +1508,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     return (IMetaType) MetaType.DEFAULT_TYPE_TYPE.get();
   }
 
+  @Override
+  public IType getFunctionalInterface( IFunctionType type )
+  {
+    return TypeLord.getFunctionalInterface( type );
+  }
 }

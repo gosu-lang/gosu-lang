@@ -96,7 +96,7 @@ public class IRMethodStatement extends IRStatement {
     for( int i = 0; i < args.length; i++ )
     {
       IType arg = args[i];
-      SignatureUtil.visitType( sv, arg, _parameters.get( i ), bGeneric );
+      SignatureUtil.visitType( sv, arg, bGeneric );
     }
     sv = sw.visitReturnType();
     SignatureUtil.visitType( sv, rtype, bGeneric );
