@@ -8,13 +8,19 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
 public class SignatureUtil {
-
-  static public void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
+  public static void visitType( SignatureVisitor sv, IType arg, boolean[] bGeneric )
+  {
+    visitType( sv, arg, null, bGeneric );
+  }
+  static public void visitType( SignatureVisitor sv, IType type, IRSymbol javaType, boolean[] bGeneric ) {
     if( type instanceof ITypeVariableType) {
       sv.visitTypeVariable( type.getRelativeName() );
     }
     else if( !TypeSystem.isBytecodeType(type) ) {
-      sv.visitClassType( Object.class.getName().replace( '.', '/' ) );
+      String classType = javaType == null
+                         ? Object.class.getName().replace( '.', '/' )
+                         : javaType.getType().getSlashName();
+      sv.visitClassType( classType );
       sv.visitEnd();
     }
     else if( type.isArray() ) {
