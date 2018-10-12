@@ -9,6 +9,19 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
 public class SignatureUtil {
+  static public void visitIrType( SignatureVisitor sv, IRType type ) {
+    if( type.isArray() ) {
+      SignatureVisitor arrSv = sv.visitArrayType();
+      visitIrType( arrSv, type.getComponentType() );
+    } else if( type.isPrimitive() ) {
+      sv.visitBaseType(type.getDescriptor().charAt( 0 ));
+    }
+    else {
+      sv.visitClassType( type.getSlashName() );
+      sv.visitEnd();
+    }
+  }
+
   static public void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
     if( type instanceof ITypeVariableType) {
       sv.visitTypeVariable( type.getRelativeName() );
