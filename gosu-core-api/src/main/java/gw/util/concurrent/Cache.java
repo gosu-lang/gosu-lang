@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class Cache<K, V>
 {
   // Note stats incur a perf penalty
-  private static final boolean ENABLE_STATS = System.getProperties().contains( "gosu.cache.stats" );
+  private static final boolean ENABLE_STATS = System.getProperty( "gosu.cache.stats", "" ).length() > 0;
 
   private final String _name;
   private final int _size;
