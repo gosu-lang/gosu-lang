@@ -31,7 +31,7 @@ public class Cache<K, V>
   public Cache( String name, int size, CacheLoader<K, V> loader )
   {
     _name = name;
-    _size = size;
+    _size = size * 5; //!! for testing, using 5X specified size for perf testing
     _loader = loader;
     clearCacheImpl();
   }
