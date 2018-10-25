@@ -4,26 +4,25 @@
 
 package gw.lang.parser;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.RefreshRequest;
-import gw.lang.reflect.TypeSystem;
 import gw.util.concurrent.Cache;
+import gw.lang.reflect.AbstractTypeSystemListener;
+import gw.lang.reflect.TypeSystem;
 
 public class TypeSystemAwareCache<K, V> extends Cache<K, V>
 {
 
   @SuppressWarnings({"FieldCanBeLocal"})
-  private final AbstractTypeSystemListener _cacheClearer = new CacheClearer( this );
+  private final AbstractTypeSystemListener _cacheClearer = new CacheClearer(this);
 
-  public static <K, V> TypeSystemAwareCache<K, V> make( String name, int size, CacheLoader<K, V> loader )
+  public static <K, V> TypeSystemAwareCache<K, V> make(String name, int size, MissHandler<K, V> handler)
   {
-    return new TypeSystemAwareCache<>( name, size, loader );
+    return new TypeSystemAwareCache<K, V>(name, size, handler);
   }
 
-  public TypeSystemAwareCache( String name, int size, CacheLoader<K, V> loader )
+  public TypeSystemAwareCache( String name, int size, MissHandler<K, V> kvMissHandler )
   {
-    super( name, size, loader );
+    super( name, size, kvMissHandler );
     TypeSystem.addTypeLoaderListenerAsWeakRef( _cacheClearer );
   }
 
@@ -43,7 +42,7 @@ public class TypeSystemAwareCache<K, V> extends Cache<K, V>
     }
 
     @Override
-    public void refreshedTypes( RefreshRequest request )
+    public void refreshedTypes(RefreshRequest request)
     {
       _cache.clear();
     }

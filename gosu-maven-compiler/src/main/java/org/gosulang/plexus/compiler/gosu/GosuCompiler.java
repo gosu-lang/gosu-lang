@@ -190,12 +190,6 @@ public class GosuCompiler extends AbstractCompiler {
 
     List<CompilerMessage> messages = parseMessages(exitCode, sysout.getOutput());
 
-    String err = syserr.getOutput();
-    if( err != null && !err.isEmpty() )
-    {
-      getLogger().info("Errors:\n" + err);
-    }
-
     int warningCt = 0;
     int errorCt = 0;
     for(CompilerMessage message : messages) {
