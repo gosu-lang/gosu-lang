@@ -1,19 +1,15 @@
 package editor.shipit;
 
 import editor.FileTree;
-import editor.LabFrame;
 import editor.NodeKind;
 import editor.MessageTree;
 import editor.MessagesPanel;
 import editor.settings.CompilerSettings;
-import editor.util.Experiment;
 import editor.util.IProgressCallback;
 import gw.util.StreamUtil;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import gw.util.PathUtil;
-import gw.lang.javac.IJavaParser;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.parser.IHasInnerClass;
@@ -32,6 +28,7 @@ import java.util.*;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.IJavaParser;
 
 /**
  */

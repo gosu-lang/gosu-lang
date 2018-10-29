@@ -180,15 +180,12 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     {
       String path = tok.nextToken();
       if( path.contains( "gw-asm-all" ) ||
-          path.contains( "gosu-core" ) )
+          path.contains( "gosu-core" ) ||
+          path.contains( "caffeine" ) ||
+          path.contains( "manifold" ) )
       {
         classpath.append( path ).append( File.pathSeparator );
       }
-    }
-
-    if( bToolsJar )
-    {
-      classpath.append( PathUtil.findToolsJar() ).append( File.pathSeparator );
     }
 
     cp = classpath.toString();

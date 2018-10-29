@@ -118,6 +118,13 @@ public class GosuMethodVisitor extends MethodVisitor
   }
 
   @Override
+  public void visitMethodInsn( int i, String s, String s2, String s3, boolean iface )
+  {
+    _bJumpOrReturnOrThrow = false;
+    _mv.visitMethodInsn( i, s, s2, s3, iface );
+  }
+
+  @Override
   public void visitInvokeDynamicInsn( String s, String s1, Handle handle, Object... objects )
   {
     _bJumpOrReturnOrThrow = false;

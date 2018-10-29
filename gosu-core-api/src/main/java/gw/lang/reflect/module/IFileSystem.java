@@ -11,13 +11,18 @@ import gw.lang.UnstableAPI;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 
 @UnstableAPI
 public interface IFileSystem extends IService {
 
   IDirectory getIDirectory(File dir);
 
+  IDirectory getIDirectory( Path dir );
+
   IFile getIFile(File file);
+
+  IFile getIFile( Path file );
 
   void setCachingMode(CachingMode cachingMode);
 

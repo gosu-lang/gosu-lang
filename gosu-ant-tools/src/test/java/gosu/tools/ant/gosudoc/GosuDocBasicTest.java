@@ -4,12 +4,14 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.BuildFileTest;
 
 import java.io.File;
+import org.junit.Ignore;
 
 /**
  * Note that BuildFileTest requires JUnit 3-style tests
  *
  * This is just a sanity test to kick-off GosuDoc via ant
  */
+@Ignore /* Disable gosudoc until it is redesigned for Java 9 Doclet API */
 public class GosuDocBasicTest extends BuildFileTest {
 
   private final String BASEDIR = "src/test/resources/gosudoc/";

@@ -8,7 +8,9 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.module.fs.FileSystemImpl;
+import gw.lang.gosuc.Gosuc;
 import gw.lang.reflect.IDefaultTypeLoader;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IFileSystem;
@@ -16,13 +18,23 @@ import gw.lang.reflect.module.IModule;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
 
+import java.lang.module.ModuleReference;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import jdk.internal.loader.BuiltinClassLoader;
+import manifold.util.DebugLogUtil;
+import manifold.util.ReflectUtil;
 
 public class ClassPath implements IClassPath
 {
@@ -91,11 +103,33 @@ public class ClassPath implements IClassPath
 
   private void loadClasspathInfo()
   {
-    List<IDirectory> javaClassPath = _module.getJavaClassPath();
-    IDirectory[] paths = javaClassPath.toArray(new IDirectory[javaClassPath.size()]);
+//    long mark = System.nanoTime();
+
+    List<IDirectory> javaClassPath = new ArrayList<>( _module.getJavaClassPath() );
+    addJreJars( javaClassPath );
+
+    IDirectory[] paths = javaClassPath.toArray(new IDirectory[0]);
     for (int i = paths.length - 1; i >= 0; i--) {
       IDirectory path = paths[i];
       addClassNames(path, path, _filter);
+    }
+
+//    int duration = (int)((System.nanoTime() - mark) / 1000000);
+//    String logFile = "c:\\temp\\loadClasspathInfo.log";
+//    DebugLogUtil.log( logFile, "loadClasspathInfo(): " + duration, true );
+//    DebugLogUtil.log( logFile,
+//      "TRACE\n" + Arrays.toString(new RuntimeException().fillInStackTrace().getStackTrace()) + "\n\n==============\n\n", true );
+  }
+
+  private void addJreJars( List<IDirectory> javaClassPath )
+  {
+    if( _module == TypeSystem.getGlobalModule() )
+    {
+      List<String> jreJars = getJreJars();
+      javaClassPath.addAll( jreJars.stream()
+        .map( uri -> CommonServices.getFileSystem()
+          .getIDirectory( Paths.get( URI.create( uri ) ) ) )
+        .collect( Collectors.toList() ) );
     }
   }
 
@@ -199,5 +233,44 @@ public class ClassPath implements IClassPath
   @Override
   public String toString() {
     return _module.getName();
+  }
+
+  private static List<String> getJreJars() {
+    List<String> paths = new ArrayList<>();
+    ClassLoader cl = Gosuc.class.getClassLoader();
+    Path modulesPath = Paths.get( URI.create( "jrt:/modules" ) );
+    while( !(cl instanceof BuiltinClassLoader) )
+    {
+      ClassLoader parent = cl.getParent();
+      if( parent == null )
+      {
+        ReflectUtil.FieldRef field = ReflectUtil.field( cl.getClass(), "parent" );
+        if( field != null )
+        {
+          parent = (ClassLoader)field.get( cl );
+        }
+        if( field == null || parent == null )
+        {
+          field = ReflectUtil.field( cl.getClass(), "parentClassLoader" );
+        }
+        if( field != null )
+        {
+          parent = (ClassLoader)field.get( cl );
+        }
+      }
+      cl = parent;
+    }
+    while( cl instanceof BuiltinClassLoader )
+    {
+      //noinspection unchecked
+      Map<String, ModuleReference> nameToModule =
+        (Map<String, ModuleReference>)ReflectUtil.field( cl, "nameToModule" ).get();
+      nameToModule.values().stream()
+        .filter( mr -> mr.location().isPresent() )
+        .forEach( mr ->
+          paths.add( modulesPath.resolve( Paths.get( mr.location().get() ).toString().substring( 1 ) ).toUri().toString() ) );
+      cl = (ClassLoader)ReflectUtil.field( cl, "parent" ).get();
+    }
+    return paths;
   }
 }

@@ -24,7 +24,7 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
   @Override
   protected int expectedWarnings() {
-    return 2; // Person.gs has one intentional warning... and there is an extra one re package-info.java from a java file (todo: fix this)
+    return 1; // Person.gs has one intentional warning
   }
 
   @Override

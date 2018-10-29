@@ -4,7 +4,7 @@ uses com.sun.javadoc.Doc
 uses com.sun.javadoc.SeeTag
 uses com.sun.javadoc.SourcePosition
 uses com.sun.javadoc.Tag
-uses com.sun.tools.doclets.internal.toolkit.util.TextTag
+uses gw.gosudoc.tags.TextTag
 uses gw.gosudoc.misc.GSSourcePositionImpl
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.TypeSystem

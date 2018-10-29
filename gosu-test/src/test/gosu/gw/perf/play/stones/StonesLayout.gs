@@ -1,7 +1,6 @@
 package gw.perf.play.stones
 
 uses java.awt.*
-uses sun.net.www.content.audio.x_aiff
 
 /**
  */

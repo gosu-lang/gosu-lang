@@ -4,6 +4,7 @@
 
 package gw.test;
 
+import gw.fs.IDirectory;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
@@ -27,7 +28,7 @@ public class TestEnvironment {
     return false;
   }
 
-  protected List<File> constructClasspathFromSystemClasspath() {
+  protected List<IDirectory> constructClasspathFromSystemClasspath() {
     return ClassPathUtil.constructClasspathFromSystemClasspath();
   }
 

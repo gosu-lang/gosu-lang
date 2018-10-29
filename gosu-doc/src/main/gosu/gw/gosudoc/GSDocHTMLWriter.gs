@@ -1,9 +1,13 @@
 package gw.gosudoc
 
-uses com.sun.tools.doclets.formats.html.HtmlDoclet
+uses com.sun.tools.javadoc.main.DocletInvoker
+uses com.sun.tools.javac.util.Context
+uses jdk.javadoc.internal.doclets.formats.html.HtmlDoclet
+uses com.sun.tools.javadoc.main.Messager
 uses gw.gosudoc.doc.GSRootDocImpl
 
 uses java.io.File
+uses java.io.PrintWriter
 uses java.nio.charset.StandardCharsets
 
 class GSDocHTMLWriter {
@@ -28,8 +32,12 @@ class GSDocHTMLWriter {
 
     // Generate HTML
     var doclet = new HtmlDoclet()
-    doclet.configuration.charset = StandardCharsets.UTF_8.toString()
-    doclet.start( doclet, rootDoc )
+    doclet.Configuration.charset = StandardCharsets.UTF_8.toString()
+    var context = new Context();
+    Messager.preRegister( context, "Gosu API Javadocs" )
+    var messenger = Messager.instance0( context )
+    var docWriter = new DocletInvoker( messenger, com.sun.tools.doclets.standard.Standard as Class, true, false );
+    docWriter.start( rootDoc )
   }
 
 }

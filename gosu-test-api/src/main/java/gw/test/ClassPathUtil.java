@@ -4,6 +4,8 @@
 
 package gw.test;
 
+import gw.config.CommonServices;
+import gw.fs.IDirectory;
 import gw.lang.UnstableAPI;
 import gw.util.GosuStringUtil;
 
@@ -17,17 +19,17 @@ public class ClassPathUtil {
    * Turns the java.class.path system property value into a list of directories and jars
    * @return the list of files represented by java.class.path
    */
-  public static List<File> constructClasspathFromSystemClasspath() {
+  public static List<IDirectory> constructClasspathFromSystemClasspath() {
     String systemClasspath = System.getProperty("java.class.path");
     String[] pathComponents = GosuStringUtil.split(systemClasspath, File.pathSeparatorChar);
-    List<File> classpathComponents = new ArrayList<File>();
+    List<IDirectory> classpathComponents = new ArrayList<>();
     for (String pathComponent : pathComponents) {
       File f = new File(pathComponent);
       if (isChildOf(f, "jre", "lib") || isChildOf(f, "jre", "lib", "ext")) {
         continue;
       }
 
-      classpathComponents.add(f);
+      classpathComponents.add( CommonServices.getFileSystem().getIDirectory( f ) );
     }
 
     return classpathComponents;

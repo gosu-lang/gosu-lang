@@ -4,7 +4,7 @@ uses com.sun.javadoc.Doc
 uses com.sun.javadoc.ParamTag
 uses com.sun.javadoc.SourcePosition
 uses com.sun.javadoc.Tag
-uses com.sun.tools.doclets.internal.toolkit.util.TextTag
+uses gw.gosudoc.tags.TextTag
 
 class GSParamTagImpl implements ParamTag{
 

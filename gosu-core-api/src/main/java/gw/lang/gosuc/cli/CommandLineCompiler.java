@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import manifold.util.NecessaryEvilUtil;
 
 public class CommandLineCompiler
 {
@@ -50,21 +52,17 @@ public class CommandLineCompiler
       System.exit( 0 );
     }
 
+    NecessaryEvilUtil.bypassJava9Security();
+
     IGosuCompiler gosuc = new GosuCompiler();
 
     List<String> sourcepath = Arrays.asList( options.getSourcepath().split( File.pathSeparator ) );
 
     List<String> classpath = new ArrayList<>();
-    classpath.addAll( Arrays.asList( options.getClasspath().split( File.pathSeparator ) ) );
-    classpath.addAll( GosucUtil.getJreJars() );
-    try
-    {
-      classpath.addAll( GosucUtil.getGosuBootstrapJars() );
-    }
-    catch( ClassNotFoundException cnfe )
-    {
-      throw new RuntimeException( "Unable to locate Gosu libraries in classpath.\n", cnfe );
-    }
+    classpath.addAll( Arrays.stream( options.getClasspath().split( File.pathSeparator ) )
+      .map( e -> new File( e ).getAbsoluteFile().toURI().toString() )
+      .collect( Collectors.toList() ) );
+    classpath.addAll( GosucUtil.getGosuBootstrapJars() );
 
     if( options.isVerbose() )
     {

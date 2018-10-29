@@ -4,6 +4,7 @@
 
 package gw.lang;
 
+import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
@@ -13,7 +14,6 @@ import gw.test.TestEnvironment;
 import gw.util.Predicate;
 import junit.framework.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,13 +39,13 @@ public class PLGosuBenchmarkSuite extends Suite {
     @Override
     public void initializeTypeSystem()
     {
-      List<File> classpath = constructClasspathFromSystemClasspath();
-      for( File file : new ArrayList<File>(classpath) )
+      List<IDirectory> classpath = constructClasspathFromSystemClasspath();
+      for( IDirectory file : new ArrayList<>( classpath ) )
       {
         if( file.getName().endsWith( "classes" ) )
         {
-          classpath.add( new File( file.getParentFile(), "gsrc" ) );
-          classpath.add( new File( file.getParentFile(), "gtest" ) );
+          classpath.add( file.getParent().dir( "gsrc" ) );
+          classpath.add( file.getParent().dir( "gtest" ) );
         }
       }
       GosuInitialization.instance( TypeSystem.getExecutionEnvironment() )

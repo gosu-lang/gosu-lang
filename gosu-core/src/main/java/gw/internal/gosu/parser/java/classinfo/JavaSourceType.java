@@ -25,8 +25,6 @@ import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.TypeUsesMap;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.lang.GosuShop;
-import gw.lang.javac.ClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
 import gw.lang.javac.JavaCompileIssuesException;
 import gw.lang.javadoc.IClassDocNode;
 import gw.lang.parser.GosuParserFactory;
@@ -63,7 +61,6 @@ import gw.util.GosuExceptionUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +68,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.IJavaParser;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
 
 public abstract class JavaSourceType extends AbstractJavaClassInfo implements ITypeInfoResolver
 {
@@ -1374,7 +1373,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
   {
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    ClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    InMemoryClassJavaFileObject fileObj = javaParser.compile( getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
     if( fileObj != null )
     {
       return fileObj.getBytes();

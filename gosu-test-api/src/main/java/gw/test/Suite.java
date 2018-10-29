@@ -353,11 +353,11 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
   }
 
   protected List<IDirectory> createDefaultJavaClassSearchPath() {
-    List<IDirectory> javaClassSearchPath = new ArrayList<IDirectory>();
-    List<File> classPathParts = ClassPathUtil.constructClasspathFromSystemClasspath();
+    List<IDirectory> javaClassSearchPath = new ArrayList<>();
+    List<IDirectory> classPathParts = ClassPathUtil.constructClasspathFromSystemClasspath();
 
-    for (File pathElement : classPathParts) {
-      javaClassSearchPath.add(CommonServices.getFileSystem().getIDirectory(pathElement));
+    for (IDirectory dir : classPathParts) {
+      javaClassSearchPath.add(dir);
     }
 
     return javaClassSearchPath;

@@ -1,5 +1,6 @@
 package gw.lang;
 
+import gw.fs.IDirectory;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
@@ -8,7 +9,6 @@ import gw.test.Suite;
 import gw.test.TestEnvironment;
 import junit.framework.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class GosuScratchSuite extends Suite
     BytecodeOptions.enableAggressiveVerification();
     return new GosuScratchSuite()
             .withTestEnvironment( new ScratchTestEnvironment() )
-      .withTest( "gw.specContrib.classes.inner.InnerClassTest" );
+      .withTest( "gw.specification.temp.DefaultMethodsTest" );
     //  .withTest( "gw.specContrib.rexpod.CoreIterableParallelizationTest" );
     //  .withTest( "gw.internal.gosu.parser.classTests.gwtest.dynamic.JsonTest" );
   }
@@ -34,12 +34,12 @@ public class GosuScratchSuite extends Suite
     @Override
     public void initializeTypeSystem()
     {
-      List<File> classpath = constructClasspathFromSystemClasspath();
-      for( File file : new ArrayList<File>(classpath) )
+      List<IDirectory> classpath = constructClasspathFromSystemClasspath();
+      for( IDirectory file : new ArrayList<>( classpath ) )
       {
         if( file.getName().endsWith( "classes" ) )
         {
-          classpath.add( new File( file.getParentFile(), "test-classes" ) );
+          classpath.add( file.getParent().dir( "test-classes" ) );
         }
       }
       GosuInitialization.instance( TypeSystem.getExecutionEnvironment() )

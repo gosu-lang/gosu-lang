@@ -4,6 +4,7 @@
 
 package gw.fs;
 
+import gw.config.CommonServices;
 import gw.fs.jar.JarFileDirectoryImpl;
 import gw.fs.physical.IPhysicalFileSystem;
 import gw.fs.physical.PhysicalDirectoryImpl;
@@ -16,6 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @UnstableAPI
 public class FileFactory {
@@ -109,8 +112,13 @@ public class FileFactory {
         return jarFileDirectory.getOrCreateFile( filePath );
       }
       return jarFileDirectory.file( filePath );
-    } else {
-      throw new RuntimeException("Unrecognized protocol: " + uri.getScheme());
+    }
+    else
+    {
+      // Note the entire method should be reduced to these two lines
+
+      Path path = Paths.get( uri );
+      return CommonServices.getFileSystem().getIFile( path );
     }
   }
 

@@ -12,8 +12,6 @@ import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
 import gw.lang.init.GosuInitialization;
-import gw.lang.javac.ClassJavaFileObject;
-import gw.lang.javac.IJavaParser;
 import gw.lang.javac.SourceJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
@@ -52,6 +50,8 @@ import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.IJavaParser;
+import manifold.internal.javac.InMemoryClassJavaFileObject;
 
 
 import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
@@ -188,7 +188,7 @@ public class GosuCompiler implements IGosuCompiler
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
     List<JavaFileObject> sourceFiles = javaFiles.stream().map( SourceJavaFileObject::new ).collect( Collectors.toList() );
-    Collection<ClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
+    Collection<InMemoryClassJavaFileObject> files = javaParser.compile( sourceFiles, makeJavacOptions( options ), errorHandler );
     errorHandler.getDiagnostics().forEach( driver::sendCompileIssue );
     createJavaOutputFiles( files, driver );
     if( driver.getErrors().size() > options.getMaxErrs() )
@@ -208,6 +208,9 @@ public class GosuCompiler implements IGosuCompiler
   {
     ArrayList<String> javacOpts = new ArrayList<>();
     javacOpts.add( "-g" );
+    javacOpts.add( "-source" );
+    javacOpts.add( "8" );
+    javacOpts.add( "-proc:none" );
     javacOpts.add( "-Xlint:unchecked" );
     javacOpts.add( "-parameters" );
     if( options.isVerbose() )
@@ -319,7 +322,7 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
-  private void createJavaOutputFiles( Collection<ClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
+  private void createJavaOutputFiles( Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
   {
     IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
     if( moduleOutputDirectory == null )
@@ -329,7 +332,7 @@ public class GosuCompiler implements IGosuCompiler
 
     compiledJavaFiles = compiledJavaFiles.stream().filter( e -> TypeSystem.getByFullNameIfValid( e.getClassName().replace( '$', '.' ) ) instanceof IJavaType ).collect( Collectors.toList() );
 
-    for( ClassJavaFileObject compiledJavaFile: compiledJavaFiles )
+    for( InMemoryClassJavaFileObject compiledJavaFile: compiledJavaFiles )
     {
       final String outRelativePath = compiledJavaFile.getClassName().replace( '.', File.separatorChar ) + ".class";
       File child = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );

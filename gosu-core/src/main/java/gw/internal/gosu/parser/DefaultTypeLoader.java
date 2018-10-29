@@ -18,7 +18,6 @@ import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import manifold.internal.runtime.Bootstrap;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
@@ -384,7 +384,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public IGosuClassLoader getGosuClassLoader() {
     if (_gosuClassLoader == null) {
       _gosuClassLoader = new GosuClassLoader(_module.getModuleClassLoader());
-      GosuClassPathThing.init();
+      Bootstrap.init();
     }
     return _gosuClassLoader;
   }
@@ -399,7 +399,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         _classCache.reassignClassLoader();
       }
       _gosuClassLoader.assignParent( _module.getModuleClassLoader() );
-      GosuClassPathThing.init();
+      Bootstrap.init();
     }
   }
 
