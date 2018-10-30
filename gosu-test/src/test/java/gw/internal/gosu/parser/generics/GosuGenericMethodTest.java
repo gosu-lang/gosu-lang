@@ -48,7 +48,7 @@ public class GosuGenericMethodTest extends TestClass
     {
       Object instance = ReflectUtil.construct(  "gw.internal.gosu.parser.generics.gwtest.InternalGenericMethodCall" );
       IType type = (IType)ReflectUtil.invokeMethod( instance, "lubInferenceAcrossArgsTest" );
-      assertEquals( "java.io.Serializable & java.lang.CharSequence", type.getName() );
+      assertEquals( "java.io.Serializable & java.lang.CharSequence & java.lang.Comparable<java.lang.Object>", type.getName() );
     }
     catch( Exception e )
     {

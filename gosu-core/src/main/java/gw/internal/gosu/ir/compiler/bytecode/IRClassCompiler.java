@@ -20,7 +20,6 @@ import gw.internal.gosu.ir.nodes.IRTypeFactory;
 import gw.internal.gosu.ir.nodes.JavaClassIRType;
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.lang.Gosu;
-import gw.lang.GosuVersion;
 import gw.lang.ir.IRClass;
 import gw.lang.ir.IRType;
 import gw.lang.ir.IRSymbol;
@@ -48,8 +47,7 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 {
   private static boolean COMPILE_WITH_DEBUG_INFO = true;
 
-  //## todo: this s/b configurable
-  public static final int JAVA_VER = Opcodes.V10;
+  public static final int JAVA_VER = Opcodes.V11;
 
   private ClassVisitor _cv;
   private IRClass _irClass;

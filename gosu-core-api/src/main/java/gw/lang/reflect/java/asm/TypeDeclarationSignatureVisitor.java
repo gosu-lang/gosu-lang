@@ -22,7 +22,7 @@ class TypeDeclarationSignatureVisitor extends SignatureVisitor
 
 
   TypeDeclarationSignatureVisitor( AsmClass asmClass ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _asmClass = asmClass;
   }
 

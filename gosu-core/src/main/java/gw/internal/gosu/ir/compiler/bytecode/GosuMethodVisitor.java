@@ -15,7 +15,7 @@ public class GosuMethodVisitor extends MethodVisitor
 
   public GosuMethodVisitor( MethodVisitor methodVisitor )
   {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _mv = methodVisitor;
   }
 

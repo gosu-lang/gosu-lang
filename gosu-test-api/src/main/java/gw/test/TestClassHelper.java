@@ -92,7 +92,7 @@ public class TestClassHelper {
       return null;
     }
     try {
-      ClassNode jclass = new ClassNode( Opcodes.ASM5 );
+      ClassNode jclass = new ClassNode( Opcodes.ASM7 );
       ClassReader cr = new ClassReader( resourceAsStream );
       cr.accept( jclass, 0 );
       return jclass;

@@ -19,7 +19,7 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 
   public GosuRuntimeManifoldHost()
   {
-    System.out.println( getClass().getTypeName() );
+    // System.out.println( getClass().getTypeName() );
   }
 
   @Override

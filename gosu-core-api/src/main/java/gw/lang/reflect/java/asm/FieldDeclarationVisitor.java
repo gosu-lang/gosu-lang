@@ -15,7 +15,7 @@ public class FieldDeclarationVisitor extends FieldVisitor {
   private AsmField _field;
 
   public FieldDeclarationVisitor( AsmField field ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _field = field;
   }
 

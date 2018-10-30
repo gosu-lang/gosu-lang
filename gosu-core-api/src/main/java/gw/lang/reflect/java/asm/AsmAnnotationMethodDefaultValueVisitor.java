@@ -16,7 +16,7 @@ public class AsmAnnotationMethodDefaultValueVisitor extends AnnotationVisitor {
   private AsmMethod _asmMethod;
 
   public AsmAnnotationMethodDefaultValueVisitor( AsmMethod asmMethod ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _asmMethod = asmMethod;
   }
 

@@ -21,7 +21,7 @@ public class MethodDeclarationSignatureVisitor extends SignatureVisitor {
   private List<DeclarationPartSignatureVisitor> _exceptionVisitors;
 
   MethodDeclarationSignatureVisitor( AsmMethod asmMethod ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _asmMethod = asmMethod;
     _paramVisitors = Collections.emptyList();
     _exceptionVisitors = Collections.emptyList();
