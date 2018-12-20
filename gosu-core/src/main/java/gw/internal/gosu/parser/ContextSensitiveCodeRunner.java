@@ -131,6 +131,22 @@ public class ContextSensitiveCodeRunner
     String typeName = GosuProgramParser.makeEvalKey( source.toString(), enclosingClass, offset );
     IGosuProgramInternal program = getCachedProgram( typeName );
     IParseResult res;
+    // use parent class if nested class has no recorded location eg., closure
+    while( outer != null && isBlock( outer.getClass().getTypeName() ) )
+    {
+      enclosingClass = enclosingClass.getEnclosingType();
+      try
+      {
+        Field f = outer.getClass().getDeclaredField( "this$0" );
+        f.setAccessible( true );
+        outer = f.get( outer );
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+
     if( program != null )
     {
       program.isValid();
@@ -142,22 +158,6 @@ public class ContextSensitiveCodeRunner
       String strSource = CommonServices.getCoercionManager().makeStringFrom( source );
       IGosuProgramParser parser = GosuParserFactory.createProgramParser();
       //debugInfo( compileTimeLocalContextSymbols );
-
-      // use parent class if nested class has no recorded location eg., closure
-      while( enclosingClass.getEnclosingType() != null && enclosingClass instanceof IGosuClassInternal && ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation() == null )
-      {
-        enclosingClass = enclosingClass.getEnclosingType();
-        try
-        {
-          Field f = outer.getClass().getDeclaredField( "this$0" );
-          f.setAccessible( true );
-          outer = f.get( outer );
-        }
-        catch( Exception e )
-        {
-          throw new RuntimeException( e );
-        }
-      }
 
       TypeSystem.pushIncludeAll();
       try
