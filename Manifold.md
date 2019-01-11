@@ -36,7 +36,7 @@ for free with Manifold if we choose to use it down the road.
 #### It's finished
   * I finished this work several months ago -- Gosu fully supports Java 11 _right now_
    
-#### Integrates with ths Java Platform Module System (JPMS)
+#### Integrates with the Java Platform Module System (JPMS)
   * Enables Gosu to dynamically load classes into Java's new module-oriented type system.
   * Gosu's current architecture only supports URL-based dynamic loading. It is missing critical components to work in a JPMS environment (bypass ModuleReaders, JRT-based, URI-oriented file i/o)
 	
