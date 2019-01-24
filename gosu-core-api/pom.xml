@@ -37,11 +37,6 @@
       <artifactId>manifold</artifactId>
       <version>0.39-alpha</version>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>systems.manifold</groupId>-->
-      <!--<artifactId>manifold-ext</artifactId>-->
-      <!--<version>0.35-SNAPSHOT</version>-->
-    <!--</dependency>-->
   </dependencies>
 
   <build>
