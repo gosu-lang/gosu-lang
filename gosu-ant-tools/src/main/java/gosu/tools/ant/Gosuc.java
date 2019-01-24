@@ -285,7 +285,7 @@ public class Gosuc extends GosuMatchingTask {
 
     List<String> classpath = new ArrayList<>( Arrays.asList( _compileClasspath.list() ) );
     classpath.add( GosucUtil.getClassLocation( "manifold.api.host.IManifoldHost" ) ); // manifold core
-    classpath.add( GosucUtil.getClassLocation( "manifold.ext.ExtensionMethod" ) ); // manifold-ext
+   // classpath.add( GosucUtil.getClassLocation( "manifold.ext.ExtensionMethod" ) ); // manifold-ext
     classpath.add( GosucUtil.getClassLocation( "manifold.util.ReflectUtil" ) ); // manifold-util
 
     String startupMsg = "Initializing Gosu compiler";
