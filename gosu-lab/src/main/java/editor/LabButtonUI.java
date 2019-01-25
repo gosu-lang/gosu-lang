@@ -1,6 +1,5 @@
 package editor;
 
-import com.sun.java.swing.plaf.windows.WindowsButtonUI;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -9,12 +8,14 @@ import javax.swing.ButtonModel;
 import javax.swing.JComponent;
 import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicButtonUI;
+
 import sun.swing.SwingUtilities2;
 
 /**
  * Needed to properly handle painting of disabled text
  */
-public class LabButtonUI extends WindowsButtonUI
+public class LabButtonUI extends BasicButtonUI
 {
   public static ComponentUI createUI( JComponent c )
   {

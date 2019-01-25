@@ -1,15 +1,14 @@
 package editor;
 
-import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
-
 import editor.util.EditorUtilities;
 import editor.util.FixupLookAndFeel;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.plaf.basic.BasicMenuItemUI;
 
 /**
  */
-public class GosuLabLAF extends WindowsLookAndFeel
+public class GosuLabLAF extends BasicLookAndFeel
 {
   @Override
   public String getName()

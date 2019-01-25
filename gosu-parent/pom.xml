@@ -119,7 +119,6 @@
               <arg>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
               <arg>--add-exports=java.base/jdk.internal.loader=ALL-UNNAMED</arg>
               <arg>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.desktop/com.sun.java.swing.plaf.windows=ALL-UNNAMED</arg>
               <arg>--add-exports=java.desktop/sun.swing=ALL-UNNAMED</arg>
               <arg>--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED</arg>
               <arg>--add-exports=jdk.javadoc/com.sun.tools.javadoc.main=ALL-UNNAMED</arg>

@@ -1,6 +1,5 @@
 package editor;
 
-import com.sun.java.swing.plaf.windows.WindowsTreeUI;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -8,11 +7,13 @@ import java.io.Serializable;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicTreeUI;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
 /**
  */
-public class LabTreeUi extends WindowsTreeUI
+public class LabTreeUi extends BasicTreeUI
 {
   static protected final int HALF_SIZE = 4;
   static protected final int SIZE = 9;
@@ -27,7 +28,7 @@ public class LabTreeUi extends WindowsTreeUI
    */
   protected TreeCellRenderer createDefaultCellRenderer()
   {
-    return new WindowsTreeCellRenderer();
+    return new DefaultTreeCellRenderer();
   }
 
   /**
