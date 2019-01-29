@@ -31,10 +31,7 @@ an API to expose resources such as JSON files to Java as a set of types.  As suc
 _runtime_ services i.e., dynamic loading of Gosu types as Java classes.  That said we get comprehensive Java interop 
 for free with Manifold if we choose to use it down the road.
 
-### Why Use Manifold?
-
-#### It's finished
-  * I finished this work several months ago -- Gosu fully supports Java 11 _right now_
+### Summary of Benefits for Gosu's Java 11 Needs
    
 #### Integrates with the Java Platform Module System (JPMS)
   * Enables Gosu to dynamically load classes into Java's new module-oriented type system.
@@ -65,9 +62,6 @@ for free with Manifold if we choose to use it down the road.
     * Type-safe reflection
     * Access to other type plugins: JSON Schema, YAML, Images, Templates, etc.
   * Gosu is in a much better position to be replaced with Java as a hedge against our current plans
-  
-#### It's finished
-  * I finished this work several months ago -- Gosu fully supports Java 11 _right now_  
   
 	
 	
