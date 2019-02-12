@@ -78,12 +78,15 @@ public class ContextSensitiveCodeRunner {
   }
   private static Object _runMeSomeCode( Object enclosingInstance, Object[] extSyms, String strText, String strClassContext, String strContextElementClass, int iSourcePosition )
   {
-    String fqn = enclosingInstance.getClass().getTypeName();
-    if( isBlock( fqn ) )
+    if( enclosingInstance != null )
     {
-      // if the enclosing instance is a block, use it as the context
-      strClassContext = fqn;
-      strContextElementClass = fqn;
+      String fqn = enclosingInstance.getClass().getTypeName();
+      if( isBlock( fqn ) )
+      {
+        // if the enclosing instance is a block, use it as the context
+        strClassContext = fqn;
+        strContextElementClass = fqn;
+      }
     }
     IType type = TypeSystem.getByFullName( strClassContext, TypeSystem.getGlobalModule() );
     if( !(type instanceof IGosuClassInternal) ) {
