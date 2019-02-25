@@ -10,6 +10,8 @@ import javax.swing.plaf.basic.BasicMenuItemUI;
  */
 public class GosuLabLAF extends BasicLookAndFeel
 {
+  private UIDefaults uiDefaults;
+
   @Override
   public String getName()
   {
@@ -38,6 +40,16 @@ public class GosuLabLAF extends BasicLookAndFeel
   public boolean isSupportedLookAndFeel()
   {
     return true;
+  }
+
+  @Override public UIDefaults getDefaults()
+  {
+    if( uiDefaults == null )
+    {
+      uiDefaults = super.getDefaults();
+      FixupLookAndFeel.installKeybindings( uiDefaults );
+    }
+    return uiDefaults;
   }
 
   public static void setLookAndFeel()
