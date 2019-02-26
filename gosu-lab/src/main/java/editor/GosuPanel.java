@@ -1392,7 +1392,7 @@ public class GosuPanel extends JPanel
 
   public void openFile()
   {
-    JFileChooser fc = new JFileChooser( getCurrentFile().getParent().toFile() );
+    JFileChooser fc = new GosuLabFileChooser( getCurrentFile().getParent().toFile() );
     fc.setDialogTitle( "Open Gosu Path" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setCurrentDirectory( getCurrentFile().getParent().toFile() );
@@ -1604,7 +1604,7 @@ public class GosuPanel extends JPanel
   {
     if( getCurrentFile() == null )
     {
-      JFileChooser fc = new JFileChooser();
+      JFileChooser fc = new GosuLabFileChooser();
       fc.setDialogTitle( "Save Gosu Path" );
       fc.setDialogType( JFileChooser.SAVE_DIALOG );
       fc.setCurrentDirectory( new File( "." ) );
@@ -1750,7 +1750,7 @@ public class GosuPanel extends JPanel
     Path untitled = PathUtil.create( getExperiment().getExperimentDir().getParent(), "Untitled" );
     //noinspection ResultOfMethodCallIgnored
     PathUtil.mkdirs( untitled );
-    JFileChooser fc = new JFileChooser( untitled.toFile() );
+    JFileChooser fc = new GosuLabFileChooser( untitled.toFile() );
     fc.setDialogTitle( "New Experiment" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
@@ -1820,7 +1820,7 @@ public class GosuPanel extends JPanel
 
   public void saveAs()
   {
-    JFileChooser fc = new JFileChooser( getCurrentFile().toFile() );
+    JFileChooser fc = new GosuLabFileChooser( getCurrentFile().toFile() );
     fc.setDialogTitle( "Save Gosu Path" );
     fc.setDialogType( JFileChooser.SAVE_DIALOG );
     fc.setCurrentDirectory( getCurrentFile() != null ? getCurrentFile().getParent().toFile() : PathUtil.create( "." ).toFile() );

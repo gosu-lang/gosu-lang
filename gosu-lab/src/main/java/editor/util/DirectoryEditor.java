@@ -1,5 +1,7 @@
 package editor.util;
 
+import editor.GosuLabFileChooser;
+
 import javax.swing.*;
 import javax.swing.text.Document;
 import java.awt.*;
@@ -87,7 +89,7 @@ public class DirectoryEditor extends JPanel
 
   File getDirectory( String title, Frame frame )
   {
-    JFileChooser chooser = new JFileChooser();
+    JFileChooser chooser = new GosuLabFileChooser();
     String dirText = _editDir.getText();
     if( dirText != null && dirText.isEmpty() )
     {

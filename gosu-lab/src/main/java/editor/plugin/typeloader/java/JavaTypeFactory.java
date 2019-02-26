@@ -6,7 +6,6 @@ import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
 import gw.lang.javac.StringJavaFileObject;
-import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
@@ -15,7 +14,8 @@ import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
-import manifold.internal.javac.IJavaParser;
+
+import manifold.internal.host.RuntimeManifoldHost;
 
 /**
  */
@@ -81,9 +81,9 @@ public class JavaTypeFactory implements ITypeFactory
   public void parse( IType type, String strText, boolean forceCodeCompletion, boolean changed, EditorHost editor )
   {
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     StringJavaFileObject fileObj = new StringJavaFileObject( type.getName(), strText );
-    javaParser.compile( fileObj, type.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    RuntimeManifoldHost.get().getJavaParser().compile( fileObj, type.getName(), Arrays.asList( "-source", "8", "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
+
     EventQueue.invokeLater(
       () ->
       {

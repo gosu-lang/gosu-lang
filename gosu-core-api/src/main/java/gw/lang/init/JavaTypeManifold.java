@@ -189,7 +189,7 @@ public class JavaTypeManifold implements ITypeManifold
     if( type instanceof IJavaType )
     {
       ISourceFileHandle sfh = ((IJavaType)type).getSourceFileHandle();
-      if( sfh != null && sfh.getFile() != null && sfh.getFile().getExtension().equals( "java" ) )
+      if( sfh != null && sfh.getFile() != null && sfh.getFile().isJavaFile() && sfh.getFile().getExtension().equals( "java" ) )
       {
         return type;
       }

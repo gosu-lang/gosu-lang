@@ -15,19 +15,19 @@ public class GosuLabLAF extends BasicLookAndFeel
   @Override
   public String getName()
   {
-    return "Gosu L&F";
+    return "Gosu Lab L&F";
   }
 
   @Override
   public String getID()
   {
-    return "GosuL&F";
+    return "GosuLab";
   }
 
   @Override
   public String getDescription()
   {
-    return "Gosu";
+    return "GosuLab";
   }
 
   @Override
@@ -52,13 +52,38 @@ public class GosuLabLAF extends BasicLookAndFeel
     return uiDefaults;
   }
 
+  protected void initClassDefaults(UIDefaults table)
+  {
+    super.initClassDefaults( table );
+    final String basicPackageName = "editor." + getID();
+    Object[] uiDefaults = {
+      "RadioButtonUI", basicPackageName + "RadioButtonUI",
+      "CheckBoxUI", basicPackageName + "CheckBoxUI",
+    };
+
+    table.putDefaults(uiDefaults);
+  }
+
   public static void setLookAndFeel()
+  {
+    System.setProperty( "swing.noxp", "true" );
+
+    try
+    {
+      UIManager.setLookAndFeel( GosuLabLAF.class.getName() );
+      makeNice();
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
+
+  public static void makeNice()
   {
     try
     {
       System.setProperty( "swing.noxp", "true" );
-
-      UIManager.setLookAndFeel( GosuLabLAF.class.getName() );
 
       FixupLookAndFeel.fixupFieldBorders();
       FixupLookAndFeel.fixupTreeHandles();
@@ -270,6 +295,16 @@ public class GosuLabLAF extends BasicLookAndFeel
 
       table.put( "FileChooser.listViewBackground", Scheme.active().getWindow() );
       table.put( "FileChooser.listViewIcon", EditorUtilities.loadIcon( "images/ListView.gif" ) ); // missing in some plafs e.g., linux
+
+      table.put( "Button.dashedRectGapX", 5 );
+      table.put( "Button.dashedRectGapY", 4 );
+      table.put( "Button.dashedRectGapWidth", 10 );
+      table.put( "Button.dashedRectGapHeight", 8 );
+      table.put( "Button.textShiftOffset", 1 );
+
+      table.put( "CheckBox.icon", new GraphicsUtil.CheckBoxIcon() );
+      table.put( "MenuItem.checkIcon", new GraphicsUtil.CheckBoxMenuItemIcon() );
+      table.put( "RadioButton.icon", new GraphicsUtil.RadioButtonIcon() );
     }
     catch( Exception e )
     {

@@ -263,7 +263,7 @@ public class ClasspathDialog extends JDialog implements IHandleCancel
 
   private void updatePaths( JTextPane target )
   {
-    JFileChooser fc = new JFileChooser( getCurrentDir() );
+    JFileChooser fc = new GosuLabFileChooser( getCurrentDir() );
     fc.setDialogTitle( "Add Paths" );
     fc.setDialogType( JFileChooser.OPEN_DIALOG );
     fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
