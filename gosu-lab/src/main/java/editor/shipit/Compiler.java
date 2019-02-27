@@ -225,7 +225,7 @@ public class Compiler
 
     IJavaParser javaParser = GosuParserFactory.getInterface( IJavaParser.class );
     DiagnosticCollector<JavaFileObject> errorHandler = new DiagnosticCollector<>();
-    javaParser.compile( javaType.getName(), Arrays.asList( "-g", "-Xlint:unchecked", "-parameters" ), errorHandler );
+    javaParser.compile( javaType.getName(), Arrays.asList( "-source", "8", "-g", "-nowarn", "-Xlint:none", "-proc:none", "-parameters" ), errorHandler );
     boolean errant = errorHandler.getDiagnostics().stream().anyMatch( e -> e.getKind() == Diagnostic.Kind.ERROR );
     if( errant )
     {

@@ -53,7 +53,7 @@ public class SystemPanel extends ClearablePanel
   {
     setLayout( new BorderLayout() );
 
-    _outputPanel.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" ), Font.PLAIN, 14 ) );
+    _outputPanel.setFont( new Font( EditorUtilities.getFontFamilyOrDefault( "Consolas", Font.MONOSPACED ), Font.PLAIN, 14 ) );
     _outputPanel.setBorder( new EmptyBorder( 3, 3, 0, 0 ) );
     _outputPanel.setMargin( new Insets( 10, 10, 10, 10 ) );
     _outputPanel.setForeground( new Color( 92, 225, 92 ) );
