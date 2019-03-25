@@ -60,6 +60,10 @@ public class GosuLabLAF extends BasicLookAndFeel
       "RadioButtonUI", basicPackageName + "RadioButtonUI",
       "CheckBoxUI", basicPackageName + "CheckBoxUI",
       "ScrollBarUI", basicPackageName + "ScrollBarUI",
+      "LabelUI", basicPackageName + "LabelUI",
+      "EditorPaneUI", basicPackageName + "EditorPaneUI",
+      "TextUI", basicPackageName + "TextUI",
+      "TextPaneUI", basicPackageName + "TextPaneUI",
     };
 
     table.putDefaults(uiDefaults);

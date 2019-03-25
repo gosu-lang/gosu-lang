@@ -16,9 +16,13 @@ import editor.LabFrame;
 import editor.MessagesPanel;
 import editor.Scheme;
 import editor.util.EditorUtilities;
+import editor.util.ModalEventQueue;
+import editor.util.TaskQueue;
+
 import static editor.util.EditorUtilities.hex;
 
 
+import java.awt.*;
 import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -39,6 +43,7 @@ public class VarTree implements MutableTreeNode
   private final String _name;
   private final String _type;
   private final Value _value;
+  private String _displayValue;
   private VarTree _parent;
   private List<VarTree> _children;
 
@@ -48,29 +53,40 @@ public class VarTree implements MutableTreeNode
     _type = null;
     _value = null;
     _children = Collections.emptyList();
+    boolean[] done = {false};
     if( ref == null )
     {
       return;
     }
-    StackFrame frame = ref.getRef();
-    ObjectReference thisObj = frame.thisObject();
-    if( thisObj != null )
-    {
-      insert( new VarTree( "this", thisObj.referenceType().name(), thisObj ) );
-    }
-    try
-    {
-      frame = ref.getRef();
-      Map<LocalVariable, Value> values = frame.getValues( frame.visibleVariables() );
-      for( LocalVariable v: frame.visibleVariables() )
-      {
-        insert( new VarTree( v.name(), v.typeName(), values.get( v ) ) );
-      }
-    }
-    catch( AbsentInformationException e )
-    {
-      // eat
-    }
+    TaskQueue.getInstance( "jdiInvoker" ).postTask(
+      () -> {
+        try
+        {
+          StackFrame frame = ref.getRef();
+          ObjectReference thisObj = frame.thisObject();
+          if( thisObj != null )
+          {
+            insert( new VarTree( "this", thisObj.referenceType().name(), thisObj ) );
+          }
+
+          frame = ref.getRef();
+          Map<LocalVariable, Value> values = frame.getValues( frame.visibleVariables() );
+          for( LocalVariable v: frame.visibleVariables() )
+          {
+            insert( new VarTree( v.name(), v.typeName(), values.get( v ) ) );
+          }
+        }
+        catch( AbsentInformationException e )
+        {
+          // eat
+        }
+        finally
+        {
+          done[0] = true;
+        }
+      } );
+    new ModalEventQueue( () -> !done[0] ).run();
+    ((DefaultTreeModel)getTree().getModel()).nodeStructureChanged( this );
   }
 
   public VarTree( String name, String type, Value value )
@@ -102,6 +118,15 @@ public class VarTree implements MutableTreeNode
   public Value getValue()
   {
     return _value;
+  }
+
+  public String getDisplayValue()
+  {
+    return _displayValue;
+  }
+  public void setDisplayValue( String displayValue )
+  {
+    _displayValue = displayValue;
   }
 
   private void expand()
@@ -246,7 +271,7 @@ public class VarTree implements MutableTreeNode
 
   public boolean isTerminal()
   {
-    return !isRoot() && (_value == null || !(_value instanceof ObjectReference));
+    return !isRoot() && !(_value instanceof ObjectReference);
   }
 
   public boolean isRoot()
@@ -265,6 +290,18 @@ public class VarTree implements MutableTreeNode
     insert( child, getChildCount() );
   }
   public void insert( MutableTreeNode child, int index )
+  {
+    if( EventQueue.isDispatchThread() )
+    {
+      _insert( child, index );
+    }
+    else
+    {
+      EventQueue.invokeLater( () -> insertViaModel( child, index ) );
+    }
+
+  }
+  private void _insert( MutableTreeNode child, int index )
   {
     if( _children.isEmpty() )
     {

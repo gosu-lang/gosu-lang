@@ -10,11 +10,13 @@ import com.sun.jdi.Value;
 import editor.AbstractTreeCellRenderer;
 import editor.LabFrame;
 import editor.Scheme;
+import editor.util.TaskQueue;
 
 
 import static editor.util.EditorUtilities.hex;
 
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import javax.swing.*;
@@ -24,7 +26,9 @@ import javax.swing.border.EmptyBorder;
 */
 class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
 {
-  public VarTreeCellRenderer( JTree tree )
+  private static final String FETCHING_VALUE = "<Fetching value...>";
+
+  VarTreeCellRenderer( JTree tree )
   {
     super( tree );
   }
@@ -39,6 +43,30 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
 
     setBorder( new EmptyBorder( 0, 3, 0, 3 ) );
 
+    String displayValue = node.getDisplayValue();
+    if( displayValue == null )
+    {
+      displayValue = makeDisplayValue( node );
+      node.setDisplayValue( displayValue );
+    }
+
+    setText( displayValue );
+    setIcon( node.getIcon() );
+  }
+
+  private String makeDisplayValue( VarTree node )
+  {
+    String localDisplayValue = makeLocalDisplayValue( node );
+    if( localDisplayValue != null )
+    {
+      return localDisplayValue;
+    }
+
+    return makeRemoteDisplayValue( node );
+  }
+
+  private String makeLocalDisplayValue( VarTree node )
+  {
     Value value = node.getValue();
     String strValue;
     String address;
@@ -61,10 +89,24 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
     else if( value instanceof ArrayReference )
     {
       address = "";
-      strValue = "["+ ((ArrayReference)value).length() + "] " + makeIdValue( value );
+      strValue = "[" + ((ArrayReference)value).length() + "] " + makeIdValue( value );
     }
     else
     {
+      return null;
+    }
+    return makeDisplayValue( node, strValue, address );
+  }
+
+  private String makeRemoteDisplayValue( VarTree node )
+  {
+    // Must invoke remote JDI method asynchronously to avoid deadlock with event thread
+    TaskQueue.getInstance( "jdiInvoker" ).postTask( () -> {
+      Value value = node.getValue();
+      String strValue;
+      String address;
+      String valueType = value == null ? "" : value.type().name();
+
       String idValue = makeIdValue( value );
       address = null;
       if( VarTree.getValueKind( value ).isSpecial() )
@@ -93,9 +135,17 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
         strValue = "<font color=#" + hex( Scheme.active().debugVarGreenText() ) + "><b>" + strValue + "</b></font>";
       }
       strValue = handleSpecialValue( (ObjectReference)value, strValue );
-    }
-    setText( "<html><font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + node.getName() + "</font> " + address + " = " + strValue );
-    setIcon( node.getIcon() );
+      String displayValue = makeDisplayValue( node, strValue, address );
+      node.setDisplayValue( displayValue );
+      EventQueue.invokeLater( () -> node.getTree().getModel().valueForPathChanged( node.getPath(), node.getValue() ) );
+    } );
+    return node.getDisplayValue() == null ? FETCHING_VALUE : node.getDisplayValue();
+  }
+
+  private String makeDisplayValue( VarTree node, String strValue, String address )
+  {
+    return "<html><font color=#" + hex( Scheme.active().debugVarRedText() ) + ">" + node.getName() + "</font> "
+           + address + " = " + strValue;
   }
 
   private String handleSpecialValue( ObjectReference value, String strValue )
@@ -118,7 +168,7 @@ class VarTreeCellRenderer extends AbstractTreeCellRenderer<VarTree>
       }
       catch( Exception e )
       {
-        throw new RuntimeException( e );
+        throw new RuntimeException( "THREAD: " + thread.name(), e );
       }
       strValue += " size = "+ ((PrimitiveValue)size).intValue();
     }
