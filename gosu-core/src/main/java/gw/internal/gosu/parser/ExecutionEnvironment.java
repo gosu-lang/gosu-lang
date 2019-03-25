@@ -41,7 +41,7 @@ import gw.util.ILogger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 import manifold.internal.runtime.Bootstrap;
 import manifold.util.NecessaryEvilUtil;
 
@@ -787,18 +786,36 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       // or wsjar:<url> on WebSphere
       URL jarUrl = codeSource.getLocation();
 
-      // in case of complex URL the path might be like this: "file:/gitmo/jboss-5.1.2/common/lib/servlet-api.jar!/"
-      String path = jarUrl.getPath();
+      String path;
+      if( "file".equals( jarUrl.getProtocol() ) )
+      {
+        try
+        {
+          path = new File( jarUrl.toURI() ).getAbsolutePath();
+        }
+        catch( URISyntaxException e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+      else
+      {
+        // in case of complex URL the path might be like this: "file:/gitmo/jboss-5.1.2/common/lib/servlet-api.jar!/"
+        path = jarUrl.getPath();
 
-      // So removing optional "!/" suffix and "file:" prefix
-      if (path.endsWith("/")) {
-        path = path.substring(0, path.length() - 1);
-      }
-      if (path.endsWith("!")) {
-        path = path.substring(0, path.length() - 1);
-      }
-      if (path.startsWith("file:")) {
-        path = path.substring("file:".length());
+        // So removing optional "!/" suffix and "file:" prefix
+        if( path.endsWith( "/" ) )
+        {
+          path = path.substring( 0, path.length() - 1 );
+        }
+        if( path.endsWith( "!" ) )
+        {
+          path = path.substring( 0, path.length() - 1 );
+        }
+        if( path.startsWith( "file:" ) )
+        {
+          path = path.substring( "file:".length() );
+        }
       }
 
       // URLDecoder.decode() decodes string from application/x-www-form-urlencoded MIME format
