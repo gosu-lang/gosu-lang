@@ -52,6 +52,7 @@ import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 import manifold.internal.javac.IJavaParser;
 import manifold.internal.javac.InMemoryClassJavaFileObject;
+import manifold.util.NecessaryEvilUtil;
 
 
 import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
@@ -476,6 +477,8 @@ public class GosuCompiler implements IGosuCompiler
   @Override
   public long initializeGosu( List<String> sourceFolders, List<String> classpath, List<String> backingSourcePath, String outputPath )
   {
+    NecessaryEvilUtil.bypassJava9Security();
+
     final long start = System.currentTimeMillis();
 
     CommonServices.getKernel().redefineService_Privileged( IFileSystem.class, createFileSystemInstance() );
