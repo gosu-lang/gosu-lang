@@ -84,6 +84,7 @@ import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
 import gw.lang.parser.IParserState;
+import gw.lang.parser.IReducedDynamicPropertySymbol;
 import gw.lang.parser.IResolvingCoercer;
 import gw.lang.parser.IScriptPartId;
 import gw.lang.parser.ISource;
@@ -7314,9 +7315,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     IPropertyInfo pi = e.getPropertyInfo();
     if( pi instanceof IGosuPropertyInfo )
     {
+      IReducedDynamicPropertySymbol dps = ((IGosuPropertyInfo)pi).getDps();
       IFunctionType funcType = pi.isReadable( getGosuClass() )
-                               ? (IFunctionType)((IGosuPropertyInfo)pi).getDps().getGetterDfs().getType()
-                               : (IFunctionType)((IGosuPropertyInfo)pi).getDps().getSetterDfs().getType();
+                               ? dps.getGetterDfs() == null ? null : (IFunctionType)dps.getGetterDfs().getType()
+                               : dps.getSetterDfs() == null ? null : (IFunctionType)dps.getSetterDfs().getType();
       if( funcType == null || !Modifier.isReified( funcType.getModifiers() ) )
       {
         return;
