@@ -23,7 +23,6 @@ import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.gs.UrlClassLoaderWrapper;
 import gw.lang.reflect.java.IJavaBackedType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
@@ -39,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import manifold.internal.runtime.Bootstrap;
+import manifold.internal.runtime.UrlClassLoaderWrapper;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
@@ -105,8 +105,7 @@ public class GosuClassLoader implements IGosuClassLoader
         {
           break;
         }
-        if( !(_loader.getParent() instanceof URLClassLoader) &&
-            !UrlClassLoaderWrapper.canWrap( _loader.getParent() ) )
+        if( !UrlClassLoaderWrapper.canWrap( _loader.getParent() ) )
         {
           break;
         }
