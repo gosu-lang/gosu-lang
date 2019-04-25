@@ -259,9 +259,27 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.0.1</version>
+            <version>3.1.0</version>
             <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
+                <doclint>none</doclint>
+                <additionalJOptions>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=java.base/jdk.internal.loader=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=java.desktop/sun.swing=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED</additionalJOption>
+                    <additionalJOption>--add-exports=jdk.javadoc/com.sun.tools.javadoc.main=ALL-UNNAMED</additionalJOption>
+            </additionalJOptions>
             </configuration>
             <executions>
               <execution>
