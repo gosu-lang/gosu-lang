@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import gw.util.OSPlatform;
 import manifold.internal.runtime.Bootstrap;
 import manifold.util.NecessaryEvilUtil;
 
@@ -736,6 +738,15 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     {
       for( String pathElement : path.split( File.pathSeparator ) )
       {
+        if( OSPlatform.isWindows() )
+        {
+          // correct paths with illegal leading separator e.g., "\C:\foo\bar"
+          if( pathElement.startsWith( File.separator ) )
+          {
+            pathElement = pathElement.substring( 1 );
+          }
+        }
+
         if( pathElement.length() > 0 )
         {
           Path filePath = Paths.get( pathElement );
