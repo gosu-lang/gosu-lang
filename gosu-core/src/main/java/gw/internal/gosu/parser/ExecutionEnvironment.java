@@ -37,7 +37,6 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
 import gw.util.GosuExceptionUtil;
-import gw.util.ILogger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -773,13 +772,13 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   private static Set<String> getJarsContainingSpecialClasses() {
     Set<String> paths = new HashSet<String>();
     for (String className : SPECIAL_CLASSES) {
-      getLogger().debug("Searching JAR that provides " + className + ".");
+      //getLogger().debug("Searching JAR that provides " + className + ".");
       Class<?> clazz;
       try {
         clazz = Class.forName(className);
       } catch (ClassNotFoundException e) {
         if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          getLogger().error("Class " + className
+          System.err.println("Class " + className
                   + " could not be found. Gosu code might fail to compile at runtime.");
         }
         continue;
@@ -787,7 +786,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
       if (codeSource == null) {
         if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          getLogger().error("Code source for " + clazz.getName()
+          System.err.println("Code source for " + clazz.getName()
                   + " is null. Gosu code might fail to compile at runtime.");
         }
         continue;
@@ -841,7 +840,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         if (new File(decodedPath).exists()) {
           paths.add(path);
         } else {
-          getLogger().error("Could not extract filesystem path from the url " + jarUrl.getPath()
+          System.err.println("Could not extract filesystem path from the url " + jarUrl.getPath()
                   + ". Gosu code that requires classes from that JAR might fail to compile at runtime.");
         }
       } catch (UnsupportedEncodingException ex) {
@@ -851,9 +850,4 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
     return paths;
   }
-
-  private static ILogger getLogger() {
-    return CommonServices.getEntityAccess().getLogger();
-  }
-
 }
