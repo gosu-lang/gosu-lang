@@ -740,6 +740,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         if( OSPlatform.isWindows() )
         {
           // correct paths with illegal leading separator e.g., "\C:\foo\bar"
+          pathElement = pathElement.replace( '/', File.separatorChar );
           if( pathElement.startsWith( File.separator ) )
           {
             pathElement = pathElement.substring( 1 );
@@ -749,10 +750,6 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         if( pathElement.length() > 0 )
         {
           Path filePath = Paths.get( pathElement );
-//          if( !filePath.exists() )
-//          {
-//            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me
-//          }
           IDirectory resource = CommonServices.getFileSystem().getIDirectory( filePath );
           expanded.add(resource);
         }
