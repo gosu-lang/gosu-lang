@@ -2,6 +2,7 @@ package gw.lang.init;
 
 import gw.fs.IDirectory;
 import gw.fs.IResource;
+import gw.fs.jar.IJarFileDirectory;
 import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
 import java.io.File;
@@ -64,7 +65,24 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
   {
     return dirs.stream()
       .filter( IResource::isJavaFile )
+      .filter( e -> !isIntelliJGeneratedClasspathJar( e ) )
       .map( IResource::toJavaFile )
       .collect( Collectors.toList() );
+  }
+
+  // IntelliJ generates a classpath jar file when Studio runs a Gosu program/scratchpad, this
+  // not only duplicate what we have in the classpath already, but it also exposes a bug in the
+  // JVM's WindowsClassParser involving unexpected URL formatted paths instead of file system
+  // formatted paths.  This code is a hack to identify such a classpath jar file so it can be
+  // removed from the classpath.
+  private boolean isIntelliJGeneratedClasspathJar( IDirectory e )
+  {
+    if( e instanceof IJarFileDirectory )
+    {
+      String name = e.getName();
+      return name.startsWith( "classpath" ) &&
+             Character.isDigit( name.charAt( "classpath".length() ) );
+    }
+    return false;
   }
 }
