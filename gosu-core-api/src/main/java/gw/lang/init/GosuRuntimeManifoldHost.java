@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import manifold.internal.host.RuntimeManifoldHost;
+import manifold.internal.javac.JavaParser;
 
 public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 {
+  // override RuntimeManifoldHost to use a single instance since it is always used in the context of the type sys lock
+  private JavaParser _javaParser;
+
   public static GosuRuntimeManifoldHost get()
   {
     return (GosuRuntimeManifoldHost)RuntimeManifoldHost.get();
@@ -27,6 +31,12 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
   public ClassLoader getActualClassLoader()
   {
     return TypeSystem.getGosuClassLoader().getActualLoader();
+  }
+
+  @Override
+  public JavaParser getJavaParser()
+  {
+    return _javaParser == null ? _javaParser = new JavaParser( this ) : _javaParser;
   }
 
   @Override
