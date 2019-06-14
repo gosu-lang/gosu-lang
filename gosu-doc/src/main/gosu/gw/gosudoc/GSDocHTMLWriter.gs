@@ -30,6 +30,8 @@ class GSDocHTMLWriter {
     rootDoc.genDocs()
     rootDoc.printNotice( "Finished loading types:  now generating GosuDoc HTML to: ${Output.AbsolutePath}" )
 
+
+/* todo: https://guidewirejira.atlassian.net/browse/ISGOSU-197
     // Generate HTML
     var doclet = new HtmlDoclet()
     doclet.Configuration.charset = StandardCharsets.UTF_8.toString()
@@ -38,6 +40,7 @@ class GSDocHTMLWriter {
     var messenger = Messager.instance0( context )
     var docWriter = new DocletInvoker( messenger, com.sun.tools.doclets.standard.Standard as Class, true, false );
     docWriter.start( rootDoc )
+*/
   }
 
 }
