@@ -71,6 +71,18 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
     super.init( sourcepath, classpath );
   }
 
+  // Override the base class to filter out the intellij classpath jar because WindowsPathParser otherwise chokes
+  // on the jre paths having an illegal '!' character in them.  Note this is a total hack and should be fixed on
+  // the Studio end, but fixing this on the Gosu side for now.
+  @Override
+  protected List<manifold.api.fs.IDirectory> createDefaultClassPath()
+  {
+    // filter out the intellij classpath
+    return super.createDefaultClassPath().stream()
+      .filter( f -> !isIntelliJGeneratedClasspathJar( f ) )
+      .collect( Collectors.toList() );
+  }
+
   private List<File> removeNonFiles( List<IDirectory> dirs )
   {
     return dirs.stream()
@@ -86,6 +98,16 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
   // formatted paths.  This code is a hack to identify such a classpath jar file so it can be
   // removed from the classpath.
   private boolean isIntelliJGeneratedClasspathJar( IDirectory e )
+  {
+    if( e instanceof IJarFileDirectory )
+    {
+      String name = e.getName();
+      return name.startsWith( "classpath" ) &&
+             Character.isDigit( name.charAt( "classpath".length() ) );
+    }
+    return false;
+  }
+  private boolean isIntelliJGeneratedClasspathJar( manifold.api.fs.IDirectory e )
   {
     if( e instanceof IJarFileDirectory )
     {

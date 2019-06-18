@@ -35,7 +35,7 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold</artifactId>
-      <version>2019.1.0-gw</version>
+      <version>2019.1.4</version>
     </dependency>
   </dependencies>
 
