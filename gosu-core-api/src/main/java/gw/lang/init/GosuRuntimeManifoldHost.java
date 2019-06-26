@@ -109,7 +109,7 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
   }
   private boolean isIntelliJGeneratedClasspathJar( manifold.api.fs.IDirectory e )
   {
-    if( e instanceof IJarFileDirectory )
+    if( e instanceof manifold.api.fs.jar.IJarFileDirectory )
     {
       String name = e.getName();
       return name.startsWith( "classpath" ) &&
