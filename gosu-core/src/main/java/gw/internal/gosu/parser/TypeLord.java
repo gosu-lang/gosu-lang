@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser;
 
+import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.lang.reflect.IDynamicType;
 import gw.internal.gosu.parser.expressions.BlockType;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
@@ -77,7 +78,7 @@ public class TypeLord
 {
   // LRUish cache of assignability results (recent tests indicate 99% hit rates)
   private static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
-    TypeSystemAwareCache.make( "Assignability Cache", 1000,
+    TypeSystemAwareCache.make( "Assignability Cache", getAssignabilityCacheSize(),
                                new Cache.MissHandler<Pair<IType, IType>, Boolean>()
                                {
                                  public final Boolean load( Pair<IType, IType> key )
@@ -85,6 +86,25 @@ public class TypeLord
                                    return areGenericOrParameterizedTypesAssignableInternal( key.getFirst(), key.getSecond() );
                                  }
                                } );
+
+  private static final int DEFAULT_ASSIGNABILITY_CACHE_SIZE = 1000;
+
+  private static int getAssignabilityCacheSize()
+  {
+    try
+    {
+      String assignabilityCacheSize = System.getProperty("assignabilityCacheSize");
+      if (assignabilityCacheSize != null)
+      {
+        return Math.max(Integer.valueOf(assignabilityCacheSize), DEFAULT_ASSIGNABILITY_CACHE_SIZE);
+      }
+    }
+    catch (Exception e)
+    {
+      new RuntimeException("Unable to set value of assignability cache due to an exception, the default value will be used", e).printStackTrace();
+    }
+    return DEFAULT_ASSIGNABILITY_CACHE_SIZE;
+  }
 
   public static Set<IType> getAllClassesInClassHierarchyAsIntrinsicTypes( IJavaClassInfo cls )
   {
@@ -1029,6 +1049,45 @@ public class TypeLord
       return null;
     }
     return TypeLord.makeParameteredType( structureType, inferenceMap );
+  }
+
+  public static IType getFunctionalInterface( IFunctionType funcType )
+  {
+    IType iface = IRTypeResolver.getDescriptor( funcType ).getType();
+    iface = TypeLord.getPureGenericType( iface );
+    if( iface.isGenericType() )
+    {
+      IGenericTypeVariable[] gtvs = iface.getGenericTypeVariables();
+      IType[] typeParams = new IType[gtvs.length];
+      IType returnType = funcType.getReturnType();
+      boolean hasReturn = returnType != JavaTypes.pVOID();
+      for( int i = 0; i < gtvs.length; i++ )
+      {
+        if( i == 0 && hasReturn )
+        {
+          if( returnType.isPrimitive() )
+          {
+            returnType = TypeSystem.getBoxType( returnType );
+          }
+          typeParams[i] = returnType;
+        }
+        else if( funcType.getParameterTypes().length > 0 )
+        {
+          IType paramType = funcType.getParameterTypes()[i - (hasReturn ? 1 : 0)];
+          if( paramType.isPrimitive() )
+          {
+            paramType = TypeSystem.getBoxType( paramType );
+          }
+          typeParams[i] = paramType;
+        }
+        else if( i == 0 )
+        {
+          iface = TypeLord.getDefaultParameterizedType( iface );
+        }
+      }
+      iface = iface.getParameterizedType( typeParams );
+    }
+    return iface;
   }
 
   /**

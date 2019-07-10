@@ -1,20 +1,40 @@
 package gw.lang.ir;
 
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
+import gw.lang.reflect.ICompoundType;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 
 public class SignatureUtil {
+  static public void visitIrType( SignatureVisitor sv, IRType type ) {
+    if( type.isArray() ) {
+      SignatureVisitor arrSv = sv.visitArrayType();
+      visitIrType( arrSv, type.getComponentType() );
+    } else if( type.isPrimitive() ) {
+      sv.visitBaseType(type.getDescriptor().charAt( 0 ));
+    }
+    else {
+      sv.visitClassType( type.getSlashName() );
+      sv.visitEnd();
+    }
+  }
 
   static public void visitType( SignatureVisitor sv, IType type, boolean[] bGeneric ) {
     if( type instanceof ITypeVariableType) {
       sv.visitTypeVariable( type.getRelativeName() );
     }
     else if( !TypeSystem.isBytecodeType(type) ) {
-      sv.visitClassType( Object.class.getName().replace( '.', '/' ) );
-      sv.visitEnd();
+      if( type instanceof IFunctionType ) {
+        type = TypeSystem.getFunctionalInterface( (IFunctionType)type );
+        visitType( sv, type, bGeneric );
+      }
+      else {
+        sv.visitClassType( Object.class.getName().replace( '.', '/' ) );
+        sv.visitEnd();
+      }
     }
     else if( type.isArray() ) {
       SignatureVisitor arrSv = sv.visitArrayType();
@@ -32,7 +52,7 @@ public class SignatureUtil {
       sv.visitBaseType(c);
     }
     else {
-      IType rawType = type.getGenericType() == null ? type : type.getGenericType();
+      IType rawType = makeRawType( type );
       String rawName = rawType.isPrimitive() ? rawType.getName() : processName( rawType );
       sv.visitClassType( rawName );
       if( type.isParameterizedType() ) {
@@ -46,6 +66,17 @@ public class SignatureUtil {
         sv.visitEnd();
       }
     }
+  }
+
+  private static IType makeRawType( IType type ) {
+    IType ret;
+    if( type instanceof ICompoundType ) {
+      ret = makeRawType( ((ICompoundType)type).getTypes().iterator().next() );
+    }
+    else {
+      ret = type.getGenericType() == null ? type : type.getGenericType();
+    }
+    return ret;
   }
 
   public static IType getPureGenericType(IType type) {

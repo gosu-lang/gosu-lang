@@ -93,7 +93,14 @@ public class IRMethodStatement extends IRStatement {
     }
     SignatureVisitor sv;
     sv = sw.visitParameterType();
-    for( IType arg : args ) {
+    for( int i = 0; i < _parameters.size() - args.length; i++ )
+    {
+      IRSymbol implicitParam = _parameters.get( i );
+      SignatureUtil.visitIrType( sv, implicitParam.getType() );
+    }
+    for( int i = 0; i < args.length; i++ )
+    {
+      IType arg = args[i];
       SignatureUtil.visitType( sv, arg, bGeneric );
     }
     sv = sw.visitReturnType();

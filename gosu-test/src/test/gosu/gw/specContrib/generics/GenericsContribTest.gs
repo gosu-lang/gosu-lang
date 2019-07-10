@@ -90,4 +90,13 @@ class GenericsContribTest extends TestClass {
       return E
     }
   }
+
+  function testGenericSignatureHandlesCompoundTypes() {
+    var ret = (HasFunctionWithGenericReturnTypeAndCompoundTypeParameter as Class).getMethod( "foo", {} ).GenericReturnType
+  }
+  static class HasFunctionWithGenericReturnTypeAndCompoundTypeParameter {
+    function foo() : java.util.List<java.io.Serializable & java.lang.Comparable<java.lang.Object>> {
+      return null
+    }
+  }
 }

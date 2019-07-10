@@ -23,6 +23,7 @@ import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ParseResult;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.expressions.IBlockExpression;
 import gw.lang.parser.expressions.ILocalVarDeclaration;
 import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.IVarStatement;
@@ -101,8 +102,18 @@ public class ContextSensitiveCodeRunner
       throw GosuExceptionUtil.forceThrow( cause );
     }
   }
-  private static Object _runMeSomeCode( Object enclosingInstance, Object[] extSyms, String strText, final String strClassContext, String strContextElementClass, int iSourcePosition )
+  private static Object _runMeSomeCode( Object enclosingInstance, Object[] extSyms, String strText, String strClassContext, String strContextElementClass, int iSourcePosition )
   {
+    if( enclosingInstance != null )
+    {
+      String fqn = enclosingInstance.getClass().getTypeName();
+      if( isBlock( fqn ) )
+      {
+        // if the enclosing instance is a block, use it as the context
+        strClassContext = fqn;
+        strContextElementClass = fqn;
+      }
+    }
     IType type = TypeSystem.getByFullName( strClassContext, TypeSystem.getGlobalModule() );
     if( type instanceof IGosuClassInternal )
     {
@@ -123,6 +134,22 @@ public class ContextSensitiveCodeRunner
     String typeName = GosuProgramParser.makeEvalKey( source.toString(), enclosingClass, offset );
     IGosuProgramInternal program = getCachedProgram( typeName );
     IParseResult res;
+    // use parent class if nested class has no recorded location eg., closure
+    while( outer != null && isBlock( outer.getClass().getTypeName() ) )
+    {
+      enclosingClass = enclosingClass.getEnclosingType();
+      try
+      {
+        Field f = outer.getClass().getDeclaredField( "this$0" );
+        f.setAccessible( true );
+        outer = f.get( outer );
+      }
+      catch( Exception e )
+      {
+        throw new RuntimeException( e );
+      }
+    }
+
     if( program != null )
     {
       program.isValid();
@@ -134,22 +161,6 @@ public class ContextSensitiveCodeRunner
       String strSource = CommonServices.getCoercionManager().makeStringFrom( source );
       IGosuProgramParser parser = GosuParserFactory.createProgramParser();
       //debugInfo( compileTimeLocalContextSymbols );
-
-      // use parent class if nested class has no recorded location eg., closure
-      while( enclosingClass.getEnclosingType() != null && enclosingClass instanceof IGosuClassInternal && ((IGosuClassInternal)enclosingClass).getClassStatement().getLocation() == null )
-      {
-        enclosingClass = enclosingClass.getEnclosingType();
-        try
-        {
-          Field f = outer.getClass().getDeclaredField( "this$0" );
-          f.setAccessible( true );
-          outer = f.get( outer );
-        }
-        catch( Exception e )
-        {
-          throw new RuntimeException( e );
-        }
-      }
 
       TypeSystem.pushIncludeAll();
       try
@@ -257,6 +268,11 @@ public class ContextSensitiveCodeRunner
     return str;
   }
 
+  private static boolean isBlock( String fqn )
+  {
+    return fqn.contains( "$block_" );
+  }
+
   private static IExternalSymbolMap makeRuntimeNamesAndValues( Object[] extSyms ) {
     HashMap<String, ISymbol> map = new HashMap<>();
     for( int i = 0; i < extSyms.length; i++ ) {
@@ -277,7 +293,10 @@ public class ContextSensitiveCodeRunner
   private static ISymbolTable findCompileTimeSymbols( IGosuClassInternal enclosingClass, int iLocation )
   {
     ISymbolTable symTable = new StandardSymbolTable( false );
-    IParseTree deepestLocation = enclosingClass.getClassStatement().getClassFileStatement().getLocation().getDeepestLocation( iLocation, false );
+    while( enclosingClass.getClassStatement().getLocation() == null ) {
+      enclosingClass = (IGosuClassInternal)enclosingClass.getEnclosingType();
+    }
+    IParseTree deepestLocation = enclosingClass.getClassStatement().getLocation().getDeepestLocation( iLocation, false );
     collectLocalSymbols( enclosingClass, symTable,
                          deepestLocation.getParsedElement(),
                          iLocation );
@@ -336,6 +355,13 @@ public class ContextSensitiveCodeRunner
         }
       }
     }
+    else if( parsedElement instanceof IBlockExpression ) {
+      IBlockExpression blockExpr = (IBlockExpression)parsedElement;
+      for( ISymbol arg: blockExpr.getArgs() ) {
+        symTable.putSymbol( arg );
+      }
+    }
+
     IParsedElement parent = parsedElement.getParent();
     if( parent != parsedElement )
     {
