@@ -37,7 +37,7 @@ class Errant_BlocksReturnTypeCheck {
     humans.add(new Human("Jack"))
     humans.sort(\h1, h2 -> h1.name.compareTo(h2.name));
     humans.sort(\h1, h2 -> { throw new RuntimeException("Ha") })
-    humans.sort(\h1, h2 -> { if (true) throw new RuntimeException("Ha") return false })
+    humans.sort(\h1, h2 -> { if (true) throw new RuntimeException("Ha") return false }) //## issuekeys: MSG_STATEMENT_ON_SAME_LINE
     humans.sort(\h1, h2 -> { })      //## issuekeys: MISSING RETURN STATEMENT
   }
 

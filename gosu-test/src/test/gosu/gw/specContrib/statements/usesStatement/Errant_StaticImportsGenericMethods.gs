@@ -6,7 +6,7 @@ uses ClassWithGenericMethods#f2(String) //## issuekeys: MSG_NO_SUCH_FUNCTION
 uses ClassWithGenericMethods#f3
 uses ClassWithGenericMethods#f4(List<String>) //## issuekeys: MSG_NO_SUCH_FUNCTION
 uses ClassWithGenericMethods#f5(List)
-uses ClassWithGenericMethods#f6(List<List<List>>)
+uses ClassWithGenericMethods#f6(List<List<List>>) //## issuekeys: MSG_FL_METHOD_NOT_FOUND,MSG_USES_STMT_DUPLICATE
 uses ClassWithGenericMethods#f7(List<List>) //## issuekeys: MSG_NO_SUCH_FUNCTION
 uses ClassWithGenericMethods#f8(List)
 uses ClassWithGenericMethods#f9(List<List>) //## issuekeys: MSG_NO_SUCH_FUNCTION
