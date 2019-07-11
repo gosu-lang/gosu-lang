@@ -9,7 +9,7 @@ class Errant_CompoundTypeWithTypeVar {
         print("equal")
       }
       var r : S  = null
-      if( a == c ) {}  //## issuekeys: MSG_TYPE_MISMATCH
+      if( a == c ) {}
     }
   }
 }

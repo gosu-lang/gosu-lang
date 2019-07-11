@@ -111,7 +111,9 @@ public class ContextInferenceManager
       }
       TypeAsEntry currentEntry = findEntry( expression );
       IType type = currentEntry == null ? expression.getType() : currentEntry.inferredType;
-      type = type.isAssignableFrom( typeIsType ) ? typeIsType : CompoundType.get( new HashSet<IType>( Arrays.asList( type, typeIsType ) ) );
+      type = type.isAssignableFrom( typeIsType )
+             ? typeIsType
+             : computeType( typeIsType, type );
 
       if( currentEntry == null )
       {
@@ -126,6 +128,16 @@ public class ContextInferenceManager
         _inferenceStack.peek().entries.add( new TypeAsEntry( currentEntry.expr, currentEntry.originalType, type ) );
       }
     }
+  }
+
+  private IType computeType( IType typeIsType, IType type )
+  {
+    // compound type must have at most one non-interface type
+    if( typeIsType.isInterface() || type.isInterface() )
+    {
+      type = CompoundType.get( type, typeIsType );
+    }
+    return type;
   }
 
   private Expression unwrapParens( Expression expression )
