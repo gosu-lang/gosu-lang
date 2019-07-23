@@ -173,6 +173,7 @@ import gw.lang.reflect.MethodScorer;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeInfoUtil;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.features.IPropertyReference;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
@@ -12269,29 +12270,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           else if( fl.hasParseExceptions() )
           {
-            IFeatureInfo feature = fl.getFeature();
-            List<IAttributedFeatureInfo> features = Collections.emptyList();
-            if( feature != null )
-            {
-              features = getAllStaticFeatures( gsType, feature.getName() );
-            }
-            if( !features.isEmpty() )
-            {
-              usesStmt.setFeatureSpace( true );
-              for( IAttributedFeatureInfo f : features )
-              {
-                UsesStatement stmt = new UsesStatement();
-                stmt.setTypeName( strTypeName );
-                processUsesStatement( stmt, typeLiteral, f, gsType );
-              }
-            }
-            else
-            {
-              IParseIssue first = fl.getParseExceptions().get( 0 );
-              usesStmt.addParseException( first );
-              //noinspection ThrowableResultOfMethodCallIgnored
-              fl.removeParseException( first.getMessageKey() );
-            }
+            handleMultipleMatches( usesStmt, typeLiteral, fl, gsType, strTypeName );
           }
           else if( verify( usesStmt, fl.isStaticish() && !fl.isConstructorLiteral(), Res.MSG_CANNOT_REFERENCE_NON_STATIC_FEATURE_HERE ) )
           {
@@ -12314,6 +12293,45 @@ public final class GosuParser extends ParserBase implements IGosuParser
     while( match( null, ';' ) )
     {
       //pushStatement( new NoOpStatement() );
+    }
+  }
+
+  private void handleMultipleMatches( UsesStatement usesStmt, TypeLiteral typeLiteral, FeatureLiteral fl,
+                                      IGosuClass gsType, String strTypeName )
+  {
+    List<IAttributedFeatureInfo> features = Collections.emptyList();
+
+    // Note a method reference without parenthesis parses as a property reference, otherwise if the method
+    // reference has parens, it'll be a IMethodReference which we don't want to match against i.e., parens
+    // implies the reference is intended to be a specific one. Without parens we use the property reference
+    // just for the name to match against all function overloads with that name.
+    if( TypeSystem.get( IPropertyReference.class ).isAssignableFrom( fl.getType() ) )
+    {
+      IFeatureInfo feature = fl.getFeature();
+      if( feature != null )
+      {
+        features = getAllStaticFeatures( gsType, feature.getName() );
+      }
+    }
+
+    if( !features.isEmpty() )
+    {
+      usesStmt.setFeatureSpace( true );
+      for( IAttributedFeatureInfo f : features )
+      {
+        UsesStatement stmt = new UsesStatement();
+        stmt.setTypeName( strTypeName );
+        processUsesStatement( stmt, typeLiteral, f, gsType );
+      }
+    }
+    else
+    {
+      // keep the error if the ref is invalid
+
+      IParseIssue first = fl.getParseExceptions().get( 0 );
+      usesStmt.addParseException( first );
+      //noinspection ThrowableResultOfMethodCallIgnored
+      fl.removeParseException( first.getMessageKey() );
     }
   }
 
