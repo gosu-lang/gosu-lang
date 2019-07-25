@@ -6281,7 +6281,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     if( (function == null || !(function.getType() instanceof IFunctionType)) )
     {
       listFunctionTypes = new ArrayList<>();
-      addJavaPropertyMethods( strFunction, getGosuClass(), listFunctionTypes );
+      addJavaPropertyMethods( strFunction, false, getGosuClass(), listFunctionTypes );
       if( listFunctionTypes.stream().anyMatch( ft -> ft.getDisplayName().equals( strFunction ) ) )
       {
         String strPropertyName = getPropertyNameFromMethodName( strFunction );
@@ -7440,17 +7440,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     // Get a preliminary funcTypes to check arguments. Note we do this to aid in in error feedback and value popup completion.
     List<IFunctionType> listFunctionTypes = new ArrayList<>( 8 );
+    boolean syntheticTypeLiteral = isSyntheticTypeLiteral( e, rootType );
     try
     {
       if( !(rootType instanceof ErrorType) )
       {
         getFunctionType( rootType, strMemberName, null, listFunctionTypes, this, true );
-        addJavaPropertyMethods( strMemberName, rootType, listFunctionTypes );
+        addJavaPropertyMethods( strMemberName, syntheticTypeLiteral, rootType, listFunctionTypes );
       }
     }
     catch( ParseException pe )
     {
-      addJavaPropertyMethods( strMemberName, rootType, listFunctionTypes );
+      addJavaPropertyMethods( strMemberName, syntheticTypeLiteral, rootType, listFunctionTypes );
       if( listFunctionTypes.isEmpty() )
       {
         e.addParseException( pe );
@@ -7464,7 +7465,15 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return listFunctionTypes;
   }
 
-  private void addJavaPropertyMethods( String strMemberName, IType rootType, List<IFunctionType> listFunctionTypes )
+  private boolean isSyntheticTypeLiteral( BeanMethodCallExpression e, IType rootType )
+  {
+    Expression rootExpression = e.getRootExpression();
+    return rootExpression != null && rootExpression.isSynthetic() &&
+           rootType instanceof IMetaType &&
+           ((IMetaType)rootType).isLiteral();
+  }
+
+  private void addJavaPropertyMethods( String strMemberName, boolean syntheticTypeLiteral, IType rootType, List<IFunctionType> listFunctionTypes )
   {
     String propName = getPropertyNameFromMethodNameIncludingSetter( strMemberName );
     if( propName != null )
@@ -7495,6 +7504,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
           }
           if( mi != null )
           {
+            if( syntheticTypeLiteral && mi.getOwnersType() == JavaTypes.ITYPE() )
+            {
+              // Don't include Meta type properties for implied root expressions
+              return;
+            }
+
             FunctionType functionType = new FunctionType( mi );
             if( !listFunctionTypes.contains( functionType ) )
             {

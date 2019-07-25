@@ -52,6 +52,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
+import gw.lang.reflect.java.IJavaClassWildcardType;
 import gw.lang.reflect.java.IJavaMethodDescriptor;
 import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaType;
@@ -274,6 +275,15 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
     {
       Tree tree = typeArguments.get( i );
       typeParameters[i] = createType( typeResolver, tree );
+      if( typeParameters[i] instanceof IJavaClassWildcardType )
+      {
+        IJavaClassType bound = ((JavaWildcardType)typeParameters[i]).getUpperBound();
+        if( bound == IJavaClassType.NULL_TYPE )
+        {
+          bound = ((IJavaClassInfo)concreteType).getTypeParameters()[i].getBounds()[0];
+          ((JavaWildcardType)typeParameters[i]).setBound( bound );
+        }
+      }
     }
     return new JavaParameterizedType( typeParameters, concreteType );
   }
