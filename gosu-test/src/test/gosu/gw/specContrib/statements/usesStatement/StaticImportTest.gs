@@ -18,5 +18,10 @@ class StaticImportTest extends BaseVerifyErrantTest {
      assertEquals( String, StaticImportMiscTest2.testMe() )
      assertEquals( "hi", StaticImportMiscTest2.testMe2() )
      assertEquals( "hi", StaticImportMiscTest3.testMe() )
+
+    StaticImportDifferentMembersWithTheSameName.test()
+    StaticImportDifferentMembersWithTheSameName2.test()
+
+    StaticImportExplicit2Test.testMe()
   }
 }

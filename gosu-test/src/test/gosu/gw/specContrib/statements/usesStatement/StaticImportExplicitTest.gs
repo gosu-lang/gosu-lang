@@ -12,7 +12,7 @@ uses gw.specContrib.statements.usesStatement.Constants#StaticProp1
 uses gw.specContrib.statements.usesStatement.Constants#StaticProp2
 uses gw.specContrib.statements.usesStatement.Constants#StaticProp3
 
-uses gw.test.TestClass#assertTrue( boolean )
+uses gw.test.TestClass#assertTrue( String, boolean )
 
 class StaticImportExplicitTest extends SuperClassForStaticImportTesting {
   static var ConstField2: String = "ConstField2: from This"
@@ -26,30 +26,30 @@ class StaticImportExplicitTest extends SuperClassForStaticImportTesting {
   }
   
   function testMe_NonStatic() {
-    assertTrue( ConstField1 == "ConstField1: from Super" )
-    assertTrue( ConstField2 == "ConstField2: from This" )
-    assertTrue( ConstField3 == "ConstField3: from Constants" )
+    assertTrue("line 29", ConstField1 == "ConstField1: from Super" )
+    assertTrue("line 30", ConstField2 == "ConstField2: from This" )
+    assertTrue("line 31", ConstField3 == "ConstField3: from Constants" )
 
-    assertTrue( StaticFunc1( "" ) == "StaticFunc1: from Super" )
-    assertTrue( StaticFunc2( "" ) == "StaticFunc2: from This" )
-    assertTrue( StaticFunc3( "" ) == "StaticFunc3: from Constants" )
+    assertTrue("line 33", StaticFunc1( "" ) == "StaticFunc1: from Super" )
+    assertTrue("line 34", StaticFunc2( "" ) == "StaticFunc2: from This" )
+    assertTrue("line 35", StaticFunc3( "" ) == "StaticFunc3: from Constants" )
 
-    assertTrue( StaticProp1 == "StaticProp1: from Super" )
-    assertTrue( StaticProp2 == "StaticProp2: from This" )
-    assertTrue( StaticProp3 == "StaticProp2: from Constants" )
+    assertTrue("line 37", StaticProp1 == "StaticProp1: from Super" )
+    assertTrue("line 38", StaticProp2 == "StaticProp2: from This" )
+    assertTrue("line 39", StaticProp3 == "StaticProp3: from Constants" )
   }
   
   static function testMe_Static() {
-    assertTrue( ConstField1 == "ConstField1: from Super" )
-    assertTrue( ConstField2 == "ConstField2: from This" )
-    assertTrue( ConstField3 == "ConstField3: from Constants" )
+    assertTrue("line 43", ConstField1 == "ConstField1: from Super" )
+    assertTrue("line 44", ConstField2 == "ConstField2: from This" )
+    assertTrue("line 45", ConstField3 == "ConstField3: from Constants" )
 
-    assertTrue( StaticFunc1( "" ) == "StaticFunc1: from Super" )
-    assertTrue( StaticFunc2( "" ) == "StaticFunc2: from This" )
-    assertTrue( StaticFunc3( "" ) == "StaticFunc3: from Constants" )
+    assertTrue("line 47", StaticFunc1( "" ) == "StaticFunc1: from Super" )
+    assertTrue("line 48", StaticFunc2( "" ) == "StaticFunc2: from This" )
+    assertTrue("line 49", StaticFunc3( "" ) == "StaticFunc3: from Constants" )
 
-    assertTrue( StaticProp1 == "StaticProp1: from Super" )
-    assertTrue( StaticProp2 == "StaticProp2: from This" )
-    assertTrue( StaticProp3 == "StaticProp2: from Constants" )
+    assertTrue("line 51", StaticProp1 == "StaticProp1: from Super" )
+    assertTrue("line 52", StaticProp2 == "StaticProp2: from This" )
+    assertTrue("line 53", StaticProp3 == "StaticProp3: from Constants" )
   }
 }

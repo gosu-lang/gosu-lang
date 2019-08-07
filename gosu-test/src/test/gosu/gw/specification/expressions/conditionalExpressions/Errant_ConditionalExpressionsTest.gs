@@ -292,4 +292,16 @@ class Errant_ConditionalExpressionsTest {
     var yourtype = true ? new Float(42.5) : new Integer(42)       //## issuekeys: MSG_LOSS_OF_PRECISION_IN_CONDITIONAL_EXP
   }
 
+  // ISSTUDIO-445
+  var blockThatShouldReturnObject : block() : Object = \ -> {
+    if (true) {
+      return Boolean.TRUE
+    } else if (true) {
+      return Integer.valueOf(0)
+    } else {
+      return ""
+    }
+  }
+ 
+
 }
