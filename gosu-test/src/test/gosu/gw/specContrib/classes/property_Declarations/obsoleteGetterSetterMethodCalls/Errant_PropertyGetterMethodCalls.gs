@@ -1,13 +1,13 @@
 package gw.specContrib.classes.property_Declarations.obsoleteGetterSetterMethodCalls
 
 class Errant_PropertyGetterMethodCalls {
-  var _name : String as Name
+  var _name : String as MyName
 
   function fooName() {
-    var x1 = Name
-    var x2 = getName()      //## KB(JIRANEEDED-0000) issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
-    Name = "vicky"
-    setName("Vicky")      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    var x1 = MyName
+    var x2 = getMyName()      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
+    MyName = "vicky"
+    setMyName("Vicky")      //## issuekeys: CANNOT MAKE GETTER/SETTER METHOD TYPE CALL ON PROPERTIES. USE GOSU STYLE PROPERTY ACCESS INSTEAD
   }
 
   property get Age() : int { return 42 }

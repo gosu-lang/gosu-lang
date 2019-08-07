@@ -135,23 +135,23 @@ static class ReifiedTest
   }  
   function test_4<T>()
   {    
-    new T[2]  //## issuekeys: MSG_TYPE_NOT_REIFIED
+    var x = new T[2]  //## issuekeys: MSG_TYPE_NOT_REIFIED
   }
   function test_4_0<T>()
-  {    
-    new T[] {}  //## issuekeys: MSG_TYPE_NOT_REIFIED
+  {
+    var x = new T[] {}  //## issuekeys: MSG_TYPE_NOT_REIFIED
   }
   function test_4_1<T>()
   {    
     // java class erases type params
-    new ArrayList<T>[2]
+    var x = new ArrayList<T>[2]
   }
   function test_4_2<T>( t: T )
   {    
     // java class erases type params
-    new ArrayList<T>[] {}
-    new ArrayList<T>[] { null }
-    new ArrayList<T>[] { {t} }
+    var x = new ArrayList<T>[] {}
+    var y = new ArrayList<T>[] { null }
+    var z = new ArrayList<T>[] { {t} }
   }
  
   function test_5<T>()
