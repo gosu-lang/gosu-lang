@@ -9,7 +9,9 @@ import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.reflect.module.INativeModule;
 
+import java.io.File;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,15 +36,40 @@ public class GosucModule implements INativeModule, Serializable {
     //noinspection Convert2streamapi
     for (String sourceRoot : allSourceRoots) {
       if (!sourceRoot.endsWith(".jar")) {
-        _allSourceRoots.add(sourceRoot);
+        _allSourceRoots.add( convertToUri( sourceRoot ) );
       }
     }
-    _excludedRoots = new ArrayList<>(excludedRoots);
-    _classpath = classpath;
-    _backingSourcePath = backingSourcePath;
-    _outputPath = outputPath;
+    makeUris( excludedRoots, _excludedRoots = new ArrayList<>() );
+    makeUris( classpath, _classpath = new ArrayList<>() );
+    makeUris( backingSourcePath, _backingSourcePath = new ArrayList<>() );
+    _outputPath = convertToUri( outputPath );
     _dependencies = dependencies;
     _name = name;
+  }
+
+  private void makeUris( List<String> from, List<String> to )
+  {
+    for( String path: from )
+    {
+      to.add( convertToUri( path ) );
+    }
+  }
+
+  private String convertToUri( String filePath )
+  {
+    try
+    {
+      URI uri = URI.create( filePath );
+      if( !uri.isAbsolute() )
+      {
+        filePath = new File( filePath ).getAbsoluteFile().toURI().toString();
+      }
+    }
+    catch( Exception e )
+    {
+      filePath = new File( filePath ).getAbsoluteFile().toURI().toString();
+    }
+    return filePath;
   }
 
   public List<String> getAllSourceRoots() {

@@ -16,7 +16,7 @@ class AnnotationArrayValuesVisitor extends AnnotationVisitor {
   private final List<Object> _values;
 
   public AnnotationArrayValuesVisitor( List<Object> values ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _values = values;
   }
 

@@ -4,8 +4,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.BaseService;
-import gw.internal.gosu.parser.java.compiler.JavaParser;
-import gw.lang.javac.IJavaParser;
+import gw.lang.init.GosuRuntimeManifoldHost;
 import gw.lang.parser.IGosuParser;
 import gw.lang.parser.IGosuParserFactory;
 import gw.lang.reflect.IScriptabilityModifier;
@@ -15,6 +14,7 @@ import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.IGosuProgramParser;
 import gw.lang.parser.IGosuFragmentParser;
+import manifold.internal.javac.IJavaParser;
 
 /**
  * Defines a factory for constructing concrete IGosuParser implementations.
@@ -108,7 +108,7 @@ public class GosuParserFactoryImpl extends BaseService implements IGosuParserFac
   {
     if( apiInterface == IJavaParser.class )
     {
-      return (T)JavaParser.instance();
+      return (T)GosuRuntimeManifoldHost.get().getJavaParser();
     }
     return null;
   }

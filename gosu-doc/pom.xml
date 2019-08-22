@@ -41,7 +41,10 @@
   <build>
     <!-- reset source/test roots to defaults, before adding src/main/gosu and src/test/gosu using build-helper-maven-plugin -->
     <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>src/test/gosu</testSourceDirectory>
+    
+    <!-- Disable gosudoc until it is redesigned for Java 9 Doclet API -->
+    <!--<testSourceDirectory>src/test/gosu</testSourceDirectory>-->
+    
     <!-- the parent pom sets src/test/gosu as a resource root; if we don't undo this as below, all the tests will be copied to target/classes and packaged into the jar -->
     <resources>
       <resource>
@@ -68,18 +71,21 @@
               </sources>
             </configuration>
           </execution>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/test/gosu</source>
-              </sources>
-            </configuration>
-          </execution>
+
+          <!-- Disable gosudoc until it is redesigned for Java 9 Doclet API -->
+          <!--<execution>-->
+            <!--<id>add-test-source</id>-->
+            <!--<phase>generate-test-sources</phase>-->
+            <!--<goals>-->
+              <!--<goal>add-test-source</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<sources>-->
+                <!--<source>src/test/gosu</source>-->
+              <!--</sources>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+          
         </executions>
       </plugin>
       <plugin>

@@ -25,12 +25,17 @@
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-asm-all</artifactId>
-      <version>5.0.4</version>
+      <version>7.0</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-jcommander</artifactId>
       <version>1.72</version>
+    </dependency>
+    <dependency>
+      <groupId>systems.manifold</groupId>
+      <artifactId>manifold</artifactId>
+      <version>2019.1.12</version>
     </dependency>
   </dependencies>
   

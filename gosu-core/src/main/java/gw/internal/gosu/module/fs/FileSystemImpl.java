@@ -23,9 +23,12 @@ import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarFile;
 
 public class FileSystemImpl extends BaseService implements IFileSystem {
 
@@ -44,12 +47,29 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
   static final Object CACHED_FILE_SYSTEM_LOCK = new Object();
 
   public FileSystemImpl(CachingMode cachingMode) {
-    _cachedDirInfo = new HashMap<File, IDirectory>();
+    _cachedDirInfo = new HashMap<>();
     _cachingMode = cachingMode;
     _iDirectoryResourceExtractor = new IDirectoryResourceExtractor();
     _iFileResourceExtractor = new IFileResourceExtractor();
-    _protocolAdapters = new ConcurrentHashMap<String, IProtocolAdapter>();
+    _protocolAdapters = new ConcurrentHashMap<>();
     loadProtocolAdapters();
+  }
+
+  @Override
+  public IDirectory getIDirectory( Path dir )
+  {
+    if( dir.getFileSystem() == FileSystems.getDefault() )
+    {
+      // for the case where the path is a JAR file, which is a "directory"
+      return getIDirectory( dir.toFile() );
+    }
+
+    if( !Files.isDirectory( dir ) )
+    {
+      throw new IllegalArgumentException(
+        "'" + dir + "' is not a directory of the '" + dir.getFileSystem() + "' file system" );
+    }
+    return new PathDirectoryImpl( dir );
   }
 
   @Override
@@ -72,6 +92,23 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
       }
       return directory;
     }
+  }
+
+  @Override
+  public IFile getIFile( Path path )
+  {
+    if( path.getFileSystem() == FileSystems.getDefault() )
+    {
+      // for the case where the path is a normal file
+      return getIFile( path.toFile() );
+    }
+
+    if( Files.isDirectory( path ) )
+    {
+      throw new IllegalArgumentException(
+        "'" + path + "' is not a file of the '" + path.getFileSystem() + "' file system" );
+    }
+    return new PathFileImpl( path );
   }
 
   @Override
@@ -272,6 +309,19 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
           return res;
         }
       }
+      else
+      {
+        try
+        {
+          // Handle custom file systems e.g., jrt:/
+
+          Path path = Paths.get( _url.toURI() );
+          return getIResourceFromPath( path );
+        }
+        catch( Exception ignore )
+        {
+        }
+      }
       throw new RuntimeException( "Unrecognized protocol: " + _url.getProtocol() );
     }
 
@@ -280,6 +330,8 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
     abstract J getIResourceFromJarDirectoryAndEntryName(IDirectory jarFS, String entryName);
 
     abstract J getIResourceFromJavaFile(URL location);
+
+    abstract J getIResourceFromPath(Path path);
 
     protected File getFileFromURL(URL url) {
       try {
@@ -314,12 +366,18 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
     IFile getIResourceFromURL(URL location) {
       return new URLFileImpl(location);
     }
+
+    @Override
+    IFile getIResourceFromPath( Path path )
+    {
+      return new PathFileImpl( path );
+    }
   }
 
   private class IDirectoryResourceExtractor extends ResourceExtractor<IDirectory> {
 
-    protected IDirectory getIResourceFromJarDirectoryAndEntryName(IDirectory jarFS, String entryName) {
-      return jarFS.dir(entryName);
+    protected IDirectory getIResourceFromJarDirectoryAndEntryName(IDirectory dir, String entryName) {
+      return dir.dir(entryName);
     }
 
     protected IDirectory getIResourceFromJavaFile(URL location) {
@@ -331,6 +389,11 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
       return null;
     }
 
+    @Override
+    IDirectory getIResourceFromPath( Path path )
+    {
+      return new PathDirectoryImpl( path );
+    }
   }
 
   private static final Set<String> FILE_SUFFIXES;

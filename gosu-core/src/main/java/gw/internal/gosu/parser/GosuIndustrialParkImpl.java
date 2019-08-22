@@ -15,6 +15,7 @@ import gw.internal.gosu.module.GlobalModule;
 import gw.internal.gosu.module.Module;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.NullExpression;
+import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.internal.gosu.template.GosuTemplateType;
 import gw.internal.gosu.template.SimpleTemplateHost;
@@ -403,5 +404,11 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   @Override
   public String toString( Object val ) {
     return GosuRuntimeMethods.toString( val );
+  }
+
+  @Override
+  public String generateJavaStub( IGosuClass gsClass )
+  {
+    return JavaStubGenerator.instance().genStub( gsClass );
   }
 }

@@ -5,7 +5,6 @@ import gw.lang.javac.JavaIssueContainer;
 import gw.lang.IIssueContainer;
 import editor.plugin.typeloader.INewFileParams;
 import editor.plugin.typeloader.ITypeFactory;
-import gw.lang.javac.IJavaParser;
 import gw.lang.javac.StringJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.reflect.IType;
@@ -16,6 +15,7 @@ import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.internal.javac.IJavaParser;
 
 /**
  */

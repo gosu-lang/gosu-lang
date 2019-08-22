@@ -55,6 +55,7 @@ import gw.lang.parser.exceptions.ObsoleteConstructorWarning;
 import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
+import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IMemberAccessExpression;
 import gw.lang.parser.expressions.IModifierListClause;
 import gw.lang.parser.expressions.IParameterDeclaration;
@@ -1388,7 +1389,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
               }
               else if( (mi != null) && (!featureIsOwnedByEnhancement( enhancement, mi ) || (enhancedType != JavaTypes.OBJECT() && GosuClass.isObjectMethod( mi ))) )
               {
-                addDeclaredNameParseError( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
+                addDeclaredNameParseWarning( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
               }
               else if( enhancedType instanceof IGosuClass )
               {
@@ -1443,7 +1444,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getProperty( prop.getFunctionName() );
             if( pi != null && !featureIsOwnedByEnhancement( enhancement, pi ) )
             {
-              addDeclaredNameParseError( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
+              addDeclaredNameParseWarning( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
             }
             else
             {
@@ -1506,6 +1507,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     ParseException parseException = new ParseException( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + ((stmt instanceof VarStatement) ? ((VarStatement)stmt).getIdentifierName().length() : stmt.getFunctionName().length()),
                                                         getSymbolTable(), key, args );
     stmt.addParseException( parseException );
+  }
+
+  void addDeclaredNameParseWarning( IParsedElementWithAtLeastOneDeclaration stmt, ResourceKey key, Object... args )
+  {
+    int nameOffset = stmt.getNameOffset( null );
+    ParseWarning warning = new ParseWarning( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + ((stmt instanceof VarStatement) ? ((VarStatement)stmt).getIdentifierName().length() : stmt.getFunctionName().length()),
+                                             getSymbolTable(), key, args );
+    stmt.addParseWarning( warning );
   }
 
   private boolean overridesMethodWithDefaultParams(FunctionStatement func, ITypeInfo typeInfo) {

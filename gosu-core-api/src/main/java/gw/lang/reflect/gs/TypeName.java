@@ -4,17 +4,20 @@
 
 package gw.lang.reflect.gs;
 
+import gw.lang.init.GosuRuntimeManifoldHost;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.module.IModule;
+import manifold.api.host.IModule;
 
-public class TypeName implements Comparable {
+//## todo: delete this class and use manifold's TypeName
+public class TypeName extends manifold.api.type.TypeName {
   public final String name;
   public final Kind kind;
   public final Visibility visibility;
   public final ITypeLoader loader;
 
   public TypeName(String name, ITypeLoader loader, Kind kind, Visibility visibility) {
+    super(name, GosuRuntimeManifoldHost.get().getSingleModule(), kind, visibility );
     this.name = name;
     this.loader = loader;
     this.kind = kind;
@@ -55,18 +58,10 @@ public class TypeName implements Comparable {
   }
 
   public IModule getModule() {
+    return GosuRuntimeManifoldHost.get().getSingleModule();
+  }
+  public gw.lang.reflect.module.IModule getGosuModule() {
     return loader.getModule();
-  }
-
-  public static enum Kind {
-    TYPE,
-    NAMESPACE
-  }
-
-  public static enum Visibility {
-    PUBLIC,
-    PROTECTED,
-    PRIVATE,
   }
 
   @Override

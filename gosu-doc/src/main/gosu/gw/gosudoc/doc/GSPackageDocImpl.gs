@@ -1,7 +1,7 @@
 package gw.gosudoc.doc
 
 uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.AnnotationTypeDoc
+uses com.sun.javadoc.AnnotaaltionTypeDoc
 uses com.sun.javadoc.ClassDoc
 uses com.sun.javadoc.PackageDoc
 uses gw.lang.reflect.IType

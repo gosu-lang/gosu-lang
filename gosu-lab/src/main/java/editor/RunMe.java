@@ -18,6 +18,8 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import manifold.util.NecessaryEvilUtil;
+
 /*
   To enable "Mark Errors For Gosu Language Test"
   -Dspec=true
@@ -33,6 +35,7 @@ public class RunMe
   {
     EventQueue.invokeLater(
       () -> {
+        NecessaryEvilUtil.bypassJava9Security();
         LabFrame.loadSettings();
         SplashScreen.instance().setFeedbackText( "Initializing..." );
         LabFrame.create();
@@ -72,7 +75,7 @@ public class RunMe
         classpath.add( path );
       }
     }
-    List<String> collect = Gosu.deriveClasspathFrom( LabFrame.class ).stream().map( File::getAbsolutePath ).collect( Collectors.toList() );
+    List<String> collect = Gosu.deriveClasspathFrom( LabFrame.class ).stream().map( dir -> dir.toURI().toString() ).collect( Collectors.toList() );
     classpath.addAll( collect );
     return classpath;
   }

@@ -35,15 +35,14 @@ public class ClasspathToGosuPathEntryUtil {
    * @param classpath the list of Files to turn into GosuPathEntries
    * @return an ordered list of GosuPathEntries created based on the algorithm described above
    */
-  public static List<GosuPathEntry> convertClasspathToGosuPathEntries(List<File> classpath) {
+  public static List<GosuPathEntry> convertClasspathToGosuPathEntries(List<IDirectory> classpath) {
     // this is a hack to prevent loading of gosu directly from jar files in Diamond,
     // which prevents people from just embedding it in src and thus possibly having ND problems
     // it can be removed once "modules" are figured out in Emerald
     boolean loadingGosuFromJarsForbidden = Boolean.getBoolean(GW_FORBID_GOSU_JARS);
     ClassPathToGosuPathConverterBlock pathConverterBlock = new ClassPathToGosuPathConverterBlock();
-    for (File f : classpath) {
-      IDirectory dir = CommonServices.getFileSystem().getIDirectory(f);
-      if (!f.getName().endsWith(".jar") || !loadingGosuFromJarsForbidden) {
+    for ( IDirectory dir : classpath) {
+      if (!dir.getName().endsWith(".jar") || !loadingGosuFromJarsForbidden) {
         executeOnSourceDirectory(dir, pathConverterBlock);
       } else {
         // Ignore anything that's not a directory or jar file

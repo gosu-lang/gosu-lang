@@ -27,6 +27,7 @@ public interface IParserPart
   {
     int iBraceDepth = 1;
     boolean bNewMatched = false;
+    boolean bArg = false;
     do
     {
       IToken token = tokenizer.getCurrentToken();
@@ -50,11 +51,13 @@ public interface IParserPart
                       match( null, Keyword.KW_new.toString(), ISourceCodeTokenizer.TT_KEYWORD, true, tokenizer ) ||
                       match( null, "->", ISourceCodeTokenizer.TT_OPERATOR, true, tokenizer ) ||
                       match( null, "#", ISourceCodeTokenizer.TT_OPERATOR, true, tokenizer );
-        if( !bNewMatched && matchDeclarationKeyword( null, true, tokenizer ) )
+        if( !bNewMatched && !bArg && matchDeclarationKeyword( null, true, tokenizer ) )
         {
           return null;
         }
       }
+
+      bArg = ":".equals( value );
 
       int mark = tokenizer.mark();
       if( cEnd == type ||

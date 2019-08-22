@@ -10,6 +10,7 @@ import editor.util.Experiment;
 import gw.util.PathUtil;
 import editor.util.TaskQueue;
 import gw.util.GosuExceptionUtil;
+import manifold.util.JreUtil;
 
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -180,13 +181,14 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
     {
       String path = tok.nextToken();
       if( path.contains( "gw-asm-all" ) ||
-          path.contains( "gosu-core" ) )
+          path.contains( "gosu-core" ) ||
+          path.contains( "manifold" ) )
       {
         classpath.append( path ).append( File.pathSeparator );
       }
     }
 
-    if( bToolsJar )
+    if( JreUtil.isJava8() && bToolsJar )
     {
       classpath.append( PathUtil.findToolsJar() ).append( File.pathSeparator );
     }

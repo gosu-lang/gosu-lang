@@ -168,4 +168,6 @@ public interface IGosuShop extends IService
   void print( Object ret );
 
   String toString( Object val );
+
+  String generateJavaStub( IGosuClass gsClass );
 }

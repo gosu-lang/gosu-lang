@@ -80,9 +80,10 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
     descriptor.append(expression.getReturnType().getDescriptor());
 
     context.getMv().visitMethodInsn( opCode,
-                                     type.isArray() ? JavaClassIRType.get( Object.class ).getSlashName() : type.getSlashName(),
-                                     expression.getName(),
-                                     descriptor.toString() );
+      type.isArray() ? JavaClassIRType.get( Object.class ).getSlashName() : type.getSlashName(),
+      expression.getName(),
+      descriptor.toString(),
+      type.isInterface() );
   }
 
   private static IRType maybeProxyStructuralCallRoot( IRMethodCallExpression expression, IRBytecodeContext context ) {

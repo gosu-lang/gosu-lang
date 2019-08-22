@@ -20,7 +20,6 @@ import gw.lang.reflect.IHasJavaClass;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -39,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import manifold.internal.runtime.Bootstrap;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
@@ -339,7 +339,7 @@ public class GosuClassLoader implements IGosuClassLoader
   {
     try
     {
-      GosuClassPathThing.init();
+      Bootstrap.init();
 
       String strJavaClass = gsClass.getJavaName();
       Class cls = _loader.loadClass( strJavaClass );

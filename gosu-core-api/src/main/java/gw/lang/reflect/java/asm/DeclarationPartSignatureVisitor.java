@@ -18,15 +18,15 @@ public class DeclarationPartSignatureVisitor extends SignatureVisitor {
   private AsmMethod _method;
 
   DeclarationPartSignatureVisitor() {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
   }
 
   DeclarationPartSignatureVisitor( AsmMethod method ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _method = method;
   }
   DeclarationPartSignatureVisitor( AsmMethod method, AsmType type ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _method = method;
     _currentType = type;
   }

@@ -74,7 +74,8 @@ public class GosuStyleContext extends StyleContext implements ViewFactory
   private static final Component THISISSTUPID = new Component()
   {
   };
-  private static String g_defFontFamily =  EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" );
+  //private static String g_defFontFamily =  EditorUtilities.getFontFamilyOrDefault( "Consolas", "Monospaced" );
+  private static String g_defFontFamily =  EditorUtilities.getFontFamilyOrDefault( "Monospaced", "Monospaced" );
   private static int g_defFontSize = 12;
 
   public static final String STYLE_EOL = "EOL";

@@ -10,10 +10,14 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @UnstableAPI
 public class GosuInitialization
@@ -76,6 +80,15 @@ public class GosuInitialization
     }
     getGosuInitialization().initializeCompiler( _execEnv, module );
     _initialized = true;
+
+    GosuRuntimeManifoldHost.clear();
+    GosuRuntimeManifoldHost.get().init( module.getAllSourceRoots().stream().map( makeFile() ).collect( Collectors.toList() ),
+      module.getClasspath().stream().filter( p -> !p.startsWith( "jrt:" ) ).map( makeFile() ).collect( Collectors.toList() ) );
+  }
+
+  private Function<String, File> makeFile()
+  {
+    return name -> name.startsWith( "file:" ) ? new File( URI.create( name ) ) : new File( name );
   }
 
   public void uninitializeCompiler() {

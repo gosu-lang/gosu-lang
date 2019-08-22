@@ -1,7 +1,7 @@
 package gw.gosudoc.misc
 
 uses com.sun.javadoc.Doc
-uses com.sun.tools.doclets.internal.toolkit.util.TextTag
+uses gw.gosudoc.tags.TextTag
 
 class GSReturnValueTag extends TextTag{
 

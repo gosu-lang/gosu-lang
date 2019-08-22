@@ -469,4 +469,9 @@ public class GosuShop
   public static IGosuClass getGosuClassFrom( IType fromType ) {
     return CommonServices.getGosuIndustrialPark().getGosuClassFrom( fromType );
   }
+
+  public static String generateJavaStub( IGosuClass gsClass )
+  {
+    return CommonServices.getGosuIndustrialPark().generateJavaStub( gsClass );
+  }
 }

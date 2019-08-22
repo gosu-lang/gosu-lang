@@ -162,7 +162,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "  } \n" +
             "} \n"
     );
-    assertErrorLine( errorHandler, 3, 5 );
+    assertErrorLine( errorHandler, 3 );
   }
 
   public void testMisspelledClassKeyword_Inner() {

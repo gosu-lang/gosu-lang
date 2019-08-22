@@ -23,7 +23,7 @@ public class Keyword implements CharSequence
   public static final Keyword KW_Infinity = addReservedWord( "Infinity", true );
   public static final Keyword KW_and = addReservedWord( "and" );
   public static final Keyword KW_or = addReservedWord( "or" );
-  public static final Keyword KW_not = addReservedWord( "not" );
+  public static final Keyword KW_not = addReservedWord( "not", true );
   public static final Keyword KW_null = addReservedWord( "null", true );
   public static final Keyword KW_length = addReservedWord( "length", true );
   public static final Keyword KW_in = addReservedWord( "in" );

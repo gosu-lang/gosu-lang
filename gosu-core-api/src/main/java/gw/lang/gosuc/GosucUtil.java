@@ -6,23 +6,24 @@ package gw.lang.gosuc;
 
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import manifold.util.JreUtil;
+import manifold.util.ManExceptionUtil;
 
 /**
  */
@@ -39,12 +40,12 @@ public class GosucUtil {
     return sb.toString();
   }
 
-  public static IDirectory getDirectoryForPath( String path ) {
-    return CommonServices.getFileSystem().getIDirectory( new File( path ) );
+  public static IDirectory getDirectoryForPath( String uriPath ) {
+    return CommonServices.getFileSystem().getIDirectory( Paths.get( URI.create( uriPath ) ) );
   }
 
   public static List<String> makeStringPaths( List<IDirectory> sourcePaths ) {
-    List<String> paths = new ArrayList<String>();
+    List<String> paths = new ArrayList<>();
     for( IDirectory dir: sourcePaths ) {
       paths.add( dir.getPath().getPathString() );
     }
@@ -61,10 +62,10 @@ public class GosucUtil {
     }
   }
 
-  public static List<IDirectory> toDirectories(List<String> paths) {
-    List<IDirectory> dirs = new ArrayList<IDirectory>();
-    for (String path : paths) {
-      dirs.add(CommonServices.getFileSystem().getIDirectory(new File(path)));
+  public static List<IDirectory> toDirectories(List<String> uriPaths) {
+    List<IDirectory> dirs = new ArrayList<>();
+    for (String uri : uriPaths) {
+      dirs.add( CommonServices.getFileSystem().getIDirectory( Paths.get( URI.create( uri ) ) ) );
     }
     return dirs;
   }
@@ -75,14 +76,14 @@ public class GosucUtil {
    */
   public static List<String> getJreJars() {
     String javaHome = System.getProperty("java.home");
-    Path libsDir = FileSystems.getDefault().getPath(javaHome, "/lib");
+    Path libsDir = FileSystems.getDefault().getPath( javaHome, "/lib");
     List<String> retval = GosucUtil.getIbmClasspath();
     try {
-      retval.addAll(Files.walk(libsDir)
-              .filter( path -> path.toFile().isFile())
-              .filter( path -> path.toString().endsWith(".jar"))
-              .map( Path::toString )
-              .collect(Collectors.toList()));
+      retval.addAll( Files.walk( libsDir)
+                       .filter( path -> path.toFile().isFile())
+                       .filter( path -> path.toString().endsWith(".jar"))
+                       .map( Path::toString )
+                       .collect( Collectors.toList()));
     } catch (SecurityException | IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
@@ -110,34 +111,69 @@ public class GosucUtil {
     return retval;
   }
 
-  public static List<String> getGosuBootstrapJars() throws ClassNotFoundException {
+  public static List<String> getGosuBootstrapJars() {
+    if( JreUtil.isJava8() )
+    {
+      return getGosuBootstrapJars_Java8();
+    }
+    return getGosuBootstrapJars_Java9();
+  }
+  public static List<String> getGosuBootstrapJars_Java8() {
     return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
+        getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
+//        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
+        getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
+        //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
         getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
-        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander"), //get jcommander
-        getClassLocation("com.sun.source.tree.Tree") //get tools.jar
+        getClassLocation("com.sun.source.tree.Tree"), //get tools.jar
+        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
+    );
+  }
+  public static List<String> getGosuBootstrapJars_Java9() {
+    return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
+        getClassLocation("gw.lang.Gosu"), //get gosu-core-api
+        getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
+//        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
+        getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
+        //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
+        getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
+        getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
     );
   }
 
-  private static String getClassLocation(String className) throws ClassNotFoundException {
-    Class clazz = Class.forName(className);
+  public static String getClassLocation( String className )
+  {
+    Class clazz;
+    try
+    {
+      clazz = Class.forName( className );
+    }
+    catch( ClassNotFoundException cnfe )
+    {
+      throw new RuntimeException( "Unable to locate Gosu libraries in classpath.\n", cnfe );
+    }
 
     ProtectionDomain pDomain = clazz.getProtectionDomain();
     CodeSource cSource = pDomain.getCodeSource();
 
-    if (cSource != null) {
+    if( cSource != null )
+    {
       URL loc = cSource.getLocation();
-      File file;
-      try {
-        file = new File(URLDecoder.decode(loc.getPath(), StandardCharsets.UTF_8.name()));
-      } catch (UnsupportedEncodingException e) {
-        System.err.println("Unsupported Encoding for URL: " + loc);
-        System.err.println(e);
-        file = new File(loc.getPath());
+      URI file;
+      try
+      {
+        file = loc.toURI();
       }
-      return file.getPath();
-    } else {
-      throw new ClassNotFoundException("Cannot find the location of the requested className <" + className + "> in classpath.");
+      catch( Exception e )
+      {
+        throw ManExceptionUtil.unchecked( e );
+      }
+      return file.toString();
+    }
+    else
+    {
+      throw new RuntimeException( "Cannot find the location of the requested className <" + className + "> in classpath." );
     }
   }
 

@@ -5,6 +5,7 @@
 package gw.lang;
 
 import gw.config.CommonServices;
+import gw.fs.IDirectory;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.ClasspathToGosuPathEntryUtil;
 import gw.lang.init.GosuInitialization;
@@ -18,7 +19,6 @@ import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.Modifier;
-import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -28,8 +28,8 @@ import gw.util.OSPlatform;
 import gw.util.PathUtil;
 import gw.util.StreamUtil;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import sun.misc.URLClassPath;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -49,8 +49,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import gw.util.concurrent.LocklessLazyVar;
+import manifold.util.JreUtil;
+import manifold.util.NecessaryEvilUtil;
+import manifold.util.ReflectUtil;
+import sun.misc.URLClassPath;
+
 public class Gosu
 {
+  private static final LocklessLazyVar<Class<?>> BUILTIN_CLASSLOADER =
+    LocklessLazyVar.make( () -> ReflectUtil.type( "jdk.internal.loader.BuiltinClassLoader" ) );
+  private static final LocklessLazyVar<Class<?>> URL_CLASS_PATH =
+    LocklessLazyVar.make( () ->
+                            JreUtil.isJava8()
+                            ? ReflectUtil.type( "sun.misc.URLClassPath" )
+                            : ReflectUtil.type( "jdk.internal.loader.URLClassPath" ) );
   /**
    * used as a virtual package e.g., for scratchpad
    */
@@ -61,7 +74,7 @@ public class Gosu
   public static final String FAILED = "  FAILED: ";
   public static final String SUCCESS = "  SUCCESS ";
 
-  private static List<File> _classpath;
+  private static List<IDirectory> _classpath;
   private static File _script;
   private static List<String> _rawArgs;
 
@@ -110,7 +123,7 @@ public class Gosu
       {
         case "-fqn":
         {
-          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          List<IDirectory> classpath = makeClasspath( cpValue, "", cmdLineCP );
           init( classpath );
           runWithType( args[i + 1], collectArgs( i + 2, args ) );
           break;
@@ -118,7 +131,7 @@ public class Gosu
 
         case "-e":
         {
-          List<File> classpath = makeClasspath( cpValue, "", cmdLineCP );
+          List<IDirectory> classpath = makeClasspath( cpValue, "", cmdLineCP );
           init( classpath );
           runWithInlineScript( args[i + 1], collectArgs( i + 2, args ) );
           break;
@@ -135,7 +148,7 @@ public class Gosu
           {
             cpValue = extractClassPathFromSrc( script.getAbsolutePath() );
           }
-          List<File> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
+          List<IDirectory> classpath = makeClasspath( cpValue, script.getAbsoluteFile().getParent(), cmdLineCP );
           init( classpath );
           runWithFile( script, collectArgs( i + 1, args ) );
           break;
@@ -215,9 +228,9 @@ public class Gosu
     return ret;
   }
 
-  private static List<File> makeClasspath( String cpValue, String scriptRoot, boolean cmdLineCP )
+  private static List<IDirectory> makeClasspath( String cpValue, String scriptRoot, boolean cmdLineCP )
   {
-    ArrayList<File> cp = new ArrayList<File>();
+    ArrayList<IDirectory> cp = new ArrayList<>();
     if( cpValue != null )
     {
       StringTokenizer st = new StringTokenizer( cpValue, ",", false );
@@ -232,13 +245,13 @@ public class Gosu
             String pathname = cmdLineCP
                               ? s
                               : scriptRoot + File.separatorChar + s;
-            cp.add( new File( pathname ) );
+            cp.add( CommonServices.getFileSystem().getIDirectory( new File( pathname ) ) );
           }
         }
         else
         {
           String pathname = cmdLineCP ? s : scriptRoot + File.separatorChar + s;
-          cp.add( new File( pathname ) );
+          cp.add( CommonServices.getFileSystem().getIDirectory( new File( pathname ) ) );
         }
       }
     }
@@ -264,7 +277,7 @@ public class Gosu
   }
 
 
-  public static void setClasspath( List<File> classpath )
+  public static void setClasspath( List<IDirectory> classpath )
   {
     classpath = new ArrayList<>( classpath );
     removeDups( classpath );
@@ -282,7 +295,7 @@ public class Gosu
     if( loader instanceof URLClassLoader )
     {
       Method addURL = getAddUrlMethod();
-      for( File entry : classpath )
+      for( IDirectory entry : classpath )
       {
         try
         {
@@ -314,12 +327,12 @@ public class Gosu
     return addURL;
   }
 
-  public static List<File> getClasspath()
+  public static List<IDirectory> getClasspath()
   {
     return _classpath;
   }
 
-  private static void reinitGosu( List<File> classpath )
+  private static void reinitGosu( List<IDirectory> classpath )
   {
     try
     {
@@ -331,11 +344,11 @@ public class Gosu
     }
   }
 
-  private static void removeDups( List<File> classpath )
+  private static void removeDups( List<IDirectory> classpath )
   {
     for( int i = classpath.size() - 1; i >= 0; i-- )
     {
-      File f = classpath.get( i );
+      IDirectory f = classpath.get( i );
       classpath.remove( i );
       if( !classpath.contains( f ) )
       {
@@ -352,9 +365,10 @@ public class Gosu
     init( null );
   }
 
-  public static void init( List<File> classpath )
+  public static void init( List<IDirectory> classpath )
   {
-    List<File> combined = new ArrayList<>();
+    NecessaryEvilUtil.bypassJava9Security();
+    List<IDirectory> combined = new ArrayList<>();
     if( classpath != null )
     {
       combined.addAll( classpath );
@@ -383,9 +397,18 @@ public class Gosu
     System.exit( 1 );
   }
 
-  public static List<File> deriveClasspathFrom( Class clazz )
+  public static List<IDirectory> deriveClasspathFrom( Class clazz )
   {
-    List<File> ll = new LinkedList<>();
+    if( JreUtil.isJava8() )
+    {
+      return deriveClasspathFrom_Java8( clazz );
+    }
+    return deriveClasspathFrom_Java9( clazz );
+  }
+
+  public static List<IDirectory> deriveClasspathFrom_Java8( Class clazz )
+  {
+    List<IDirectory> ll = new LinkedList<>();
     ClassLoader loader = clazz.getClassLoader();
     while( loader != null )
     {
@@ -395,7 +418,7 @@ public class Gosu
         {
           try
           {
-            File file = new File( url.toURI() );
+            IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
             if( file.exists() )
             {
               ll.add( file );
@@ -412,8 +435,36 @@ public class Gosu
     addBootstrapClasses( ll );
     return ll;
   }
+  public static List<IDirectory> deriveClasspathFrom_Java9( Class clazz )
+  {
+    List<IDirectory> ll = new ArrayList<>();
+    ClassLoader loader = clazz.getClassLoader();
+    if( loader != null && BUILTIN_CLASSLOADER.get().isAssignableFrom( loader.getClass() ) )
+    {
+      URLClassPath ucp = (URLClassPath)manifold.util.ReflectUtil.field( loader, "ucp" ).get();
+      if( ucp != null )
+      {
+        for( URL url: ucp.getURLs() )
+        {
+          try
+          {
+            IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
+            if( file.exists() )
+            {
+              ll.add( file );
+            }
+          }
+          catch( Exception e )
+          {
+            //ignore
+          }
+        }
+      }
+    }
+    return ll;
+  }
 
-  private static void addBootstrapClasses( List<File> ll )
+  private static void addBootstrapClasses( List<IDirectory> ll )
   {
     try
     {
@@ -434,7 +485,7 @@ public class Gosu
       {
         try
         {
-          File file = new File( url.toURI() );
+          IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
           if( file.exists() && !ll.contains( file ) )
           {
             ll.add( file );
@@ -452,10 +503,10 @@ public class Gosu
     }
   }
 
-  private static void getBootstrapForIbm( List<File> ll )
+  private static void getBootstrapForIbm( List<IDirectory> ll )
   {
     List<String> ibmClasspath = GosucUtil.getJreJars();
-    ibmClasspath.stream().forEach( e -> ll.add( new File( e ) ) );
+    ibmClasspath.forEach( e -> ll.add( CommonServices.getFileSystem().getIDirectory( Paths.get( e ) ) ) );
   }
 
   public static GosuVersion getVersion()
@@ -502,7 +553,7 @@ public class Gosu
       IMethodInfo mainMethod = hasStaticMain( type );
       if( mainMethod != null )
       {
-        ReflectUtil.invokeStaticMethod( type.getName(), "main", new Object[]{new String[]{}} );
+        gw.lang.reflect.ReflectUtil.invokeStaticMethod( type.getName(), "main", new Object[]{new String[]{}} );
       }
       else if( type instanceof IGosuClass )
       {

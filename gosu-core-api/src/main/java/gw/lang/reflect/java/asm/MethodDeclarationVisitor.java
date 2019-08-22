@@ -15,7 +15,7 @@ public class MethodDeclarationVisitor extends MethodVisitor {
   private AsmMethod _asmMethod;
 
   public MethodDeclarationVisitor( AsmMethod method ) {
-    super( Opcodes.ASM5 );
+    super( Opcodes.ASM7 );
     _asmMethod = method;
   }
 

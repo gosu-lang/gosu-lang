@@ -30,7 +30,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
-import gw.lang.reflect.gs.GosuClassPathThing;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.Dependency;
@@ -42,8 +41,11 @@ import gw.util.ILogger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +58,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
+import manifold.internal.runtime.Bootstrap;
+import manifold.util.JreUtil;
+import manifold.util.NecessaryEvilUtil;
 
 public class ExecutionEnvironment implements IExecutionEnvironment
 {
@@ -168,6 +174,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries, List<IDirectory> backingSourceEntries, String... discretePackages ) {
     _state = TypeSystemState.STARTING;
     try {
+      NecessaryEvilUtil.bypassJava9Security();
       DefaultSingleModule singleModule = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
       List<IDirectory> allSources = new ArrayList<IDirectory>();
       for( GosuPathEntry pathEntry : pathEntries )
@@ -305,7 +312,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
 
-        GosuClassPathThing.cleanup();
+        Bootstrap.cleanup();
       }
 
       _jreModule = null;
@@ -704,10 +711,13 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     vals.add( removeQuotes( System.getProperty( "java.class.path", "" ) ) );
     vals.add(CommonServices.getEntityAccess().getWebServerPaths());
     vals.addAll(getJarsContainingSpecialClasses());
-    vals.add(System.getProperty("sun.boot.class.path", ""));
-    vals.add(System.getProperty("java.ext.dirs", ""));
-
-    return expand(vals);
+    if( JreUtil.isJava8() )
+    {
+      vals.add(System.getProperty("sun.boot.class.path", ""));
+      vals.add(System.getProperty("java.ext.dirs", ""));
+    }
+    List<IDirectory> dirs = expand( vals );
+    return dirs;
   }
 
   /**
@@ -735,7 +745,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       {
         if( pathElement.length() > 0 )
         {
-          File filePath = new File( pathElement );
+          Path filePath = Paths.get( pathElement );
 //          if( !filePath.exists() )
 //          {
 //            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me

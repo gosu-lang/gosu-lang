@@ -5,6 +5,8 @@ import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+import manifold.util.JreUtil;
+import manifold.util.NecessaryEvilUtil;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.Path;
@@ -273,6 +275,8 @@ public class Gosuc extends GosuMatchingTask {
     log.debug("scriptExtensions=" + getScriptExtensions());
     log.debug("_compileClasspath=" + _compileClasspath);
 
+    NecessaryEvilUtil.bypassJava9Security();
+    
     if(isCheckedArithmetic()) {
       System.setProperty("checkedArithmetic", "true");
     }
@@ -280,9 +284,14 @@ public class Gosuc extends GosuMatchingTask {
     ICompilerDriver driver = new SoutCompilerDriver();
     IGosuCompiler gosuc = new gw.lang.gosuc.simple.GosuCompiler();
 
-    List<String> classpath = new ArrayList<>();
-    classpath.addAll(Arrays.asList(_compileClasspath.list()));
-    classpath.addAll( GosucUtil.getJreJars());
+    List<String> classpath = new ArrayList<>( Arrays.asList( _compileClasspath.list() ) );
+    classpath.add( GosucUtil.getClassLocation( "manifold.api.host.IManifoldHost" ) ); // manifold core
+//    classpath.add( GosucUtil.getClassLocation( "manifold.ext.ExtensionMethod" ) ); // manifold-ext
+    classpath.add( GosucUtil.getClassLocation( "manifold.util.ReflectUtil" ) ); // manifold-util
+    if( JreUtil.isJava8() )
+    {
+      classpath.addAll( GosucUtil.getJreJars());
+    }
 
     String startupMsg = "Initializing Gosu compiler";
     if(!getProjectName().isEmpty()) {

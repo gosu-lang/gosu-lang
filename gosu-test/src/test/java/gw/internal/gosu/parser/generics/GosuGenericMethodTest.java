@@ -7,6 +7,7 @@ package gw.internal.gosu.parser.generics;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ReflectUtil;
 import gw.test.TestClass;
+import manifold.util.JreUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +49,14 @@ public class GosuGenericMethodTest extends TestClass
     {
       Object instance = ReflectUtil.construct(  "gw.internal.gosu.parser.generics.gwtest.InternalGenericMethodCall" );
       IType type = (IType)ReflectUtil.invokeMethod( instance, "lubInferenceAcrossArgsTest" );
-      assertEquals( "java.io.Serializable & java.lang.CharSequence", type.getName() );
+      if( JreUtil.isJava8() )
+      {
+        assertEquals( "java.io.Serializable & java.lang.CharSequence", type.getName() );
+      }
+      else
+      {
+        assertEquals( "java.io.Serializable & java.lang.CharSequence & java.lang.Comparable<java.lang.Object>", type.getName() );
+      }
     }
     catch( Exception e )
     {

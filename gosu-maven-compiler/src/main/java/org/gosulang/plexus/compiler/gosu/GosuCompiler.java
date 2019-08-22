@@ -4,10 +4,10 @@ import gw.internal.ext.com.beust.jcommander.JCommander;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.gosuc.cli.CommandLineCompiler;
 import gw.lang.gosuc.cli.CommandLineOptions;
-import gw.lang.gosuc.simple.ICompilerDriver;
-import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import org.codehaus.plexus.compiler.AbstractCompiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
@@ -29,8 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static org.codehaus.plexus.compiler.CompilerMessage.Kind.ERROR;
+import static org.codehaus.plexus.compiler.CompilerMessage.Kind.WARNING;
 
 public class GosuCompiler extends AbstractCompiler {
 
@@ -117,12 +118,10 @@ public class GosuCompiler extends AbstractCompiler {
       cli.addArguments(new String[] {"-Xdock:name=Gosuc"});
     }
 
-    try {
-      getLogger().info("Initializing gosuc compiler");
-      cli.addArguments(new String[] {"-classpath", String.join(File.pathSeparator, GosucUtil.getGosuBootstrapJars())});
-    } catch(ClassNotFoundException cnfe) {
-      throw new CompilerException("Unable to locate Gosu libraries in classpath.  Please add Gosu as a project dependency.", cnfe);
-    }
+    getLogger().info("Initializing gosuc compiler");
+    cli.addArguments( new String[] {"-classpath",
+      String.join( File.pathSeparator, GosucUtil.getGosuBootstrapJars().stream()
+        .map( uri -> new File( URI.create( uri ) ).getAbsolutePath() ).collect( Collectors.toList() ) ) } );
 
     cli.addArguments(new String[] {"gw.lang.gosuc.cli.CommandLineCompiler"});
 
@@ -148,6 +147,12 @@ public class GosuCompiler extends AbstractCompiler {
     }
 
     List<CompilerMessage> messages = parseMessages(exitCode, sysout.getOutput());
+
+    String err = syserr.getOutput();
+    if( err != null && !err.isEmpty() )
+    {
+      getLogger().info("Errors:\n" + err);
+    }
 
     int warningCt = 0;
     int errorCt = 0;
@@ -199,10 +204,10 @@ public class GosuCompiler extends AbstractCompiler {
       getLogger().info( String.format( "gosuc completed with %d errors. Warnings were disabled.", driver.getErrors().size() ) );
     }
 
-    List<CompilerMessage> messages = driver.getWarnings().stream().map( warningMsg -> new CompilerMessage( warningMsg, CompilerMessage.Kind.WARNING ) ).collect( Collectors.toList() );
+    List<CompilerMessage> messages = driver.getWarnings().stream().map( warningMsg -> new CompilerMessage( warningMsg, WARNING ) ).collect( Collectors.toList() );
     if( driver.hasErrors() )
     {
-      messages.addAll( driver.getErrors().stream().map( errorMsg -> new CompilerMessage( errorMsg, CompilerMessage.Kind.ERROR ) ).collect( Collectors.toList() ) );
+      messages.addAll( driver.getErrors().stream().map( errorMsg -> new CompilerMessage( errorMsg, ERROR ) ).collect( Collectors.toList() ) );
     }
     return new CompilerResult( !thresholdExceeded, messages );
   }
@@ -252,16 +257,22 @@ public class GosuCompiler extends AbstractCompiler {
   private List<CompilerMessage> parseMessages(int exitCode, String sysout) {
     List<CompilerMessage> messages = new ArrayList<>();
 
-    // $1: warning|error
-    final String soutPattern = "^.*:\\[\\d+,\\d+\\]\\s(warning|error):(?:.*\\n)?.*\\[line:\\d+\\scol:\\d+\\]\\sin$\\n(?:^line\\s+\\d+:.*\\n){1,3}";
-
-    Pattern regex = Pattern.compile(soutPattern, Pattern.MULTILINE);
-    Matcher regexMatcher = regex.matcher(sysout);
-    while(regexMatcher.find()) {
-      CompilerMessage.Kind kind = regexMatcher.group(1).equals("warning") ? CompilerMessage.Kind.WARNING : CompilerMessage.Kind.ERROR;
-      messages.add(new CompilerMessage(regexMatcher.group(), kind));
+    String error = "] error:";
+    String warning = "] warning: ";
+    for( StringTokenizer tokenizer = new StringTokenizer( sysout, "\r\n" ); tokenizer.hasMoreTokens(); )
+    {
+      String line = tokenizer.nextToken();
+      boolean bError;
+      if( (bError = line.contains( error )) || line.contains( warning ) )
+      {
+        StringBuilder msg = new StringBuilder( line );
+        for( int i = 0; i < 3 && tokenizer.hasMoreTokens(); i++ )
+        {
+          msg.append( "\n" ).append( tokenizer.nextToken() );
+        }
+        messages.add( new CompilerMessage( msg.toString(), bError ? ERROR : WARNING ) );
+      }
     }
-
     return messages;
   }
 
