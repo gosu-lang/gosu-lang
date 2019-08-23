@@ -20,7 +20,9 @@ import gw.lang.reflect.java.IJavaType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static gw.internal.ext.org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static gw.internal.ext.org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -29,6 +31,10 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
 class JavaTypeExtensions {
+  private static final Map<String, Class<?>> COMPOSITE_CLASS_BY_NAME =
+      new ConcurrentHashMap<>();
+
+
   private JavaTypeExtensions() {
   }
 
@@ -120,42 +126,41 @@ class JavaTypeExtensions {
   }
 
   private static <T> Class<? extends T> getCompositeClass(Class<?> superClass, Class<T> primaryInterface, Class<?> secondaryInterface, Class<?> secondaryObjectClass) {
+    String compositeClassName = getCompositeClassName(secondaryObjectClass);
+    Class<?> compositeClass = getCachedCompositeClass(compositeClassName, secondaryInterface);
+    if (compositeClass != null) {
+      return compositeClass.asSubclass(primaryInterface);
+    }
+    // Not found, we probably have to define it
+    TypeSystem.lock();
     try {
-      return loadCompositeClass(primaryInterface, secondaryObjectClass);
-    } catch (ClassNotFoundException notFound) {
-      // Not found, we probably have to define it
-      TypeSystem.lock();
-      try {
-        // Now that we have the lock, check again to make sure somebody didn't beat us to it
-        try {
-          return loadCompositeClass(primaryInterface, secondaryObjectClass);
-        } catch (ClassNotFoundException stillNotFound) {
-          // Still not there, we have to define it
-          defineCompositeClass(superClass, primaryInterface, secondaryInterface, secondaryObjectClass);
-          try {
-            return loadCompositeClass(primaryInterface, secondaryObjectClass);
-          } catch (ClassNotFoundException uhOh) {
-            // unexpected
-            throw new IllegalStateException(
-                    format("Could not load extended type proxy class '%s' with primary interface '%s' and secondary interface '%s'",
-                            getCompositeClassName(secondaryObjectClass), primaryInterface.getName(), secondaryInterface.getName()));
-          }
-        }
-      } finally {
-        TypeSystem.unlock();
+      // Now that we have the lock, check again to make sure somebody didn't beat us to it
+      compositeClass = getCachedCompositeClass(compositeClassName, secondaryInterface);
+      if (compositeClass != null) {
+        return compositeClass.asSubclass(primaryInterface);
       }
+      // Still not there, we have to define it
+      compositeClass = defineCompositeClass(superClass, primaryInterface, secondaryInterface, secondaryObjectClass);
+      COMPOSITE_CLASS_BY_NAME.put(compositeClassName, compositeClass);
+      return compositeClass.asSubclass(primaryInterface);
+    } finally {
+      TypeSystem.unlock();
     }
   }
 
-  private static <T> Class<? extends T> loadCompositeClass(Class<T> primaryInterface, Class<?> secondaryObjectClass) throws ClassNotFoundException {
-    return Class.forName(getCompositeClassName(secondaryObjectClass), true, secondaryObjectClass.getClassLoader()).asSubclass(primaryInterface);
+  private static Class<?> getCachedCompositeClass(String compositeClassName, Class<?> secondaryInterface) {
+    Class<?> compositeClass = COMPOSITE_CLASS_BY_NAME.get(compositeClassName);
+    if (compositeClass != null && compositeClass.getClassLoader().equals(secondaryInterface.getClassLoader())) {
+      return compositeClass;
+    }
+    return null;
   }
 
   private static String getCompositeClassName(Class<?> secondaryObjectClass) {
     return secondaryObjectClass.getName() + "_ExtendedJavaTypeProxy";
   }
 
-  private static void defineCompositeClass(
+  private static Class<?> defineCompositeClass(
           Class<?> superClass,
           Class<?> primaryInterface,
           Class<?> secondaryInterface,
@@ -225,15 +230,14 @@ class JavaTypeExtensions {
     // Copied from TypeRefFactory#generateProxyClass
     ClassLoader classLoader = secondaryInterface.getClassLoader();
     if(classLoader instanceof IInjectableClassLoader) {
-      ((IInjectableClassLoader) classLoader).defineClass(className, bytes);
-    } else {
-      try {
-        Method method = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-        method.setAccessible(true);
-        method.invoke(classLoader, className, bytes, 0, bytes.length);
-      } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
+      return ((IInjectableClassLoader) classLoader).defineClass(className, bytes);
+    }
+    try {
+      Method method = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
+      method.setAccessible(true);
+      return (Class<?>) method.invoke(classLoader, className, bytes, 0, bytes.length);
+    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 

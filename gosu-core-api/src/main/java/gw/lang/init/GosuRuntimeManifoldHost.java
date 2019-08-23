@@ -2,6 +2,7 @@ package gw.lang.init;
 
 import gw.fs.IDirectory;
 import gw.fs.IResource;
+import gw.fs.jar.IJarFileDirectory;
 import gw.lang.Gosu;
 import gw.lang.reflect.TypeSystem;
 import java.io.File;
@@ -9,9 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import manifold.internal.host.RuntimeManifoldHost;
+import manifold.internal.javac.JavaParser;
 
 public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 {
+  // override RuntimeManifoldHost to use a single instance since it is always used in the context of the type sys lock
+  private JavaParser _javaParser;
+
   public static GosuRuntimeManifoldHost get()
   {
     return (GosuRuntimeManifoldHost)RuntimeManifoldHost.get();
@@ -26,6 +31,12 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
   public ClassLoader getActualClassLoader()
   {
     return TypeSystem.getGosuClassLoader().getActualLoader();
+  }
+
+  @Override
+  public JavaParser getJavaParser()
+  {
+    return _javaParser == null ? _javaParser = new JavaParser( this ) : _javaParser;
   }
 
   @Override
@@ -60,11 +71,50 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
     super.init( sourcepath, classpath );
   }
 
+  // Override the base class to filter out the intellij classpath jar because WindowsPathParser otherwise chokes
+  // on the jre paths having an illegal '!' character in them.  Note this is a total hack and should be fixed on
+  // the Studio end, but fixing this on the Gosu side for now.
+  @Override
+  protected List<manifold.api.fs.IDirectory> createDefaultClassPath()
+  {
+    // filter out the intellij classpath
+    return super.createDefaultClassPath().stream()
+      .filter( f -> !isIntelliJGeneratedClasspathJar( f ) )
+      .collect( Collectors.toList() );
+  }
+
   private List<File> removeNonFiles( List<IDirectory> dirs )
   {
     return dirs.stream()
       .filter( IResource::isJavaFile )
+      .filter( e -> !isIntelliJGeneratedClasspathJar( e ) )
       .map( IResource::toJavaFile )
       .collect( Collectors.toList() );
+  }
+
+  // IntelliJ generates a classpath jar file when Studio runs a Gosu program/scratchpad, this
+  // not only duplicate what we have in the classpath already, but it also exposes a bug in the
+  // JVM's WindowsClassParser involving unexpected URL formatted paths instead of file system
+  // formatted paths.  This code is a hack to identify such a classpath jar file so it can be
+  // removed from the classpath.
+  private boolean isIntelliJGeneratedClasspathJar( IDirectory e )
+  {
+    if( e instanceof IJarFileDirectory )
+    {
+      String name = e.getName();
+      return name.startsWith( "classpath" ) &&
+             Character.isDigit( name.charAt( "classpath".length() ) );
+    }
+    return false;
+  }
+  private boolean isIntelliJGeneratedClasspathJar( manifold.api.fs.IDirectory e )
+  {
+    if( e instanceof manifold.api.fs.jar.IJarFileDirectory )
+    {
+      String name = e.getName();
+      return name.startsWith( "classpath" ) &&
+             Character.isDigit( name.charAt( "classpath".length() ) );
+    }
+    return false;
   }
 }

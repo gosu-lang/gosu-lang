@@ -37,11 +37,10 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
 import gw.util.GosuExceptionUtil;
-import gw.util.ILogger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
@@ -58,7 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
+
+import gw.util.OSPlatform;
 import manifold.internal.runtime.Bootstrap;
 import manifold.util.JreUtil;
 import manifold.util.NecessaryEvilUtil;
@@ -743,13 +743,19 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     {
       for( String pathElement : path.split( File.pathSeparator ) )
       {
+        if( OSPlatform.isWindows() )
+        {
+          // correct paths with illegal leading separator e.g., "\C:\foo\bar"
+          pathElement = pathElement.replace( '/', File.separatorChar );
+          if( pathElement.startsWith( File.separator ) )
+          {
+            pathElement = pathElement.substring( 1 );
+          }
+        }
+
         if( pathElement.length() > 0 )
         {
           Path filePath = Paths.get( pathElement );
-//          if( !filePath.exists() )
-//          {
-//            System.out.println( "Classpath component does not exist on disk: " + pathElement ); //TODO remove me
-//          }
           IDirectory resource = CommonServices.getFileSystem().getIDirectory( filePath );
           expanded.add(resource);
         }
@@ -769,13 +775,13 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   private static Set<String> getJarsContainingSpecialClasses() {
     Set<String> paths = new HashSet<String>();
     for (String className : SPECIAL_CLASSES) {
-      getLogger().debug("Searching JAR that provides " + className + ".");
+      //getLogger().debug("Searching JAR that provides " + className + ".");
       Class<?> clazz;
       try {
         clazz = Class.forName(className);
       } catch (ClassNotFoundException e) {
         if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          getLogger().error("Class " + className
+          System.err.println("Class " + className
                   + " could not be found. Gosu code might fail to compile at runtime.");
         }
         continue;
@@ -783,7 +789,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
       if (codeSource == null) {
         if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          getLogger().error("Code source for " + clazz.getName()
+          System.err.println("Code source for " + clazz.getName()
                   + " is null. Gosu code might fail to compile at runtime.");
         }
         continue;
@@ -793,18 +799,36 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       // or wsjar:<url> on WebSphere
       URL jarUrl = codeSource.getLocation();
 
-      // in case of complex URL the path might be like this: "file:/gitmo/jboss-5.1.2/common/lib/servlet-api.jar!/"
-      String path = jarUrl.getPath();
+      String path;
+      if( "file".equals( jarUrl.getProtocol() ) )
+      {
+        try
+        {
+          path = new File( jarUrl.toURI() ).getAbsolutePath();
+        }
+        catch( URISyntaxException e )
+        {
+          throw new RuntimeException( e );
+        }
+      }
+      else
+      {
+        // in case of complex URL the path might be like this: "file:/gitmo/jboss-5.1.2/common/lib/servlet-api.jar!/"
+        path = jarUrl.getPath();
 
-      // So removing optional "!/" suffix and "file:" prefix
-      if (path.endsWith("/")) {
-        path = path.substring(0, path.length() - 1);
-      }
-      if (path.endsWith("!")) {
-        path = path.substring(0, path.length() - 1);
-      }
-      if (path.startsWith("file:")) {
-        path = path.substring("file:".length());
+        // So removing optional "!/" suffix and "file:" prefix
+        if( path.endsWith( "/" ) )
+        {
+          path = path.substring( 0, path.length() - 1 );
+        }
+        if( path.endsWith( "!" ) )
+        {
+          path = path.substring( 0, path.length() - 1 );
+        }
+        if( path.startsWith( "file:" ) )
+        {
+          path = path.substring( "file:".length() );
+        }
       }
 
       // URLDecoder.decode() decodes string from application/x-www-form-urlencoded MIME format
@@ -819,7 +843,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         if (new File(decodedPath).exists()) {
           paths.add(path);
         } else {
-          getLogger().error("Could not extract filesystem path from the url " + jarUrl.getPath()
+          System.err.println("Could not extract filesystem path from the url " + jarUrl.getPath()
                   + ". Gosu code that requires classes from that JAR might fail to compile at runtime.");
         }
       } catch (UnsupportedEncodingException ex) {
@@ -829,9 +853,4 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
     return paths;
   }
-
-  private static ILogger getLogger() {
-    return CommonServices.getEntityAccess().getLogger();
-  }
-
 }

@@ -25,14 +25,15 @@ public class IRLazyTypeMethodCallExpressionCompiler extends AbstractBytecodeComp
     try {
       MethodType mt = MethodType.methodType( CallSite.class,MethodHandles.Lookup.class, String.class, MethodType.class, MethodType.class, MethodHandle.class, MethodType.class );
       Handle bootstrap = new Handle( Opcodes.H_INVOKESTATIC, LambdaMetafactory.class.getName().replace( '.', '/' ), "metafactory",
-                                     mt.toMethodDescriptorString() );
+                                     mt.toMethodDescriptorString(), false );
       Type resolveDesc = Type.getType( LazyTypeResolver.ITypeResolver.class.getDeclaredMethod( "resolve" ) );
       context.getMv().visitInvokeDynamicInsn( "resolve",
                                               Type.getMethodDescriptor( Type.getType( LazyTypeResolver.ITypeResolver.class ), getAnonCtorParams( expression ) ),
                                               bootstrap,
                                                 resolveDesc,
                                                 new Handle( expression.isStatic() ? Opcodes.H_INVOKESTATIC : Opcodes.H_INVOKESPECIAL,
-                                                  getOwnersName(expression), expression.getName(), makeDescriptor( expression.getFunctionTypeParamCount() ) ),
+                                                  getOwnersName(expression), expression.getName(), makeDescriptor( expression.getFunctionTypeParamCount() ),
+                                                  expression.getOwnersType().isInterface() ),
                                                 resolveDesc );
     }
     catch( Exception e ) {

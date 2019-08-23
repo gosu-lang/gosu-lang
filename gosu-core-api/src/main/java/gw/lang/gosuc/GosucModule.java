@@ -59,6 +59,18 @@ public class GosucModule implements INativeModule, Serializable {
   {
     try
     {
+      File file = new File( filePath );
+      if( file.exists() )
+      {
+        return file.getAbsoluteFile().toURI().toString();
+      }
+    }
+    catch( Exception ignore )
+    {
+    }
+
+    try
+    {
       URI uri = URI.create( filePath );
       if( !uri.isAbsolute() )
       {
