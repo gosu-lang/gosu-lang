@@ -59,11 +59,7 @@ public class Gosu
 {
   private static final LocklessLazyVar<Class<?>> BUILTIN_CLASSLOADER =
     LocklessLazyVar.make( () -> ReflectUtil.type( "jdk.internal.loader.BuiltinClassLoader" ) );
-  private static final LocklessLazyVar<Class<?>> URL_CLASS_PATH =
-    LocklessLazyVar.make( () ->
-                            JreUtil.isJava8()
-                            ? ReflectUtil.type( "sun.misc.URLClassPath" )
-                            : ReflectUtil.type( "jdk.internal.loader.URLClassPath" ) );
+
   /**
    * used as a virtual package e.g., for scratchpad
    */
@@ -441,10 +437,10 @@ public class Gosu
     ClassLoader loader = clazz.getClassLoader();
     if( loader != null && BUILTIN_CLASSLOADER.get().isAssignableFrom( loader.getClass() ) )
     {
-      URLClassPath ucp = (URLClassPath)manifold.util.ReflectUtil.field( loader, "ucp" ).get();
+      Object ucp = manifold.util.ReflectUtil.field( loader, "ucp" ).get();
       if( ucp != null )
       {
-        for( URL url: ucp.getURLs() )
+        for( URL url: (URL[])ReflectUtil.method( ucp, "getURLs" ).invoke() )
         {
           try
           {
