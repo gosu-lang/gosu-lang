@@ -708,7 +708,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   public static List<IDirectory> createDefaultClassPath( ) {
     List<String> vals = new ArrayList<>();
     vals.add(CommonServices.getEntityAccess().getPluginRepositories().toString());
-    vals.add( removeQuotes( System.getProperty( "java.class.path", "" ) ) );
+    vals.add( removeAllQuotes( System.getProperty( "java.class.path", "" ) ) );
     vals.add(CommonServices.getEntityAccess().getWebServerPaths());
     vals.addAll(getJarsContainingSpecialClasses());
     if( JreUtil.isJava8() )
@@ -720,20 +720,8 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     return dirs;
   }
 
-  /**
-   * trims leading and/or trailing double quotes
-   * we've only seen this behavior on linux/macOS
-   */
-  private static String removeQuotes( String classpath ) {
-    if( classpath.startsWith( "\"" ) )
-    {
-      classpath = classpath.substring( 1 );
-    }
-    if( classpath.endsWith( "\"" ) )
-    {
-      classpath = classpath.substring( 0, classpath.length()-1 );
-    }
-    return classpath;
+  private static String removeAllQuotes( String classpath ) {
+    return classpath.replace( "\"", "" );
   }
 
   private static List<IDirectory> expand( List<String> paths )
