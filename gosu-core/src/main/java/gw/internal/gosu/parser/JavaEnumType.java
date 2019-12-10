@@ -22,13 +22,13 @@ public class JavaEnumType extends JavaType implements IJavaEnumTypeInternal, IJa
 {
   private List<IEnumValue> _enumVals;
 
-  public JavaEnumType( Class cls, DefaultTypeLoader loader )
+  public JavaEnumType( Class cls )
   {
-    super( cls, loader );
+    super( cls );
   }
 
-  public JavaEnumType(IJavaClassInfo cls, DefaultTypeLoader loader) {
-    super(cls, loader);
+  public JavaEnumType(IJavaClassInfo cls ) {
+    super( cls );
   }
 
   public IType getEnumType()

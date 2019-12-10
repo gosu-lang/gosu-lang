@@ -9,10 +9,8 @@ import gw.fs.IFile;
 import gw.internal.gosu.parser.FileSystemGosuClassRepository.ClassFileInfo;
 import gw.lang.parser.IFileRepositoryBasedType;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.TypeName;
-import gw.lang.reflect.module.IModule;
 import gw.util.StringPool;
 
 import java.io.File;
@@ -32,15 +30,13 @@ class PackageToClassPathEntryTreeMap
 {
   private String _strFullPackageName;
   private String _strRelativePackageName;
-  private Map<String, PackageToClassPathEntryTreeMap> _children = new HashMap<String, PackageToClassPathEntryTreeMap>();
-  private List<IFileSystemGosuClassRepository.ClassPathEntry> _classPathEntries = new ArrayList<IFileSystemGosuClassRepository.ClassPathEntry>();
+  private Map<String, PackageToClassPathEntryTreeMap> _children = new HashMap<>();
+  private List<IFileSystemGosuClassRepository.ClassPathEntry> _classPathEntries = new ArrayList<>();
   private PackageToClassPathEntryTreeMap _parent;
-  private IModule _module;
 
-  PackageToClassPathEntryTreeMap( PackageToClassPathEntryTreeMap parent, String packageName, IModule module )
+  PackageToClassPathEntryTreeMap( PackageToClassPathEntryTreeMap parent, String packageName )
   {
     _parent = parent;
-    _module = module;
     _strRelativePackageName = packageName;
     if( parent != null && !parent._strFullPackageName.isEmpty() )
     {
@@ -65,7 +61,7 @@ class PackageToClassPathEntryTreeMap
     PackageToClassPathEntryTreeMap packageTree = _children.get( packageName );
     if( packageTree == null )
     {
-      packageTree = new PackageToClassPathEntryTreeMap( this, packageName, _module );
+      packageTree = new PackageToClassPathEntryTreeMap( this, packageName );
       _children.put( packageName, packageTree );
     }
     if(entry != null) {
@@ -257,12 +253,12 @@ class PackageToClassPathEntryTreeMap
     return _strFullPackageName;
   }
 
-  public Set<TypeName> getTypeNames(Set<String> extensions, ITypeLoader loader) {
-    Set<TypeName> names = new HashSet<TypeName>();
+  public Set<TypeName> getTypeNames(Set<String> extensions) {
+    Set<TypeName> names = new HashSet<>();
     for (PackageToClassPathEntryTreeMap child : _children.values()) {
       String name = child._strFullPackageName;
       name = name.substring(name.lastIndexOf('.') + 1);
-      names.add(new TypeName(name, loader, TypeName.Kind.NAMESPACE, TypeName.Visibility.PUBLIC));
+      names.add(new TypeName(name, TypeName.Kind.NAMESPACE, TypeName.Visibility.PUBLIC));
     }
     for (IFileSystemGosuClassRepository.ClassPathEntry classPathEntry : _classPathEntries) {
       IDirectory entryPath = classPathEntry.getPath().dir(_strFullPackageName.replace('.', '/'));
@@ -272,7 +268,7 @@ class PackageToClassPathEntryTreeMap
         if (extensions.contains(extension)) {
           String fqn = entryPath.relativePath(file).replace('/', '.');
           fqn = fqn.substring(0, fqn.lastIndexOf('.'));
-          names.add(new TypeName(_strFullPackageName + "." + fqn, loader, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
+          names.add(new TypeName(_strFullPackageName + "." + fqn, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
         }
       }
     }

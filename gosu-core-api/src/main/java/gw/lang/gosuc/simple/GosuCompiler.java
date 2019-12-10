@@ -2,13 +2,11 @@ package gw.lang.gosuc.simple;
 
 import gw.config.CommonServices;
 import gw.config.ExecutionMode;
-import gw.config.IMemoryMonitor;
 import gw.config.IPlatformHelper;
 import gw.config.Registry;
 import gw.fs.FileFactory;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
-import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
 import gw.lang.init.GosuInitialization;
@@ -28,7 +26,6 @@ import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IFileSystem;
-import gw.lang.reflect.module.IModule;
 import gw.util.PathUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -270,11 +267,10 @@ public class GosuCompiler implements IGosuCompiler
   private IType getType( File file )
   {
     IFile ifile = FileFactory.instance().getIFile( file );
-    IModule module = TypeSystem.getGlobalModule();
-    String[] typesForFile = TypeSystem.getTypesForFile( module, ifile );
+    String[] typesForFile = TypeSystem.getTypesForFile( ifile );
     if( typesForFile.length != 0 )
     {
-      return TypeSystem.getByFullNameIfValid( typesForFile[0], module );
+      return TypeSystem.getByFullNameIfValid( typesForFile[0] );
     }
     return null;
   }
@@ -287,7 +283,7 @@ public class GosuCompiler implements IGosuCompiler
 
   private void createGosuOutputFiles( IGosuClass gsClass, ICompilerDriver driver )
   {
-    IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+    IDirectory moduleOutputDirectory = TypeSystem.getModule().getOutputPath();
     if( moduleOutputDirectory == null )
     {
       throw new RuntimeException( "Can't make class file, no output path defined." );
@@ -325,7 +321,7 @@ public class GosuCompiler implements IGosuCompiler
 
   private void createJavaOutputFiles( Collection<InMemoryClassJavaFileObject> compiledJavaFiles, ICompilerDriver driver )
   {
-    IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+    IDirectory moduleOutputDirectory = TypeSystem.getModule().getOutputPath();
     if( moduleOutputDirectory == null )
     {
       throw new RuntimeException( "Can't make class file, no output path defined." );
@@ -482,7 +478,6 @@ public class GosuCompiler implements IGosuCompiler
     final long start = System.currentTimeMillis();
 
     CommonServices.getKernel().redefineService_Privileged( IFileSystem.class, createFileSystemInstance() );
-    CommonServices.getKernel().redefineService_Privileged( IMemoryMonitor.class, new CompilerMemoryMonitor() );
     CommonServices.getKernel().redefineService_Privileged( IPlatformHelper.class, new CompilerPlatformHelper() );
 
     if( "gw".equals( System.getProperty( "compiler.type" ) ) )
@@ -508,8 +503,7 @@ public class GosuCompiler implements IGosuCompiler
                                                classpath,
                                                backingSourcePath,
                                                outputPath,
-                                               Collections.<GosucDependency>emptyList(),
-                                               Collections.<String>emptyList() );
+                                               Collections.emptyList() );
     _gosuInitialization.initializeCompiler( gosucModule );
 
     return System.currentTimeMillis() - start;

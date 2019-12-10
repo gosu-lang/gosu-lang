@@ -105,7 +105,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
       {
         if( _annotations == null )
         {
-          List<IAnnotationInfo> annotations = new ArrayList<IAnnotationInfo>();
+          List<IAnnotationInfo> annotations = new ArrayList<>();
           addAnnotations( annotations, this, new IdentityHashMap());
           _annotations = GosuCollectionUtil.compactAndLockList(annotations);
         }
@@ -235,7 +235,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
           IType container = _intrType == null ? getContainer().getOwnersType() : _intrType;
           if( container instanceof ITypeRef ) {
             _deprecated = getAnnotationsOfType(
-                    TypeSystem.getByFullName("gw.lang.Deprecated", container.getTypeLoader().getModule().getExecutionEnvironment().getGlobalModule()));
+            TypeSystem.getByFullName( "gw.lang.Deprecated" ) );
           }
           else {
             _deprecated = Collections.emptyList();
@@ -271,7 +271,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
 
   protected Collection<BaseFeatureInfo> getSuperAnnotatedElements()
   {
-    List<BaseFeatureInfo> infos = new ArrayList<BaseFeatureInfo>();
+    List<BaseFeatureInfo> infos = new ArrayList<>();
     addAnnotationSuperElement( infos, getOwnersType().getSupertype() );
     if( !(this instanceof IConstructorInfo) )
     {
@@ -344,7 +344,7 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
 
   public static IType[] getParamTypes( IParameterInfo[] parameters )
   {
-    List<IType> retValue = new ArrayList<IType>();
+    List<IType> retValue = new ArrayList<>();
     if( parameters != null )
     {
       for( IParameterInfo parameterInfo : parameters )
@@ -353,6 +353,6 @@ public abstract class BaseFeatureInfo implements IAttributedFeatureInfo
       }
     }
 
-    return retValue.toArray( new IType[retValue.size()] );
+    return retValue.toArray( IType.EMPTY_TYPE_ARRAY );
   }
 }

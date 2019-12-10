@@ -2,7 +2,6 @@ package gw.lang.init;
 
 import gw.lang.gosuc.GosucModule;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 
@@ -16,9 +15,6 @@ public interface IGosuInitialization
 
   void initializeCompiler( IExecutionEnvironment execEnv, GosucModule module );
   void uninitializeCompiler( IExecutionEnvironment execEnv );
-
-  void initializeMultipleModules( IExecutionEnvironment execEnv, List<? extends IModule> modules );
-  void uninitializeMultipleModules( IExecutionEnvironment execEnv );
 
   void initializeSimpleIde( IExecutionEnvironment execEnv, GosucModule module );
   void reinitializeSimpleIde( IExecutionEnvironment execEnv, GosucModule module );

@@ -5,10 +5,8 @@
 package gw.internal.gosu.parser.statements;
 
 import gw.internal.gosu.parser.Statement;
-import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.INamespaceStatement;
 import gw.lang.parser.statements.ITerminalStatement;
-import gw.lang.reflect.module.IModule;
 import gw.util.StringPool;
 
 /**
@@ -55,10 +53,4 @@ public class NamespaceStatement extends Statement implements INamespaceStatement
   {
     return "package " + getNamespace();
   }
-
-  public IModule getModule() {
-    IClassFileStatement cfs = (IClassFileStatement) getParent();
-    return cfs.getGosuClass().getTypeLoader().getModule();
-  }
-  
 }

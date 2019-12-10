@@ -12,7 +12,6 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 public class UnparseableSourceTypeVariable implements IJavaClassTypeVariable {
   private ITypeInfoResolver _owner;
@@ -44,11 +43,6 @@ public class UnparseableSourceTypeVariable implements IJavaClassTypeVariable {
   @Override
   public String getSimpleName() {
     return getName();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _owner.getModule();
   }
 
   @Override

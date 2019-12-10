@@ -10,12 +10,10 @@ import gw.lang.reflect.IScriptabilityModifier;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ISourceFileHandle;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 
 public class ErrorJavaClassInfo implements IJavaClassInfo {
-
   @Override
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return false;
@@ -70,14 +68,14 @@ public class ErrorJavaClassInfo implements IJavaClassInfo {
 
   @Override
   public IJavaClassMethod getMethod(String methodName,
-                                    IJavaClassInfo... paramTypes) throws NoSuchMethodException {
+                                    IJavaClassInfo... paramTypes) {
 
     return null;
   }
 
   @Override
   public IJavaClassMethod getDeclaredMethod(String methodName,
-                                            IJavaClassInfo... params) throws NoSuchMethodException {
+                                            IJavaClassInfo... params) {
 
     return null;
   }
@@ -89,9 +87,8 @@ public class ErrorJavaClassInfo implements IJavaClassInfo {
   }
 
   @Override
-  public Object newInstance() throws InstantiationException,
-      IllegalAccessException {
-
+  public Object newInstance()
+  {
     return null;
   }
 
@@ -323,13 +320,7 @@ public class ErrorJavaClassInfo implements IJavaClassInfo {
   }
 
   @Override
-  public IModule getModule() {
-    return TypeSystem.getGlobalModule();
-  }
-
-  @Override
   public IJavaClassInfo getEnclosingClass() {
     return null;
   }
-
 }

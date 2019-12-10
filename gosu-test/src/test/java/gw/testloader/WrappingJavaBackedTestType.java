@@ -40,7 +40,7 @@ public class WrappingJavaBackedTestType extends WrappingTestTypeBase implements 
 
   @Override
   protected Set<IType> makeTypeHierarchy() {
-    HashSet<IType> types = new HashSet<IType>();
+    HashSet<IType> types = new HashSet<>();
     types.add(this);
     types.addAll(TypeSystem.get(_javaSuperClass).getAllTypesInHierarchy());
     for (Class wrappedInterface : getWrappedInterfaces()) {
@@ -61,7 +61,7 @@ public class WrappingJavaBackedTestType extends WrappingTestTypeBase implements 
 
   @Override
   public IJavaClassInfo getBackingClassInfo() {
-    return new ClassJavaClassInfo(_implCLass, getTypeLoader().getModule());
+    return new ClassJavaClassInfo(_implCLass);
   }
 
   @Override

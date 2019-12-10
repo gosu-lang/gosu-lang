@@ -10,7 +10,6 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.*;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IFeatureInfo;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -22,11 +21,9 @@ import java.util.List;
 
 public class ConstructorJavaClassConstructor implements IJavaClassConstructor, IJavaClassBytecodeConstructor {
   private Constructor _ctor;
-  private IModule _module;
 
-  public ConstructorJavaClassConstructor(Constructor ctor, IModule module) {
+  public ConstructorJavaClassConstructor( Constructor ctor ) {
     _ctor = ctor;
-    _module = module;
   }
 
   public void setAccessible(boolean accessible) {
@@ -42,7 +39,7 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
     Class[] rawTypes = _ctor.getExceptionTypes();
     IJavaClassInfo[] types = new IJavaClassInfo[rawTypes.length];
     for (int i = 0; i < rawTypes.length; i++) {
-      types[i] = JavaSourceUtil.getClassInfo(rawTypes[i], _module);
+      types[i] = JavaSourceUtil.getClassInfo(rawTypes[i]);
     }
     return types;
   }
@@ -82,7 +79,7 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
     Type[] rawTypes = _ctor.getGenericParameterTypes();
     IJavaClassType[] types = new IJavaClassType[rawTypes.length];
     for (int i = 0; i < rawTypes.length; i++) {
-      types[i] = TypeJavaClassType.createType(rawTypes[i], _module);
+      types[i] = TypeJavaClassType.createType(rawTypes[i]);
     }
     return types;
   }
@@ -92,7 +89,7 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
     Class[] rawParamTypes = getJavaParameterTypes();
     IJavaClassInfo[] paramTypes = new IJavaClassInfo[rawParamTypes.length];
     for (int i = 0; i < rawParamTypes.length; i++) {
-      paramTypes[i] = JavaSourceUtil.getClassInfo(rawParamTypes[i], _module);
+      paramTypes[i] = JavaSourceUtil.getClassInfo(rawParamTypes[i]);
     }
     return paramTypes;
   }
@@ -137,6 +134,6 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
 
   @Override
   public IJavaClassInfo getEnclosingClass() {
-    return JavaSourceUtil.getClassInfo(_ctor.getDeclaringClass(), _module);
+    return JavaSourceUtil.getClassInfo(_ctor.getDeclaringClass());
   }
 }

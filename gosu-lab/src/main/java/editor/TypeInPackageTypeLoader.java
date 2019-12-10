@@ -5,10 +5,8 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.IModule;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,23 +16,35 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TypeInPackageTypeLoader extends TypeLoaderBase
 {
-  private static final Map<IModule, TypeInPackageTypeLoader> INSTANCE_BY_MODULE = new HashMap<IModule, TypeInPackageTypeLoader>();
+  private static TypeInPackageTypeLoader INSTANCE;
+
+  private int _moduleId = -1;
   private final Map _mapTypeByName;
 
   public static TypeInPackageTypeLoader instance()
   {
-    IModule module = TypeSystem.getCurrentModule();
-    TypeInPackageTypeLoader instance = INSTANCE_BY_MODULE.get( module );
-    if( instance == null )
+    if( INSTANCE == null )
     {
-      INSTANCE_BY_MODULE.put( module, instance = new TypeInPackageTypeLoader() );
+      INSTANCE = new TypeInPackageTypeLoader();
     }
-    return instance;
+    else
+    {
+      // a lazy way to handle an environment such as Gosu Lab where the module can change (a new project opens)
+
+      int moduleId = System.identityHashCode( TypeSystem.getModule() );
+      if( INSTANCE._moduleId != moduleId )
+      {
+        INSTANCE = new TypeInPackageTypeLoader();
+      }
+    }
+
+    return INSTANCE;
   }
 
   private TypeInPackageTypeLoader()
   {
     _mapTypeByName = new ConcurrentHashMap();
+    _moduleId = System.identityHashCode( TypeSystem.getModule() );
   }
 
   public IType getType( String fullyQualifiedName )

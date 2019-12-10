@@ -9,7 +9,6 @@ import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.util.HashMap;
@@ -22,15 +21,13 @@ public class GosuTypes {
     }
   };
   public static final String IMONITORLOCK_NAME = "gw.lang.IMonitorLock";
-  public static Map<String, IType> CACHE = new HashMap<String, IType>();
+  public static Map<String, IType> CACHE = new HashMap<>();
 
   static {
-    TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-      public void shutdown() {
-        DEF_CTOR_TYPE.clear();
-        CACHE.clear();
-      }
-    });
+    TypeSystem.addShutdownListener( () -> {
+      DEF_CTOR_TYPE.clear();
+      CACHE.clear();
+    } );
   }
 
   public static IType AUTOCREATE() {
@@ -45,18 +42,6 @@ public class GosuTypes {
     return getType(IMONITORLOCK_NAME);
   }
 
-  public static IType IPREFIX_BINDER() {
-    return getType( "gw.lang.IPrefixBinder" );
-  }
-
-  public static IType IPOSTFIX_BINDER() {
-    return getType( "gw.lang.IPostfixBinder" );
-  }
-
-  public static IType BINDER_SEPARATORS() {
-    return getType( "gw.lang.BinderSeparators" );
-  }
-
   public static IType DYNAMIC() {
     return getType( IDynamicType.QNAME );
   }
@@ -68,7 +53,7 @@ public class GosuTypes {
   public static IType getType(String fqn) {
     IType type = CACHE.get(fqn);
     if (type == null) {
-      type = TypeSystem.getByFullNameIfValid(fqn, TypeSystem.getGlobalModule());
+      type = TypeSystem.getByFullNameIfValid( fqn );
       CACHE.put(fqn, type);
     }
     return type;

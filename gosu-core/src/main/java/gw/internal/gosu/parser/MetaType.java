@@ -34,7 +34,7 @@ public class MetaType extends AbstractType implements IMetaType
     {
       public IJavaType init()
       {
-        IJavaType type = (IJavaType) TypeSystem.getByFullNameIfValid( RootType.class.getName().replace('$', '.'), TypeSystem.getGlobalModule() );
+        IJavaType type = (IJavaType)TypeSystem.getByFullNameIfValid( RootType.class.getName().replace( '$', '.' ) );
         if( type == null )
         {
           throw new RuntimeException( "Cannot load gw.internal.gosu.parser.MetaType.RootType. The TypeSystem is not setup properly. It's highly likely Gosu is not in your classpath (perhaps via the project SDK)." );
@@ -47,7 +47,7 @@ public class MetaType extends AbstractType implements IMetaType
     {
       public IJavaType init()
       {
-        return (IJavaType) TypeSystem.getByFullNameIfValid( Object.class.getName(), TypeSystem.getGlobalModule() );
+        return (IJavaType)TypeSystem.getByFullNameIfValid( Object.class.getName() );
       }
     };
 
@@ -69,11 +69,7 @@ public class MetaType extends AbstractType implements IMetaType
     };
 
   static {
-    TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-      public void shutdown() {
-        clearCaches();
-      }
-    });
+    TypeSystem.addShutdownListener( MetaType::clearCaches );
   }
 
   public static void clearCaches()
@@ -108,7 +104,7 @@ public class MetaType extends AbstractType implements IMetaType
   {
     _type = type;
     _bLiteral = bLiteral;
-    _typeInfoByAccessibility = new HashMap<IRelativeTypeInfo.Accessibility, ITypeInfo>( 2 );
+    _typeInfoByAccessibility = new HashMap<>( 2 );
 
     if( type.equals( ROOT_TYPE.get() ) )
     {
@@ -374,9 +370,8 @@ public class MetaType extends AbstractType implements IMetaType
   {
     if( _allTypesInHierarchy == null )
     {
-      //noinspection unchecked,RedundantCast
-      IType type = TypeSystem.get(getType().getClass(), TypeSystem.getGlobalModule());
-      Set<IType> types = getTypeInterfaces(type, new HashSet<IType>());
+      IType type = TypeSystem.get( getType().getClass() );
+      Set<IType> types = getTypeInterfaces(type, new HashSet<>());
       for( IType t: getType().getAllTypesInHierarchy() ) {
         types.add( MetaType.get( t ) );
       }

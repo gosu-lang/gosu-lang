@@ -16,7 +16,6 @@ import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IAsmJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;
@@ -38,7 +37,7 @@ public class AsmClass implements IAsmType, IGeneric {
   public static final AsmClass DOUBLE;
   public static final AsmClass BOOLEAN;
   public static final AsmClass VOID;
-  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<String, AsmClass>();
+  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<>();
   static {
     PRIMITIVES.put( "byte", BYTE = new AsmClass( AsmPrimitiveType.findPrimitive( "byte" ) ) );
     PRIMITIVES.put( "short", SHORT = new AsmClass( AsmPrimitiveType.findPrimitive( "short" ) ) );
@@ -54,7 +53,6 @@ public class AsmClass implements IAsmType, IGeneric {
     return PRIMITIVES.get( className );
   }
 
-  private Object _module;
   private URI _uri;
   private int _version;
   private int _modifiers;
@@ -69,8 +67,7 @@ public class AsmClass implements IAsmType, IGeneric {
   private List<AsmAnnotation> _annotations;
 
 
-  AsmClass( Object module, URI uri ) {
-    _module = module;
+  AsmClass( URI uri ) {
     _uri = uri;
   }
 
@@ -130,7 +127,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
   private void addField( AsmField field ) {
     if( _fields.isEmpty() ) {
-      _fields = new ArrayList<AsmField>();
+      _fields = new ArrayList<>();
     }
     _fields.add( field );
   }
@@ -140,7 +137,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
   private void addMethod( AsmMethod method ) {
     if( _methodsAndCtors.isEmpty() ) {
-      _methodsAndCtors = new ArrayList<AsmMethod>();
+      _methodsAndCtors = new ArrayList<>();
     }
     _methodsAndCtors.add( method );
   }
@@ -150,7 +147,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
   private void addAnnotation( AsmAnnotation annotation ) {
     if( _annotations.isEmpty() ) {
-      _annotations = new ArrayList<AsmAnnotation>();
+      _annotations = new ArrayList<>();
     }
     _annotations.add( annotation );
   }
@@ -284,7 +281,7 @@ public class AsmClass implements IAsmType, IGeneric {
       int iDollar = typeName.lastIndexOf( '$' );
       if( iDollar > 0 ) {
         String outerName = typeName.substring( 0, iDollar );
-        IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( outerName, (IModule)_module );
+        IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( outerName );
         if( classInfo != null ) {
           _enclosingType = AsmUtil.makeType( outerName );
           return (AsmClass)((IAsmJavaClassInfo)classInfo).getAsmType();
@@ -331,7 +328,7 @@ public class AsmClass implements IAsmType, IGeneric {
       }
 
       if( _innerClasses.isEmpty() ) {
-        _innerClasses = new HashMap<String, AsmInnerClassType>( 2 );
+        _innerClasses = new HashMap<>( 2 );
       }
       String innerClass = AsmUtil.makeDotName( name );
       _innerClasses.put( innerClass, new AsmInnerClassType( innerClass, access ) );
@@ -378,7 +375,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
     private void assignInterfaces( String[] interfaces ) {
       if( interfaces != null ) {
-        List<AsmType> ifaces = new ArrayList<AsmType>( interfaces.length );
+        List<AsmType> ifaces = new ArrayList<>( interfaces.length );
         for( int i = 0; i < interfaces.length; i++ ) {
           ifaces.add( AsmUtil.makeType( interfaces[i] ) );
         }

@@ -72,7 +72,6 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.Stack;
 
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public abstract class ParserBase implements IParserPart
 
   // Constant used as a placholder value to facilitate lazy parser state initialization for error reporting
   private static final IParserState PLACEHOLDER_PARSER_STATE = new PlaceholderParserState();
-  private static final INamespaceType PROGRAM_NAMESPACE = new NamespaceType( IGosuProgram.PACKAGE, null);
+  private static final INamespaceType PROGRAM_NAMESPACE = new NamespaceType( IGosuProgram.PACKAGE );
 
   private boolean _snapshotSymbols;
   private GosuParser _owner;
@@ -419,7 +418,7 @@ public abstract class ParserBase implements IParserPart
    */
   public String parseDotPathWord( String t )
   {
-    StringBuilder sb = t == null ? null : new StringBuilder( t == null ? "" : t );
+    StringBuilder sb = t == null ? null : new StringBuilder( t );
     SourceCodeTokenizer tokenizer = getTokenizer();
     while( match( null, '.' ) )
     {
@@ -550,7 +549,7 @@ public abstract class ParserBase implements IParserPart
   {
     if( !bExpression )
     {
-      return verify( parsedElement, bExpression, false, errorMesg, (Object)arg0 );
+      return verify( parsedElement, bExpression, false, errorMesg, arg0 );
     }
     return bExpression;
   }
@@ -718,8 +717,8 @@ public abstract class ParserBase implements IParserPart
               Res.MSG_TYPE_MISMATCH,
               rhsType.getDisplayName(),
               lhsType.getDisplayName(),
-              rhsType.getTypeLoader() == null ? null : rhsType.getTypeLoader().getModule().getName(),
-              lhsType.getTypeLoader() == null ? null : lhsType.getTypeLoader().getModule().getName());
+              null,
+              null);
       return retType;
     }
 
@@ -978,11 +977,8 @@ public abstract class ParserBase implements IParserPart
         if( retType != null )
         {
           Expression temp = ((ArithmeticExpression)parsedElement).getLHS();
-          if( parsedElement != null )
-          {
-            ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
-            ((ArithmeticExpression)parsedElement).setRHS( temp );
-          }
+          ((ArithmeticExpression)parsedElement).setLHS( ((ArithmeticExpression)parsedElement).getRHS() );
+          ((ArithmeticExpression)parsedElement).setRHS( temp );
           return retType;
         }
       }
@@ -1646,12 +1642,10 @@ public abstract class ParserBase implements IParserPart
     boolean matchedStatic = false;
     boolean matchedAbstract = false;
     Token token;
-    String value;
     Keyword keyword;
     while( true )
     {
       token = getTokenizer().getCurrentToken();
-      value = token.getStringValue();
       keyword = token.getKeyword();
 
       if( token.getType() == SourceCodeTokenizer.TT_EOF )
@@ -1923,18 +1917,9 @@ public abstract class ParserBase implements IParserPart
     getOwner().checkInstruction( true );
     if( !ErrorType.getInstance().equals( type ) && type.getTypeLoader() != null )
     {
-      IModule module = type.getTypeLoader().getModule();
-      TypeSystem.pushModule( module );
-      try
-      {
-        boolean bAnnotation = JavaTypes.IANNOTATION().isAssignableFrom( type ) ||
-                              JavaTypes.ANNOTATION().isAssignableFrom( type );
-        verify( e, bAnnotation || type instanceof IErrorType, Res.MSG_TYPE_NOT_ANNOTATION, type.getName() );
-      }
-      finally
-      {
-        TypeSystem.popModule( module );
-      }
+      boolean bAnnotation = JavaTypes.IANNOTATION().isAssignableFrom( type ) ||
+                            JavaTypes.ANNOTATION().isAssignableFrom( type );
+      verify( e, bAnnotation || type instanceof IErrorType, Res.MSG_TYPE_NOT_ANNOTATION, type.getName() );
     }
     GosuAnnotation annotationInfo = new GosuAnnotation( getGosuClass(), type, e, useSiteTarget == null ? null : useSiteTarget.getTarget(), iOffset, end );
     if( e instanceof AnnotationExpression )
@@ -2005,7 +1990,7 @@ public abstract class ParserBase implements IParserPart
 
   void verifyAnnotations( IParsedElement pe, ModifierInfo modInfo, UsageTarget targetType )
   {
-    List<IType> annotationTypes = new ArrayList<IType>();
+    List<IType> annotationTypes = new ArrayList<>();
     for( IGosuAnnotation annotation : modInfo.getAnnotations() )
     {
       if( annotation instanceof GosuAnnotation )
@@ -2175,7 +2160,7 @@ public abstract class ParserBase implements IParserPart
   {
     if( _blocks == null )
     {
-      _blocks = new Stack<BlockExpression>();
+      _blocks = new Stack<>();
     }
 
     // Note:  This has to come BEFORE we push the block on the stack, because it depends on
@@ -2198,7 +2183,7 @@ public abstract class ParserBase implements IParserPart
   public void addBlockToBlockStack( BlockExpression block ) {
     if( _blocks == null )
     {
-      _blocks = new Stack<BlockExpression>();
+      _blocks = new Stack<>();
     }
 
     _blocks.push( block );
@@ -2500,7 +2485,7 @@ public abstract class ParserBase implements IParserPart
         {
           if( types.isEmpty() )
           {
-            types = new ArrayList<IType>();
+            types = new ArrayList<>();
           }
           if( !types.contains( type ) )
           {

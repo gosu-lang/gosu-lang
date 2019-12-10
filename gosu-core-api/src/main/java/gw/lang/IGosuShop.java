@@ -5,7 +5,6 @@
 package gw.lang;
 
 import gw.config.IService;
-import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.ir.IRClassCompiler;
@@ -46,16 +45,11 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
-import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ITemplateType;
-import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
 
@@ -113,9 +107,6 @@ public interface IGosuShop extends IService
   IGosuEnhancement createEnhancement( String strNamespace, String strRelativeName, GosuClassTypeLoader loader, ISourceFileHandle sourceFile, ITypeUsesMap typeUsesMap );
   ITemplateType createTemplate( String strNamespace, String strRelativeName, GosuClassTypeLoader loader, ISourceFileHandle sourceFile, ITypeUsesMap typeUsesMap, ISymbolTable symTable );
 
-  IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files);
-  IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions);
-
   ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses );
 
   IPropertyInfo getPropertyInfo( IType classBean, String strProperty, IFeatureFilter filter, IParserPart parserBase, IScriptabilityModifier scriptabilityConstraint) throws ParseException;
@@ -128,8 +119,6 @@ public interface IGosuShop extends IService
   RuntimeException createEvaluationException(String msg);
 
   IPropertyInfo createPropertyDelegate(IFeatureInfo container, IPropertyInfo prop);
-
-  IModule createModule( IExecutionEnvironment execEnv, String strMemberName );
 
   IGosuClass getGosuClassFrom( IType fromType );
 
@@ -153,13 +142,7 @@ public interface IGosuShop extends IService
 
   IReducedDynamicFunctionSymbol createReducedDynamicFunctionSymbol(IDynamicFunctionSymbol symbol);
 
-  IModule createGlobalModule(IExecutionEnvironment execEnv);
-
-  IClassPath createClassPath(IModule module, boolean includeAllClasses);
-
   IType getPureGenericType(IType type);
-
-  IJavaClassInfo createClassInfo(Class aClass, IModule module);
 
   IMetaType createMetaType(IType type, boolean literal);
 

@@ -25,7 +25,6 @@ import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmMethod;
 import gw.lang.reflect.java.asm.AsmType;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -34,11 +33,9 @@ import java.util.List;
 
 public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJavaClassMethod, IJavaClassBytecodeMethod {
   private AsmMethod _method;
-  private IModule _module;
 
-  public AsmMethodJavaClassMethod( AsmMethod method, IModule module ) {
+  public AsmMethodJavaClassMethod( AsmMethod method ) {
     _method = method;
-    _module = module;
   }
 
   @Override
@@ -48,7 +45,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
 
   @Override
   public IJavaClassInfo getReturnClassInfo() {
-    return JavaSourceUtil.getClassInfo( _method.getReturnType().getNameWithArrayBrackets(), _module );
+    return JavaSourceUtil.getClassInfo( _method.getReturnType().getNameWithArrayBrackets() );
   }
 
   @Override
@@ -64,7 +61,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
 
   @Override
   public IJavaClassInfo getEnclosingClass() {
-    return JavaSourceUtil.getClassInfo( _method.getDeclaringClass(), _module );
+    return JavaSourceUtil.getClassInfo( _method.getDeclaringClass() );
   }
 
   @Override
@@ -72,7 +69,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
     List<AsmType> rawTypes = _method.getParameters();
     IJavaClassInfo[] types = new IJavaClassInfo[rawTypes.size()];
     for( int i = 0; i < rawTypes.size(); i++ ) {
-      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getNameWithArrayBrackets(), _module );
+      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getNameWithArrayBrackets() );
     }
     return types;
   }
@@ -97,7 +94,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
     List<AsmType> rawTypes = _method.getExceptions();
     IJavaClassInfo[] types = new IJavaClassInfo[rawTypes.size()];
     for( int i = 0; i < rawTypes.size(); i++ ) {
-      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getNameWithArrayBrackets(), _module );
+      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getNameWithArrayBrackets() );
     }
     return types;
   }
@@ -165,7 +162,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
     FunctionType functionType = new FunctionType( mi, true );
     IJavaClassTypeVariable[] javaTypeVars = new IJavaClassTypeVariable[typeVars.size()];
     for( int i = 0; i < typeVars.size(); i++ ) {
-      javaTypeVars[i] = (IJavaClassTypeVariable)AsmTypeJavaClassType.createType( typeVars.get( i ), _module );
+      javaTypeVars[i] = (IJavaClassTypeVariable)AsmTypeJavaClassType.createType( typeVars.get( i ) );
     }
     return GenericTypeVariable.convertTypeVars( functionType, mi.getOwnersType(), javaTypeVars );
   }
@@ -176,7 +173,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
     IJavaClassType[] types = new IJavaClassType[getParam.size()];
     for( int i = 0; i < getParam.size(); i++ ) {
       AsmType rawType = getParam.get( i );
-      IJavaClassType type = AsmTypeJavaClassType.createType( rawType, _module );
+      IJavaClassType type = AsmTypeJavaClassType.createType( rawType );
       types[i] = type;
     }
     return types;
@@ -184,7 +181,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
 
   @Override
   public IJavaClassType getGenericReturnType() {
-    return AsmTypeJavaClassType.createType( _method.getGenericReturnType(), _module );
+    return AsmTypeJavaClassType.createType( _method.getGenericReturnType() );
   }
 
   @Override
@@ -232,7 +229,7 @@ public class AsmMethodJavaClassMethod extends JavaSourceElement implements IJava
 
   private JavaSourceElement findSourceMethod( ISourceFileHandle sfh )
   {
-    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh );
     if( sourceType == null )
     {
       return null;

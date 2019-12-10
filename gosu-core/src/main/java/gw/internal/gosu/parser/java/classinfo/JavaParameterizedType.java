@@ -10,7 +10,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassParameterizedType;
 import gw.lang.reflect.java.IJavaClassType;
-import gw.lang.reflect.module.IModule;
 
 public class JavaParameterizedType implements IJavaClassParameterizedType {
   private IJavaClassType[] _args;
@@ -51,12 +50,7 @@ public class JavaParameterizedType implements IJavaClassParameterizedType {
     IType[] args = new IType[_args.length];
     for (int i = 0; i < _args.length; i++) {
       if (_args[i] != null) {
-//        TypeSystem.pushModule(_args[i].getModule());
-//        try {
-          args[i] = _args[i].getActualType(typeMap, bKeepTypeVars);
-//        } finally {
-//          TypeSystem.popModule(_args[i].getModule());
-//        }
+        args[i] = _args[i].getActualType(typeMap, bKeepTypeVars);
       } else {
         args[i] = TypeSystem.getErrorType();
       }
@@ -97,11 +91,6 @@ public class JavaParameterizedType implements IJavaClassParameterizedType {
   @Override
   public IJavaClassType getComponentType() {
     return null;
-  }
-
-  @Override
-  public IModule getModule() {
-    return _rawType.getModule();
   }
 
   @Override

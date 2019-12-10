@@ -239,9 +239,8 @@ public class RequiresReflectionDeterminer
         // The Source-based class indicates we are compiling Gosu statically from
         // a "special" place, like inside an IDE's process where, for example, a
         // Gosu class can be compiled before the Java class it references, in which
-        // case Gosu parsed Java directly from Source.  In this case we can
-        // determine if the Java source file and Gosu file are in the same module.
-        return callingClass.getTypeLoader().getModule() != declaringClass.getTypeLoader().getModule();
+        // case Gosu parsed Java directly from Source.
+        return false;
       }
       return true;
     }
@@ -263,7 +262,7 @@ public class RequiresReflectionDeterminer
     {
       return null;
     }
-    for( IDirectory dir: gsClass.getTypeLoader().getModule().getSourcePath() )
+    for( IDirectory dir: TypeSystem.getModule().getSourcePath() )
     {
       if( filePath.isDescendantOf( dir ) )
       {

@@ -10,10 +10,8 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
-import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 
-import gw.lang.reflect.module.IModule;
 import java.lang.annotation.Annotation;
 import gw.util.Array;
 import java.util.HashMap;
@@ -65,7 +63,7 @@ public class AsmClassAnnotationInfo implements IAnnotationInfo {
   }
 
   private Object makeArray( String fieldName, List l ) {
-    IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( _annotation.getType().getName(), findModule( _owner ) );
+    IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( _annotation.getType().getName() );
     try {
       IJavaClassMethod method = classInfo.getDeclaredMethod( fieldName );
       IJavaClassInfo ci = method.getReturnClassInfo();
@@ -76,15 +74,6 @@ public class AsmClassAnnotationInfo implements IAnnotationInfo {
     }
   }
 
-  private IModule findModule( IJavaAnnotatedElement elem )
-  {
-    if( elem instanceof IJavaClassType )
-    {
-      return ((IJavaClassType)elem).getModule();
-    }
-    return findModule( elem.getEnclosingClass() );
-  }
-
   public IType getType() {
     return TypeSystem.getByFullName( getName() );
   }
@@ -93,7 +82,7 @@ public class AsmClassAnnotationInfo implements IAnnotationInfo {
     return getName();
   }
 
-  private static final Map<String, Class> SUPPORTED_TYPES = new HashMap<String, Class>();
+  private static final Map<String, Class> SUPPORTED_TYPES = new HashMap<>();
   static {
     SUPPORTED_TYPES.put( byte.class.getName(), byte.class );
     SUPPORTED_TYPES.put( boolean.class.getName(), boolean.class );

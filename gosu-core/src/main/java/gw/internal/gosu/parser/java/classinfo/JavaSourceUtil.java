@@ -15,66 +15,52 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmClass;
-import gw.lang.reflect.module.IModule;
 
 
 public class JavaSourceUtil {
 
-  public static IJavaClassInfo getClassInfo( AsmClass cls, IModule module ) {
+  public static IJavaClassInfo getClassInfo( AsmClass cls ) {
     if( isProxy( cls ) ) {
-      return getJavaClassInfo( cls, module );
+      return getJavaClassInfo( cls );
     } else {
       if( !ExecutionMode.isIDE() ) { //## todo: refine this so that a compiler, for example, could cross-compile java source with gosu source
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.
-        IJavaClassInfo classInfo = getJavaClassInfo( cls, module );
+        IJavaClassInfo classInfo = getJavaClassInfo( cls );
         if( classInfo != null ) {
           return classInfo;
         }
       }
-      return getClassInfo( cls.getName().replace( '$', '.' ), module );
+      return getClassInfo( cls.getName().replace( '$', '.' ) );
     }
   }
 
-  private static IJavaClassInfo getJavaClassInfo( AsmClass asmClass, IModule module ) {
-    for( IModule m : module.getModuleTraversalList() ) {
-      TypeSystem.pushModule( m );
-      try {
-        DefaultTypeLoader defaultTypeLoader = (DefaultTypeLoader)m.getModuleTypeLoader().getDefaultTypeLoader();
-        if( defaultTypeLoader != null ) {
-          IJavaClassInfo javaClassInfo = defaultTypeLoader.getJavaClassInfo( asmClass, module );
-          if( javaClassInfo != null ) {
-            return javaClassInfo;
-          }
-        }
-      }
-      finally {
-        TypeSystem.popModule( m );
-      }
+  private static IJavaClassInfo getJavaClassInfo( AsmClass asmClass ) {
+    DefaultTypeLoader defaultTypeLoader = (DefaultTypeLoader)TypeSystem.getModule().getModuleTypeLoader().getDefaultTypeLoader();
+    if( defaultTypeLoader != null ) {
+      return defaultTypeLoader.getJavaClassInfo( asmClass );
     }
     return null;
   }
 
-  public static IJavaClassInfo getClassInfo(Class aClass, IModule gosuModule) {
-    DefaultTypeLoader loader = (DefaultTypeLoader) gosuModule.getModuleTypeLoader().getDefaultTypeLoader();
+  public static IJavaClassInfo getClassInfo(Class aClass) {
+    DefaultTypeLoader loader = (DefaultTypeLoader) TypeSystem.getModule().getModuleTypeLoader().getDefaultTypeLoader();
     if (isProxy(aClass)) {
-      return loader.getJavaClassInfo( aClass, gosuModule );
+      return loader.getJavaClassInfo( aClass );
     } else if (aClass.isArray()) {
-      IJavaClassInfo classInfo = getClassInfo(aClass.getComponentType(), gosuModule);
-      IModule module = classInfo.getModule();
-      return loader.getJavaClassInfo(aClass, module);
+      return loader.getJavaClassInfo(aClass);
     } else {
       if( ExecutionMode.isRuntime() ) {
         // Don't try to load from source unless we have to, this saves a load of time esp. for case
         // where we're loading an inner java class where replacing the '$' below with '.' we bascially
         // put the type system through a load of unnecessary work.
-        IJavaClassInfo javaClassInfo = loader.getJavaClassInfo( aClass, gosuModule );
+        IJavaClassInfo javaClassInfo = loader.getJavaClassInfo( aClass );
         if (javaClassInfo != null) {
           return javaClassInfo;
         }
       }
-      return getClassInfo(aClass.getName().replace('$', '.'), gosuModule);
+      return getClassInfo(aClass.getName().replace('$', '.'));
     }
   }
 
@@ -92,15 +78,10 @@ public class JavaSourceUtil {
         name.endsWith(ITypeRefFactory.SYSTEM_PROXY_SUFFIX);
   }
 
-  public static IJavaClassInfo getClassInfo(String qualifiedName, IModule gosuModule) {
-    for (IModule module : gosuModule.getModuleTraversalList()) {
-      IDefaultTypeLoader loader = module.getModuleTypeLoader().getDefaultTypeLoader();
-      if (loader != null) {
-        IJavaClassInfo javaClassInfo = loader.getJavaClassInfo(qualifiedName);
-        if (javaClassInfo != null) {
-          return javaClassInfo;
-        }
-      }
+  public static IJavaClassInfo getClassInfo(String qualifiedName) {
+    IDefaultTypeLoader loader = TypeSystem.getModule().getModuleTypeLoader().getDefaultTypeLoader();
+    if (loader != null) {
+      return loader.getJavaClassInfo(qualifiedName);
     }
     return null;
   }

@@ -32,7 +32,7 @@ public class IRMethodFromMethod implements IRMethod {
 
   @Override
   public List<IRType> getExplicitParameterTypes() {
-    List<IRType> paramTypes = new ArrayList<IRType>();
+    List<IRType> paramTypes = new ArrayList<>();
     for (Class<?> paramClass : _method.getParameterTypes()) {
       paramTypes.add(IRTypeResolver.getDescriptor(paramClass));
     }
@@ -56,7 +56,7 @@ public class IRMethodFromMethod implements IRMethod {
 
   @Override
   public IType getOwningIType() {
-    return TypeSystem.get(_method.getDeclaringClass(), TypeSystem.getGlobalModule());
+    return TypeSystem.get( _method.getDeclaringClass() );
   }
 
   @Override

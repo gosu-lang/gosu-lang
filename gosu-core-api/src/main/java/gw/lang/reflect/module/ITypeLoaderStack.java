@@ -21,8 +21,6 @@ public interface ITypeLoaderStack
 
   ITypeRefFactory getTypeRefFactory();
 
-  IModule getModule();
-  
   <T extends ITypeLoader> T getTypeLoader( Class<? extends T> loaderType );
 
   IDefaultTypeLoader getDefaultTypeLoader();

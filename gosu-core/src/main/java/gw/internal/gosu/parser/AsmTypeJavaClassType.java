@@ -15,17 +15,14 @@ import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmType;
 import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
-import gw.lang.reflect.module.IModule;
 
 import java.util.LinkedHashSet;
 
 public abstract class AsmTypeJavaClassType extends JavaSourceElement implements IJavaClassType {
   private IAsmType _type;
-  protected IModule _module;
 
-  public AsmTypeJavaClassType( IAsmType type, IModule module ) {
+  public AsmTypeJavaClassType( IAsmType type ) {
     _type = type;
-    _module = module;
   }
 
   protected IAsmType getType() {
@@ -39,31 +36,31 @@ public abstract class AsmTypeJavaClassType extends JavaSourceElement implements 
 
   @Override
   public IType getActualType( TypeVarToTypeMap typeMap, boolean bKeepTypeVars ) {
-    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars, new LinkedHashSet<IAsmType>() );
+    return TypeLord.getActualType( _type, typeMap, bKeepTypeVars, new LinkedHashSet<>() );
   }
 
-  public static IJavaClassType createType( IAsmType rawType, IModule module ) {
-    return createType( null, rawType, module );
+  public static IJavaClassType createType( IAsmType rawType ) {
+    return createType( null, rawType );
   }
-  public static IJavaClassType createType( IAsmType genType, IAsmType rawType, IModule module ) {
+  public static IJavaClassType createType( IAsmType genType, IAsmType rawType ) {
     IJavaClassType type = null;
     if( rawType.isArray() && (rawType.isTypeVariable() || rawType.isParameterized()) ) {
-      type = new AsmGenericArrayTypeJavaClassGenericArrayType( rawType, module );
+      type = new AsmGenericArrayTypeJavaClassGenericArrayType( rawType );
     }
     else if( rawType.isTypeVariable() ) {
-      type = new AsmTypeVariableJavaClassTypeVariable( rawType, module );
+      type = new AsmTypeVariableJavaClassTypeVariable( rawType );
     }
     else if( rawType.isParameterized() ) {
-      type = new AsmParameterizedTypeJavaClassParameterizedType( rawType, module );
+      type = new AsmParameterizedTypeJavaClassParameterizedType( rawType );
     }
     else if( rawType instanceof AsmWildcardType ) {
-      type = new AsmWildcardTypeJavaClassWildcardType( genType, (AsmWildcardType)rawType, module );
+      type = new AsmWildcardTypeJavaClassWildcardType( genType, (AsmWildcardType)rawType );
     }
     else if( rawType instanceof AsmClass ) {
-      type = JavaSourceUtil.getClassInfo( (AsmClass)rawType, module );
+      type = JavaSourceUtil.getClassInfo( (AsmClass)rawType );
     }
     else if( rawType instanceof AsmType ) {
-      type = JavaSourceUtil.getClassInfo( rawType.getName(), module );
+      type = JavaSourceUtil.getClassInfo( rawType.getName() );
       while( rawType.getComponentType() != null ) {
         type = new JavaArrayClassInfo( (IJavaClassInfo)type );
         rawType = rawType.getComponentType();
@@ -75,11 +72,6 @@ public abstract class AsmTypeJavaClassType extends JavaSourceElement implements 
   @Override
   public String getName() {
     return _type.toString();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _module;
   }
 
   @Override
@@ -98,9 +90,6 @@ public abstract class AsmTypeJavaClassType extends JavaSourceElement implements 
 
     AsmTypeJavaClassType that = (AsmTypeJavaClassType)o;
 
-    if( _module != null ? !_module.equals( that._module ) : that._module != null ) {
-      return false;
-    }
     if( !_type.equals( that._type ) ) {
       return false;
     }
@@ -111,7 +100,6 @@ public abstract class AsmTypeJavaClassType extends JavaSourceElement implements 
   @Override
   public int hashCode() {
     int result = _type.hashCode();
-    result = 31 * result + (_module != null ? _module.hashCode() : 0);
     return result;
   }
 

@@ -130,7 +130,6 @@ import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaConstructorInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.Rational;
 import gw.util.concurrent.LocklessLazyVar;
 
@@ -141,7 +140,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +152,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 {
   public static final String CTX_SYMBOL_SUFFIX = "_instr_ctx";
   public static final String CTX_SYMBOL = FunctionBodyTransformationContext.TEMP_VAR_PREFIX + CTX_SYMBOL_SUFFIX;
-  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = new ConcurrentHashMap<String, ICustomExpressionRuntime>();
+  public static final Map<String, ICustomExpressionRuntime> CUSTOM_RUNTIMES = new ConcurrentHashMap<>();
 
   public static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
   public static final String OUTER_ACCESS = "access$0";
@@ -223,26 +221,26 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public IRExpression callMethod( IRMethod method, IRExpression root, List<IRExpression> explicitArgs )
   {
-    return callMethod( method.getOwningIRType(), method, root, Collections.<IRExpression>emptyList(), explicitArgs, null, false );
+    return callMethod( method.getOwningIRType(), method, root, Collections.emptyList(), explicitArgs, null, false );
   }
 
   public IRExpression callMethod( IRMethod method, IRExpression root, List<IRExpression> explicitArgs, int[] namedArgOrder )
   {
-    return callMethod( method.getOwningIRType(), method, root, Collections.<IRExpression>emptyList(), explicitArgs, namedArgOrder, false );
+    return callMethod( method.getOwningIRType(), method, root, Collections.emptyList(), explicitArgs, namedArgOrder, false );
   }
 
   public IRExpression callMethod( IRMethod method, IRExpression root, List<IRExpression> explicitArgs, int[] namedArgOrder, boolean special )
   {
-    return callMethod( method.getOwningIRType(), method, root, Collections.<IRExpression>emptyList(), explicitArgs, namedArgOrder, special );
+    return callMethod( method.getOwningIRType(), method, root, Collections.emptyList(), explicitArgs, namedArgOrder, special );
   }
 
   public IRExpression callSpecialMethod( IRType rootType, IRMethod method, IRExpression root, List<IRExpression> explicitArgs )
   {
-    return callMethod( rootType, method, root, Collections.<IRExpression>emptyList(), explicitArgs, null, true );
+    return callMethod( rootType, method, root, Collections.emptyList(), explicitArgs, null, true );
   }
   public IRExpression callSpecialMethod( IRType rootType, IRMethod method, IRExpression root, List<IRExpression> explicitArgs, int[] namedArgOrder )
   {
-    return callSpecialMethod( rootType, method, root, Collections.<IRExpression>emptyList(), explicitArgs, namedArgOrder );
+    return callSpecialMethod( rootType, method, root, Collections.emptyList(), explicitArgs, namedArgOrder );
   }
   public IRExpression callSpecialMethod( IRType rootType, IRMethod method, IRExpression root, List<IRExpression> implicitArgs, List<IRExpression> explicitArgs, int[] namedArgOrder )
   {
@@ -256,7 +254,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     IType owner = method.getOwningIType();
 
-    List<IRExpression> actualArgs = new ArrayList<IRExpression>();
+    List<IRExpression> actualArgs = new ArrayList<>();
 
     List<IRElement> namedArgElements = handleNamedArgs( explicitArgs, namedArgOrder );
 
@@ -265,7 +263,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       // For enhancements, we want argument/root evaluation to happen the same as for a normal method
       // So we evaluate all the arguments to temp variables, then evaluate the root and null check-it,
       // and lastly invoke the method
-      List<IRExpression> tempArgs = new ArrayList<IRExpression>();
+      List<IRExpression> tempArgs = new ArrayList<>();
       pushEnhancementTypeParams( method, owner, tempArgs );
       pushTypeParams( method, tempArgs );
       if( shouldAddExternalSymbolsMapToCall( method ) )
@@ -275,7 +273,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       tempArgs.addAll( implicitArgs );
       tempArgs.addAll( explicitArgs );
 
-      List<IRElement> compositeElements = new ArrayList<IRElement>();
+      List<IRElement> compositeElements = new ArrayList<>();
       // Store the root to a temp variable and null-check it
       IRSymbol tempRoot = _cc().makeAndIndexTempSymbol( root.getType() );
       compositeElements.add( buildAssignment( tempRoot, root ) );
@@ -314,7 +312,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
       if( !namedArgElements.isEmpty() )
       {
-        List<IRElement> compositeElements = new ArrayList<IRElement>();
+        List<IRElement> compositeElements = new ArrayList<>();
 
         // Add the temp named arg assignments (if any)
         compositeElements.addAll( namedArgElements );
@@ -350,7 +348,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
    */
   public List<IRElement> handleNamedArgs( List<IRExpression> explicitArgs, int[] namedArgOrder )
   {
-    List<IRElement> namedArgElements = new ArrayList<IRElement>();
+    List<IRElement> namedArgElements = new ArrayList<>();
     if( namedArgOrder != null && namedArgOrder.length > 0 )
     {
       boolean b = namedArgOrder.length == explicitArgs.size();
@@ -402,7 +400,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   private IRMethodCallExpression callMethodDirectly( IRMethod method, IRExpression root, boolean special, IType owner, List<IRExpression> actualArgs )
   {
-    List<IRExpression> convertedArgs = new ArrayList<IRExpression>();
+    List<IRExpression> convertedArgs = new ArrayList<>();
     List<IRType> paramTypes = method.getAllParameterTypes();
     for (int i = 0; i < actualArgs.size(); i++) {
       convertedArgs.add( IRArgConverter.castOrConvertIfNecessary( paramTypes.get( i ), actualArgs.get( i ) ) );
@@ -443,12 +441,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     // Our three arguments to getDeclaredMethods are the owners Class, the name of the method, and
     // a Class[] containing the types of the parameters
-    List<IRExpression> argExprs = new ArrayList<IRExpression>();
+    List<IRExpression> argExprs = new ArrayList<>();
     IRType irOwnerType = getDescriptor( owner );
     argExprs.add( classLiteral( irOwnerType ) );
     argExprs.add( stringLiteral( strMethod ) );
 
-    List<IRExpression> paramClasses = new ArrayList<IRExpression>();
+    List<IRExpression> paramClasses = new ArrayList<>();
     for (IRType paramType : paramTypes) {
       paramClasses.add( classLiteral( IRElement.maybeEraseStructuralType( irOwnerType, paramType ) ) );
     }
@@ -459,7 +457,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     // and 2) an Object[] containing the values of all the arguments to the method
 
     // We need to make sure all the args are boxed, since they're going into an Object[]
-    List<IRExpression> boxedArgs = new ArrayList<IRExpression>();
+    List<IRExpression> boxedArgs = new ArrayList<>();
     for (IRExpression arg : args) {
       boxedArgs.add( boxValue( arg.getType(), arg ) );
     }
@@ -515,7 +513,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   public IRStatement nullCheckVar( IRSymbol symbol )
   {
     return new IRIfStatement( new IREqualityExpression( identifier( symbol ), nullLiteral(), true ),
-                              new IRThrowStatement( buildNewExpression( getDescriptor(NullPointerException.class), Collections.<IRType>emptyList(), exprList())),
+                              new IRThrowStatement( buildNewExpression( getDescriptor(NullPointerException.class), Collections.emptyList(), exprList())),
                               null);
   }
 
@@ -539,7 +537,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     IRMethodStatement method = makeLazyTypeMethod( type, tvs );
     _cc().getIrClass().addMethod( method );
     return buildNewExpression( LazyTypeResolver.class, new Class[]{LazyTypeResolver.ITypeResolver.class},
-                               Collections.<IRExpression>singletonList( buildLazyTypeResolverCall( method, tvs ) ) );
+                               Collections.singletonList( buildLazyTypeResolverCall( method, tvs ) ) );
   }
 
   private IRExpression maybePushFastLazyType( IType type )
@@ -732,7 +730,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
   private IRMethodStatement makeStaticLazyTypeMethod( IType type ) {
     DynamicFunctionSymbol dfs = _cc().getCurrentFunction();
-    List<IRSymbol> functionTypeVarParams = new ArrayList<IRSymbol>();
+    List<IRSymbol> functionTypeVarParams = new ArrayList<>();
     if( dfs != null && dfs.isReified() )
     {
       IGenericTypeVariable[] tvs = getGenericFunctionTypeVariables( dfs );
@@ -837,7 +835,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       currentFunction = currentFunction.getBackingDfs();
     }
     List<IGenericTypeVariable> typeVarsForDFS = getTypeVarsForDFS( currentFunction );
-    return typeVarsForDFS.toArray( new IGenericTypeVariable[typeVarsForDFS.size()] );
+    return typeVarsForDFS.toArray( new IGenericTypeVariable[0] );
   }
 
   public IRExpression pushType( IType type )
@@ -893,7 +891,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else if( type instanceof IBlockType )
     {
       IBlockType blockType = (IBlockType)type;
-      List<IRExpression> args = new ArrayList<IRExpression>();
+      List<IRExpression> args = new ArrayList<>();
 
       args.add( pushType( blockType.getReturnType() ) );
       args.add( pushArrayOfTypes( blockType.getParameterTypes() ) );
@@ -907,7 +905,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else if( type instanceof IFunctionType )
     {
       IFunctionType funcType = (IFunctionType)type;
-      List<IRExpression> args = new ArrayList<IRExpression>();
+      List<IRExpression> args = new ArrayList<>();
       args.add( pushConstant(funcType.getName() ) );
       args.add( pushType( funcType.getReturnType() ) );
       args.add( pushArrayOfTypes( funcType.getParameterTypes() ) );
@@ -919,11 +917,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       CompoundType compoundType = (CompoundType)type;
 
-      List<IRElement> elements = new ArrayList<IRElement>();
+      List<IRElement> elements = new ArrayList<>();
       IRSymbol tempSet = _cc().makeAndIndexTempSymbol( getDescriptor( HashSet.class ) );
 
       // Create a HashSet
-      elements.add( buildAssignment( tempSet, buildNewExpression(getDescriptor( HashSet.class ), Collections.<IRType>emptyList(), Collections.<IRExpression>emptyList()) ) );
+      elements.add( buildAssignment( tempSet, buildNewExpression(getDescriptor( HashSet.class ), Collections.emptyList(), Collections.emptyList()) ) );
 
       //Fill it in with the component types
       for( IType iType : compoundType.getTypes() )
@@ -953,9 +951,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else
     {
-      IModule module = getModule(genType);
-      IRExpression result = callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class, String.class},
-              Arrays.asList(pushConstant( genType.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
+      IRExpression result = callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class},
+        Collections.singletonList( pushConstant( genType.getName() ) ) );
 
       if( type.isParameterizedType() && !TypeLord.isRecursiveType( type ) && !isRecursiveTypeParsing( type ) )
       {
@@ -985,7 +982,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( array != null )
     {
-      List<IRExpression> elements = new ArrayList<IRExpression>( array.length );
+      List<IRExpression> elements = new ArrayList<>( array.length );
       for( String o : array )
       {
         elements.add( pushConstant( o ) );
@@ -999,7 +996,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   {
     if( array != null )
     {
-      List<IRExpression> elements = new ArrayList<IRExpression>( array.length );
+      List<IRExpression> elements = new ArrayList<>( array.length );
       for( IExpression o : array )
       {
         elements.add( pushConstant( o ) );
@@ -1011,7 +1008,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public IRExpression pushArrayOfTypes( IType[] types )
   {
-    List<IRExpression> values = new ArrayList<IRExpression>();
+    List<IRExpression> values = new ArrayList<>();
     for( IType type : types ) {
       values.add( pushType( type ) );
     }
@@ -1043,17 +1040,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           descriptor = descriptor.getComponentType();
           iDims++;
         }
-        paramTypes[i] = TypeSystem.getJavaClassInfo( descriptor.getName(), getModule( paramType ));
+        paramTypes[i] = TypeSystem.getJavaClassInfo( descriptor.getName() );
         while( iDims-- > 0 ) {
           paramTypes[i] = paramTypes[i].getArrayType();
         }
       }
     }
     return paramTypes;
-  }
-
-  private IModule getModule(IType type) {
-    return TypeSystem.getGlobalModule();
   }
 
   public IType getConcreteType( IType type )
@@ -1094,13 +1087,13 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   public IRExpression getDefaultConstIns( IType type )
   {
     if( type == JavaTypes.pBYTE()) {
-      return numericLiteral(Byte.valueOf((byte) 0));
+      return numericLiteral( (byte)0 );
     }
     else if (type == JavaTypes.pCHAR()) {
       return charLiteral( (char)0 );
     }
     else if (type == JavaTypes.pSHORT()) {
-      return numericLiteral(Short.valueOf((short) 0));
+      return numericLiteral( (short)0 );
     }
     else if (type == JavaTypes.pINT()) {
       return numericLiteral(0);
@@ -1110,15 +1103,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else if( type == JavaTypes.pLONG() )
     {
-      return numericLiteral(Long.valueOf(0));
+      return numericLiteral( 0L );
     }
     else if( type == JavaTypes.pFLOAT() )
     {
-      return numericLiteral(Float.valueOf(0));
+      return numericLiteral( (float)0 );
     }
     else if( type == JavaTypes.pDOUBLE() )
     {
-      return numericLiteral(Double.valueOf(0));
+      return numericLiteral( (double)0 );
     }
     else
     {
@@ -1312,7 +1305,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   // chokes on negative chars
   public static Character valueOf( char c )
   {
-    if( c >= 0 && c <= 127 )
+    if( c <= 127 )
     {
       return c;
     }
@@ -1420,42 +1413,42 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( lhsType == JavaTypes.pBOOLEAN() )
     {
       return callMethod(Boolean.class, "booleanValue", new Class[]{},
-              checkCast(Boolean.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Boolean.class, expression), Collections.emptyList());
     }
     if( lhsType == JavaTypes.pBYTE() )
     {
       return callMethod(Byte.class, "byteValue", new Class[]{},
-              checkCast(Byte.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Byte.class, expression), Collections.emptyList());
     }
     if( lhsType == JavaTypes.pCHAR() )
     {
       return callMethod(Character.class, "charValue", new Class[]{},
-              checkCast(Character.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Character.class, expression), Collections.emptyList());
     }
     if( lhsType == JavaTypes.pSHORT() )
     {
       return callMethod(Short.class, "shortValue", new Class[]{},
-              checkCast(Short.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Short.class, expression), Collections.emptyList());
     }
     if( lhsType == JavaTypes.pINT() )
     {
       return callMethod(Integer.class, "intValue", new Class[]{},
-              checkCast(Integer.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Integer.class, expression), Collections.emptyList());
     }
     else if( lhsType == JavaTypes.pLONG() )
     {
       return callMethod(Long.class, "longValue", new Class[]{},
-              checkCast(Long.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Long.class, expression), Collections.emptyList());
     }
     else if( lhsType == JavaTypes.pFLOAT() )
     {
       return callMethod(Float.class, "floatValue", new Class[]{},
-              checkCast(Float.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Float.class, expression), Collections.emptyList());
     }
     else if( lhsType == JavaTypes.pDOUBLE() )
     {
       return callMethod(Double.class, "doubleValue", new Class[]{},
-              checkCast(Double.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Double.class, expression), Collections.emptyList());
     }
     else if (lhsType == JavaTypes.pVOID() )
     {
@@ -1476,42 +1469,42 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( lhsType.isBoolean() )
     {
       return callMethod(Boolean.class, "booleanValue", new Class[]{},
-              checkCast(Boolean.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Boolean.class, expression), Collections.emptyList());
     }
     if( lhsType.isByte() )
     {
       return callMethod(Byte.class, "byteValue", new Class[]{},
-              checkCast(Byte.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Byte.class, expression), Collections.emptyList());
     }
     if( lhsType.isChar() )
     {
       return callMethod(Character.class, "charValue", new Class[]{},
-              checkCast(Character.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Character.class, expression), Collections.emptyList());
     }
     if( lhsType.isShort() )
     {
       return callMethod(Short.class, "shortValue", new Class[]{},
-              checkCast(Short.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Short.class, expression), Collections.emptyList());
     }
     if( lhsType.isInt() )
     {
       return callMethod(Integer.class, "intValue", new Class[]{},
-              checkCast(Integer.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Integer.class, expression), Collections.emptyList());
     }
     else if( lhsType.isLong() )
     {
       return callMethod(Long.class, "longValue", new Class[]{},
-              checkCast(Long.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Long.class, expression), Collections.emptyList());
     }
     else if( lhsType.isFloat() )
     {
       return callMethod(Float.class, "floatValue", new Class[]{},
-              checkCast(Float.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Float.class, expression), Collections.emptyList());
     }
     else if( lhsType.isDouble() )
     {
       return callMethod(Double.class, "doubleValue", new Class[]{},
-              checkCast(Double.class, expression), Collections.<IRExpression>emptyList());
+              checkCast(Double.class, expression), Collections.emptyList());
     }
     else if (lhsType.isVoid() )
     {
@@ -1532,42 +1525,42 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( boxedType == JavaTypes.BOOLEAN() )
     {
       return callMethod( Boolean.class, "booleanValue", new Class[0],
-              checkCast( Boolean.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Boolean.class, root ), Collections.emptyList() );
     }
     if( boxedType == JavaTypes.BYTE() )
     {
       return callMethod( Byte.class, "byteValue", new Class[0],
-              checkCast( Byte.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Byte.class, root ), Collections.emptyList() );
     }
     if( boxedType == JavaTypes.CHARACTER() )
     {
       return callMethod( Character.class, "charValue", new Class[0],
-              checkCast( Character.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Character.class, root ), Collections.emptyList() );
     }
     if( boxedType == JavaTypes.SHORT() )
     {
       return callMethod( Short.class, "shortValue", new Class[0],
-              checkCast( Short.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Short.class, root ), Collections.emptyList() );
     }
     if( boxedType == JavaTypes.INTEGER() )
     {
       return callMethod( Integer.class, "intValue", new Class[0],
-              checkCast( Integer.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Integer.class, root ), Collections.emptyList() );
     }
     else if( boxedType == JavaTypes.LONG() )
     {
       return callMethod( Long.class, "longValue", new Class[0],
-              checkCast( Long.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Long.class, root ), Collections.emptyList() );
     }
     else if( boxedType == JavaTypes.FLOAT() )
     {
       return callMethod( Float.class, "floatValue", new Class[0],
-              checkCast( Float.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Float.class, root ), Collections.emptyList() );
     }
     else if( boxedType == JavaTypes.DOUBLE() )
     {
       return callMethod( Double.class, "doubleValue", new Class[0],
-              checkCast( Double.class, root ), Collections.<IRExpression>emptyList() );
+              checkCast( Double.class, root ), Collections.emptyList() );
     } else {
       throw new IllegalArgumentException("Unexpected type " + boxedType.getName());
     }
@@ -1616,7 +1609,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     if( expr.getType() != JavaTypes.STRING() )
     {
       return callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
-              callStaticMethod( CommonServices.class, "getCoercionManager", new Class[0], Collections.<IRExpression>emptyList() ),
+              callStaticMethod( CommonServices.class, "getCoercionManager", new Class[0], Collections.emptyList() ),
               Collections.singletonList(ExpressionTransformer.compile( expr, _cc() )));
     }
     else
@@ -1735,11 +1728,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else if ( primitive == JavaTypes.pBYTE() )
     {
-      return numericLiteral( Byte.valueOf( (byte) 0 ) );
+      return numericLiteral( (byte)0 );
     }
     else if ( primitive == JavaTypes.pSHORT() )
     {
-      return numericLiteral( Short.valueOf( (short) 0 ) );
+      return numericLiteral( (short)0 );
     }
     else if (
         primitive == JavaTypes.pCHAR() ||
@@ -1749,15 +1742,15 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
     else if( primitive == JavaTypes.pLONG() )
     {
-      return numericLiteral( Long.valueOf(0) );
+      return numericLiteral( 0L );
     }
     else if( primitive == JavaTypes.pFLOAT() )
     {
-      return numericLiteral( Float.valueOf(0) );
+      return numericLiteral( (float)0 );
     }
     else if( primitive == JavaTypes.pDOUBLE() )
     {
-      return numericLiteral( Double.valueOf(0) );
+      return numericLiteral( (double)0 );
     }
     else
     {
@@ -1779,15 +1772,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       CompoundType ct = (CompoundType)type;
       Set<IType> types = ct.getTypes();
-      List<IType> ltypes = new ArrayList<IType>( types );
-      Collections.sort( ltypes,
-                        new Comparator<IType>()
-                        {
-                          public int compare( IType t1, IType t2 )
-                          {
-                            return t1.isInterface() ? 0 : 1;
-                          }
-                        } );
+      List<IType> ltypes = new ArrayList<>( types );
+      ltypes.sort( (t1, t2) -> t1.isInterface() ? 0 : 1 );
       IRExpression last = expression;
       // Nest the casts, with the concrete type last
       for( IType t : ltypes )
@@ -1811,66 +1797,66 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       if( bigType == JavaTypes.BIG_DECIMAL() )
       {
-        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigDecimal", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigDecimal", BigInteger.class, new Class[]{}, operand, Collections.emptyList() ) );
       }
       else
       {
-        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( Rational.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.emptyList() ) );
       }
     }
     else {
       IType dimensionType = findDimensionType( operandType );
       if( dimensionType != null ) {
-        return convertOperandToBig( bigType, bigClass, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+        return convertOperandToBig( bigType, bigClass, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.emptyList() ), tempRet );
       }
 
       if( operandType == JavaTypes.BIG_INTEGER() ) {
-        tempOperandAssn = buildAssignment( tempRet, buildNewExpression( BigDecimal.class, new Class[]{BigInteger.class}, Collections.<IRExpression>singletonList( operand ) ) );
+        tempOperandAssn = buildAssignment( tempRet, buildNewExpression( BigDecimal.class, new Class[]{BigInteger.class}, Collections.singletonList( operand ) ) );
       }
       else if( operandType == JavaTypes.BIG_DECIMAL() ) {
-        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( BigDecimal.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.<IRExpression>emptyList() ) );
+        tempOperandAssn = buildAssignment( tempRet, buildMethodCall( BigDecimal.class, "toBigInteger", BigInteger.class, new Class[]{}, operand, Collections.emptyList() ) );
       }
       else if( StandardCoercionManager.isBoxed( operandType ) ) {
         if( bigClass == BigInteger.class || isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
           if( operandType == JavaTypes.CHARACTER() ) {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class},
-                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
+                                                                      Collections.singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
                                                                                                                               buildMethodCall( getDescriptor( operandType ), "charValue", false,
-                                                                                                                                               getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                                               Collections.<IRExpression>emptyList() ) ) ) ) );
+                                                                                                                                               getDescriptor( char.class ), Collections.emptyList(), operand,
+                                                                                                                                               Collections.emptyList() ) ) ) ) );
           }
           else {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class},
-                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
-                                                                                                                  getDescriptor( long.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+                                                                      Collections.singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
+                                                                                                                  getDescriptor( long.class ), Collections.emptyList(), operand,
+                                                                                                                  Collections.emptyList() ) ) ) );
           }
         }
         else {
           if( operandType == JavaTypes.CHARACTER() ) {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {double.class},
-                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
+                                                                      Collections.singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
                                                                                                                  buildMethodCall( getDescriptor( operandType ), "charValue", false,
-                                                                                                                                  getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) ) );
+                                                                                                                                  getDescriptor( char.class ), Collections.emptyList(), operand,
+                                                                                                                                  Collections.emptyList() ) ) ) ) );
           }
           else if( operandType == JavaTypes.FLOAT() ) {
             tempOperandAssn = buildAssignment( tempRet, buildNewExpression( bigClass, new Class[] {String.class},
-                                                Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
-                                                                                                          getDescriptor( String.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                          Collections.<IRExpression>emptyList() ) ) ) );
+                                                Collections.singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
+                                                                                                          getDescriptor( String.class ), Collections.emptyList(), operand,
+                                                                                                          Collections.emptyList() ) ) ) );
           }
           else {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {double.class},
-                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
-                                                                                                                  getDescriptor( double.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+                                                                      Collections.singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
+                                                                                                                  getDescriptor( double.class ), Collections.emptyList(), operand,
+                                                                                                                  Collections.emptyList() ) ) ) );
           }
         }
       }
       else if( operandType.isPrimitive() ) {
         if( bigClass == BigDecimal.class && operandType == JavaTypes.pFLOAT() ) {
-          tempOperandAssn = buildAssignment( tempRet,  buildNewExpression( bigClass, new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.<IRExpression>singletonList( operand ) ) ) ) );
+          tempOperandAssn = buildAssignment( tempRet,  buildNewExpression( bigClass, new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.singletonList( operand ) ) ) ) );
         }
         else if( bigClass == BigInteger.class || isIntType( operandType ) || operandType == JavaTypes.pLONG() ) {
           tempOperandAssn = buildAssignment( tempRet, callStaticMethod( bigClass, "valueOf", new Class[] {long.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pLONG(), operand ) ) ) );
@@ -1902,50 +1888,50 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else {
       IType dimensionType = findDimensionType( operandType );
       if( dimensionType != null ) {
-        return convertOperandToRational( dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+        return convertOperandToRational( dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.emptyList() ), tempRet );
       }
 
       if( StandardCoercionManager.isBoxed( operandType ) ) {
         if( isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
           if( operandType == JavaTypes.CHARACTER() ) {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
-                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
+                                                                      Collections.singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( long.class ),
                                                                                                                               buildMethodCall( getDescriptor( operandType ), "charValue", false,
-                                                                                                                                               getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                                               Collections.<IRExpression>emptyList() ) ) ) ) );
+                                                                                                                                               getDescriptor( char.class ), Collections.emptyList(), operand,
+                                                                                                                                               Collections.emptyList() ) ) ) ) );
           }
           else {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class},
-                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
-                                                                                                                  getDescriptor( long.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+                                                                      Collections.singletonList( buildMethodCall( getDescriptor( operandType ), "longValue", false,
+                                                                                                                  getDescriptor( long.class ), Collections.emptyList(), operand,
+                                                                                                                  Collections.emptyList() ) ) ) );
           }
         }
         else {
           if( operandType == JavaTypes.CHARACTER() ) {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "valueOf", new Class[] {double.class},
-                                                                      Collections.<IRExpression>singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
+                                                                      Collections.singletonList( numberConvert( getDescriptor( char.class ), getDescriptor( double.class ),
                                                                                                                  buildMethodCall( getDescriptor( operandType ), "charValue", false,
-                                                                                                                                  getDescriptor( char.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) ) );
+                                                                                                                                  getDescriptor( char.class ), Collections.emptyList(), operand,
+                                                                                                                                  Collections.emptyList() ) ) ) ) );
           }
           else if( operandType == JavaTypes.FLOAT() ) {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {String.class},
-                                                Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
-                                                                                                          getDescriptor( String.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                          Collections.<IRExpression>emptyList() ) ) ) );
+                                                Collections.singletonList( buildMethodCall( getDescriptor( Float.class ), "toString", false,
+                                                                                                          getDescriptor( String.class ), Collections.emptyList(), operand,
+                                                                                                          Collections.emptyList() ) ) ) );
           }
           else {
             tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {double.class},
-                                                                      Collections.<IRExpression>singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
-                                                                                                                  getDescriptor( double.class ), Collections.<IRType>emptyList(), operand,
-                                                                                                                  Collections.<IRExpression>emptyList() ) ) ) );
+                                                                      Collections.singletonList( buildMethodCall( getDescriptor( operandType ), "doubleValue", false,
+                                                                                                                  getDescriptor( double.class ), Collections.emptyList(), operand,
+                                                                                                                  Collections.emptyList() ) ) ) );
           }
         }
       }
       else if( operandType.isPrimitive() ) {
         if( operandType == JavaTypes.pFLOAT() ) {
-          tempOperandAssn = buildAssignment( tempRet,  callStaticMethod( Rational.class, "get", new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.<IRExpression>singletonList( operand ) ) ) ) );
+          tempOperandAssn = buildAssignment( tempRet,  callStaticMethod( Rational.class, "get", new Class[]{String.class}, Collections.singletonList( callStaticMethod( String.class, "valueOf", new Class[]{float.class}, Collections.singletonList( operand ) ) ) ) );
         }
         else if( isIntType( operandType ) || operandType == JavaTypes.pLONG() ) {
           tempOperandAssn = buildAssignment( tempRet, callStaticMethod( Rational.class, "get", new Class[] {long.class}, Collections.singletonList( numberConvert( operandType, JavaTypes.pLONG(), operand ) ) ) );
@@ -1969,33 +1955,33 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     else {
       IType dimensionType = findDimensionType( operandType );
       if( dimensionType != null ) {
-        return convertOperandToPrimitive( primitiveType, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.<IRExpression>emptyList() ), tempRet );
+        return convertOperandToPrimitive( primitiveType, dimensionType, callMethod( IDimension.class, "toNumber", new Class[]{}, operand, Collections.emptyList() ), tempRet );
       }
 
       if( operandType == JavaTypes.BIG_INTEGER() ) {
         tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pLONG(), primitiveType,
-                                                                   callMethod( BigInteger.class, "longValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                   callMethod( BigInteger.class, "longValue", new Class[]{}, operand, Collections.emptyList() ) ) );
       }
       else if( operandType == JavaTypes.BIG_DECIMAL() ) {
         tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pDOUBLE(), primitiveType,
-                                                                   callMethod( BigDecimal.class, "doubleValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                   callMethod( BigDecimal.class, "doubleValue", new Class[]{}, operand, Collections.emptyList() ) ) );
       }
       else if( StandardCoercionManager.isBoxed( operandType ) ) {
         if( operandType == JavaTypes.CHARACTER() ) {
           tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pCHAR(), primitiveType,
-                                                                     callMethod( Character.class, "charValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                     callMethod( Character.class, "charValue", new Class[]{}, operand, Collections.emptyList() ) ) );
         }
         else if( isBoxedIntType( operandType ) || operandType == JavaTypes.LONG() ) {
           tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pLONG(), primitiveType,
-                                                                     callMethod( Number.class, "longValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                     callMethod( Number.class, "longValue", new Class[]{}, operand, Collections.emptyList() ) ) );
         }
         else if( operandType == JavaTypes.FLOAT() ) {
           tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pFLOAT(), primitiveType,
-                                                                     callMethod( Float.class, "floatValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                     callMethod( Float.class, "floatValue", new Class[]{}, operand, Collections.emptyList() ) ) );
         }
         else if( operandType == JavaTypes.DOUBLE() ) {
           tempOperandAssn = buildAssignment( tempRet, numberConvert( JavaTypes.pDOUBLE(), primitiveType,
-                                                                     callMethod( Float.class, "doubleValue", new Class[]{}, operand, Collections.<IRExpression>emptyList() ) ) );
+                                                                     callMethod( Float.class, "doubleValue", new Class[]{}, operand, Collections.emptyList() ) ) );
         }
         else {
           throw new IllegalStateException( "Unhandled type: " + operandType.getName() );
@@ -2085,7 +2071,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     }
 
     // If the symbol is on this class, or any ancestors, it's not enclosed
-    //noinspection SuspiciousMethodCalls
     IType symbolClass = maybeUnwrapProxy( symbol.getGosuClass() );
     if( getGosuClass().getAllTypesInHierarchy().contains( symbolClass ) )
     {
@@ -2102,7 +2087,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     while( enclosingClass != null )
     {
-      //noinspection SuspiciousMethodCalls
       if( enclosingClass.getAllTypesInHierarchy().contains( symbolClass ) )
       {
         return enclosingClass;
@@ -2128,7 +2112,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     IType enhancedType = ((IGosuEnhancement) enhancement).getEnhancedType();
 
     // If the symbol is on this class, or any ancestors, it's not enclosed
-    //noinspection SuspiciousMethodCalls
     if (getGosuClass().getAllTypesInHierarchy().contains( enhancedType )) {
       return false;
     }
@@ -2136,7 +2119,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     ICompilableTypeInternal enclosingClass = _cc().getEnclosingType();
     while( enclosingClass != null )
     {
-      //noinspection SuspiciousMethodCalls
       if( enclosingClass.getAllTypesInHierarchy().contains( enhancedType ) )
       {
         return true;
@@ -2529,7 +2511,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         // If it needs to be initialized, we trap the creation in a temp variable, then assign to it,
         // then load it and cast it at the end
         IRSymbol temp = _cc().makeAndIndexTempSymbol(IRTypeConstants.OBJECT());
-        List<IRElement> statements = new ArrayList<IRElement>();
+        List<IRElement> statements = new ArrayList<>();
         statements.add( buildAssignment( temp, arrayCreation ) );
 
         // For each value, we need to call setArrayComponent on the type, using this value
@@ -2566,7 +2548,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
               pushType( atomicType ),
               exprList( ExpressionTransformer.compile( sizeExpressions.get( 0 ), _cc() ) ) );
 
-      List<IRExpression> sizes = new ArrayList<IRExpression>();
+      List<IRExpression> sizes = new ArrayList<>();
       sizes.add(numericLiteral(0)); // First one doesn't matter
       for (int i = 1; i < sizeExpressions.size(); i++) {
         sizes.add( ExpressionTransformer.compile( sizeExpressions.get(i), _cc() ) );
@@ -2610,7 +2592,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     if( rtType instanceof TypeVariableType )
     {
-      return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.<IRExpression>emptyList() ) );
+      return buildCast( getDescriptor( IType.class ), buildMethodCall( LazyTypeResolver.class, "get", Object.class, new Class[0], getRuntimeTypeParameter( (TypeVariableType)rtType ), Collections.emptyList() ) );
     }
     else if( rtType instanceof TypeVariableArrayType )
     {
@@ -2625,7 +2607,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       IRExpression typeNameExpression = callMethod( String.class, "concat", new Class[]{String.class},
         callMethod( IType.class, "getName", new Class[0],
                     pushRuntimeTypeOfTypeVar( rtType ),
-                    Collections.<IRExpression>emptyList() ),
+                    Collections.emptyList() ),
         Collections.singletonList( pushConstant( brackets.toString() ) ) );
       return callStaticMethod( TypeSystem.class, "getByFullName", new Class[]{String.class}, Collections.singletonList( typeNameExpression ) );
     }
@@ -2769,9 +2751,8 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private IRExpression pushLazyTypeByFqn( IType boundingType )
   {
     boundingType = TypeLord.getPureGenericType( boundingType );
-    IModule module = getModule( boundingType );
-    return buildNewExpression( SimpleTypeLazyTypeResolver.class, new Class[]{String.class, String.class},
-                               Arrays.<IRExpression>asList( pushConstant( boundingType.getName() ), module == null ? pushNull() : pushConstant( module.getName() ) ) );
+    return buildNewExpression( SimpleTypeLazyTypeResolver.class, new Class[]{String.class},
+      Collections.singletonList( pushConstant( boundingType.getName() ) ) );
   }
 
   private boolean equivalentTypes( IType type1, IType type2 )
@@ -2829,7 +2810,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public static List<IGenericTypeVariable> getTypeVarsForDFS( IDynamicFunctionSymbol dfs )
   {
-    ArrayList<IGenericTypeVariable> typeVars = new ArrayList<IGenericTypeVariable>();
+    ArrayList<IGenericTypeVariable> typeVars = new ArrayList<>();
     if( !dfs.isStatic() && isEnhancementType( dfs.getGosuClass() ) )
     {
       typeVars.addAll( Arrays.asList( getTypeVarsForEnhancement( dfs ) ) );
@@ -2865,7 +2846,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
    */
   protected IRType[] getConstructorParamTypes( IType[] declaredParams, int iTypeParams, IType type )
   {
-    List<IRType> params = new ArrayList<IRType>();
+    List<IRType> params = new ArrayList<>();
 
     //
     // Insert outer 'this'
@@ -2919,7 +2900,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       params.add( getDescriptor( declaredParam ) );
     }
 
-    return params.toArray( new IRType[params.size()] );
+    return params.toArray( new IRType[0] );
   }
 
   protected int pushTypeParametersForConstructor( IExpression expr, IType type, List<IRExpression> args, boolean bSuperCall, boolean genericJavaInterop )
@@ -3083,7 +3064,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         {
           if( isCapturedOnEnclosingAnonymousClass( sym, (IGosuClassInternal)type ) )
           {
-            args.add( getInstanceField( getGosuClass(), CAPTURED_VAR_PREFIX + sym.getName(), getDescriptor( sym.getType().getArrayType() ), AccessibilityUtil.forSymbol((IReducedSymbol) sym),
+            args.add( getInstanceField( getGosuClass(), CAPTURED_VAR_PREFIX + sym.getName(), getDescriptor( sym.getType().getArrayType() ), AccessibilityUtil.forSymbol(sym),
                     pushThis()));
           }
           else
@@ -3112,7 +3093,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   public IRExpression collectArgsIntoObjArray( List<IRExpression> args )
   {
-    List<IRExpression> values = new ArrayList<IRExpression>();
+    List<IRExpression> values = new ArrayList<>();
     if( args != null )
     {
       for( IRExpression arg : args )
@@ -3145,7 +3126,6 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   /**
-   * @param type
    * @return the actual runtime enclosing type of this type (handles the case of enhancements, when
    * the "enclosing type" at runtime will be the enhanced object, rather than the acutal enclosing type)
    */
@@ -3356,7 +3336,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
   protected IRExpression buildInitializedArray( IRType componentType, List<IRExpression> values ) {
     componentType = IRElement.maybeEraseStructuralType( componentType );
-    List<IRElement> elements = new ArrayList<IRElement>();
+    List<IRElement> elements = new ArrayList<>();
     IRSymbol tempArray = _cc.makeAndIndexTempSymbol( componentType.getArrayType() );
     elements.add( buildAssignment( tempArray, newArray( componentType, numericLiteral( values.size() ) ) ) );
     for (int i = 0; i < values.size(); i++) {
@@ -3396,7 +3376,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   protected static List<IRType> getIRTypes(Class[] classes) {
-    List<IRType> types = new ArrayList<IRType>(classes.length);
+    List<IRType> types = new ArrayList<>( classes.length );
     for (int i = 0; i < classes.length; i++) {
       types.add(getDescriptor(classes[i]));
     }
@@ -3404,7 +3384,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   }
 
   protected static List<IRType> getIRTypes(IJavaClassInfo[] iJavaClassInfos) {
-    List<IRType> types = new ArrayList<IRType>(iJavaClassInfos.length);
+    List<IRType> types = new ArrayList<>( iJavaClassInfos.length );
     for (int i = 0; i < iJavaClassInfos.length; i++) {
       types.add(getDescriptor(iJavaClassInfos[i]));
     }
@@ -3591,11 +3571,11 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         stringValueExpr = callStaticMethod( String.class, "valueOf", new Class[]{char[].class}, Collections.singletonList( expr ) );
       }
       else if( !isHandledByCustomCoercion( operandType ) ) {
-        stringValueExpr = callMethod( Object.class, "toString", new Class[0], expr, Collections.<IRExpression>emptyList() );
+        stringValueExpr = callMethod( Object.class, "toString", new Class[0], expr, Collections.emptyList() );
       }
       else {
         stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
-                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.emptyList() ),
                        Collections.singletonList( expr ) );
       }
     }
@@ -3607,12 +3587,12 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
                          : primitiveClass;
         stringValueExpr = primitiveClass == void.class
                           ? nullLiteral()
-                          : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.<IRExpression>singletonList( expr ) );
+                          : callStaticMethod( String.class, "valueOf", new Class[]{primitiveClass}, Collections.singletonList( expr ) );
       }
       else {
         // This is really stupid, but the pl coercion mgr converts double/float to non-decimal strings if the value is non-fractional, so instead of printing 1.0 for a normal _decimal_ value it prints 1  (fart)
         stringValueExpr = callMethod( ICoercionManager.class, "makeStringFrom", new Class[]{Object.class},
-                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.<IRExpression>emptyList() ),
+                       callStaticMethod( CommonServices.class, "getCoercionManager", new Class[]{}, Collections.emptyList() ),
                        Collections.singletonList( boxValue( getDescriptor( primitiveClass ), expr ) ) );
       }
     }

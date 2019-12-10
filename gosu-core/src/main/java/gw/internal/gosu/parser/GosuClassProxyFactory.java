@@ -30,7 +30,6 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 import gw.util.GosuClassUtil;
 import gw.util.Array;
@@ -162,19 +161,11 @@ public class GosuClassProxyFactory
 
   private IGosuClass createJavaInterfaceProxy( final IJavaType type )
   {
-    final IModule module = type.getTypeLoader().getModule();
-    GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
+    GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader();
     String fqn = getProxyName( type );
     return loader.makeNewClass(
-        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
-          TypeSystem.pushModule( module );
-          try {
-            return genJavaInterfaceProxy( type ).toString();
-          }
-          finally {
-            TypeSystem.popModule( module );
-          }
-        }, ClassType.Class ));
+        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn,
+          () -> genJavaInterfaceProxy( type ).toString(), ClassType.Class ));
   }
 
   private IGosuClass createJavaClassProxy( final IJavaType type )
@@ -186,19 +177,10 @@ public class GosuClassProxyFactory
       return (IGosuClass)compilingType;
     }
 
-    final IModule module = type.getTypeLoader().getModule();
     String fqn = getProxyName( type );
-    return GosuClassTypeLoader.getDefaultClassLoader( module ).makeNewClass(
-      new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
-        TypeSystem.pushModule( module );
-        try {
-          return genJavaClassProxy( type ).toString();
-        }
-        finally
-        {
-          TypeSystem.popModule( module );
-        }
-      }, ClassType.Class ) );
+    return GosuClassTypeLoader.getDefaultClassLoader().makeNewClass(
+      new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn,
+        () -> genJavaClassProxy( type ).toString(), ClassType.Class ) );
   }
 
   private static String getProxyName( IType type )
@@ -389,10 +371,7 @@ public class GosuClassProxyFactory
       return arrayValue.toString();
     }
     if(isArray) {
-      StringBuilder arrayValue = new StringBuilder( "{" );
-      arrayValue.append( makeValueString( value, returnType.getComponentType() ) );
-      arrayValue.append( "}" );
-      return arrayValue.toString();
+      return "{" + makeValueString( value, returnType.getComponentType() ) + "}";
     }
     throw new IllegalStateException();
   }

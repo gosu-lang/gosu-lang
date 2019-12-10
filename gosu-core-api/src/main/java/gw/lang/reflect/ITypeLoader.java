@@ -8,7 +8,6 @@ import gw.config.IService;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.reflect.gs.TypeName;
-import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.List;
@@ -16,12 +15,7 @@ import java.util.Set;
 
 public interface ITypeLoader extends IService
 {
-  public static final String[] NO_TYPES = new String[0];
-
-  /**
-   * @return The module to which this type loader belongs.
-   */
-  IModule getModule();
+  String[] NO_TYPES = new String[0];
 
   /**
    * Gets a type based on a fully-qualified name.  This could either be the name of an entity,

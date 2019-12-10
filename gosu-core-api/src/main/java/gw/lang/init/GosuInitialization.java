@@ -7,7 +7,6 @@ package gw.lang.init;
 import gw.lang.UnstableAPI;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 
 import java.io.File;
@@ -116,24 +115,6 @@ public class GosuInitialization
     } else {
       getGosuInitialization().initializeSimpleIde( _execEnv, module );
     }
-    _initialized = true;
-  }
-
-  // multiple modules
-
-  public void initializeMultipleModules( List<? extends IModule> modules ) {
-    if (_initialized) {
-      throw new IllegalStateException("Illegal attempt to initialize Gosu");
-    }
-    getGosuInitialization().initializeMultipleModules( _execEnv, modules );
-    _initialized = true;
-  }
-
-  public void uninitializeMultipleModules() {
-    if (!_initialized) {
-      throw new IllegalStateException("Illegal attempt to uninitialize Gosu");
-    }
-    getGosuInitialization().uninitializeMultipleModules( _execEnv );
     _initialized = true;
   }
 

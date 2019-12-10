@@ -5,10 +5,8 @@
 package gw.lang.reflect;
 
 import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.gs.IGenericTypeVariable;
-import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
@@ -18,7 +16,6 @@ import java.util.Set;
 
 public abstract class TypeBase extends AbstractType implements IType
 {
-  private static final IType[] EMPTY_INTRINSIC_TYPES_ARRAY = new IType[0];
   private static final IGenericTypeVariable[] EMPTY_TYPE_VARIABLES_ARRAY = new IGenericTypeVariable[0];
 
   private transient final LockingLazyVar<Set<? extends IType>> _allTypesInHierarchyCache;
@@ -100,7 +97,7 @@ public abstract class TypeBase extends AbstractType implements IType
 
   public IType[] getTypeParameters()
   {
-    return EMPTY_INTRINSIC_TYPES_ARRAY;
+    return IType.EMPTY_TYPE_ARRAY;
   }
 
   public boolean isArray()
@@ -120,8 +117,6 @@ public abstract class TypeBase extends AbstractType implements IType
 
   public void setArrayComponent( Object array, int iIndex, Object value ) throws IllegalArgumentException, ArrayIndexOutOfBoundsException
   {
-    // Why does IntelliJ warn here?
-    //noinspection RedundantCast
     ((Object[]) array)[iIndex] = value;
   }
 
@@ -189,7 +184,7 @@ public abstract class TypeBase extends AbstractType implements IType
 
   protected static Set<IType> getAllClassesInClassHierarchyAsIntrinsicTypes( IType type )
   {
-    HashSet<IType> typeSet = new HashSet<IType>();
+    HashSet<IType> typeSet = new HashSet<>();
     addAllClassesInClassHierarchy( type, typeSet );
     return typeSet;
   }
@@ -218,7 +213,7 @@ public abstract class TypeBase extends AbstractType implements IType
 
   protected Set<IType> getArrayVersionsOfEachType( Set<? extends IType> componentTypes )
   {
-    Set<IType> allTypes = new HashSet<IType>( 1 + componentTypes.size() );
+    Set<IType> allTypes = new HashSet<>( 1 + componentTypes.size() );
     allTypes.add( JavaTypes.OBJECT() );
     for( IType componentType : componentTypes )
     {
@@ -228,7 +223,6 @@ public abstract class TypeBase extends AbstractType implements IType
   }
 
   public boolean isAssignableFrom(IType type) {
-    //noinspection SuspiciousMethodCalls
     return type.getAllTypesInHierarchy().contains( TypeSystem.getOrCreateTypeReference( this ) );
   }
 
@@ -266,20 +260,6 @@ public abstract class TypeBase extends AbstractType implements IType
   }
 
   public Set<IType> getCompoundTypeComponents() {
-    return null;
-  }
-
-  public IJavaType loadJavaType(String fullyQualifiedName) {
-    IModule module = getTypeLoader().getModule();
-    for (IModule m : module.getModuleTraversalList()) {
-      if (m != module) {
-        IDefaultTypeLoader typeLoader = m.getTypeLoaders(IDefaultTypeLoader.class).get(0);
-        IType type = typeLoader.getType(fullyQualifiedName);
-        if (type != null) {
-          return (IJavaType) type;
-        }
-      }
-    }
     return null;
   }
 }

@@ -4,8 +4,6 @@
 
 package gw.lang.parser;
 
-import gw.lang.reflect.module.IModule;
-
 public interface IFileContext
 {
   /**

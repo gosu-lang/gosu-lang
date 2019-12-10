@@ -80,7 +80,7 @@ public class GosuFragmentParser implements IGosuFragmentParser {
           result = parser.parseProgram( new ScriptPartId(fragment, null), true, true, options.getExpectedType(), options.getFileContext(), false );
         }
       } finally {
-        CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable( fragment );
+        CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
       }
       fragment.setExpression( result );     
       return fragment;
@@ -114,10 +114,10 @@ public class GosuFragmentParser implements IGosuFragmentParser {
     Map symbols = symbolTable.getSymbols();
     if( symbols == null && options.getAdditionalDFSDecls() == null && options.getDeclSymbols() == null)
     {
-      return new HashMap<String, ISymbol>( 0 );
+      return new HashMap<>( 0 );
     }
 
-    HashMap<String, ISymbol> symbolNames = new HashMap<String, ISymbol>( 8 );
+    HashMap<String, ISymbol> symbolNames = new HashMap<>( 8 );
     if (symbols != null) {
       //noinspection unchecked
       for (ISymbol sym : (Collection<ISymbol>) symbols.values()) {

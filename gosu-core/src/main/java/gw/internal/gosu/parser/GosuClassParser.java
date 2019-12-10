@@ -134,7 +134,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
   public GosuClassParser( GosuParser owner )
   {
     super( owner );
-    _innerClasses = new Stack<IGosuClassInternal>();
+    _innerClasses = new Stack<>();
   }
 
   //## todo: maybe ctors should set the class here so that subsequent calls to parseXxx() don't need to take a IGosuClass
@@ -151,7 +151,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       goToPosition( innerClass.getSourceFileHandle().getOffset() );
     }
     _innerClassOffset = getTokenizer().mark();
-    _innerClasses = new Stack<IGosuClassInternal>();
+    _innerClasses = new Stack<>();
   }
 
   public static void parseAnonymousInnerClass( GosuParser gosuParser, IGosuClassInternal innerGsClass )
@@ -331,7 +331,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       //gsClass.setDeclarationsCompiled();
       GosuClassCompilingStack.popCompilingType();
       getOwner().popScriptPart( scriptPartId );
-      popScopeIfNeeded( bPushedScope, gsClass );
+      popScopeIfNeeded( bPushedScope );
       getTokenizer().popOffsetMarker( this );
 
       removeTypeVarsFromParserMap( gsClass );
@@ -492,7 +492,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         GosuClassCompilingStack.popCompilingType();
       }
-      popScopeIfNeeded( bPushedScope, gsClass );
+      popScopeIfNeeded( bPushedScope );
       getTokenizer().popOffsetMarker( this );
       removeTypeVarsFromParserMap( gsClass );
 
@@ -745,7 +745,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
           ReturnStatement defaultReturnStmt = new ReturnStatement();
           defaultReturnStmt.setValue( rootExpr );
-          List<Statement> stmts = new ArrayList<Statement>( 2 );
+          List<Statement> stmts = new ArrayList<>( 2 );
           stmts.add( defaultReturnStmt );
           StatementList stmtList = new StatementList( getSymbolTable() );
           stmtList.setStatements( stmts );
@@ -758,7 +758,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     NullExpression nullExpr = new NullExpression();
     nullExpr.setType( JavaTypes.OBJECT() );
     defaultReturnStmt.setValue( nullExpr );
-    List<Statement> stmts = new ArrayList<Statement>( 2 );
+    List<Statement> stmts = new ArrayList<>( 2 );
     stmts.add( defaultReturnStmt );
     StatementList stmtList = new StatementList( getSymbolTable() );
     stmtList.setStatements( stmts );
@@ -1790,7 +1790,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       ((CompilationState)gsClass.getCompilationState()).setReparsingHeader( false );
       gsClass.setCompilingHeader( false );
       gsClass.setHeaderCompiled();
-      popScopeIfNeeded( bPushedScope, gsClass );
+      popScopeIfNeeded( bPushedScope );
       getTokenizer().popOffsetMarker( this );
       if( !bHeaderCompiled )
       {
@@ -1834,12 +1834,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     return true;
   }
 
-  private void popScopeIfNeeded( boolean bPop, IGosuClass gsClass )
+  private void popScopeIfNeeded( boolean bPop )
   {
     if( bPop )
     {
       getSymbolTable().popScope();
-      CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable( gsClass );
+      CompiledGosuClassSymbolTable.instance().popCompileTimeSymbolTable();
     }
   }
 
@@ -2060,7 +2060,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       gsClass.addInterface(gosuObjectInterface);
       if( !gsClass.isAnonymous() )
       {
-        IType type = parseEnhancedOrImplementedType( gsClass, false, Collections.<IType>emptyList() );
+        IType type = parseEnhancedOrImplementedType( gsClass, false, Collections.emptyList() );
         gsClass.setSuperType( type );
         //note: the ClassDeclaration for a program is added dynamically in ClassStatement
       }
@@ -2189,7 +2189,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
     if( !bInterface && (match( null, Keyword.KW_extends ) || gsClass.isEnum()) )
     {
-      IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
+      IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.emptyList() );
 
       if( superType instanceof IGosuClassInternal )
       {
@@ -2229,7 +2229,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         verify( getClassStatement(), !bAnnotation, Res.MSG_NO_EXTENDS_ALLOWED );
       }
 
-      List<IType> interfaces = new ArrayList<IType>();
+      List<IType> interfaces = new ArrayList<>();
       do
       {
         IType type = parseEnhancedOrImplementedType( gsClass, bInterface, interfaces );
@@ -2241,7 +2241,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         interfaces.add( type );
       } while( match( null, ',' ) );
 
-      InterfacesClause interfacesClause = new InterfacesClause( gsClass, interfaces.toArray( new IType[interfaces.size()] ) );
+      InterfacesClause interfacesClause = new InterfacesClause( gsClass, interfaces.toArray( IType.EMPTY_TYPE_ARRAY ) );
       pushExpression( interfacesClause );
       setLocation( iOffset, iLineNum, iColumn );
       popExpression();
@@ -2293,7 +2293,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return Collections.emptyList();
     }
 
-    List<TypeVariableDefinitionImpl> result = new ArrayList<TypeVariableDefinitionImpl>( typeVars.length );
+    List<TypeVariableDefinitionImpl> result = new ArrayList<>( typeVars.length );
     for( IGenericTypeVariable typeVar : typeVars )
     {
       result.add( (TypeVariableDefinitionImpl)typeVar.getTypeVariableDefinition() );
@@ -2560,7 +2560,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     List<ITypeVariableDefinitionExpression> typeVarLiteralList = parseTypeVariableDefinitionExpressions( gsClass, declTypeVars );
 
     verify( getClassStatement(), match( null, ":", SourceCodeTokenizer.TT_OPERATOR ), Res.MSG_EXPECTING_COLON_ENHANCEMENT );
-    IType enhancedType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
+    IType enhancedType = parseEnhancedOrImplementedType( gsClass, true, Collections.emptyList() );
     if( !(enhancedType instanceof ErrorType ||
           enhancedType instanceof IEnhanceableType) )
     {
@@ -2635,7 +2635,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     int iColumn = getTokenizer().getLineOffset();
     if( match( new Token(), Keyword.KW_extends ) )
     {
-      IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.<IType>emptyList() );
+      IType superType = parseEnhancedOrImplementedType( gsClass, true, Collections.emptyList() );
       SuperTypeClause stmt = new SuperTypeClause( superType );
       if( superType instanceof IGosuClassInternal )
       {
@@ -3617,7 +3617,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       getOwner().parseTypeLiteral();
       typeLiteral = (TypeLiteral)popExpression();
     }
-    List<IType> constituents = new ArrayList<IType>();
+    List<IType> constituents = new ArrayList<>();
     if( verify( delegateStmt, match( null, Keyword.KW_represents ), Res.MSG_EXPECTING_REPRESENTS ) )
     {
       do
@@ -4250,7 +4250,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         if( owner != null )
         {
           List<IFunctionSymbol> existing = owner.getDfsDeclsForFunction( dfs.getDisplayName() );
-          if( existing == null || !existing.contains( dfs ) )
+          if( !existing.contains( dfs ) )
           {
             owner.putDfsDeclInSetByName( dfs );
           }
@@ -5020,7 +5020,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           initializer.setParent( functionStmt );
         }
 
-        ArrayList<Statement> statements = new ArrayList<Statement>( 8 );
+        ArrayList<Statement> statements = new ArrayList<>( 8 );
         if( bMoreStatements )
         {
           pushClassSymbols( false, scopeCache );

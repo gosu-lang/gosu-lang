@@ -9,7 +9,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.java.IJavaClassGenericArrayType;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
-import gw.lang.reflect.module.IModule;
 
 public class JavaSourceArrayType implements IJavaClassGenericArrayType {
   private IJavaClassType _componentType;
@@ -46,11 +45,6 @@ public class JavaSourceArrayType implements IJavaClassGenericArrayType {
   @Override
   public String getSimpleName() {
     return getName();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _componentType.getModule();
   }
 
   @Override

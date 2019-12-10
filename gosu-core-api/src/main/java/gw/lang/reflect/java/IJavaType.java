@@ -48,6 +48,4 @@ public interface IJavaType extends IJavaBackedType, IEnhanceableType, IHasInnerC
    * @return The newly created proxy type.
    */
   IGosuClass createAdapterClass();
-
-  ObjectSize getRetainedMemory();
 }

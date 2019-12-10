@@ -15,7 +15,7 @@ import java.util.List;
 @UnstableAPI
 public interface IModule
 {
-  public static final String CONFIG_RESOURCE_PREFIX = "config";
+  String CONFIG_RESOURCE_PREFIX = "config";
 
   IExecutionEnvironment getExecutionEnvironment();
 
@@ -29,17 +29,6 @@ public interface IModule
 
   void setName(String name);
 
-  /**
-   * @return A list of dependencies for this module. The list may contain both 
-   *   libraries and other modules. The dependency graph must not have cycles. 
-   */
-  List<Dependency> getDependencies();
-
-  void setDependencies(List<Dependency> newDeps);
-
-  void addDependency( Dependency dependency );
-
-  void removeDependency( Dependency d );
 
   ITypeLoaderStack getModuleTypeLoader();
 
@@ -102,8 +91,6 @@ public interface IModule
    * @return
    */
   <T extends ITypeLoader> List<? extends T> getTypeLoaders(Class<T> typeLoaderClass);
-
-  IModule[] getModuleTraversalList();
 
   IFileSystemGosuClassRepository getFileRepository();
 

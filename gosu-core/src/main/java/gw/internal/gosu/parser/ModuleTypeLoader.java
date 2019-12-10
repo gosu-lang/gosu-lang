@@ -26,11 +26,8 @@ import gw.lang.reflect.gs.IGosuClassRepository;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuClassUtil;
 import gw.util.Pair;
-import gw.util.Predicate;
-import gw.util.cache.FqnCacheNode;
 import gw.util.cache.WeakFqnCache;
 
 import java.lang.ref.WeakReference;
@@ -38,18 +35,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+
+import static gw.lang.reflect.TypeSystem.getModule;
 
 /**
  */
 public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   private static final IType CACHE_MISS = ErrorType.getInstance( "cache-miss-type" );
-
-  // The corresponding module
-  private IModule _module;
 
   // Type loader data structures
   private List<ITypeLoader> _globalStack;
@@ -65,39 +61,20 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
 
   private ITypeRefFactory _typeRefFactory;
 
-  public ModuleTypeLoader( IModule module, List<ITypeLoader> loaderStack )
+  public ModuleTypeLoader( DefaultTypeLoader defaultTypeLoader )
   {
-    _module = module;
-
-    initMaps();
-    _globalStack.addAll(loaderStack);
-    _typeRefFactory = module.getModuleTypeLoader().getTypeRefFactory();
-
-    for (ITypeLoader typeLoader : loaderStack) {
-      List<String> handledPrefixes = typeLoader.getHandledPrefixes();
-      for( int i = 0; i < handledPrefixes.size(); i++ )
-      {
-        String handledPrefix = handledPrefixes.get( i );
-        _loadersByPrefix.put( handledPrefix, typeLoader );
-      }
-    }
-  }
-
-  private void initMaps() {
-    _globalStack = new ArrayList<ITypeLoader>();
-    _loadersByPrefix = new HashMap<String, ITypeLoader>();
-    _typesByName = new WeakFqnCache<IType>();
-    _namespaceTypesByName = new HashMap<String, IType>();
-    _typesByCaseInsensitiveName = new HashMap<String, IType>();
-  }
-
-  public ModuleTypeLoader( IModule module, DefaultTypeLoader defaultTypeLoader)
-  {
-    _module = module;
     _defaultTypeLoader = defaultTypeLoader;
     _typeRefFactory = new TypeRefFactory();
 
     reset();
+  }
+
+  private void initMaps() {
+    _globalStack = new ArrayList<>();
+    _loadersByPrefix = new HashMap<>();
+    _typesByName = new WeakFqnCache<>();
+    _namespaceTypesByName = new HashMap<>();
+    _typesByCaseInsensitiveName = new HashMap<>();
   }
 
   public void reset()
@@ -108,15 +85,9 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   }
 
   @Override
-  public IModule getModule()
-  {
-    return _module;
-  }
-
-  @Override
   public List<ITypeLoader> getTypeLoaders()
   {
-    return new ArrayList<ITypeLoader>( _globalStack );
+    return new ArrayList<>( _globalStack );
   }
 
   public void pushTypeLoader( ITypeLoader typeLoader )
@@ -174,31 +145,22 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   }
 
   private void removeMissesAndErrorsFromMainCache() {
-    _typesByName.visitNodeDepthFirst(new Predicate<FqnCacheNode>() {
-      public boolean evaluate(FqnCacheNode node) {
-        WeakReference<IType> ref = (WeakReference<IType>) node.getUserData();
-        if (ref != null) {
-          IType type = ref.get();
-          if (type == CACHE_MISS || type instanceof ErrorType) {
-            node.delete();
-          }
+    _typesByName.visitNodeDepthFirst( node -> {
+      WeakReference<IType> ref = (WeakReference<IType>) node.getUserData();
+      if (ref != null) {
+        IType type = ref.get();
+        if (type == CACHE_MISS || type instanceof ErrorType) {
+          node.delete();
         }
-        return true;
       }
-    });
+      return true;
+    } );
   }
 
   private void removeMissesAndErrors( Collection<IType> types ) {
-    for( Iterator<IType> iterator = types.iterator(); iterator.hasNext(); )
-    {
-      IType type = iterator.next();
-      if( type == null ||
-          type instanceof ErrorType ||
-          type == CACHE_MISS )
-      {
-        iterator.remove();
-      }
-    }
+    types.removeIf( type -> type == null ||
+                            type instanceof ErrorType ||
+                            type == CACHE_MISS );
   }
 
   private void clearCaches()
@@ -270,7 +232,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   }
 
   public Set<TypeName> getTypeNames(String namespace) {
-    Set<TypeName> names = new HashSet<TypeName>();
+    Set<TypeName> names = new HashSet<>();
     for (ITypeLoader loader : _globalStack) {
       names.addAll(loader.getTypeNames(namespace));
     }
@@ -504,16 +466,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
 
   private IType loadTypeAndCacheResult(String fullyQualifiedName, boolean skipJava)
   {
-    Pair<IType, ITypeLoader> pair;
-    TypeSystem.pushModule( getModule() );
-    try
-    {
-      pair = loadType(fullyQualifiedName, skipJava);
-    }
-    finally
-    {
-      TypeSystem.popModule( getModule() );
-    }
+    Pair<IType, ITypeLoader> pair = loadType(fullyQualifiedName, skipJava);
 
     IType type;
     if( pair != null )
@@ -522,7 +475,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
     }
     else if( !skipJava )
     {
-      type = cacheType(fullyQualifiedName, new Pair<IType, ITypeLoader>(CACHE_MISS, null));
+      type = cacheType(fullyQualifiedName, new Pair<>( CACHE_MISS, null ));
     }
     else
     {
@@ -577,7 +530,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   {
     IType type = TypeLoaderAccess.instance().getDefaultType(fullyQualifiedName);
     if (type != null) {
-      return new Pair<IType, ITypeLoader>(type, type.getTypeLoader());
+      return new Pair<>( type, type.getTypeLoader() );
     }
 
     int dotIdx = fullyQualifiedName.indexOf('.');
@@ -586,7 +539,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
         String prefix = fullyQualifiedName.substring(0, dotIdx);
         ITypeLoader typeLoader = _loadersByPrefix.get(prefix);
         if (typeLoader != null && typeLoader.isInited()) {
-          return new Pair<IType, ITypeLoader>(typeLoader.getType(fullyQualifiedName), typeLoader);
+          return new Pair<>( typeLoader.getType( fullyQualifiedName ), typeLoader );
         }
       }
     }
@@ -609,7 +562,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
         type = loader.getType( fullyQualifiedName );
         if( type != null )
         {
-          return new Pair<IType, ITypeLoader>(type, loader);
+          return new Pair<>( type, loader );
         }
       }
     }
@@ -626,9 +579,8 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
           continue;
         }
       }
-      //noinspection SuspiciousMethodCalls
       if ( loader.hasNamespace( namespace ) || isProxyType( namespace, loader ) ) {
-        return new NamespaceType( namespace, getModule() );
+        return new NamespaceType( namespace );
       }
     }
     return null;
@@ -713,7 +665,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   }
   
   public String toString() {
-    return _module.toString();
+    return getModule().toString();
   }
 
   public void shutdown() {
@@ -723,7 +675,6 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   }
 
   public boolean refresh(IResource file, String typeName, RefreshKind refreshKind) {
-    TypeSystem.pushModule(getModule());
     TypeSystem.lock();
     try {
       if (file instanceof IFile) {
@@ -735,7 +686,6 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
       }
     } finally {
       TypeSystem.unlock();
-      TypeSystem.popModule(getModule());
     }
   }
 

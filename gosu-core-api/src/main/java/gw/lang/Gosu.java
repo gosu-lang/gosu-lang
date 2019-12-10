@@ -284,7 +284,7 @@ public class Gosu
     }
 
     _classpath = classpath;
-    ClassLoader loader = TypeSystem.getCurrentModule() == null
+    ClassLoader loader = TypeSystem.getModule() == null
                          // Can be null if called before the exec environment is setup, so assume the future parent of the module loader is the plugin loader
                          ? CommonServices.getEntityAccess().getPluginClassLoader()
                          : TypeSystem.getGosuClassLoader().getActualLoader();

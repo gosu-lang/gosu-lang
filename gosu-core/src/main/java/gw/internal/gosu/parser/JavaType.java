@@ -27,19 +27,12 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 import gw.util.concurrent.LocklessLazyVar;
-import gw.util.perf.objectsize.IObjectSizeFilter;
-import gw.util.perf.objectsize.ObjectSize;
-import gw.util.perf.objectsize.ObjectSizeUtil;
-import gw.util.perf.objectsize.UnmodifiableArraySet;
 
-import java.beans.MethodDescriptor;
 import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
 import gw.util.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +83,6 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient private ConcurrentMap<String, IJavaTypeInternal> _parameterizationByParamsName;
   transient volatile private IJavaTypeInternal _arrayType;
   private IJavaTypeInternal _componentType;
-  transient private DefaultTypeLoader _typeLoader;
   transient private boolean _bDoesNotHaveExplicitTypeInfo;
   private Class<?> _explicitTypeInfoClass;
   transient private boolean _bDiscarded;
@@ -99,7 +91,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient volatile private List<IJavaType> _innerClasses;
   transient private Boolean _bStrictGenerics;
 
-  public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
+  public static IJavaTypeInternal get( Class cls )
   {
     IJavaType type = TYPES_BY_CLASS.get( cls );
 
@@ -111,7 +103,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         type = TYPES_BY_CLASS.get( cls );
         if( type == null || ((ITypeRef)type)._shouldReload() )
         {
-          type = define( cls, loader );
+          type = define( cls );
         }
       }
       finally
@@ -127,18 +119,18 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     return TypeLoaderAccess.PRIMITIVE_TYPES_BY_NAME.get().get(strPrimitiveClassName);
   }
 
-  private static IJavaTypeInternal define( Class cls, DefaultTypeLoader loader )
+  private static IJavaTypeInternal define( Class cls )
   {
     IJavaTypeInternal type;
     if( cls.isEnum() )
     {
-      JavaType rawType = new JavaEnumType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
+      JavaType rawType = new JavaEnumType( new ClassJavaClassInfo(cls) );
       type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
       rawType._typeRef = type;
     }
     else
     {
-      JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
+      JavaType rawType = new JavaType( new ClassJavaClassInfo(cls) );
       IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
       type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
@@ -147,18 +139,18 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     return type;
   }
 
-  public static IJavaTypeInternal create(IJavaClassInfo cls, DefaultTypeLoader loader)
+  public static IJavaTypeInternal create(IJavaClassInfo cls)
   {
     IJavaTypeInternal type;
     if( cls.isEnum() )
     {
-      JavaType rawType = new JavaEnumType( cls, loader );
+      JavaType rawType = new JavaEnumType( cls );
       type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
       rawType._typeRef = type;
     }
     else
     {
-      JavaType rawType = new JavaType( cls, loader );
+      JavaType rawType = new JavaType( cls );
       IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
       type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
       rawType._typeRef = type;
@@ -206,16 +198,15 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     }
   }
 
-  public JavaType(IJavaClassInfo cls, DefaultTypeLoader loader) {
-    init(cls, loader);
+  public JavaType(IJavaClassInfo cls) {
+    init(cls);
     _strName = computeQualifiedName();
   }
 
-  private void init(IJavaClassInfo cls, DefaultTypeLoader loader) {
+  private void init(IJavaClassInfo cls) {
     _classInfo = cls;
     _bArray = cls.isArray();
     _bPrimitive = cls.isPrimitive();
-    _typeLoader = loader;
     _tiChecksum = TypeSystem.getSingleRefreshChecksum();
     _strName = computeQualifiedName();
     _functionalInterface =
@@ -236,29 +227,23 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         } );
   }
 
-  JavaType( Class cls, DefaultTypeLoader loader )
+  JavaType( Class cls )
   {
-    init(TypeSystem.getJavaClassInfo(cls, loader.getModule()), loader);
+    init( TypeSystem.getJavaClassInfo( cls ) );
     _strName = computeQualifiedName();
   }
 
-  private JavaType( IJavaClassInfo cls, IType[] typeParams, DefaultTypeLoader loader )
+  private JavaType( IJavaClassInfo cls, IType[] typeParams )
   {
-    init(cls, loader);
+    init(cls);
     _typeParams = typeParams;
     _strName = computeQualifiedName();
   }
 
-  private JavaType( IJavaClassInfo arrayClass, IJavaTypeInternal componentType, DefaultTypeLoader loader )
+  private JavaType( IJavaClassInfo arrayClass, IJavaTypeInternal componentType )
   {
-    init(arrayClass, loader);
+    init(arrayClass);
     _componentType = componentType;
-    _strName = computeQualifiedName();
-  }
-
-  public JavaType(IJavaClassInfo classInfo, DefaultTypeLoader loader, IType[] typeParams) {
-    init(classInfo, loader);
-    _typeParams = typeParams;
     _strName = computeQualifiedName();
   }
 
@@ -280,7 +265,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
    */
   private GenericTypeVariable[] assignTypeVarsFromTypeParams( IType[] typeParams )
   {
-    List<GenericTypeVariable> genTypeVars = new ArrayList<GenericTypeVariable>();
+    List<GenericTypeVariable> genTypeVars = new ArrayList<>();
     for( IType typeParam : typeParams )
     {
       if( typeParam instanceof TypeVariableType )
@@ -288,12 +273,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         genTypeVars.add( (GenericTypeVariable)((TypeVariableType)typeParam).getTypeVarDef().getTypeVar() );
       }
     }
-    return genTypeVars.toArray( new GenericTypeVariable[genTypeVars.size()] );
-  }
-
-  public DefaultTypeLoader getTypeLoader()
-  {
-    return _typeLoader;
+    return genTypeVars.toArray( GenericTypeVariable.EMPTY_TYPEVARS );
   }
 
   public String getName()
@@ -386,9 +366,6 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   public Object makeArrayInstance( int iLength )
   {
     Class intrinsicClass = getIntrinsicClass();
-    if (intrinsicClass == null) {
-      int i = 0;
-    }
     return Array.newInstance(intrinsicClass, iLength );
   }
 
@@ -438,7 +415,6 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     }
 
     final Set<? extends IType> allTypesInHierarchy = type.getAllTypesInHierarchy();
-    @SuppressWarnings({"SuspiciousMethodCalls"})
     boolean isAssignable = allTypesInHierarchy != null && allTypesInHierarchy.contains(pThis);
     if( !isAssignable )
     {
@@ -488,21 +464,6 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public ITypeInfo getTypeInfo()
   {
-    if( ExecutionMode.isIDE() && TypeSystem.getJreModule() != TypeSystem.getGlobalModule() ) {
-      // Enforce Guidwewire's legacy type shadowing rules where, for example, a
-      // type in an App module such as PX shadows a type in PL having the same name.
-      // This isn't kosher in general because the type in PL is the one that is
-      // referenced and resolved in PL and the one for which the code was designed.
-      // But we have a history of allowing modules to shadow types by name, allowing
-      // for additional features and behavior.
-      if (!getTypeLoader().getModule().equals(TypeSystem.getCurrentModule())) {
-        final IType reResolveByFullName = TypeSystem.getByFullNameIfValid(getName());
-        if (reResolveByFullName!=null && !equals(reResolveByFullName)) {
-          return reResolveByFullName.getTypeInfo();
-        }
-      }
-    }
-
     ITypeInfo typeInfo = _typeInfo;
     if( typeInfo == null || hasAncestorBeenUpdated() )
     {
@@ -515,7 +476,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
           typeInfo = loadTypeInfo();
           _typeInfo = typeInfo;
           if( !isParameterizedType() && _adapterClass != null &&
-              haveAncestorsBeenUpdated(this, _adapterClass.getTypeInfoChecksum(), new HashSet<IType>()) )
+              haveAncestorsBeenUpdated(this, _adapterClass.getTypeInfoChecksum(), new HashSet<>()) )
           {
             _adapterClass = createAdapterClass();
           }
@@ -549,7 +510,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       return _adapterClass;
     }
                                         // must check against adapter's checksum
-    if( haveAncestorsBeenUpdated( this, _adapterClass.getTypeInfoChecksum(), new HashSet<IType>() ) )
+    if( haveAncestorsBeenUpdated( this, _adapterClass.getTypeInfoChecksum(), new HashSet<>() ) )
     {
       _typeInfo = null;   // clear the typeinfo
       _tiChecksum = TypeSystem.getSingleRefreshChecksum(); // and update the checksum (the type info will be created on next request)
@@ -634,7 +595,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       boolean bReentered = _tempInterfaces != null;
       if( !bReentered )
       {
-        _tempInterfaces = new ArrayList<IType>();
+        _tempInterfaces = new ArrayList<>();
       }
 
       ArrayList<IType> interfaces;
@@ -649,7 +610,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         if (notParameterizedInterfaces.length != genericInterfaces.length) {
           throw new RuntimeException("There should be as many generic interface as non-parameterized interfaces.");
         }
-        interfaces = new ArrayList<IType>( genericInterfaces.length );
+        interfaces = new ArrayList<>( genericInterfaces.length );
         for( int i = _tempInterfaces.size(); i < genericInterfaces.length; i++ )
         {
           IJavaClassType interfaceType = genericInterfaces[i];
@@ -686,11 +647,11 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       }
       if( bReentered )
       {
-        return _tempInterfaces.toArray( new IType[_tempInterfaces.size()] );
+        return _tempInterfaces.toArray( IType.EMPTY_TYPE_ARRAY );
       }
       _tempInterfaces = null;
       interfaces.trimToSize();
-      _interfaces = interfaces.toArray(new IType[interfaces.size()]);
+      _interfaces = interfaces.toArray( IType.EMPTY_TYPE_ARRAY );
     }
     finally
     {
@@ -796,17 +757,22 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       return _innerClasses = Collections.emptyList();
     }
 
-    List<IJavaType> inners = new ArrayList<IJavaType>( 2 );
+    List<IJavaType> inners = new ArrayList<>( 2 );
     for( IJavaClassInfo c : innerClasses )
     {
       String name = c.getName().replace('$', '.');
-      IJavaType inner = _typeLoader.getInnerType(name);
+      IJavaType inner = getTypeLoader().getInnerType(name);
       if (inner == null) {
         throw new IllegalStateException("Cannot load inner class " + name);
       }
       inners.add(inner);
     }
     return _innerClasses = inners;
+  }
+
+  public DefaultTypeLoader getTypeLoader()
+  {
+    return (DefaultTypeLoader)TypeSystem.getDefaultTypeLoader();
   }
 
   @Override
@@ -828,7 +794,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       innerClass = getInnerClassSimple( strRelativeName.substring( 0, dotIndex ) );
       if( innerClass != null )
       {
-        innerClass = (IJavaTypeInternal)innerClass.getInnerClass( strRelativeName.substring( dotIndex + 1, strRelativeName.length() ) );
+        innerClass = (IJavaTypeInternal)innerClass.getInnerClass( strRelativeName.substring( dotIndex + 1 ) );
       }
     }
     return innerClass;
@@ -871,7 +837,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   {
     if( isParameterizedType() )
     {
-      return (IJavaTypeInternal)TypeSystem.get( _classInfo, getTypeLoader().getModule() );
+      return (IJavaTypeInternal)TypeSystem.get( _classInfo );
     }
     else if( isGenericType() )
     {
@@ -936,7 +902,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       {
         if( _parameterizationByParamsName == null )
         {
-          _parameterizationByParamsName = new ConcurrentHashMap<String, IJavaTypeInternal>( 2 );
+          _parameterizationByParamsName = new ConcurrentHashMap<>( 2 );
         }
       }
       finally
@@ -955,14 +921,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         parameterizedType = _parameterizationByParamsName.get( strNameOfParams );
         if( parameterizedType == null )
         {
-          if( _classInfo != null )
-          {
-            parameterizedType = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( new JavaType( _classInfo, paramTypes, _typeLoader ) );
-          }
-          else
-          {
-            parameterizedType = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( new JavaType( _classInfo, getTypeLoader(), paramTypes ) );
-          }
+          parameterizedType = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( new JavaType( _classInfo, paramTypes ) );
           _parameterizationByParamsName.put( strNameOfParams, parameterizedType );
         }
       }
@@ -991,13 +950,13 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
       if( _classInfo.isArray() )
       {
         Set<IType> types = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
-        types.addAll( new HashSet<IType>( TypeLord.getArrayVersionsOfEachType( getComponentType().getAllTypesInHierarchy() ) ) );
+        types.addAll( new HashSet<>( TypeLord.getArrayVersionsOfEachType( getComponentType().getAllTypesInHierarchy() ) ) );
         _allTypesInHierarchy = Collections.unmodifiableSet( types );
       }
       else
       {
         _allTypesInHierarchy = TypeLord.getAllClassesInClassHierarchyAsIntrinsicTypes( _classInfo );
-        Set<IType> includeGenericTypes = new HashSet<IType>( _allTypesInHierarchy );
+        Set<IType> includeGenericTypes = new HashSet<>( _allTypesInHierarchy );
         addGenericTypes( thisRef(), includeGenericTypes );
         _allTypesInHierarchy = Collections.unmodifiableSet( includeGenericTypes );
       }
@@ -1058,38 +1017,23 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
         if( _arrayType == null )
         {
           IJavaTypeInternal thisRef = thisRef();
-          IModule module = getTypeLoader().getModule();
-          if( module != null )
-          {
-            TypeSystem.pushModule( getTypeLoader().getModule() );
-          }
-          try
-          {
-            boolean bParameterized = TypeLord.getCoreType( thisRef ).isParameterizedType();
-            if(_classInfo != null) {
-              IJavaClassInfo arrayClass = _classInfo.getArrayType();
-              if( bParameterized )
-              {
-                _arrayType = new JavaType( arrayClass, thisRef, _typeLoader ).thisRef();
-              }
-              else
-              {
-                _arrayType = create( arrayClass, _typeLoader );
-                _arrayType.setComponentType( thisRef );
-              }
-            } else {
-              if(bParameterized) {
-                _arrayType = new JavaType(_classInfo.getArrayType(), getTypeLoader(), getTypeParameters()).thisRef();
-              } else {
-                _arrayType = new JavaType(_classInfo.getArrayType(), getTypeLoader()).thisRef();
-              }
-            }
-          }
-          finally
-          {
-            if( module != null )
+          boolean bParameterized = TypeLord.getCoreType( thisRef ).isParameterizedType();
+          if(_classInfo != null) {
+            IJavaClassInfo arrayClass = _classInfo.getArrayType();
+            if( bParameterized )
             {
-              TypeSystem.popModule( module );
+              _arrayType = new JavaType( arrayClass, thisRef ).thisRef();
+            }
+            else
+            {
+              _arrayType = create( arrayClass );
+              _arrayType.setComponentType( thisRef );
+            }
+          } else {
+            if(bParameterized) {
+              _arrayType = new JavaType( _classInfo.getArrayType(), getTypeParameters() ).thisRef();
+            } else {
+              _arrayType = new JavaType( _classInfo.getArrayType() ).thisRef();
             }
           }
         }
@@ -1112,7 +1056,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     try {
       Array.set( array, iIndex, value );
     } catch (IllegalArgumentException ex) {
-      HashSet<Class> interfaces = new HashSet<Class>();
+      HashSet<Class> interfaces = new HashSet<>();
       if (value != null) {
         getInterfaces(value.getClass(), interfaces);
       }
@@ -1140,23 +1084,14 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public IJavaTypeInternal getComponentType()
   {
-    IModule module = getTypeLoader().getModule();
-    TypeSystem.pushModule( module );
-    try
-    {
-      if (isArray()) {
-        if (_componentType == null) {
-          IType type = TypeSystem.get(_classInfo.getComponentType());
-          _componentType = (IJavaTypeInternal) type;
-        }
-        return _componentType;
-      } else {
-        return null;
+    if (isArray()) {
+      if (_componentType == null) {
+        IType type = TypeSystem.get(_classInfo.getComponentType());
+        _componentType = (IJavaTypeInternal) type;
       }
-    }
-    finally
-    {
-      TypeSystem.popModule( module );
+      return _componentType;
+    } else {
+      return null;
     }
   }
   public void setComponentType( IJavaTypeInternal componentType )
@@ -1178,7 +1113,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
       return false;
     }
-    return haveAncestorsBeenUpdated(this, _tiChecksum, new HashSet<IType>());
+    return haveAncestorsBeenUpdated(this, _tiChecksum, new HashSet<>());
   }
 
   private static boolean haveAncestorsBeenUpdated(IJavaTypeInternal type, int tiChecksum, Set<IType> visited) {
@@ -1411,39 +1346,10 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   }
 
   @Override
-  public ObjectSize getRetainedMemory() {
-    return ObjectSizeUtil.deepSizeOf(this, new IObjectSizeFilter() {
-      @Override
-      public boolean skipField(Field field) {
-        return
-                field.getType().equals(Class.class) ||
-                field.getType().equals(MethodDescriptor.class) ||
-                field.getName().equals("_typeLoader") ||
-                field.getName().equals("_container")
-            ;
-      }
-
-      @Override
-      public boolean skipObject(Object obj) {
-        Class<? extends Object> objClass = obj.getClass();
-        return
-            objClass.equals(Class.class) ||
-            (obj instanceof IType && obj != JavaType.this) ||
-            (obj instanceof IModule) ||
-            (obj.getClass().getName().startsWith("org.eclipse")) ||
-            (obj.getClass().getName().startsWith("java.lang.reflect")) ||
-            (obj.getClass().getName().startsWith("java.beans")) 
-            || (obj instanceof IJavaClassInfo && obj != JavaType.this._classInfo)
-            ;
-      }
-    }, 100000);
-  }
-
-  @Override
   public IType[] getLoaderParameterizedTypes() {
     if (_parameterizationByParamsName != null) {
       Collection<IJavaTypeInternal> values = _parameterizationByParamsName.values();
-      return values.toArray(new IType[values.size()]);
+      return values.toArray( IType.EMPTY_TYPE_ARRAY );
     } else {
       return IType.EMPTY_ARRAY;
     }

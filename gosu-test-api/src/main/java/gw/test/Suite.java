@@ -336,7 +336,7 @@ public class Suite<T extends Suite> extends junit.framework.TestSuite {
 
   protected List<IDirectory> createDefaultGosuClassSearchPath() {
     List<IDirectory> gosuClassSearchPath = new ArrayList<IDirectory>();
-    List<? extends IDirectory> sourceEntries = TypeSystem.getCurrentModule().getSourcePath();
+    List<? extends IDirectory> sourceEntries = TypeSystem.getModule().getSourcePath();
     for (IDirectory dir : sourceEntries) {
       if (_modules.isEmpty()) {
         gosuClassSearchPath.add(dir);

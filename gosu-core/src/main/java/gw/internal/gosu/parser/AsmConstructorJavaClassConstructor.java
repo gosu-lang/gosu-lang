@@ -23,19 +23,15 @@ import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmMethod;
 import gw.lang.reflect.java.asm.AsmType;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class AsmConstructorJavaClassConstructor extends JavaSourceElement implements IJavaClassConstructor, IJavaClassBytecodeConstructor {
   private AsmMethod _ctor;
-  private IModule _module;
 
-  public AsmConstructorJavaClassConstructor( AsmMethod ctor, IModule module ) {
+  public AsmConstructorJavaClassConstructor( AsmMethod ctor ) {
     _ctor = ctor;
-    _module = module;
   }
 
   @Override
@@ -43,7 +39,7 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
     List<AsmType> rawTypes = _ctor.getExceptions();
     IJavaClassInfo[] types = new IJavaClassInfo[rawTypes.size()];
     for( int i = 0; i < rawTypes.size(); i++ ) {
-      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getRawType().getName(), _module );
+      types[i] = JavaSourceUtil.getClassInfo( rawTypes.get( i ).getRawType().getName() );
     }
     return types;
   }
@@ -73,7 +69,7 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
     List<AsmType> rawTypes = _ctor.getGenericParameters();
     IJavaClassType[] types = new IJavaClassType[rawTypes.size()];
     for( int i = 0; i < rawTypes.size(); i++ ) {
-      types[i] = AsmTypeJavaClassType.createType( rawTypes.get( i ), _module );
+      types[i] = AsmTypeJavaClassType.createType( rawTypes.get( i ) );
     }
     return types;
   }
@@ -83,12 +79,12 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
     List<AsmType> rawParamTypes = _ctor.getParameters();
     IJavaClassInfo[] paramTypes = new IJavaClassInfo[rawParamTypes.size()];
     for( int i = 0; i < rawParamTypes.size(); i++ ) {
-      paramTypes[i] = JavaSourceUtil.getClassInfo( rawParamTypes.get( i ).getRawType().getNameWithArrayBrackets(), _module );
+      paramTypes[i] = JavaSourceUtil.getClassInfo( rawParamTypes.get( i ).getRawType().getNameWithArrayBrackets() );
     }
     return paramTypes;
   }
 
-  public Object newInstance( Object[] objects ) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+  public Object newInstance( Object[] objects ) {
     throw new UnsupportedOperationException();
   }
 
@@ -120,7 +116,7 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
 
   @Override
   public IJavaClassInfo getEnclosingClass() {
-    return JavaSourceUtil.getClassInfo( _ctor.getDeclaringClass(), _module );
+    return JavaSourceUtil.getClassInfo( _ctor.getDeclaringClass() );
   }
 
   @Override
@@ -142,7 +138,7 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
       return null;
     }
 
-    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh );
     if( sourceType == null )
     {
       return null;

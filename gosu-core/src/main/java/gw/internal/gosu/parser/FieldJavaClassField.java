@@ -9,18 +9,15 @@ import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 public class FieldJavaClassField implements IJavaClassField {
   private Field _field;
-  private IModule _module;
 
-  public FieldJavaClassField(Field field, IModule module) {
+  public FieldJavaClassField( Field field ) {
     _field = field;
-    _module = module;
   }
 
   @Override
@@ -40,14 +37,14 @@ public class FieldJavaClassField implements IJavaClassField {
 
   @Override
   public IJavaClassInfo getType() {
-    return JavaSourceUtil.getClassInfo(_field.getType(), _module);
+    return JavaSourceUtil.getClassInfo(_field.getType());
   }
 
   @Override
   public IJavaClassType getGenericType() {
-    IJavaClassType type = TypeJavaClassType.createType(_field.getGenericType(), _module);
+    IJavaClassType type = TypeJavaClassType.createType(_field.getGenericType());
     if (type == null) {
-      throw new IllegalStateException("Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + " in module " + _module.getName() + "\n" +
+      throw new IllegalStateException("Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + "\n" +
         "Type : " + _field.getType() + ", Type.class " + _field.getType().getClass().getName() + " GenericType : " + _field.getGenericType() + ", GenericType.class : " + _field.getGenericType().getClass().getName() );
     }
     return type;
@@ -55,7 +52,7 @@ public class FieldJavaClassField implements IJavaClassField {
 
   @Override
   public IJavaClassInfo getEnclosingClass() {
-    return JavaSourceUtil.getClassInfo(_field.getDeclaringClass(), _module);
+    return JavaSourceUtil.getClassInfo(_field.getDeclaringClass());
   }
 
   @Override

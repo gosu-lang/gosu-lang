@@ -14,12 +14,12 @@ import gw.lang.ir.SyntheticIRType;
 import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuClassUtil;
 
 import gw.util.Array;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,17 +33,13 @@ public class JavaClassIRType implements IJavaClassIRType {
 
   // These objects don't have to be singletons; it's just cheaper to keep them around instead of re-creating them
   // every single time, since we want to cache information on them
-  private static final ConcurrentHashMap<IJavaClassInfo, JavaClassIRType> IR_TYPES_BY_CLASS_INFO = new ConcurrentHashMap<IJavaClassInfo, JavaClassIRType>();
+  private static final ConcurrentHashMap<IJavaClassInfo, JavaClassIRType> IR_TYPES_BY_CLASS_INFO = new ConcurrentHashMap<>();
   static {
-    TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-      public void shutdown() {
-        IR_TYPES_BY_CLASS_INFO.clear();
-      }
-    });
+    TypeSystem.addShutdownListener( IR_TYPES_BY_CLASS_INFO::clear );
   }
 
   public static IRType get( Class cls ) {
-    IJavaClassInfo clsInfo = TypeSystem.getJavaClassInfo(cls, TypeSystem.getGlobalModule());
+    IJavaClassInfo clsInfo = TypeSystem.getJavaClassInfo( cls );
     return get( clsInfo );
   }
 
@@ -71,7 +67,7 @@ public class JavaClassIRType implements IJavaClassIRType {
   }
 
   private static boolean equal(Object o1, Object o2) {
-    return o1 == null ? o2 == null : o1.equals(o2);
+    return Objects.equals( o1, o2 );
   }
 
   private JavaClassIRType(IJavaClassInfo aClass) {
@@ -221,7 +217,7 @@ public class JavaClassIRType implements IJavaClassIRType {
     if (otherType instanceof JavaClassIRType) {
       return _class.isAssignableFrom(((JavaClassIRType) otherType)._class);
     } else if (otherType instanceof GosuClassIRType) {
-      Set<? extends IType> allTypesInHierarchy = ((GosuClassIRType)otherType).getType().getAllTypesInHierarchy();
+      Set<? extends IType> allTypesInHierarchy = otherType.getType().getAllTypesInHierarchy();
       for (IType hierarchyType : allTypesInHierarchy) {
         IJavaClassInfo javaClassForType = resolveJavaClassForType(hierarchyType);
         if (javaClassForType != null && javaClassForType.getName().equals(_class.getName())) {
@@ -231,7 +227,7 @@ public class JavaClassIRType implements IJavaClassIRType {
 
       return false;
     } else if (otherType instanceof SyntheticIRType) {
-      return _class.isAssignableFrom(TypeSystem.getJavaClassInfo(((SyntheticIRType) otherType).getSuperClass(), TypeSystem.getGlobalModule()));
+      return _class.isAssignableFrom( TypeSystem.getJavaClassInfo( ((SyntheticIRType)otherType).getSuperClass() ) );
     } else {
       return false;
     }

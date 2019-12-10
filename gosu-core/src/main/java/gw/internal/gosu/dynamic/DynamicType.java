@@ -10,6 +10,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.ITypeRef;
 import gw.lang.reflect.TypeBase;
+import gw.lang.reflect.TypeSystem;
 import gw.util.concurrent.LockingLazyVar;
 
 /**
@@ -102,7 +103,7 @@ public class DynamicType extends TypeBase implements IDynamicType
   {
     if( _typeRef == null )
     {
-      _typeRef = getTypeLoader().getModule().getModuleTypeLoader().getTypeRefFactory().create( this );
+      _typeRef = TypeSystem.getModule().getModuleTypeLoader().getTypeRefFactory().create( this );
     }
     return _typeRef;
   }

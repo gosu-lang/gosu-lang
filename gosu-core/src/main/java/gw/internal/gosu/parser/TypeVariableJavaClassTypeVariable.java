@@ -7,7 +7,6 @@ package gw.internal.gosu.parser;
 import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
@@ -16,8 +15,8 @@ public class TypeVariableJavaClassTypeVariable extends TypeJavaClassType impleme
   private TypeVariable _typeVariable;
   private Variance _variance;
 
-  public TypeVariableJavaClassTypeVariable(TypeVariable typeVariable, IModule module) {
-    super(typeVariable, module);
+  public TypeVariableJavaClassTypeVariable( TypeVariable typeVariable ) {
+    super(typeVariable);
     _typeVariable = typeVariable;
     _variance = Variance.DEFAULT;
   }
@@ -56,11 +55,6 @@ public class TypeVariableJavaClassTypeVariable extends TypeJavaClassType impleme
   public void setVariance( Variance variance )
   {
     _variance = variance;
-  }
-
-  @Override
-  public IModule getModule() {
-    return _module;
   }
 
   public String toString() {

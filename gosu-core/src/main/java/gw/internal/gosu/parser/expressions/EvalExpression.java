@@ -17,7 +17,6 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.ITypeRef;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -120,14 +119,7 @@ public final class EvalExpression extends Expression implements IEvalExpression
 
   public void setCapturedTypeVars( Map<String, ITypeVariableDefinition> typeVariables )
   {
-    for( Iterator<ITypeVariableDefinition> iter = typeVariables.values().iterator(); iter.hasNext(); )
-    {
-      ITypeVariableDefinition tvd = iter.next();
-      if( !(tvd.getEnclosingType() instanceof IFunctionType) )
-      {
-        iter.remove();
-      }
-    }
+    typeVariables.values().removeIf( tvd -> !(tvd.getEnclosingType() instanceof IFunctionType) );
     _capturedTypeVars = typeVariables;
   }
   public Map<String, ITypeVariableDefinition> getCapturedTypeVars()
@@ -165,7 +157,6 @@ public final class EvalExpression extends Expression implements IEvalExpression
           type._setStale(RefreshKind.MODIFICATION);
 
           //!!! NEVER! refresh types at runtime EVER!
-          //IModule module = type.getTypeLoader().getModule();
           //String strName = type.getName();
           //System.out.println( "Removing Type: " + strName );
           //TypeSystem.refresh( type, true );

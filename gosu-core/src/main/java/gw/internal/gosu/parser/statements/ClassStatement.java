@@ -13,9 +13,7 @@ import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.module.IModule;
 import java.util.List;
-
 
 /**
  */
@@ -86,11 +84,6 @@ public final class ClassStatement extends Statement implements IClassStatement
     {
       TypeSystem.unlock();
     }
-  }
-
-  public IModule getModule()
-  {
-    return _gsClass.getTypeLoader().getModule();
   }
 
   private IGosuClassInternal getEnclosingClass()

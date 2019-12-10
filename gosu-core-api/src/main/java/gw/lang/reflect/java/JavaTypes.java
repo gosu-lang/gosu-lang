@@ -64,12 +64,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 public class JavaTypes {
-  private static final Map<IProject, Map<Class, IJavaType>> CACHE = new WeakHashMap<>();
+  private static final Map<Class, IJavaType> CACHE = new ConcurrentHashMap<>();
   private static JavaTypes THIS = new JavaTypes();
   
   static {
@@ -831,8 +830,8 @@ public class JavaTypes {
   // utilities
 
   private static IJavaType findTypeFromJre(Class c) {
-    IJavaType type = (IJavaType) TypeSystem.get(c, TypeSystem.getExecutionEnvironment().getJreModule());
-    IExecutionEnvironment execEnv = type.getTypeLoader().getModule().getExecutionEnvironment();
+    IJavaType type = (IJavaType)TypeSystem.get( c );
+    IExecutionEnvironment execEnv = TypeSystem.getModule().getExecutionEnvironment();
     if (execEnv.getProject().isDisposed()) {
       throw new IllegalStateException("Whoops.... the project associated with type, " + type.getName() + ", is stale. ExecEnv: " + execEnv.getProject());
     }
@@ -840,7 +839,7 @@ public class JavaTypes {
   }
 
   private static IJavaType findTypeFromProject(Class c) {
-    return (IJavaType) TypeSystem.get(c, TypeSystem.getGlobalModule());
+    return (IJavaType)TypeSystem.get( c );
   }
 
   private static IJavaType getCachedType( Class c, boolean bFromJre ) {
@@ -868,19 +867,7 @@ public class JavaTypes {
   }
 
   private static Map<Class, IJavaType> getCACHE() {
-    IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
-    IProject project = execEnv.getProject();
-    Map<Class, IJavaType> cache = CACHE.get( project );
-    if( cache == null ) {
-      synchronized( CACHE ) {
-        cache = CACHE.get( project );
-        if( cache == null ) {
-          cache = new ConcurrentHashMap<Class, IJavaType>();
-          CACHE.put( project, cache );
-        }
-      }
-    }
-    return cache;
+    return CACHE;
   }
 
   public static IJavaType getJreType(final Class<?> c) {

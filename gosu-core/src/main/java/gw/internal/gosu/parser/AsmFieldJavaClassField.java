@@ -18,7 +18,6 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.asm.AsmAnnotation;
 import gw.lang.reflect.java.asm.AsmField;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -26,11 +25,9 @@ import java.util.List;
 public class AsmFieldJavaClassField extends JavaSourceElement implements IJavaClassField
 {
   private AsmField _field;
-  private IModule _module;
 
-  public AsmFieldJavaClassField( AsmField field, IModule module ) {
+  public AsmFieldJavaClassField( AsmField field ) {
     _field = field;
-    _module = module;
   }
 
   @Override
@@ -50,14 +47,14 @@ public class AsmFieldJavaClassField extends JavaSourceElement implements IJavaCl
 
   @Override
   public IJavaClassInfo getType() {
-    return JavaSourceUtil.getClassInfo( _field.getType().getRawType().getNameWithArrayBrackets(), _module );
+    return JavaSourceUtil.getClassInfo( _field.getType().getRawType().getNameWithArrayBrackets() );
   }
 
   @Override
   public IJavaClassType getGenericType() {
-    IJavaClassType type = AsmTypeJavaClassType.createType( _field.getType(), _module );
+    IJavaClassType type = AsmTypeJavaClassType.createType( _field.getType() );
     if( type == null ) {
-      throw new CompilerDriverException( "Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + " in module " + _module.getName() + ". Please make sure all the external dependencies are present on the classpath.\n" +
+      throw new CompilerDriverException( "Unable to create a generic type for the field " + _field.getName() + " on " + _field.getDeclaringClass().getName() + ". Please make sure all the external dependencies are present on the classpath.\n" +
                                          "Type : " + _field.getType() + ", Type.class " + _field.getType().getClass().getName() + " GenericType : " + _field.getType() + ", GenericType.class : " + _field.getType().getClass().getName() );
     }
     return type;
@@ -65,7 +62,7 @@ public class AsmFieldJavaClassField extends JavaSourceElement implements IJavaCl
 
   @Override
   public IJavaClassInfo getEnclosingClass() {
-    return JavaSourceUtil.getClassInfo( _field.getDeclaringClass(), _module );
+    return JavaSourceUtil.getClassInfo( _field.getDeclaringClass() );
   }
 
   @Override
@@ -119,7 +116,7 @@ public class AsmFieldJavaClassField extends JavaSourceElement implements IJavaCl
 
   private JavaSourceElement findSourceField( ISourceFileHandle sfh )
   {
-    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh, getEnclosingClass().getModule() );
+    IJavaClassInfo sourceType = JavaSourceType.createTopLevel( sfh );
     if( sourceType == null )
     {
       return null;

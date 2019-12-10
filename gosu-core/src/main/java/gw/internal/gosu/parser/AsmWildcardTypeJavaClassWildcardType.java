@@ -17,13 +17,12 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmType;
 import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
-import gw.lang.reflect.module.IModule;
 
 public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType implements IJavaClassWildcardType {
   private final IAsmType _genType;
 
-  public AsmWildcardTypeJavaClassWildcardType( IAsmType genType, AsmWildcardType wildcardType, IModule module ) {
-    super( wildcardType, module );
+  public AsmWildcardTypeJavaClassWildcardType( IAsmType genType, AsmWildcardType wildcardType ) {
+    super( wildcardType );
     _genType = genType;
   }
 
@@ -32,7 +31,7 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
     // we only support one bound in Gosu
 
     if( maybeUseLowerBoundForFunctionalInterface() ) {
-      IJavaClassType bound = AsmTypeJavaClassType.createType( ((AsmWildcardType)getType()).getBound(), getModule() );
+      IJavaClassType bound = AsmTypeJavaClassType.createType( ((AsmWildcardType)getType()).getBound() );
       if( bound instanceof IJavaClassTypeVariable ) {
         ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_CONTRAVARIANT );
       }
@@ -43,7 +42,7 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
     if( asmBound == null ) {
       return JavaTypes.OBJECT().getBackingClassInfo();
     }
-    IJavaClassType bound = AsmTypeJavaClassType.createType( asmBound, _module );
+    IJavaClassType bound = AsmTypeJavaClassType.createType( asmBound );
     if( bound instanceof IJavaClassTypeVariable ) {
       ((IJavaClassTypeVariable)bound).setVariance( Variance.WILD_COVARIANT );
     }
@@ -53,7 +52,7 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
   private boolean maybeUseLowerBoundForFunctionalInterface()
   {
     if( !((AsmWildcardType)getType()).isCovariant() ) {
-      if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)TypeSystem.getByFullNameIfValid( _genType.getName(), getModule() ) ) != null ) {
+      if( FunctionToInterfaceCoercer.getSingleMethodFromJavaInterface( (IJavaType)TypeSystem.getByFullNameIfValid( _genType.getName() ) ) != null ) {
         // Functional interfaces parameterized with ? super T wildcard type keep T so contravariance works with blocks
         return true;
       }
@@ -69,11 +68,6 @@ public class AsmWildcardTypeJavaClassWildcardType extends AsmTypeJavaClassType i
   @Override
   public String getSimpleName() {
     return getType().getSimpleName();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _module;
   }
 
   @Override

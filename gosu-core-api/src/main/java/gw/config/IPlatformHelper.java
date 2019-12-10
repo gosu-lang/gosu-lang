@@ -4,8 +4,6 @@
 
 package gw.config;
 
-import gw.lang.reflect.module.IModule;
-
 import java.io.File;
 
 public interface IPlatformHelper extends IService {
@@ -14,7 +12,7 @@ public interface IPlatformHelper extends IService {
 
   boolean shouldCacheTypeNames();
 
-  void refresh(IModule module);
+  void refresh();
 
   boolean isPathIgnored(String relativePath);
 

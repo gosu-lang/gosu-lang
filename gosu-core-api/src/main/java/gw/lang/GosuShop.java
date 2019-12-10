@@ -7,8 +7,6 @@ package gw.lang;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
-import gw.lang.gosuc.ICustomParser;
-import gw.lang.gosuc.IGosuc;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.ir.IRClassCompiler;
 import gw.lang.ir.IRTypeResolver;
@@ -26,13 +24,11 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.expressions.IIdentifierExpression;
 import gw.lang.parser.expressions.INullExpression;
 import gw.lang.parser.template.ITemplateHost;
 import gw.lang.parser.template.TemplateParseException;
 import gw.lang.reflect.IAnnotationInfo;
 import gw.lang.reflect.IAnnotationInfoFactory;
-import gw.lang.reflect.IEntityAccess;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
@@ -41,7 +37,6 @@ import gw.lang.reflect.IPropertyAccessor;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.ITypeInfoFactory;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
@@ -52,9 +47,6 @@ import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ITemplateType;
 import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 
 import java.io.File;
 import java.io.Reader;
@@ -98,11 +90,6 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().createFunctionType( mi );
   }
 
-  public static ITypeInfoFactory getTypeInfoFactory()
-  {
-    return CommonServices.getGosuIndustrialPark().getTypeInfoFactory();
-  }
-
   public static IConstructorInfoFactory getConstructorInfoFactory()
   {
     return CommonServices.getGosuIndustrialPark().getConstructorInfoFactory();
@@ -127,16 +114,6 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().createSymbol( name, type, stackProvider );
   }
 
-  public static IClassPath createClassPath(IModule module, boolean includeAllClasses)
-  {
-    return CommonServices.getGosuIndustrialPark().createClassPath(module, includeAllClasses);
-  }
-
-  public static IEntityAccess getDefaultEntityAccess()
-  {
-    return CommonServices.getGosuIndustrialPark().getDefaultEntityAccess();
-  }
-
   public static ITemplateHost createSimpleTemplateHost()
   {
     return CommonServices.getGosuIndustrialPark().createSimpleTemplateHost();
@@ -145,10 +122,6 @@ public class GosuShop
   public static ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code )
   {
     return CommonServices.getGosuIndustrialPark().createSourceCodeTokenizer( code );
-  }
-  public static ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code, boolean bTemplate )
-  {
-    return CommonServices.getGosuIndustrialPark().createSourceCodeTokenizer( code, bTemplate );
   }
   public static ISourceCodeTokenizer createSourceCodeTokenizer( Reader reader )
   {
@@ -162,11 +135,6 @@ public class GosuShop
   public static IScope createCommonSymbolScope()
   {
     return CommonServices.getGosuIndustrialPark().createCommnoSymbolScope();
-  }
-
-  public static IIdentifierExpression createIdentifierExpression()
-  {
-    return CommonServices.getGosuIndustrialPark().createIdentifierExpression();
   }
 
   public static void generateTemplate( Reader readerTemplate, Writer writerOut, ISymbolTable threadLocalSymbolTable ) throws TemplateParseException
@@ -215,15 +183,6 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().createTemplate( strNamespace, strRelativeName, loader, sourceFile, typeUsesMap, symTable );
   }
 
-  public static IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files)
-  {
-    return CommonServices.getGosuIndustrialPark().createFileSystemGosuClassRepository(module, files);
-  }
-  public static IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions)
-  {
-    return CommonServices.getGosuIndustrialPark().createFileSystemGosuClassRepository(module, files, extensions);
-  }
-
   public static ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )
   {
     return CommonServices.getGosuIndustrialPark().createTypeUsesMap(specialTypeUses);
@@ -240,16 +199,6 @@ public class GosuShop
 
   public static IPropertyInfo createPropertyDelegate(IFeatureInfo container, IPropertyInfo prop) {
     return CommonServices.getGosuIndustrialPark().createPropertyDelegate(container, prop);
-  }
-
-  public static IModule createModule( IExecutionEnvironment execEnv, String strMemberName )
-  {
-    return CommonServices.getGosuIndustrialPark().createModule( execEnv, strMemberName );
-  }
-
-  public static IModule createGlobalModule(IExecutionEnvironment execEnv)
-  {
-    return CommonServices.getGosuIndustrialPark().createGlobalModule(execEnv);
   }
 
   public static INullExpression getNullExpressionInstance() {
@@ -380,22 +329,6 @@ public class GosuShop
     return false;
   }
 
-  public static IGosuc makeGosucCompiler( String gosucProjectFile, ICustomParser custParser ) {
-    return CommonServices.getTypeSystem().makeGosucCompiler( gosucProjectFile, custParser );
-  }
-
-  public static IModule getModule(IType type) {
-    IModule module = null;
-    while (module == null && type != null) {
-      if (type.getTypeLoader() == null) {
-        type = type.getEnclosingType();
-      } else {
-        module = type.getTypeLoader().getModule();
-      }
-    }
-    return module;
-  }
-
   public static IType getPureGenericType(IType type) {
     return CommonServices.getGosuIndustrialPark().getPureGenericType(type);
   }
@@ -409,10 +342,6 @@ public class GosuShop
       Array.set(array, 0, value);
       return array;
     }
-  }
-
-  public static IJavaClassInfo createClassInfo(Class aClass, IModule module) {
-    return CommonServices.getGosuIndustrialPark().createClassInfo(aClass, module);
   }
 
   public static String toSignature(String fullyQualifiedName) {

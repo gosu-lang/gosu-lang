@@ -4,8 +4,6 @@
 
 package gw.internal.gosu.parser;
 
-import gw.config.CommonServices;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -56,7 +54,7 @@ public class MethodCallAdapter implements IMethodCallHandler
     if( !bMethodOnThread )
     {
       previousClassLoader = Thread.currentThread().getContextClassLoader();
-      if(TypeSystem.getCurrentModule() != null) {
+      if( TypeSystem.getModule() != null) {
         Thread.currentThread().setContextClassLoader( TypeSystem.getGosuClassLoader().getActualLoader() ); //_method.getDeclaringClass().getClassLoader() );
       }
     }

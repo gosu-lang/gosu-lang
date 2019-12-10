@@ -50,7 +50,6 @@ import gw.lang.reflect.java.asm.AsmPrimitiveType;
 import gw.lang.reflect.java.asm.AsmType;
 import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuObjectUtil;
 import gw.util.Pair;
 import gw.util.concurrent.Cache;
@@ -973,7 +972,7 @@ public class TypeLord
         {
           if( bIncludeModule && !(type.getEnclosingType() instanceof INonLoadableType) )
           {
-            sb.append( type.getEnclosingType().getTypeLoader().getModule().getName() ).append( "." );
+            sb.append( TypeSystem.getModule().getName() ).append( "." );
           }
           sb.append( type.getNameWithEnclosingType() );
           ITypeVariableDefinition typeVarDef = type.getTypeVarDef();
@@ -1010,11 +1009,7 @@ public class TypeLord
         ITypeLoader typeLoader = paramType.getTypeLoader();
         if( typeLoader != null )
         {
-          IModule oldModule = typeLoader.getModule();
-          if( oldModule != null )
-          {
-            sb.append( oldModule.getName() ).append( "." );
-          }
+          sb.append( TypeSystem.getModule().getName() ).append( "." );
         }
       }
       sb.append( paramType.getName() );

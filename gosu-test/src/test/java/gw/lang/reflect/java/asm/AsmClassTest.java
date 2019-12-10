@@ -166,7 +166,7 @@ public class AsmClassTest extends TestClass {
     fieldValues = annotation.getFieldValues();
     assertEquals( 7, fieldValues.size() );
     assertEquals( 7, fieldValues.get( "int_field" ) );
-    assertEquals( Arrays.asList( new String[]{"a", "b", "c"} ), fieldValues.get( "stringArray_field" ) );
+    assertEquals( Arrays.asList( "a", "b", "c" ), fieldValues.get( "stringArray_field" ) );
     assertEquals( "Larry", fieldValues.get( "enum_field" ) );
 
     List<?> values = (List<?>)fieldValues.get( "annoArray_field" );
@@ -188,7 +188,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( StringBuilder.class.getName(), fieldValues.get( "class_field" ) );
 
     values = (List<?>)fieldValues.get( "intArray_field" );
-    assertEquals( Arrays.asList( new Integer[]{1, 2, 3} ), values );
+    assertEquals( Arrays.asList( 1, 2, 3 ), values );
   }
 
   public void testBullshit() {
@@ -238,7 +238,7 @@ public class AsmClassTest extends TestClass {
     fieldValues = annotation.getFieldValues();
     assertEquals( 7, fieldValues.size() );
     assertEquals( 7, fieldValues.get( "int_field" ) );
-    assertEquals( Arrays.asList( new String[]{"a", "b", "c"} ), fieldValues.get( "stringArray_field" ) );
+    assertEquals( Arrays.asList( "a", "b", "c" ), fieldValues.get( "stringArray_field" ) );
     assertEquals( "Larry", fieldValues.get( "enum_field" ) );
 
     List<?> values = (List<?>)fieldValues.get( "annoArray_field" );
@@ -260,7 +260,7 @@ public class AsmClassTest extends TestClass {
     assertEquals( StringBuilder.class.getName(), fieldValues.get( "class_field" ) );
 
     values = (List<?>)fieldValues.get( "intArray_field" );
-    assertEquals( Arrays.asList( new Integer[]{1, 2, 3} ), values );
+    assertEquals( Arrays.asList( 1, 2, 3 ), values );
   }
 
 //  public void testDirectJarFileLoadingWorks() {
@@ -274,7 +274,7 @@ public class AsmClassTest extends TestClass {
 //      throw new RuntimeException( e );
 //    }
 //  }
-  AsmClassLoader _asmClassLoader = new AsmClassLoader(null);
+  AsmClassLoader _asmClassLoader = new AsmClassLoader();
 
   private AsmClass loadAsmClass( Class<?> cls ) {
     URL location = cls.getProtectionDomain().getCodeSource().getLocation();

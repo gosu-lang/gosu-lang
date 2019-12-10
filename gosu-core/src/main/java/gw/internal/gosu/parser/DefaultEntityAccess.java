@@ -7,7 +7,6 @@ package gw.internal.gosu.parser;
 import gw.config.BaseService;
 import gw.config.CommonServices;
 import gw.fs.IDirectory;
-import gw.lang.parser.IAttributeSource;
 import gw.lang.parser.IParseIssue;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.ILanguageLevel;
@@ -18,13 +17,9 @@ import gw.lang.reflect.IGosuClassLoadingObserver;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
-import gw.lang.reflect.AbstractTypeSystemListener;
-import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.ICompilableType;
-import gw.lang.reflect.module.IModule;
 import gw.util.ILogger;
 import gw.util.SystemOutLogger;
 
@@ -32,12 +27,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 
 
@@ -47,7 +39,7 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
 {
   public static final SystemOutLogger DEFAULT_LOGGER = new SystemOutLogger(SystemOutLogger.LoggingLevel.WARN);
   private static DefaultEntityAccess g_instance;
-  private static final ITypeUsesMap EMPTY_TYPE_USES = new TypeUsesMap( Collections.<String>emptyList() ).lock();
+  private static final ITypeUsesMap EMPTY_TYPE_USES = new TypeUsesMap( Collections.emptyList() ).lock();
   private List<IGosuClassLoadingObserver> _classLoadingObservers;
 
   public static DefaultEntityAccess instance()
@@ -55,13 +47,11 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
     return g_instance == null ? g_instance = new DefaultEntityAccess() : g_instance;
   }
 
-  private Map _scopes = new HashMap();
-
   /**
    */
   public DefaultEntityAccess()
   {
-    _classLoadingObservers = Collections.synchronizedList(new ArrayList<IGosuClassLoadingObserver>());
+    _classLoadingObservers = Collections.synchronizedList( new ArrayList<>());
   }
 
   public ITypeLoader getDefaultTypeLoader()
@@ -112,10 +102,6 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   }
 
   /**
-   * @param type
-   * @param value
-   * @return
-   * @throws RuntimeException
    */
   @Override
   public boolean verifyValueForType( IType type, Object value ) throws RuntimeException
@@ -189,48 +175,18 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
   @Override
   public void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo)
   {
-    IModule module = TypeSystem.getCurrentModule();
-    addEnhancementMethods(typeToEnhance, methodsToAddTo, module, new HashSet<IModule>());
-  }
-
-  private void addEnhancementMethods(IType typeToEnhance, Collection methodsToAddTo, IModule module, Set<IModule> visited)
-  {
-    if(visited.contains(module)) 
+    if( GosuClassTypeLoader.getDefaultClassLoader() != null )
     {
-      return;
-    }
-    visited.add(module);
-    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
-    {
-      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementMethods( typeToEnhance, methodsToAddTo);
-    }
-    for(IModule dep : module.getModuleTraversalList())
-    {
-      addEnhancementMethods(typeToEnhance, methodsToAddTo, dep, visited);
+      GosuClassTypeLoader.getDefaultClassLoader().getEnhancementIndex().addEnhancementMethods( typeToEnhance, methodsToAddTo);
     }
   }
 
   @Override
   public void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive)
   {
-    IModule module = TypeSystem.getCurrentModule();
-    addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, module, new HashSet<IModule>());
-  }
-  
-  private void addEnhancementProperties(IType typeToEnhance, Map propertyInfosToAddTo, boolean caseSensitive, IModule module, Set<IModule> visited)
-  {
-    if(visited.contains(module)) 
+    if( GosuClassTypeLoader.getDefaultClassLoader() != null )
     {
-      return;
-    }
-    visited.add(module);
-    if( GosuClassTypeLoader.getDefaultClassLoader(module) != null )
-    {
-      GosuClassTypeLoader.getDefaultClassLoader(module).getEnhancementIndex().addEnhancementProperties( typeToEnhance, propertyInfosToAddTo, caseSensitive);
-    }
-    for(IModule dep : module.getModuleTraversalList())
-    {
-      addEnhancementProperties(typeToEnhance, propertyInfosToAddTo, caseSensitive, dep, visited);
+      GosuClassTypeLoader.getDefaultClassLoader().getEnhancementIndex().addEnhancementProperties( typeToEnhance, propertyInfosToAddTo, caseSensitive);
     }
   }
 
@@ -294,7 +250,7 @@ public class DefaultEntityAccess extends BaseService implements IEntityAccess
 
   @Override
   public List<IDirectory> getAdditionalSourceRoots() {
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
   @Override

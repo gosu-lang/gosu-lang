@@ -7,8 +7,6 @@ package gw.lang.reflect;
 import gw.config.IService;
 import gw.fs.IFile;
 import gw.fs.IResource;
-import gw.lang.gosuc.ICustomParser;
-import gw.lang.gosuc.IGosuc;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -19,7 +17,6 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
-import gw.lang.reflect.module.IProject;
 
 import java.util.List;
 import java.util.Set;
@@ -112,7 +109,6 @@ public interface ITypeSystem extends IService
   void refresh(ITypeRef typeRef);
 
   void refresh( boolean bRefreshCaches );
-  void refresh(IModule module);
 
   /**
    * @return true if any types were refreshed for this file
@@ -120,7 +116,7 @@ public interface ITypeSystem extends IService
   void refreshed(IResource file, String typeName, RefreshKind refreshKind);
   void shutdown();
 
-  String[] getTypesForFile(IModule module, IFile file);
+  String[] getTypesForFile(IFile file);
 
   int getRefreshChecksum();
   int getSingleRefreshChecksum();
@@ -175,8 +171,6 @@ public interface ITypeSystem extends IService
   Set<String> getNamespacesFromTypeNames( Set<? extends CharSequence> allTypeNames, Set<String> namespaces );
 
   void pushTypeLoader( ITypeLoader loader );
-  void pushTypeLoader( IModule module, ITypeLoader loader );
-  void removeTypeLoader( Class<? extends ITypeLoader> loader );
 
   void pushIncludeAll();
   void popIncludeAll();
@@ -191,7 +185,7 @@ public interface ITypeSystem extends IService
   void popSymTableCtx();
   ISymbolTable getSymTableCtx();
 
-  <T extends ITypeLoader> T getTypeLoader( Class<? extends T> loaderClass, IModule module );
+  <T extends ITypeLoader> T getTypeLoader( Class<? extends T> loaderClass );
 
   String getNameOfParams( IType[] paramTypes, boolean bRelative, boolean bWithEnclosingType );
 
@@ -219,9 +213,8 @@ public interface ITypeSystem extends IService
   IType getExpandableComponentType( IType type );
 
   IExecutionEnvironment getExecutionEnvironment();
-  IExecutionEnvironment getExecutionEnvironment( IProject project );
 
-  IModule getCurrentModule();
+  IModule getModule();
 
   ITypeRef getOrCreateTypeReference( IType type );
 
@@ -243,13 +236,7 @@ public interface ITypeSystem extends IService
 
   void addShutdownListener(TypeSystemShutdownListener listener);
 
-  void pushModule(IModule gosuModule);
-
-  void popModule(IModule gosuModule);
-
   IType replaceTypeVariableTypeParametersWithBoundingTypes( IType iType, IType type );
-
-  IGosuc makeGosucCompiler( String gosucProjectFile, ICustomParser custParser );
 
   boolean isParameterizedWith( IType type, ITypeVariableType... typeVar );
 

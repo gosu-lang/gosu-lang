@@ -23,7 +23,7 @@ import java.util.*;
 @SuppressWarnings({"unchecked"})
 public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInfo
 {
-  private static final ThreadLocal<List<Boolean>> INCLUDE_ALL = new ThreadLocal<List<Boolean>>();
+  private static final ThreadLocal<List<Boolean>> INCLUDE_ALL = new ThreadLocal<>();
 
   private IGosuClassInternal _gsClass;
   private ArrayList<IGosuMethodInfo> _declaredMethods;
@@ -38,7 +38,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
     List<Boolean> stack = INCLUDE_ALL.get();
     if( stack == null )
     {
-      stack = new ArrayList<Boolean>();
+      stack = new ArrayList<>();
       INCLUDE_ALL.set( stack );
     }
     stack.add( 0, Boolean.TRUE );
@@ -65,7 +65,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
     super( gsClass );
     _gsClass = gsClass;
     _fm = new MyFeatureManager();
-    _modifierInfoByFeature = new HashMap<GosuBaseAttributedFeatureInfo, IModifierInfo>();
+    _modifierInfoByFeature = new HashMap<>();
     _declaredAnnotations =
       new LockingLazyVar<List<IAnnotationInfo>>()
       {
@@ -76,7 +76,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
           List<IAnnotationInfo> result = Collections.emptyList();
           if( annotations != null )
           {
-            result = new ArrayList<IAnnotationInfo>();
+            result = new ArrayList<>();
             for( int i = 0; i < annotations.size(); i++ )
             {
               IGosuAnnotation annotation = annotations.get( i );
@@ -118,7 +118,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
   }
 
   public boolean isDeprecated() {
-    List<IAnnotationInfo> annotations = getAnnotationsOfType(TypeSystem.get(gw.lang.Deprecated.class, TypeSystem.getGlobalModule()));
+    List<IAnnotationInfo> annotations = getAnnotationsOfType( TypeSystem.get( gw.lang.Deprecated.class ) );
     return (annotations != null) &&
            (annotations.size() > 0);
   }
@@ -291,7 +291,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
         return;
       }
 
-      List<IPropertyInfo> declaredProperties = new ArrayList<IPropertyInfo>();
+      List<IPropertyInfo> declaredProperties = new ArrayList<>();
       if( _gsClass.isParameterizedType() )
       {
         makePropertiesFromGenericTypesFields( declaredProperties ); 
@@ -405,7 +405,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
         return;
       }
 
-      ArrayList<IGosuMethodInfo> declaredMethods = new ArrayList<IGosuMethodInfo>();
+      ArrayList<IGosuMethodInfo> declaredMethods = new ArrayList<>();
       List mapStaticFunctions = _gsClass.getStaticFunctions();
       if( mapStaticFunctions != null )
       {
@@ -486,8 +486,8 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
 
   private IConstructorInfo makeStandardAnnotationConstructor()
   {
-    ArrayList<ParameterInfoBuilder> params = new ArrayList<ParameterInfoBuilder>();
-    ArrayList<ParameterInfoBuilder> paramsWDefaultValues = new ArrayList<ParameterInfoBuilder>();
+    ArrayList<ParameterInfoBuilder> params = new ArrayList<>();
+    ArrayList<ParameterInfoBuilder> paramsWDefaultValues = new ArrayList<>();
     Collection<DynamicFunctionSymbol> methods = _gsClass.getParseInfo().getMemberFunctions().values();
     for( DynamicFunctionSymbol dfs : methods )
     {
@@ -506,7 +506,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
     params.addAll( paramsWDefaultValues );
 
     return new ConstructorInfoBuilder()
-      .withParameters( params.toArray( new ParameterInfoBuilder[params.size()] ) )
+      .withParameters( params.toArray( new ParameterInfoBuilder[0] ) )
       .withUserData( AnnotationConstructorGenerator.STANDARD_CTOR_WITH_DEFAULT_PARAM_VALUES )
       .build( this );
   }
@@ -592,7 +592,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
         type = _gsClass.getJavaType();
       }
 
-      List<IType> parentTypes = new ArrayList<IType>();
+      List<IType> parentTypes = new ArrayList<>();
       IType atype = type;
       while( atype != null )
       {
@@ -614,7 +614,7 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
         type = _gsClass.getJavaType();
       }
 
-      List<IType> parentTypes = new ArrayList<IType>();
+      List<IType> parentTypes = new ArrayList<>();
       IType atype = type;
       while( atype != null )
       {

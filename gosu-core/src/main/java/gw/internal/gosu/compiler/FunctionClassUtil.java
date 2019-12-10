@@ -45,7 +45,7 @@ public class FunctionClassUtil extends ClassLoader
   {
     if( arity >= 0 && arity <= IBlock.MAX_ARGS ) {
       String functionTypeName = s + arity;
-      return (IJavaType) TypeSystem.getByFullNameIfValid(functionTypeName, TypeSystem.getGlobalModule());
+      return (IJavaType)TypeSystem.getByFullNameIfValid( functionTypeName );
     }
     return null;
   }

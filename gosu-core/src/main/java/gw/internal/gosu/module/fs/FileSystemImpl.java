@@ -13,7 +13,6 @@ import gw.fs.IResource;
 import gw.fs.jar.JarFileDirectoryImpl;
 import gw.fs.url.URLFileImpl;
 import gw.lang.reflect.module.IFileSystem;
-import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProtocolAdapter;
 import gw.util.GosuStringUtil;
 
@@ -244,7 +243,7 @@ public class FileSystemImpl extends BaseService implements IFileSystem {
   }
 
   @Override
-  public IFile getFakeFile(URL url, IModule module) {
+  public IFile getFakeFile(URL url) {
     return null;
   }
 

@@ -21,7 +21,6 @@ import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.expression.IRStringLiteralExpression;
 import gw.lang.ir.statement.IRAssignmentStatement;
-import gw.lang.ir.statement.IRCatchClause;
 import gw.lang.ir.statement.IRImplicitReturnStatement;
 import gw.lang.ir.statement.IRMethodCallStatement;
 import gw.lang.ir.statement.IRReturnStatement;
@@ -40,7 +39,6 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,7 +58,7 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
 
   IRStatement compile()
   {
-    List<IRStatement> statements = new ArrayList<IRStatement>();
+    List<IRStatement> statements = new ArrayList<>();
     if( _cc().isBlockInvoke() )
     {
       checkcastArgs( statements );
@@ -98,32 +96,32 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
     String generatedClassName = "_profiler." + strippedClassName + "_" + _numGeneratedMethods.getAndIncrement();
 
     // ProfilerFrame frame = gw.api.profiler.Profiler.push( ProfilerTag.GOSU_METHOD_WRAPPER )
-    IRExpression field = getField( IRPropertyFactory.createIRProperty( TypeSystem.getByFullName( "gw.api.profiler.ProfilerTag", TypeSystem.getGlobalModule() ).getTypeInfo().getProperty( "GOSU_METHOD_WRAPPER" ) ), null );
-    IRMethod m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.Profiler", TypeSystem.getGlobalModule() ),
-                                                "push", TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame", TypeSystem.getGlobalModule() ),
-                                                new IType[] {TypeSystem.getByFullName( "gw.api.profiler.ProfilerTag", TypeSystem.getGlobalModule() )},
+    IRExpression field = getField( IRPropertyFactory.createIRProperty( TypeSystem.getByFullName( "gw.api.profiler.ProfilerTag" ).getTypeInfo().getProperty( "GOSU_METHOD_WRAPPER" ) ), null );
+    IRMethod m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.Profiler" ),
+                                                "push", TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame" ),
+                                                new IType[] {TypeSystem.getByFullName( "gw.api.profiler.ProfilerTag" )},
                                                 IRelativeTypeInfo.Accessibility.PUBLIC, true );
-    IRExpression push = callMethod( m, null, Arrays.asList( field ) );
+    IRExpression push = callMethod( m, null, Collections.singletonList( field ) );
     IRSymbol tempSymbol = _cc().makeAndIndexTempSymbol( push.getType() );
     IRAssignmentStatement initAssignment = buildAssignment( tempSymbol, push );
 
     // frame.setProperty( <generatedClassName>_<methodName> );
-    m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame", TypeSystem.getGlobalModule() ),
+    m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame" ),
                                         "setProperty", JavaTypes.pVOID(),
                                         new IType[] {JavaTypes.STRING()},
                                         IRelativeTypeInfo.Accessibility.PUBLIC, false );
     IRExpression info = new IRStringLiteralExpression( generatedClassName + "_" + generateMethodName() );
-    IRExpression setProp = callMethod( m, identifier( tempSymbol ), Arrays.asList( info ) );
+    IRExpression setProp = callMethod( m, identifier( tempSymbol ), Collections.singletonList( info ) );
     IRMethodCallStatement setPropStmt = new IRMethodCallStatement( setProp );
 
     // gw.api.profiler.Profiler.pop( frame )
-    m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.Profiler", TypeSystem.getGlobalModule() ),
+    m = IRMethodFactory.createIRMethod( TypeSystem.getByFullName( "gw.api.profiler.Profiler" ),
                                         "pop", JavaTypes.pVOID(),
-                                        new IType[] {TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame", TypeSystem.getGlobalModule() )},
+                                        new IType[] {TypeSystem.getByFullName( "gw.api.profiler.ProfilerFrame" )},
                                         IRelativeTypeInfo.Accessibility.PUBLIC, true );
-    IRExpression pop = callMethod( m, null, Arrays.asList( (IRExpression)identifier( tempSymbol ) ) );
+    IRExpression pop = callMethod( m, null, Collections.singletonList( identifier( tempSymbol ) ) );
     IRMethodCallStatement popStmt = new IRMethodCallStatement( pop );
-    IRTryCatchFinallyStatement tryFinally = new IRTryCatchFinallyStatement( functionBody, Collections.<IRCatchClause>emptyList(), popStmt );
+    IRTryCatchFinallyStatement tryFinally = new IRTryCatchFinallyStatement( functionBody, Collections.emptyList(), popStmt );
 
     return new IRStatementList( functionBody.hasScope(), initAssignment, setPropStmt, tryFinally );
   }
@@ -174,7 +172,7 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
       }
       else if( _dfs.isLoopImplicitReturn() )
       {
-        IRReturnStatement returnStmt = addImplicitReturn( returnType );;
+        IRReturnStatement returnStmt = addImplicitReturn( returnType );
         returnStmt.setLineNumber( getLastLineOfFunction( statement ) );
         statements.add( returnStmt );
       }
@@ -191,7 +189,7 @@ public class FunctionStatementTransformer extends AbstractElementTransformer<Fun
     }
     else if( _dfs.isLoopImplicitReturn() )
     {
-      IRReturnStatement returnStmt = addImplicitReturn( returnType );;
+      IRReturnStatement returnStmt = addImplicitReturn( returnType );
       returnStmt.setLineNumber( getLastLineOfFunction( statement ) );
       statements.add( returnStmt );
     }

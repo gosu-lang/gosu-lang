@@ -398,7 +398,7 @@ public class GosuPanel extends JPanel
     _experiment = experiment;
 
     RunMe.reinitializeGosu( experiment );
-    TypeSystem.refresh( TypeSystem.getGlobalModule() );
+    TypeSystem.refresh();
 
     LabFrame.instance().addExperiment( experiment );
     _experimentView.load( _experiment );
@@ -1434,20 +1434,12 @@ public class GosuPanel extends JPanel
 
   public static IScriptPartId makePartId( Path file )
   {
-    TypeSystem.pushGlobalModule();
-    try
+    if( file == null )
     {
-      if( file == null )
-      {
-        return new ScriptPartId( "New Program", null );
-      }
-      String classNameForFile = TypeNameUtil.getTypeNameForFile( file );
-      return new ScriptPartId( classNameForFile, null );
+      return new ScriptPartId( "New Program", null );
     }
-    finally
-    {
-      TypeSystem.popGlobalModule();
-    }
+    String classNameForFile = TypeNameUtil.getTypeNameForFile( file );
+    return new ScriptPartId( classNameForFile, null );
   }
 
   public void openInitialFile( IScriptPartId partId, Path file )
@@ -1748,7 +1740,6 @@ public class GosuPanel extends JPanel
   public void newExperiment()
   {
     Path untitled = PathUtil.create( getExperiment().getExperimentDir().getParent(), "Untitled" );
-    //noinspection ResultOfMethodCallIgnored
     PathUtil.mkdirs( untitled );
     JFileChooser fc = new JFileChooser( untitled.toFile() );
     fc.setDialogTitle( "New Experiment" );

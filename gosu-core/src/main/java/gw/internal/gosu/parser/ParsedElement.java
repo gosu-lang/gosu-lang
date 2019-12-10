@@ -10,7 +10,6 @@ import gw.internal.gosu.parser.expressions.Program;
 import gw.internal.gosu.parser.statements.ClassFileStatement;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.NoOpStatement;
-import gw.internal.gosu.parser.statements.UsesStatement;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IFullParserState;
 import gw.lang.parser.IParseIssue;
@@ -24,12 +23,10 @@ import gw.lang.parser.exceptions.ParseException;
 import gw.lang.parser.exceptions.ParseIssue;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.resources.ResourceKey;
-import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuObjectUtil;
 
 import java.util.ArrayList;
@@ -72,7 +69,7 @@ public abstract class ParsedElement implements IParsedElement
 
   ParsedElement()
   {
-    _tokens = new ArrayList<IToken>( 2 );
+    _tokens = new ArrayList<>( 2 );
   }
 
   public IGosuProgramInternal getGosuProgram()
@@ -94,7 +91,7 @@ public abstract class ParsedElement implements IParsedElement
 
       if( _lnf._parseExceptions == Collections.EMPTY_LIST )
       {
-        _lnf._parseExceptions = new ArrayList<IParseIssue>( exceptions.size() );
+        _lnf._parseExceptions = new ArrayList<>( exceptions.size() );
       }
       _lnf._parseExceptions.addAll( exceptions );
     }
@@ -106,7 +103,7 @@ public abstract class ParsedElement implements IParsedElement
 
       if( _lnf._parseWarnings == Collections.EMPTY_LIST )
       {
-        _lnf._parseWarnings = new ArrayList<IParseIssue>( warnings.size() );
+        _lnf._parseWarnings = new ArrayList<>( warnings.size() );
       }
       _lnf._parseWarnings.addAll( warnings );
     }
@@ -189,7 +186,7 @@ public abstract class ParsedElement implements IParsedElement
 
   public List<IParseIssue> getParseIssues()
   {
-    List<IParseIssue> issues = new ArrayList<IParseIssue>();
+    List<IParseIssue> issues = new ArrayList<>();
     getParseExceptions( issues );
     getParseWarnings( issues );
     if( issues.isEmpty() )
@@ -211,17 +208,13 @@ public abstract class ParsedElement implements IParsedElement
     {
       if( _lnf._parseExceptions != null && _lnf._parseExceptions.size() > 0 )
       {
-        if( issues == null )
-        {
-          issues = new ArrayList<IParseIssue>();
-        }
-        issues.addAll( _lnf._parseExceptions );
+        issues = new ArrayList<>( _lnf._parseExceptions );
       }
       if( _lnf._parseWarnings != null && _lnf._parseWarnings.size() > 0 )
       {
         if( issues == null )
         {
-          issues = new ArrayList<IParseIssue>();
+          issues = new ArrayList<>();
         }
         for( IParseIssue exc : _lnf._parseWarnings )
         {
@@ -232,7 +225,7 @@ public abstract class ParsedElement implements IParsedElement
         }
       }
     }
-    return issues != null ? issues : Collections.<IParseIssue>emptyList();
+    return issues != null ? issues : Collections.emptyList();
   }
 
   public boolean hasParseExceptions()
@@ -346,9 +339,9 @@ public abstract class ParsedElement implements IParsedElement
 
   public List<IParseIssue> getParseExceptions()
   {
-    List<IParseIssue> list = new ArrayList<IParseIssue>();
+    List<IParseIssue> list = new ArrayList<>();
     getParseExceptions( list );
-    return list.isEmpty() ? Collections.<IParseIssue>emptyList() : list;
+    return list.isEmpty() ? Collections.emptyList() : list;
   }
 
   private void getParseExceptions( List<IParseIssue> allParseExceptions )
@@ -495,7 +488,7 @@ public abstract class ParsedElement implements IParsedElement
 
     if( _lnf._parseExceptions == Collections.EMPTY_LIST )
     {
-      _lnf._parseExceptions = new ArrayList<IParseIssue>( 1 );
+      _lnf._parseExceptions = new ArrayList<>( 1 );
     }
     _lnf._parseExceptions.add( pe );
     ((ArrayList)_lnf._parseExceptions).trimToSize();
@@ -583,9 +576,9 @@ public abstract class ParsedElement implements IParsedElement
 
   public List<IParseIssue> getParseWarnings()
   {
-    List<IParseIssue> list = new ArrayList<IParseIssue>();
+    List<IParseIssue> list = new ArrayList<>();
     getParseWarnings( list );
-    return list.isEmpty() ? Collections.<IParseIssue>emptyList() : list;
+    return list.isEmpty() ? Collections.emptyList() : list;
   }
 
   private void getParseWarnings( List<IParseIssue> allWarnings )
@@ -630,7 +623,7 @@ public abstract class ParsedElement implements IParsedElement
 
       if( _lnf._parseWarnings == Collections.<IParseIssue>emptyList() )
       {
-        _lnf._parseWarnings = new ArrayList<IParseIssue>( 1 );
+        _lnf._parseWarnings = new ArrayList<>( 1 );
       }
       _lnf._parseWarnings.add( warning );
       ((ArrayList)_lnf._parseWarnings).trimToSize();
@@ -675,49 +668,42 @@ public abstract class ParsedElement implements IParsedElement
   }
   public boolean isSuppressed( IWarningSuppressor suppressor )
   {
-    IModule mod = getGosuClass() == null ? null : getModule();
-    if( mod != null ) {
-      TypeSystem.pushModule( mod );
-    }
-    try
+    for( IGosuAnnotation anno: getAnnotations() )
     {
-      for( IGosuAnnotation anno: getAnnotations() )
+      if( anno.getType() == TypeSystem.get( SuppressWarnings.class ) )
       {
-        if( anno.getType() == TypeSystem.get( SuppressWarnings.class ) )
+        IExpression annoExpr = anno.getExpression();
+        if( annoExpr instanceof AnnotationExpression )
         {
-          IExpression annoExpr = anno.getExpression();
-          if( annoExpr instanceof AnnotationExpression )
+          if( ((AnnotationExpression)annoExpr).getArgs() != null )
           {
-            if( ((AnnotationExpression)annoExpr).getArgs() != null )
+            for( Expression expr : ((AnnotationExpression)annoExpr).getArgs() )
             {
-              for( Expression expr : ((AnnotationExpression)annoExpr).getArgs() )
+              Object value = expr.evaluate();
+              if( value instanceof String )
               {
-                Object value = expr.evaluate();
-                if( value instanceof String )
+                if( suppressor.isSuppressed( (String)value ) )
                 {
-                  if( suppressor.isSuppressed( (String)value ) )
+                  return true;
+                }
+              }
+              else if( value instanceof Object[] )
+              {
+                for( Object o: (Object[])value )
+                {
+                  if( suppressor.isSuppressed( (String)o ) )
                   {
                     return true;
                   }
                 }
-                else if( value instanceof Object[] )
+              }
+              else if( value instanceof List )
+              {
+                for( Object o: (List)value )
                 {
-                  for( Object o: (Object[])value )
+                  if( suppressor.isSuppressed( (String)o ) )
                   {
-                    if( suppressor.isSuppressed( (String)o ) )
-                    {
-                      return true;
-                    }
-                  }
-                }
-                else if( value instanceof List )
-                {
-                  for( Object o: (List)value )
-                  {
-                    if( suppressor.isSuppressed( (String)o ) )
-                    {
-                      return true;
-                    }
+                    return true;
                   }
                 }
               }
@@ -725,16 +711,9 @@ public abstract class ParsedElement implements IParsedElement
           }
         }
       }
-      ParsedElement parent = (ParsedElement)getParent();
-      return parent != null && parent.isSuppressed( suppressor );
     }
-    finally
-    {
-      if( mod != null )
-      {
-        TypeSystem.popModule( mod );
-      }
-    }
+    ParsedElement parent = (ParsedElement)getParent();
+    return parent != null && parent.isSuppressed( suppressor );
   }
 
   public List<IGosuAnnotation> getAnnotations()
@@ -973,11 +952,6 @@ public abstract class ParsedElement implements IParsedElement
     _lnf._bSynthetic = bSynthetic;
   }
 
-  public IModule getModule() {
-    IParsedElement parent = getParent();
-    return parent == null ? null : parent.getModule();
-  }
-  
   public static IFeatureInfo getEnclosingFeatureInfo( Stack<IFeatureInfo> enclosingFeatureInfos )
   {
     if( enclosingFeatureInfos.empty() )
@@ -1043,7 +1017,7 @@ public abstract class ParsedElement implements IParsedElement
           declaringStatement != null )
       {
         maybeInitLikelyNullFields();
-        _lnf._declaringStatements = new HashMap<String, IParsedElementWithAtLeastOneDeclaration>( 0 );
+        _lnf._declaringStatements = new HashMap<>( 0 );
         _lnf._declaringStatements.put( identifierName, declaringStatement );
       }
     }

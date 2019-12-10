@@ -397,7 +397,7 @@ public class TemplateGenerator implements ITemplateGenerator
       IGosuClassInternal supertype = (IGosuClassInternal) _supertype;
       addStaticSymbols(symbolTable, (GosuParser) parser, supertype);
 
-      List<? extends GosuClassTypeLoader> typeLoaders = TypeSystem.getCurrentModule().getTypeLoaders(GosuClassTypeLoader.class);
+      List<? extends GosuClassTypeLoader> typeLoaders = TypeSystem.getModule().getTypeLoaders(GosuClassTypeLoader.class);
       for (GosuClassTypeLoader typeLoader : typeLoaders) {
         List<? extends IGosuEnhancement> enhancementsForType = typeLoader.getEnhancementIndex().getEnhancementsForType(supertype);
         for (IGosuEnhancement enhancement : enhancementsForType) {

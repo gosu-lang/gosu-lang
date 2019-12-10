@@ -6,7 +6,6 @@ package gw.lang.reflect.java;
 
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.module.IModule;
 
 import gw.util.GosuObjectUtil;
 import java.io.Serializable;
@@ -26,8 +25,6 @@ public interface IJavaClassType extends Serializable {
   
   boolean isArray();
   IJavaClassType getComponentType();
-
-  IModule getModule();
 
   String getNamespace();
 
@@ -53,13 +50,12 @@ public interface IJavaClassType extends Serializable {
     if (thisObj.isArray()) {
       return ((IJavaClassType) that).isArray() && thisObj.getComponentType().equals(((IJavaClassType) that).getComponentType());
     }
-    return thisObj.getName().equals(((IJavaClassType) that).getName()) &&
-        thisObj.getModule().equals(((IJavaClassType) that).getModule());
+    return thisObj.getName().equals(((IJavaClassType) that).getName());
   }
 
   static int hashCode(IJavaClassType thisObj) {
     return thisObj.isArray() ?
         thisObj.getComponentType().hashCode() :
-        thisObj.getName().hashCode() * 31 + thisObj.getModule().hashCode();
+        thisObj.getName().hashCode();
   }
 }

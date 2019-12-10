@@ -64,7 +64,6 @@ public class LazyType extends LocklessLazyVar<IType>
 
   protected IType init()
   {
-    TypeSystem.pushGlobalModule();
     try
     {
       return getType(_typeName.toString(), _typeUsesMap);
@@ -72,8 +71,6 @@ public class LazyType extends LocklessLazyVar<IType>
     catch( ClassNotFoundException e )
     {
       return TypeSystem.getErrorType();
-    } finally {
-      TypeSystem.popGlobalModule();
     }
   }
 

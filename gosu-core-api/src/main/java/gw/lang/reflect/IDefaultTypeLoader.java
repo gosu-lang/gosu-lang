@@ -7,7 +7,6 @@ package gw.lang.reflect;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IModule;
 
 import java.util.Collections;
 import java.util.Set;
@@ -23,7 +22,7 @@ public interface IDefaultTypeLoader extends ITypeLoader
 
   IJavaClassInfo getJavaClassInfo(String fullyQualifiedName);
 
-  public IJavaClassInfo getJavaClassInfoForClassDirectly(Class clazz, IModule module);
+  IJavaClassInfo getJavaClassInfoForClassDirectly( Class clazz );
 
   /**
    * @deprecated use getSourceFileHandle(String) instead 

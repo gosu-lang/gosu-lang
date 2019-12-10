@@ -9,7 +9,6 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 import gw.util.Pair;
 
 import java.math.BigDecimal;
@@ -27,37 +26,46 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 public class FrequentUsedJavaTypeCache {
-  private static final Map<IExecutionEnvironment, FrequentUsedJavaTypeCache> INSTANCES = new WeakHashMap<IExecutionEnvironment, FrequentUsedJavaTypeCache>();
-  private Map<Class<?>, IJavaType> _typesByClass = new WeakHashMap<Class<?>, IJavaType>();
-  private Map<String, IJavaType> _typesByName = new HashMap<String, IJavaType>();
+  private static FrequentUsedJavaTypeCache INSTANCE;
+
+  private Map<Class<?>, IJavaType> _typesByClass = new WeakHashMap<>();
+  private Map<String, IJavaType> _typesByName = new HashMap<>();
   private boolean _bInited;
 
-  private IExecutionEnvironment _execEnv;
+  private int _moduleId;
 
-  public static FrequentUsedJavaTypeCache instance( IExecutionEnvironment execEnv ) {
-    FrequentUsedJavaTypeCache cache = INSTANCES.get( execEnv );
-    if( cache == null ) {
-      INSTANCES.put( execEnv, cache = new FrequentUsedJavaTypeCache( execEnv ) );
+  public static FrequentUsedJavaTypeCache instance() {
+    if( INSTANCE == null )
+    {
+      INSTANCE = new FrequentUsedJavaTypeCache();
     }
-    return cache;
+    else
+    {
+      int moduleId = System.identityHashCode( TypeSystem.getModule() );
+      if( moduleId != INSTANCE._moduleId )
+      {
+        INSTANCE = new FrequentUsedJavaTypeCache();
+      }
+    }
+    return INSTANCE;
   }
 
-  private FrequentUsedJavaTypeCache( IExecutionEnvironment execEnv ) {
-    _execEnv = execEnv;
+  private FrequentUsedJavaTypeCache() {
+    _moduleId = System.identityHashCode( TypeSystem.getModule() );
   }
 
   public void init() {
     _bInited = true;
-    Set<Class<?>> classes = new HashSet<Class<?>>();
-    classes.add(Void.TYPE);
-    classes.add(Boolean.TYPE);
-    classes.add(Byte.TYPE);
-    classes.add(Character.TYPE);
-    classes.add(Double.TYPE);
-    classes.add(Float.TYPE);
-    classes.add(Integer.TYPE);
-    classes.add(Long.TYPE);
-    classes.add(Short.TYPE);    
+    Set<Class<?>> classes = new HashSet<>();
+    classes.add(void.class);
+    classes.add(boolean.class);
+    classes.add(byte.class);
+    classes.add(char.class);
+    classes.add(double.class);
+    classes.add(float.class);
+    classes.add(int.class);
+    classes.add(long.class);
+    classes.add(short.class);
     classes.add(String.class);
     classes.add(Number.class);
     classes.add(Double.class);
@@ -95,16 +103,10 @@ public class FrequentUsedJavaTypeCache {
     classes.add(RuntimeException.class);
     classes.add(Enum.class);    
 
-    IModule root = _execEnv.getGlobalModule();
-    TypeSystem.pushModule(root);
-    try {
-      for (Class<?> c : classes) {
-        IJavaType type = (IJavaType) TypeSystem.get(c);
-        _typesByClass.put(c, type);
-        _typesByName.put(c.getName(), type);
-      }
-    } finally {
-      TypeSystem.popModule(root);
+    for (Class<?> c : classes) {
+      IJavaType type = (IJavaType) TypeSystem.get(c);
+      _typesByClass.put(c, type);
+      _typesByName.put(c.getName(), type);
     }
   }
   

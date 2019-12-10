@@ -18,7 +18,6 @@ import gw.lang.reflect.java.IJavaAnnotatedElement;
 import gw.lang.reflect.java.IJavaClassField;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassMethod;
-import gw.lang.reflect.module.IModule;
 
 import gw.util.Array;
 import java.util.List;
@@ -26,19 +25,17 @@ import java.util.List;
 public class JavaSourceAnnotationInfo implements IAnnotationInfo {
   private AnnotationTree _annotationTree;
   private IJavaAnnotatedElement _owner;
-  private IModule _gosuModule;
   private String _name;
   private IJavaClassInfo _type;
 
   public JavaSourceAnnotationInfo(AnnotationTree annotationTree, IJavaAnnotatedElement owner) {
     _annotationTree = annotationTree;
     _owner = owner;
-    _gosuModule = _owner instanceof IJavaClassInfo ? ((IJavaClassInfo) _owner).getModule() : _owner.getEnclosingClass().getModule();
   }
 
   @Override
   public IType getType() {
-    return TypeSystem.getByFullNameIfValid(getName(), _gosuModule);
+    return TypeSystem.getByFullNameIfValid( getName() );
   }
 
   @Override

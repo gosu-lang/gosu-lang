@@ -9,7 +9,6 @@ import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
 import gw.lang.parser.IBlockClass;
-import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
@@ -27,53 +26,46 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmClass;
-import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import manifold.internal.runtime.Bootstrap;
 
+
+import static gw.lang.reflect.TypeSystem.getModule;
+
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
   private IGosuClassLoader _gosuClassLoader;            //## todo: use a ConcurrentWeakValueHashMap here?
-  private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<String, IJavaClassInfo>(1000);
+  private Map<String, IJavaClassInfo> _classInfoCache = new ConcurrentHashMap<>( 1000 );
   protected Set<String> _namespaces;
 
-  public static DefaultTypeLoader instance(IModule module) {
-    if (module == null) {
-      module = ExecutionEnvironment.instance().getJreModule();
-    }
-    return module.getModuleTypeLoader().getTypeLoader(DefaultTypeLoader.class);
-  }
-
-  public DefaultTypeLoader(final IModule module) {
-    super(module);
-    _classCache = new ClassCache(module);
-  }
-
   public static DefaultTypeLoader instance() {
-    IModule module = TypeSystem.getCurrentModule();
-    return instance(module);
+    return ExecutionEnvironment.instance().getModule().getModuleTypeLoader().getTypeLoader(DefaultTypeLoader.class);
+  }
+
+  public DefaultTypeLoader() {
+    _classCache = new ClassCache();
   }
 
   @Override
   public IType getType(String fullyQualifiedName) {
     IJavaClassInfo classInfo = getJavaClassInfo( fullyQualifiedName );
     if (classInfo != null) {
-      return JavaType.create(classInfo, this);
+      return JavaType.create(classInfo);
     } else {
       return null;
     }
   }
 
-  public IJavaType getInnerType(String fqn) {
-    IType cachedType = ((ModuleTypeLoader) _module.getModuleTypeLoader()).getCachedType( fqn );
+  @SuppressWarnings("WeakerAccess")
+  public IJavaType getInnerType( String fqn) {
+    IType cachedType = ((ModuleTypeLoader) getModule().getModuleTypeLoader()).getCachedType( fqn );
     if (cachedType != null && !(cachedType instanceof IErrorType)) {
       return (IJavaType) cachedType;
     } else {
@@ -84,9 +76,6 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   public IJavaClassInfo getJavaClassInfo(String fullyQualifiedName) {
     if (fullyQualifiedName.startsWith("[")) {
       throw new IllegalArgumentException("Cannot call getJavaClassInfo with a raw array descriptor");
-    }
-    if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals(TypeSystem.getGlobalModule())) {
-      return null;
     }
 
     // strip off all trailing array brackets "[]"
@@ -111,35 +100,28 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   }
 
   @Override
-  public IJavaClassInfo getJavaClassInfoForClassDirectly(Class clazz, IModule module) {
-    return new ClassJavaClassInfo(clazz, module);
+  public IJavaClassInfo getJavaClassInfoForClassDirectly( Class clazz ) {
+    return new ClassJavaClassInfo(clazz);
   }
 
-  public IJavaClassInfo getJavaClassInfo( Class aClass, IModule gosuModule ) {
-    if( ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals( TypeSystem.getGlobalModule() ) ) {
-      return null;
-    }
+  public IJavaClassInfo getJavaClassInfo( Class aClass ) {
     String fullyQualifiedName = aClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
     if( result == null ) {
-      result = new ClassJavaClassInfo( aClass, gosuModule );
+      result = new ClassJavaClassInfo( aClass );
       _classInfoCache.put( fullyQualifiedName, result );
     }
     return result == IJavaClassInfo.NULL_TYPE ? null : result;
   }
 
-  public IJavaClassInfo getJavaClassInfo( AsmClass aClass, IModule gosuModule ) {
-    if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals( TypeSystem.getGlobalModule() )) {
-      return null;
-    } else {
+  public IJavaClassInfo getJavaClassInfo( AsmClass aClass ) {
     String fullyQualifiedName = aClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
     if( result == null ) {
-      result = new AsmClassJavaClassInfo( aClass, gosuModule );
+      result = new AsmClassJavaClassInfo( aClass );
       _classInfoCache.put( fullyQualifiedName, result );
     }
     return result == IJavaClassInfo.NULL_TYPE ? null : result;
-  }
   }
 
   public IJavaClassInfo resolveJavaClassInfo( String fqn )
@@ -214,7 +196,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       // the Java class reference.  The source-based IJavaClassInfo can resolve type references using lazy Java
       // stub files generated from Gosu and avoid this paradox.
 
-      return getByClass( fqn, _module, _module );
+      return getByClass( fqn );
     }
 
     // First check for a .java file and load a JavaSourceType...
@@ -222,7 +204,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     if( fileHandle == null )
     {
       // If no .java file is found, load from .class file
-      return getByClass( fqn, _module, _module );
+      return getByClass( fqn );
     }
 
     if( fileHandle.getParentType() != null && !fileHandle.getParentType().isEmpty() )
@@ -252,32 +234,32 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       return inner;
     }
 
-    return JavaSourceClass.createTopLevel( fileHandle, _module );
+    return JavaSourceClass.createTopLevel( fileHandle );
   }
 
   @Override
   public ISourceFileHandle getSourceFileHandle(String qualifiedName) {
-    ISourceFileHandle aClass = _module.getFileRepository().findClass(qualifiedName, EXTENSIONS_ARRAY);
+    ISourceFileHandle aClass = getModule().getFileRepository().findClass(qualifiedName, EXTENSIONS_ARRAY);
     if (aClass == null || !aClass.getClassType().isJava()) {
       return null;
     }
     return aClass;
   }
 
-  private IJavaClassInfo getByClass( String className, IModule lookupModule, IModule actualModule ) {
-    DefaultTypeLoader loader = (DefaultTypeLoader)lookupModule.getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
+  private IJavaClassInfo getByClass( String className ) {
+    DefaultTypeLoader loader = (DefaultTypeLoader)getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
     if( ExecutionMode.isRuntime() ) {
       Class theClass = loader.loadClass( className );
       if( theClass == null ) {
         return null;
       }
-      return getJavaClassInfo( theClass, actualModule );
+      return getJavaClassInfo( theClass );
     } else {
       AsmClass theClass = loader.loadAsmClass( className );
       if( theClass == null ) {
         return null;
       }
-      return getJavaClassInfo( theClass, actualModule );
+      return getJavaClassInfo( theClass );
     }
   }
 
@@ -308,7 +290,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
   @Override
   public Set<String> computeTypeNames() {
     Set<String> allTypeNames = _classCache.getAllTypeNames();
-    allTypeNames.addAll(_module.getFileRepository().getAllTypeNames(DOT_JAVA_EXTENSION));
+    allTypeNames.addAll(getModule().getFileRepository().getAllTypeNames(DOT_JAVA_EXTENSION));
     return allTypeNames;
   }
 
@@ -323,7 +305,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       _classCache.remove(fullyQualifiedTypeName);
       _classInfoCache.remove(fullyQualifiedTypeName);
     }
-    _module.getFileRepository().typesRefreshed( request );
+    getModule().getFileRepository().typesRefreshed( request );
   }
 
   @Override
@@ -347,26 +329,21 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       _classCache.clearClasspathInfo();
     } else {
       _classCache.dispose();
-      _classCache = new ClassCache(getModule());
+      _classCache = new ClassCache();
       dumpGosuClassLoader();
     }
     _namespaces = null;
 
     _classInfoCache.clear();
 
-    _module.getFileRepository().typesRefreshed( null );
+    getModule().getFileRepository().typesRefreshed( null );
 
     JavaTypes.flushCache();
   }
 
+  @SuppressWarnings("WeakerAccess")
   public void clearMisses() {
-    Iterator<Map.Entry<String,IJavaClassInfo>> iterator = _classInfoCache.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, IJavaClassInfo> entry = iterator.next();
-      if (entry.getValue() == IJavaClassInfo.NULL_TYPE) {
-        iterator.remove();
-      }
-    }
+    _classInfoCache.entrySet().removeIf( entry -> entry.getValue() == IJavaClassInfo.NULL_TYPE );
   }
 
   public Class loadClass(String className) {
@@ -383,7 +360,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public IGosuClassLoader getGosuClassLoader() {
     if (_gosuClassLoader == null) {
-      _gosuClassLoader = new GosuClassLoader(_module.getModuleClassLoader());
+      _gosuClassLoader = new GosuClassLoader(getModule().getModuleClassLoader());
       Bootstrap.init();
     }
     return _gosuClassLoader;
@@ -398,14 +375,14 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
         // which means we have to manually dump and recreate the plugin loader and the module loader.
         _classCache.reassignClassLoader();
       }
-      _gosuClassLoader.assignParent( _module.getModuleClassLoader() );
+      _gosuClassLoader.assignParent( getModule().getModuleClassLoader() );
       Bootstrap.init();
     }
   }
 
   private boolean haveWeRecreatedTheModuleLoader() {
     ClassLoader gosusLoader = _gosuClassLoader.getActualLoader();
-    ClassLoader csr = _module.getModuleClassLoader();
+    ClassLoader csr = getModule().getModuleClassLoader();
     while( csr != null ) {
       if( csr == gosusLoader ) {
         return false;
@@ -422,14 +399,14 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   @Override
   public boolean hasNamespace(String namespace) {
-    return _module.getFileRepository().hasNamespace(namespace) > 0 || _classCache.hasNamespace(namespace);
+    return getModule().getFileRepository().hasNamespace(namespace) > 0 || _classCache.hasNamespace(namespace);
   }
 
   @Override
   public Set<String> getAllNamespaces() {
     if (_namespaces == null) {
       try {
-        _namespaces = TypeSystem.getNamespacesFromTypeNames(getAllTypeNames(), new HashSet<String>());
+        _namespaces = TypeSystem.getNamespacesFromTypeNames(getAllTypeNames(), new HashSet<>());
       } catch (NullPointerException e) {
         //!! hack to get past dependency issue with tests
         return Collections.emptySet();
@@ -451,8 +428,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   @Override
   public Set<TypeName> getTypeNames(String namespace) {
-    Set<TypeName> names = new HashSet<TypeName>();
-    names.addAll(_module.getFileRepository().getTypeNames(namespace, Collections.singleton(".java"), this));
+    Set<TypeName> names = new HashSet<>();
+    names.addAll(getModule().getFileRepository().getTypeNames(namespace, Collections.singleton(".java")));
     names.addAll(_classCache.getTypeNames(namespace));
     return names;
   }

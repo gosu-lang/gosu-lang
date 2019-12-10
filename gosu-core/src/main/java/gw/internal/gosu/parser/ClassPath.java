@@ -8,13 +8,10 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.module.fs.FileSystemImpl;
-import gw.lang.gosuc.Gosuc;
-import gw.lang.reflect.IDefaultTypeLoader;
-import gw.lang.reflect.TypeSystem;
+import gw.lang.Gosu;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IFileSystem;
-import gw.lang.reflect.module.IModule;
 import gw.util.cache.FqnCache;
 import gw.util.cache.FqnCacheNode;
 
@@ -35,21 +32,22 @@ import gw.util.concurrent.LocklessLazyVar;
 import manifold.util.JreUtil;
 import manifold.util.ReflectUtil;
 
+
+import static gw.lang.reflect.TypeSystem.getModule;
+
 public class ClassPath implements IClassPath
 {
   private static final LocklessLazyVar<Class<?>> BUILTIN_CLASSLOADER =
     LocklessLazyVar.make( () -> ReflectUtil.type( "jdk.internal.loader.BuiltinClassLoader" ) );
 
   private static final String CLASS_FILE_EXT = ".class";
-  private IModule _module;
   private ClassPathFilter _filter;
-  private FqnCache<Object> _cache = new FqnCache<Object>();
+  private FqnCache<Object> _cache = new FqnCache<>();
   private IFileSystem _fs;
   private boolean _bStableFiles;
 
-  public ClassPath(IModule module, ClassPathFilter filter)
+  public ClassPath(ClassPathFilter filter)
   {
-    _module = module;
     _filter = filter;
 
     // Files are assumed stable outside an IDE
@@ -61,7 +59,7 @@ public class ClassPath implements IClassPath
 
   public ArrayList<IDirectory> getPaths()
   {
-    return new ArrayList<IDirectory>( _module.getJavaClassPath());
+    return new ArrayList<>( getModule().getJavaClassPath() );
   }
 
   public boolean contains(String fqn) {
@@ -117,8 +115,8 @@ public class ClassPath implements IClassPath
 
   private void loadClasspathInfo_Java8()
   {
-    List<IDirectory> javaClassPath = _module.getJavaClassPath();
-    IDirectory[] paths = javaClassPath.toArray(new IDirectory[javaClassPath.size()]);
+    List<IDirectory> javaClassPath = getModule().getJavaClassPath();
+    IDirectory[] paths = javaClassPath.toArray( new IDirectory[0] );
     for (int i = paths.length - 1; i >= 0; i--) {
       IDirectory path = paths[i];
       addClassNames(path, path, _filter);
@@ -129,7 +127,7 @@ public class ClassPath implements IClassPath
   {
 //    long mark = System.nanoTime();
 
-    List<IDirectory> javaClassPath = new ArrayList<>( _module.getJavaClassPath() );
+    List<IDirectory> javaClassPath = new ArrayList<>( getModule().getJavaClassPath() );
     addJreJars( javaClassPath );
 
     IDirectory[] paths = javaClassPath.toArray(new IDirectory[0]);
@@ -147,14 +145,11 @@ public class ClassPath implements IClassPath
 
   private void addJreJars( List<IDirectory> javaClassPath )
   {
-    if( _module == TypeSystem.getGlobalModule() )
-    {
-      List<String> jreJars = getJreJars();
-      javaClassPath.addAll( jreJars.stream()
-        .map( uri -> CommonServices.getFileSystem()
-          .getIDirectory( Paths.get( URI.create( uri ) ) ) )
-        .collect( Collectors.toList() ) );
-    }
+    List<String> jreJars = getJreJars();
+    javaClassPath.addAll( jreJars.stream()
+      .map( uri -> CommonServices.getFileSystem()
+        .getIDirectory( Paths.get( URI.create( uri ) ) ) )
+      .collect( Collectors.toList() ) );
   }
 
   private void addClassNames(final IDirectory root, IDirectory dir, final ClassPathFilter filter) {
@@ -238,14 +233,13 @@ public class ClassPath implements IClassPath
   @Override
   public Set<TypeName> getTypeNames(String namespace) {
     FqnCacheNode<?> node = _cache.getNode(namespace);
-    IDefaultTypeLoader defaultTypeLoader = _module.getModuleTypeLoader().getDefaultTypeLoader();
     if (node != null) {
-      Set<TypeName> names = new HashSet<TypeName>();
+      Set<TypeName> names = new HashSet<>();
       for (FqnCacheNode<?> child : node.getChildren()) {
         if (child.isLeaf()) {
-          names.add(new TypeName(namespace + "." + child.getName(), defaultTypeLoader, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
+          names.add(new TypeName(namespace + "." + child.getName(), TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
         } else {
-          names.add(new TypeName(child.getName(), defaultTypeLoader, TypeName.Kind.NAMESPACE, TypeName.Visibility.PUBLIC));
+          names.add(new TypeName(child.getName(), TypeName.Kind.NAMESPACE, TypeName.Visibility.PUBLIC));
         }
       }
       return names;
@@ -256,12 +250,12 @@ public class ClassPath implements IClassPath
 
   @Override
   public String toString() {
-    return _module.getName();
+    return getModule().getName();
   }
 
   private static List<String> getJreJars() {
     List<String> paths = new ArrayList<>();
-    ClassLoader cl = Gosuc.class.getClassLoader();
+    ClassLoader cl = Gosu.class.getClassLoader();
     Path modulesPath = Paths.get( URI.create( "jrt:/modules" ) );
     while( cl == null || !BUILTIN_CLASSLOADER.get().isAssignableFrom( cl.getClass() ) )
     {

@@ -11,15 +11,12 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.DynamicArray;
 import gw.util.GosuExceptionUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings({"unchecked"})
 public class FeatureManager<T extends CharSequence> {
@@ -27,12 +24,12 @@ public class FeatureManager<T extends CharSequence> {
   private final boolean _caseSensitive;
   private final boolean _addObjectMethods;
   private IRelativeTypeInfo _typeInfo;
-  private volatile Map<IModule, InitState> _methodsInitialized = new HashMap<IModule, InitState>();
-  private volatile Map<IModule, InitState> _propertiesInitialized = new HashMap<IModule, InitState>();
+  private volatile InitState _methodsInitialized = InitState.NotInitialized;
+  private volatile InitState _propertiesInitialized = InitState.NotInitialized;
   private volatile InitState _ctorsInitialized = InitState.NotInitialized;
-  private Map<IModule, PropertyNameMap<T>[]> _properties = new HashMap<IModule, PropertyNameMap<T>[]>();
-  private Map<IModule, MethodList[]> _methods = new HashMap<IModule, MethodList[]>();
-  private List<IConstructorInfo>[] _constructors = new List[IRelativeTypeInfo.Accessibility_Size];
+  private PropertyNameMap<T>[] _properties;
+  private MethodList[] _methods;
+  private List<IConstructorInfo>[] _constructors;
   private String _superPropertyPrefix;
   private IType _supertypeToCopyPropertiesFrom;
   public FeatureManager(IRelativeTypeInfo typeInfo, boolean caseSensitive) {
@@ -156,55 +153,29 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   public void clear() {
-    _methodsInitialized = new HashMap<IModule, InitState>();
-    _propertiesInitialized = new HashMap<IModule, InitState>();
-    _ctorsInitialized = InitState.NotInitialized;
-    clearMaps();
+    clearMethods();
+    clearProperties();
+    clearCtors();
   }
 
-  private void clearMaps() {
-    for(PropertyNameMap<T>[] properties : _properties.values()) {
-      for (int i = 0; i < properties.length; i++) {
-        properties[i] = null;
-      }
-    }
-    for (int i = 0; i < _constructors.length; i++) {
-      _constructors[i] = null;
-    }
-    for(MethodList[] methods : _methods.values()) {
-      for (int i = 0; i < methods.length; i++) {
-        methods[i] = null;
-      }
-    }
+  private void clearProperties() {
+    _propertiesInitialized = InitState.NotInitialized;
+    _properties = null;
   }
 
-  private void clearProperties(IModule module) {
-    PropertyNameMap<T>[] properties = _properties.get(module);
-    if(properties != null) {
-      for (int i = 0; i < properties.length; i++) {
-        properties[i] = null;
-      }
-    }
-  }
-
-  private void clearMethods(IModule module) {
-    MethodList[] methods = _methods.get(module);
-    if(methods != null) {
-      for (int i = 0; i < methods.length; i++) {
-        methods[i] = null;
-      }
-    }
+  private void clearMethods() {
+    _methodsInitialized = InitState.NotInitialized;
+    _methods = null;
   }
 
   private void clearCtors() {
-    for (int i = 0; i < _constructors.length; i++) {
-      _constructors[i] = null;
-    }
+    _ctorsInitialized = InitState.NotInitialized;
+    _constructors = null;
   }
 
   public List<IPropertyInfo> getProperties( IRelativeTypeInfo.Accessibility accessibility ) {
     maybeInitProperties();
-    PropertyNameMap<T>[] arr = _properties.get( TypeSystem.getCurrentModule() );
+    PropertyNameMap<T>[] arr = _properties;
     if( arr == null )
     {
       return Collections.emptyList();
@@ -215,7 +186,7 @@ public class FeatureManager<T extends CharSequence> {
 
   public IPropertyInfo getProperty( IRelativeTypeInfo.Accessibility accessibility, CharSequence propName ) {
     maybeInitProperties();
-    PropertyNameMap<T>[] arr = _properties.get( TypeSystem.getCurrentModule() );
+    PropertyNameMap<T>[] arr = _properties;
     if( arr == null )
     {
       return null;
@@ -231,7 +202,7 @@ public class FeatureManager<T extends CharSequence> {
   @SuppressWarnings({"unchecked"})
   public MethodList getMethods( IRelativeTypeInfo.Accessibility accessibility) {
     maybeInitMethods();
-    MethodList[] arr = _methods.get( TypeSystem.getCurrentModule() );
+    MethodList[] arr = _methods;
     if( arr == null )
     {
       return MethodList.EMPTY;
@@ -259,19 +230,15 @@ public class FeatureManager<T extends CharSequence> {
 
   @SuppressWarnings({"ConstantConditions"})
   protected void maybeInitMethods() {
-    IModule module = TypeSystem.getCurrentModule();
-    if (module == null) {
-      throw new NullPointerException("Cannot init the FeatureManager with no current module.");
-    }
-    if (_methodsInitialized.get(module) != InitState.Initialized && _methodsInitialized.get(module) != InitState.ERROR) {
+    if (_methodsInitialized != InitState.Initialized && _methodsInitialized != InitState.ERROR) {
       TypeSystem.lock();
       try {
-        if (_methodsInitialized.get(module) != InitState.Initialized) {
-          if (_methodsInitialized.get(module) == InitState.Initializing) {
+        if (_methodsInitialized != InitState.Initialized) {
+          if (_methodsInitialized == InitState.Initializing) {
             throw new IllegalStateException("Methods for " + _typeInfo.getOwnersType() + " are cyclic.");
           }
-          _methodsInitialized.put(module, InitState.Initializing);
-          clearMethods( module );
+          clearMethods();
+          _methodsInitialized = InitState.Initializing;
           try {
             MethodList[] methods = new MethodList[IRelativeTypeInfo.Accessibility_Size];
             {
@@ -317,12 +284,12 @@ public class FeatureManager<T extends CharSequence> {
               }
               methods[IRelativeTypeInfo.Accessibility.NONE.ordinal()] = MethodList.EMPTY;
             }
-            _methods.put(module, methods);
+            _methods = methods;
 
-            _methodsInitialized.put(module, InitState.Initialized);
+            _methodsInitialized = InitState.Initialized;
           } finally {
-            if (_methodsInitialized.get(module) != InitState.Initialized) {
-              _methodsInitialized.put(module, InitState.ERROR);
+            if (_methodsInitialized != InitState.Initialized) {
+              _methodsInitialized = InitState.ERROR;
             }
           }
         }
@@ -338,20 +305,15 @@ public class FeatureManager<T extends CharSequence> {
   @SuppressWarnings({"ConstantConditions"})
   protected void maybeInitProperties() {
     maybeInitMethods(); // because properties depend on methods for their getter or setter method !
-
-    IModule module = TypeSystem.getCurrentModule();
-    if (module == null) {
-      throw new NullPointerException("Cannot init the FeatureManager with no current module.");
-    }
-    if (_propertiesInitialized.get(module) != InitState.Initialized && _propertiesInitialized.get(module) != InitState.ERROR) {
+    if (_propertiesInitialized != InitState.Initialized && _propertiesInitialized != InitState.ERROR) {
       TypeSystem.lock();
       try {
-        if (_propertiesInitialized.get(module) != InitState.Initialized) {
-          if (_propertiesInitialized.get(module) == InitState.Initializing) {
+        if ( _propertiesInitialized != InitState.Initialized) {
+          if (_propertiesInitialized == InitState.Initializing) {
             throw new IllegalStateException("Properties for " + _typeInfo.getOwnersType() + " are cyclic.");
           }
-          _propertiesInitialized.put(module, InitState.Initializing);
-          clearProperties(module);
+          clearProperties();
+          _propertiesInitialized = InitState.Initializing;
           try {
             PropertyNameMap<T>[] properties = new PropertyNameMap[IRelativeTypeInfo.Accessibility_Size];
             {
@@ -386,12 +348,12 @@ public class FeatureManager<T extends CharSequence> {
               }
               properties[IRelativeTypeInfo.Accessibility.NONE.ordinal()] = new PropertyNameMap();
             }
-            _properties.put(module, properties);
+            _properties = properties;
 
-            _propertiesInitialized.put(module, InitState.Initialized);
+            _propertiesInitialized = InitState.Initialized;
           } finally {
-            if (_propertiesInitialized.get(module) != InitState.Initialized) {
-              _propertiesInitialized.put(module, InitState.ERROR);
+            if (_propertiesInitialized != InitState.Initialized) {
+              _propertiesInitialized = InitState.ERROR;
             }
           }
         }
@@ -422,16 +384,17 @@ public class FeatureManager<T extends CharSequence> {
           if (_ctorsInitialized == InitState.Initializing) {
             throw new IllegalStateException("Constructors for " + _typeInfo.getOwnersType() + " are cyclic.");
           }
-          _ctorsInitialized = InitState.Initializing;
           clearCtors();
+          _ctorsInitialized = InitState.Initializing;
           try {
             if(_ctorsInitialized != InitState.Initialized && _ctorsInitialized != InitState.ERROR) {
               clearCtors();
+              _ctorsInitialized = InitState.Initializing;
               try {
 
                 List<IConstructorInfo>[] constructors = new List[IRelativeTypeInfo.Accessibility_Size];
                 {
-                  List<IConstructorInfo> privateConstructors = new ArrayList<IConstructorInfo>( _typeInfo.getDeclaredConstructors());
+                  List<IConstructorInfo> privateConstructors = new ArrayList<>( _typeInfo.getDeclaredConstructors() );
                   ((ArrayList) privateConstructors).trimToSize();
                   privateConstructors = Collections.unmodifiableList(privateConstructors);
                   constructors[IRelativeTypeInfo.Accessibility.PRIVATE.ordinal()] = Collections.unmodifiableList(privateConstructors);
@@ -504,7 +467,7 @@ public class FeatureManager<T extends CharSequence> {
   }
 
   private List filterFeatures(List props, IRelativeTypeInfo.Accessibility accessibility) {
-    ArrayList<IFeatureInfo> ret = new ArrayList<IFeatureInfo>();
+    ArrayList<IFeatureInfo> ret = new ArrayList<>();
     for (Object o : props) {
       IAttributedFeatureInfo property = (IAttributedFeatureInfo) o;
       if (isFeatureAccessible(property, accessibility)) {
@@ -609,7 +572,7 @@ public class FeatureManager<T extends CharSequence> {
     if (thisMethodInfo instanceof IGenericMethodInfo) {
       IGenericTypeVariable[] typeVariables = ((IGenericMethodInfo) thisMethodInfo).getTypeVariables();
       if (typeVariables != null && typeVariables.length > 0) {
-        methodTypeVars = new ArrayList<IType>();
+        methodTypeVars = new ArrayList<>();
         for (IGenericTypeVariable typeVariable : typeVariables) {
           ITypeVariableType typeVarType = typeVariable.getTypeVariableDefinition().getType();
           methodTypeVars.add(typeVarType);

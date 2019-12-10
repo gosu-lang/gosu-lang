@@ -5,19 +5,14 @@
 package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
-import gw.config.ExecutionMode;
+import gw.fs.AdditionalDirectory;
 import gw.fs.IDirectory;
-import gw.fs.IResource;
 import gw.fs.IncludeModuleDirectory;
 import gw.internal.gosu.module.DefaultSingleModule;
 import gw.internal.gosu.module.GlobalModule;
-import gw.internal.gosu.module.JreModule;
-import gw.internal.gosu.module.Module;
-import gw.fs.AdditionalDirectory;
 import gw.lang.Gosu;
 import gw.lang.ProgramFileContext;
 import gw.lang.gosuc.GosucModule;
-import gw.lang.gosuc.GosucProject;
 import gw.lang.gosuc.GosucUtil;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.parser.GosuParserFactory;
@@ -32,12 +27,10 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.IProject;
 import gw.util.GosuExceptionUtil;
-
+import gw.util.OSPlatform;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -48,26 +41,19 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
-
-import gw.util.OSPlatform;
 import manifold.internal.runtime.Bootstrap;
 import manifold.util.JreUtil;
 import manifold.util.NecessaryEvilUtil;
 
 public class ExecutionEnvironment implements IExecutionEnvironment
 {
-  private static final IProject DEFAULT_PROJECT = new DefaultSingleModuleRuntimeProject();
-  private static final Map<Object, ExecutionEnvironment> INSTANCES = new WeakHashMap<Object, ExecutionEnvironment>();
-  private static ExecutionEnvironment THE_ONE;
+  private static ExecutionEnvironment INSTANCE;
   public static final String CLASS_REDEFINER_THREAD = "Gosu class redefiner";
 
   /**
@@ -75,91 +61,27 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    * included in the classpath. This is a replacement to old SPECIAL_FILES variable.
    */
   private static final List<String> SPECIAL_CLASSES = Arrays.asList(
-          "javax.servlet.Servlet",
-          "javax.servlet.http.HttpServletRequest"
+    "javax.servlet.Servlet",
+    "javax.servlet.http.HttpServletRequest"
   );
 
   private IProject _project;
-  private List<IModule> _modules;
-  private IModule _defaultModule;
-  private IModule _jreModule;
-  private IModule _rootModule;
+  private DefaultSingleModule _module;
   private String[] _discretePackages;
   private TypeSystemState _state = TypeSystemState.STOPPED;
 
   public static ExecutionEnvironment instance()
   {
-    if( THE_ONE != null && !ExecutionMode.get().isRefreshSupportEnabled() ) {
-      // perf improvement, avoid calling INSTANCES.size() (WeakHashMap#size() is slow)
-      return THE_ONE;
-    }
-
-    final int count = INSTANCES.size();
-    if( count == 1 )
+    if( INSTANCE == null || INSTANCE.getProject().isDisposed() )
     {
-      return THE_ONE == null
-             ? THE_ONE = INSTANCES.values().iterator().next()
-             : THE_ONE;
+      INSTANCE = new ExecutionEnvironment( new DefaultSingleModuleRuntimeProject() );
     }
-
-    IModule mod = count > 0 ? TypeSystem.getCurrentModule() : null;
-    if( mod != null )
-    {
-      ExecutionEnvironment execEnv = (ExecutionEnvironment)mod.getExecutionEnvironment();
-      if( execEnv == null )
-      {
-        throw new IllegalStateException( "Module, " + mod.getName() + ", has a null execution environment. This is bad." );
-      }
-      return execEnv;
-    }
-
-    if( count > 0 )
-    {
-      // Return first non-default project
-      // Yes, this is a guess, but we need to guess for the case where we're running tests
-      // and loading classes in lots of threads where the current module is not pushed
-      for( ExecutionEnvironment execEnv: INSTANCES.values() )
-      {
-        if( execEnv.getProject() != DEFAULT_PROJECT &&
-            !execEnv.getProject().isDisposed() )
-        {
-          return execEnv;
-        }
-      }
-    }
-
-    return instance( DEFAULT_PROJECT );
-  }
-  public static ExecutionEnvironment instance( IProject project )
-  {
-    if( project == null )
-    {
-      throw new IllegalStateException( "Project must not be null" );
-    }
-
-    if( project instanceof IExecutionEnvironment )
-    {
-      throw new RuntimeException( "Passed in ExecutionEnvironment as project" );
-    }
-
-    ExecutionEnvironment execEnv = INSTANCES.get( project );
-    if( execEnv == null )
-    {
-      INSTANCES.put( project, execEnv = new ExecutionEnvironment( project ) );
-    }
-
-    return execEnv;
-  }
-
-  public static Collection<? extends IExecutionEnvironment> getAll()
-  {
-    return INSTANCES.values();
+    return INSTANCE;
   }
 
   private ExecutionEnvironment( IProject project )
   {
     _project = project;
-    _modules = new ArrayList<IModule>();
   }
 
   public IProject getProject()
@@ -167,357 +89,199 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     return _project;
   }
 
-  public List<? extends IModule> getModules() {
-    return _modules;
-  }
-
-  public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries, List<IDirectory> backingSourceEntries, String... discretePackages ) {
+  public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries, List<IDirectory> backingSourceEntries, String... discretePackages )
+  {
     _state = TypeSystemState.STARTING;
-    try {
+    try
+    {
       NecessaryEvilUtil.bypassJava9Security();
-      DefaultSingleModule singleModule = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
-      List<IDirectory> allSources = new ArrayList<IDirectory>();
-      for( GosuPathEntry pathEntry : pathEntries )
+      DefaultSingleModule singleModule = _module == null ? new DefaultSingleModule( this ) : _module;
+      List<IDirectory> allSources = new ArrayList<>();
+      for( GosuPathEntry pathEntry: pathEntries )
       {
         IDirectory root = pathEntry.getRoot();
-        for( IDirectory dir: pathEntry.getSources() ) {
+        for( IDirectory dir: pathEntry.getSources() )
+        {
           IDirectory srcDir;
-          if( root instanceof IncludeModuleDirectory ) {
+          if( root instanceof IncludeModuleDirectory )
+          {
             srcDir = new IncludeModuleDirectory( dir );
           }
-          else if( root.isAdditional() ) {
+          else if( root.isAdditional() )
+          {
             srcDir = new AdditionalDirectory( dir );
           }
-          else {
+          else
+          {
             srcDir = dir;
           }
           allSources.add( srcDir );
         }
-        allSources.addAll(pathEntry.getSources());
+        allSources.addAll( pathEntry.getSources() );
       }
       singleModule.configurePaths( createDefaultClassPath(), allSources, backingSourceEntries );
-      _defaultModule = singleModule;
-      _modules = new ArrayList<>(Collections.singletonList(singleModule));
       setDiscretePackages( discretePackages );
-//      pushModule(singleModule); // Push and leave pushed (in this thread)
+      _module = singleModule;
       singleModule.initializeTypeLoaders();
       CommonServices.getCoercionManager().init();
 
       startSneakyDebugThread();
-    } finally {
+    }
+    finally
+    {
       _state = TypeSystemState.STARTED;
     }
   }
 
-  public void uninitializeDefaultSingleModule() {
+  public void uninitializeDefaultSingleModule()
+  {
     _state = TypeSystemState.STOPPING;
-    try {
-      if (_defaultModule != null) {
-        DefaultSingleModule m = (DefaultSingleModule) _defaultModule;
+    try
+    {
+      if( _module != null )
+      {
+        DefaultSingleModule m = _module;
         m.getModuleTypeLoader().uninitializeTypeLoaders();
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
       }
-      _modules.clear();
 
-    } finally {
+    }
+    finally
+    {
       _state = TypeSystemState.STOPPED;
     }
   }
 
-  public void initializeMultipleModules(List<? extends IModule> modules) {
+  public void initializeCompiler( GosucModule gosucModule )
+  {
     _state = TypeSystemState.STARTING;
-    try {
-      // noinspection unchecked
-      _defaultModule = null;
-      _rootModule = null;
-      _modules = (List<IModule>) modules;
-
-      for (IModule module : modules) {
-        TypeSystem.pushModule(module);
-        try {
-          ((Module) module).initializeTypeLoaders();
-        } finally {
-          TypeSystem.popModule(module);
-        }
-      }
-
-      CommonServices.getCoercionManager().init();
-
-      FrequentUsedJavaTypeCache.instance( this ).init();
-    } finally {
-      _state = TypeSystemState.STARTED;
-    }
-  }
-
-  public void uninitializeMultipleModules() {
-    _state = TypeSystemState.STOPPING;
-    try {
-      TypeSystem.shutdown( this);
-
-      for (IModule module : _modules) {
-        ((Module) module).getModuleTypeLoader().uninitializeTypeLoaders();
-      }
-
-      _jreModule = null;
-      _rootModule = null;
-
-      _modules.clear();
-    } finally {
-      _state = TypeSystemState.STOPPED;
-    }
-  }
-
-  public void addModule(IModule module) {
-    checkForDuplicates(module.getName());
-    // noinspection unchecked
-    _modules.add(module);
-
-    TypeSystem.pushModule(module);
-    try {
-      ((Module) module).initializeTypeLoaders();
-    } finally {
-      TypeSystem.popModule(module);
-    }
-  }
-
-  public void initializeCompiler(GosucModule gosucModule) {
-    _state = TypeSystemState.STARTING;
-    try {
+    try
+    {
 //      DefaultPlatformHelper.DISABLE_COMPILE_TIME_ANNOTATION = true;
 
       DefaultSingleModule module = new DefaultSingleModule( this, gosucModule.getName() );
       module.setNativeModule( gosucModule );
       module.configurePaths( GosucUtil.toDirectories( gosucModule.getClasspath() ),
-                             GosucUtil.toDirectories( gosucModule.getAllSourceRoots() ),
-                             GosucUtil.toDirectories( gosucModule.getBackingSourcePath() ) );
-      _defaultModule = module;
-      _modules = new ArrayList<>(Collections.singletonList(module));
-
+        GosucUtil.toDirectories( gosucModule.getAllSourceRoots() ),
+        GosucUtil.toDirectories( gosucModule.getBackingSourcePath() ) );
+      _module = module;
       module.initializeTypeLoaders();
       CommonServices.getEntityAccess().init();
 
-      FrequentUsedJavaTypeCache.instance( this ).init();
-    } finally {
+      FrequentUsedJavaTypeCache.instance().init();
+    }
+    finally
+    {
       _state = TypeSystemState.STARTED;
     }
   }
 
-  public void uninitializeCompiler() {
+  public void uninitializeCompiler()
+  {
     _state = TypeSystemState.STOPPING;
-    try {
-      if (_defaultModule != null) {
-        GlobalModule m = (GlobalModule) _defaultModule;
+    try
+    {
+      if( _module != null )
+      {
+        GlobalModule m = _module;
         m.getModuleTypeLoader().uninitializeTypeLoaders();
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
 
         Bootstrap.cleanup();
       }
-
-      _jreModule = null;
-    } finally {
+    }
+    finally
+    {
       _state = TypeSystemState.STOPPED;
     }
   }
 
-  public void initializeSimpleIde( GosucModule gosucModule ) {
+  public void initializeSimpleIde( GosucModule gosucModule )
+  {
     _state = TypeSystemState.STARTING;
-    try {
-      DefaultSingleModule module = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
+    try
+    {
+      DefaultSingleModule module = _module == null ? new DefaultSingleModule( this ) : _module;
       module.setNativeModule( gosucModule );
       module.configurePaths( GosucUtil.toDirectories( gosucModule.getClasspath() ),
-                             GosucUtil.toDirectories( gosucModule.getAllSourceRoots() ),
-                             GosucUtil.toDirectories( gosucModule.getBackingSourcePath() ) );
-      _defaultModule = module;
-      _jreModule = module;
-      _rootModule = module;
-      _modules = new ArrayList<>( Collections.singletonList( module ) );
-
+        GosucUtil.toDirectories( gosucModule.getAllSourceRoots() ),
+        GosucUtil.toDirectories( gosucModule.getBackingSourcePath() ) );
+      _module = module;
       module.initializeTypeLoaders();
-
       CommonServices.getCoercionManager().init();
     }
-    finally {
+    finally
+    {
       _state = TypeSystemState.STARTED;
     }
   }
 
-  public void uninitializeSimpleIde() {
+  public void uninitializeSimpleIde()
+  {
     _state = TypeSystemState.STOPPING;
-    try {
-      if( _defaultModule != null )  {
-        DefaultSingleModule m = (DefaultSingleModule)_defaultModule;
+    try
+    {
+      if( _module != null )
+      {
+        DefaultSingleModule m = _module;
         m.getModuleTypeLoader().uninitializeTypeLoaders();
         m.getModuleTypeLoader().reset();
         m.configurePaths( Collections.emptyList(), Collections.emptyList(), Collections.emptyList() );
       }
-      _modules.clear();
     }
-    finally {
+    finally
+    {
       _state = TypeSystemState.STOPPED;
     }
   }
 
-  void checkForDuplicates(String moduleName) {
-    for (IModule m : getModules()) {
-      if (m.getName().equals(moduleName)) {
-        throw new RuntimeException("Module " + moduleName + " already exists.");
-      }
-    }
-  }
-
-  public String[] getDiscretePackages() {
+  public String[] getDiscretePackages()
+  {
     return _discretePackages;
   }
-  public void setDiscretePackages( String[] discretePackages ) {
+
+  public void setDiscretePackages( String[] discretePackages )
+  {
     List<String> packages = new ArrayList<>();
     String fromCmdLine = System.getProperty( "unloadable.packages" );
-    if( fromCmdLine != null && !fromCmdLine.isEmpty() ) {
+    if( fromCmdLine != null && !fromCmdLine.isEmpty() )
+    {
       packages.addAll( Arrays.asList( fromCmdLine.split( "," ) ) );
     }
-    if( discretePackages != null ) {
-      Arrays.stream( discretePackages ).forEach( packages::add );
+    if( discretePackages != null )
+    {
+      packages.addAll( Arrays.asList( discretePackages ) );
     }
-    _discretePackages = packages.toArray( new String[packages.size()] );
+    _discretePackages = packages.toArray( new String[0] );
 
-    for( int i = 0; i < _discretePackages.length; i++ ) {
-      for( int j = i+1; j < _discretePackages.length; i++ ) {
+    for( int i = 0; i < _discretePackages.length; i++ )
+    {
+      for( int j = i + 1; j < _discretePackages.length; i++ )
+      {
         if( _discretePackages[i].startsWith( _discretePackages[j] ) ||
-            _discretePackages[j].startsWith( _discretePackages[i] ) ) {
+            _discretePackages[j].startsWith( _discretePackages[i] ) )
+        {
           throw new IllegalStateException( "Unloadable packages overlap: " + _discretePackages[i] + ", " + _discretePackages[j] );
         }
       }
     }
   }
 
-  public void removeModule(IModule module) {
-    _modules.remove(module);
-  }
-
-  public IModule getModule(String strModuleName) {
-    for (IModule m : _modules) {
-      if (m.getName().equals(strModuleName)) {
-        return m;
-      }
-    }
-    if( !ExecutionMode.isIDE() && GLOBAL_MODULE_NAME.equals( strModuleName ) ||
-        TypeSystem.getJreModule() == TypeSystem.getGlobalModule() ) {
-      return getGlobalModule();
-    }
-    return null;
-  }
-
-  public IModule getModule( IResource file ) {
-    List<? extends IModule> modules = getModules();
-    if (modules.size() == 1) {
-      return modules.get(0); // single module
-    }
-
-    for ( IModule module : modules) {
-      if (module != _rootModule) {
-        if (isInModule(module, file)) {
-          return module;
-        }
-      }
-    }
-
-    if (isInModule(_rootModule, file)) {
-      return _rootModule;
-    }
-
-    return null;
-  }
-
-  private boolean isInModule(IModule module, IResource file) {
-    for (IDirectory src : module.getSourcePath()) {
-      if (file.equals(src) || file.isDescendantOf(src)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public IModule getModule( URL url ) {
-    return getModule( CommonServices.getFileSystem().getIFile( url ) );
-  }
-
-  @Override
-  public IModule createJreModule( )
+  public DefaultSingleModule getModule()
   {
-    _jreModule = new JreModule( this );
-    return _jreModule;
+    return _module;
   }
 
-  /**
-   * @return The module responsible for resolving JRE core classes e.g.,
-   *         java.lang.* etc. Note in default single module environment this is
-   *         the single module, otherwise this is the module create by calling createJreModule().
-   *         This method will never return null but it will throw an NPE if the JRE module is null.
-   */
-  public IModule getJreModule() {
-    if (_jreModule == null) {
-      if (!ExecutionMode.isIDE() || TypeSystem.getJreModule() == TypeSystem.getGlobalModule()) {
-        _jreModule = getGlobalModule();
-      } else {
-        throw new RuntimeException("The JRE module was not created. Please create it before trying to get it.");
-      }
-    }
-    return _jreModule;
-  }
-
-  public IModule getGlobalModule() {
-    if (_rootModule == null) {
-      String moduleName = System.getProperty("GW_ROOT_MODULE");
-      if (moduleName != null) {
-        _rootModule = getModule(moduleName);
-        if (_rootModule == null) {
-          throw new RuntimeException("The specified root module '" + moduleName +"' does not exist.");
-        }
-      } else {
-        _rootModule = findRootModule();
-      }
-    }
-    return _rootModule;
-  }
-
-  public IModule findRootModule() {
-    List<IModule> moduleRoots = new ArrayList<IModule>(_modules);
-    for (IModule module : _modules) {
-      for (Dependency d : module.getDependencies()) {
-        moduleRoots.remove(d.getModule());
-      }
-    }
-    return moduleRoots.size() > 0 ? moduleRoots.get(0) : null;
-  }
-
-  public TypeSystemState getState() {
+  public TypeSystemState getState()
+  {
     return _state;
   }
 
-  public void renameModule(IModule module, String newName) {
-    ((ExecutionEnvironment)module.getExecutionEnvironment()).checkForDuplicates(newName);
-    module.setName(newName);
-  }
-
-  @Override
-  public String makeGosucProjectFile( String projectClassName ) {
-    try {
-      Class prjClass = ILanguageLevel.Util.STANDARD_GOSU() ? GosucProject.class : Class.forName( "com.guidewire.pl.gosuc.PlGosucProject" );
-      GosucProject gosucProject = (GosucProject)prjClass.getConstructor( IExecutionEnvironment.class ).newInstance( this );
-      return gosucProject.write();
-    }
-    catch( Exception e ) {
-      throw new RuntimeException( e );
-    }
-  }
-
-  public void shutdown() {
-    for (IModule module : _modules) {
-      module.getModuleTypeLoader().shutdown();
-    }
-    INSTANCES.clear();
-    THE_ONE = null;
+  public void shutdown()
+  {
+    _module.getModuleTypeLoader().shutdown();
   }
 
   private static class DefaultSingleModuleRuntimeProject implements IProject
@@ -553,7 +317,8 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
 
     @Override
-    public boolean isShadowMode() {
+    public boolean isShadowMode()
+    {
       return false;
     }
   }
@@ -599,137 +364,160 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    */
 
   private int counter;
-  private synchronized int getCounter() {
+
+  private synchronized int getCounter()
+  {
     return counter++;
   }
 
-  private void startSneakyDebugThread() {
-    if( !BytecodeOptions.JDWP_ENABLED.get() ) {
+  private void startSneakyDebugThread()
+  {
+    //noinspection ConstantConditions
+    if( !BytecodeOptions.JDWP_ENABLED.get() )
+    {
       return;
     }
-    ContextSensitiveCodeRunner blah = new ContextSensitiveCodeRunner();
     Thread sneakyDebugThread =
-        new Thread(
-            new Runnable() {
-              public synchronized void run() {
-                long timestamp = ReloadClassesIndicator.timestamp();
-                long now = 0;
-                while (getState() != TypeSystemState.STOPPED) {
-                  try {
-                    wait(2000);
-                    now = ReloadClassesIndicator.timestamp();
-                    if (now > timestamp) {
-                      String script = ReloadClassesIndicator.getScript();
-                      if (script != null && script.length() > 0) {
-                        runScript(script);
-                      }
-                      else {
-                        refreshTypes();
-                      }
-                    }
-                  } catch (Exception e) {
-                    e.printStackTrace();
-                  } finally {
-                    timestamp = now;
-                  }
-                }
-              }
-
-              private void refreshTypes() {
-                String[] types = ReloadClassesIndicator.changedTypes();
-                System.out.println("Refreshing " + types.length + " types at " + new Date());
-                if (types.length > 0) {
-                  for (String name : types) {
-                    IType type = TypeSystem.getByFullNameIfValid(name);
-                    if (type != null) {
-                      TypeSystem.refresh((ITypeRef) type);
-                      // Also update enhancement index if type is an enhancement
-                      if( type instanceof IGosuEnhancementInternal ) {
-                        ((GosuClassTypeLoader)type.getTypeLoader()).getEnhancementIndex().addEntry(
-                          ((IGosuEnhancementInternal)type).getEnhancedType(), (IGosuEnhancementInternal)type );
-                      }
-                    }
-                  }
-                }
-                CommonServices.getEntityAccess().reloadedTypes(types);
-              }
-
-              private void runScript( String strScript ) {
-                String[] result = evaluate(strScript);
-                if( result[0] != null && result[0].length() > 0 )
-                {
-                  System.out.print( result[0] );
-                }
-                if( result[1] != null && result[1].length() > 0 )
-                {
-                  System.err.print( result[1] );
-                }
-              }
-
-              public String[] evaluate( String strScript )
+      new Thread(
+        new Runnable()
+        {
+          public synchronized void run()
+          {
+            long timestamp = ReloadClassesIndicator.timestamp();
+            long now = 0;
+            while( getState() != TypeSystemState.STOPPED )
+            {
+              try
               {
-                IGosuParser scriptParser = GosuParserFactory.createParser(strScript);
-
-                try
+                wait( 2000 );
+                now = ReloadClassesIndicator.timestamp();
+                if( now > timestamp )
                 {
-                  IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
-                  String qualifiedName = ReloadClassesIndicator.getQualifiedName();
-                  if (qualifiedName == null) {
-                    qualifiedName = Gosu.GOSU_SCRATCHPAD_FQN + getCounter();
-                  }
-                  ParserOptions options = new ParserOptions()
-                          .withParser(scriptParser)
-                          .asThrowawayProgram()
-                          .withFileContext(new ProgramFileContext(null, qualifiedName));
-                  IParseResult parseResult = programParser.parseExpressionOrProgram(strScript, scriptParser.getSymbolTable(), options);
-                  Object result = parseResult.getProgram().evaluate( null );
-                  if( result != null )
+                  String script = ReloadClassesIndicator.getScript();
+                  if( script != null && script.length() > 0 )
                   {
-                    System.out.println( "Return Value: " + CommonServices.getCoercionManager().convertValue( result, JavaTypes.STRING() ) );
+                    runScript( script );
+                  }
+                  else
+                  {
+                    refreshTypes();
                   }
                 }
-                catch( Exception e )
-                {
-                  Throwable t = e;
-                  while( t != null )
-                  {
-                    t = t.getCause();
-                  }
-                  assert e != null;
-                  e.printStackTrace();
-                }
-                return new String[]{null, null};
               }
-            }, CLASS_REDEFINER_THREAD);
-    sneakyDebugThread.setDaemon(true);
+              catch( Exception e )
+              {
+                e.printStackTrace();
+              }
+              finally
+              {
+                timestamp = now;
+              }
+            }
+          }
+
+          private void refreshTypes()
+          {
+            String[] types = ReloadClassesIndicator.changedTypes();
+            System.out.println( "Refreshing " + types.length + " types at " + new Date() );
+            if( types.length > 0 )
+            {
+              for( String name: types )
+              {
+                IType type = TypeSystem.getByFullNameIfValid( name );
+                if( type != null )
+                {
+                  TypeSystem.refresh( (ITypeRef)type );
+                  // Also update enhancement index if type is an enhancement
+                  if( type instanceof IGosuEnhancementInternal )
+                  {
+                    ((GosuClassTypeLoader)type.getTypeLoader()).getEnhancementIndex().addEntry(
+                      ((IGosuEnhancementInternal)type).getEnhancedType(), (IGosuEnhancementInternal)type );
+                  }
+                }
+              }
+            }
+            CommonServices.getEntityAccess().reloadedTypes( types );
+          }
+
+          private void runScript( String strScript )
+          {
+            String[] result = evaluate( strScript );
+            if( result[0] != null && result[0].length() > 0 )
+            {
+              System.out.print( result[0] );
+            }
+            if( result[1] != null && result[1].length() > 0 )
+            {
+              System.err.print( result[1] );
+            }
+          }
+
+          public String[] evaluate( String strScript )
+          {
+            IGosuParser scriptParser = GosuParserFactory.createParser( strScript );
+
+            try
+            {
+              IGosuProgramParser programParser = GosuParserFactory.createProgramParser();
+              String qualifiedName = ReloadClassesIndicator.getQualifiedName();
+              if( qualifiedName == null )
+              {
+                qualifiedName = Gosu.GOSU_SCRATCHPAD_FQN + getCounter();
+              }
+              ParserOptions options = new ParserOptions()
+                .withParser( scriptParser )
+                .asThrowawayProgram()
+                .withFileContext( new ProgramFileContext( null, qualifiedName ) );
+              IParseResult parseResult = programParser.parseExpressionOrProgram( strScript, scriptParser.getSymbolTable(), options );
+              Object result = parseResult.getProgram().evaluate( null );
+              if( result != null )
+              {
+                System.out.println( "Return Value: " + CommonServices.getCoercionManager().convertValue( result, JavaTypes.STRING() ) );
+              }
+            }
+            catch( Exception e )
+            {
+              Throwable t = e;
+              while( t != null )
+              {
+                t = t.getCause();
+              }
+              e.printStackTrace();
+            }
+            return new String[]{null, null};
+          }
+        }, CLASS_REDEFINER_THREAD );
+    sneakyDebugThread.setDaemon( true );
     sneakyDebugThread.start();
   }
 
-  public static List<IDirectory> createDefaultClassPath( ) {
+  public static List<IDirectory> createDefaultClassPath()
+  {
     List<String> vals = new ArrayList<>();
-    vals.add(CommonServices.getEntityAccess().getPluginRepositories().toString());
+    vals.add( CommonServices.getEntityAccess().getPluginRepositories().toString() );
     vals.add( removeAllQuotes( System.getProperty( "java.class.path", "" ) ) );
-    vals.add(CommonServices.getEntityAccess().getWebServerPaths());
-    vals.addAll(getJarsContainingSpecialClasses());
+    vals.add( CommonServices.getEntityAccess().getWebServerPaths() );
+    vals.addAll( getJarsContainingSpecialClasses() );
     if( JreUtil.isJava8() )
     {
-      vals.add(System.getProperty("sun.boot.class.path", ""));
-      vals.add(System.getProperty("java.ext.dirs", ""));
+      vals.add( System.getProperty( "sun.boot.class.path", "" ) );
+      vals.add( System.getProperty( "java.ext.dirs", "" ) );
     }
     List<IDirectory> dirs = expand( vals );
     return dirs;
   }
 
-  private static String removeAllQuotes( String classpath ) {
+  private static String removeAllQuotes( String classpath )
+  {
     return classpath.replace( "\"", "" );
   }
 
   private static List<IDirectory> expand( List<String> paths )
   {
     LinkedHashSet<IDirectory> expanded = new LinkedHashSet<>();
-    for( String path : paths )
+    for( String path: paths )
     {
-      for( String pathElement : path.split( File.pathSeparator ) )
+      for( String pathElement: path.split( File.pathSeparator ) )
       {
         if( OSPlatform.isWindows() )
         {
@@ -745,14 +533,16 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         {
           Path filePath = Paths.get( pathElement );
           IDirectory resource = CommonServices.getFileSystem().getIDirectory( filePath );
-          expanded.add(resource);
+          expanded.add( resource );
         }
       }
     }
     return new ArrayList<>( expanded );
   }
+
   @Override
-  public boolean isShadowingMode() {
+  public boolean isShadowingMode()
+  {
     return _project.isShadowMode();
   }
 
@@ -760,25 +550,33 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    * This method is a hack to resolve "special" system-like classes provided by execution environment.
    * This is the replacement of old addSpecialJars() method
    */
-  private static Set<String> getJarsContainingSpecialClasses() {
-    Set<String> paths = new HashSet<String>();
-    for (String className : SPECIAL_CLASSES) {
+  private static Set<String> getJarsContainingSpecialClasses()
+  {
+    Set<String> paths = new HashSet<>();
+    for( String className: SPECIAL_CLASSES )
+    {
       //getLogger().debug("Searching JAR that provides " + className + ".");
       Class<?> clazz;
-      try {
-        clazz = Class.forName(className);
-      } catch (ClassNotFoundException e) {
-        if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          System.err.println("Class " + className
-                  + " could not be found. Gosu code might fail to compile at runtime.");
+      try
+      {
+        clazz = Class.forName( className );
+      }
+      catch( ClassNotFoundException e )
+      {
+        if( !ILanguageLevel.Util.STANDARD_GOSU() )
+        {
+          System.err.println( "Class " + className
+                              + " could not be found. Gosu code might fail to compile at runtime." );
         }
         continue;
       }
       CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
-      if (codeSource == null) {
-        if( !ILanguageLevel.Util.STANDARD_GOSU() ) {
-          System.err.println("Code source for " + clazz.getName()
-                  + " is null. Gosu code might fail to compile at runtime.");
+      if( codeSource == null )
+      {
+        if( !ILanguageLevel.Util.STANDARD_GOSU() )
+        {
+          System.err.println( "Code source for " + clazz.getName()
+                              + " is null. Gosu code might fail to compile at runtime." );
         }
         continue;
       }
@@ -825,18 +623,24 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       // to space while RFC2396 does not.
       // So before using URLDecoder.decode() encode "+" to its ASCII representation
       // that will be decoded back to "+" by URLDecoder.decode()
-      path = path.replaceAll("\\+", "%2B");
-      try {
-        String decodedPath = URLDecoder.decode(path, "UTF-8");
-        if (new File(decodedPath).exists()) {
-          paths.add(path);
-        } else {
-          System.err.println("Could not extract filesystem path from the url " + jarUrl.getPath()
-                  + ". Gosu code that requires classes from that JAR might fail to compile at runtime.");
+      path = path.replaceAll( "\\+", "%2B" );
+      try
+      {
+        String decodedPath = URLDecoder.decode( path, "UTF-8" );
+        if( new File( decodedPath ).exists() )
+        {
+          paths.add( path );
         }
-      } catch (UnsupportedEncodingException ex) {
+        else
+        {
+          System.err.println( "Could not extract filesystem path from the url " + jarUrl.getPath()
+                              + ". Gosu code that requires classes from that JAR might fail to compile at runtime." );
+        }
+      }
+      catch( UnsupportedEncodingException ex )
+      {
         // impossible
-        throw GosuExceptionUtil.forceThrow(ex);
+        throw GosuExceptionUtil.forceThrow( ex );
       }
     }
     return paths;

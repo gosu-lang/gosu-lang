@@ -14,7 +14,7 @@ public class NamespaceTypeTest extends TestClass
 {
   public void testNamespaceTypeHasValidArrayType()
   {
-    NamespaceType namespaceType = new NamespaceType( "foo.bar", null);
+    NamespaceType namespaceType = new NamespaceType( "foo.bar" );
     assertNotNull( namespaceType.getArrayType() );
   }
 

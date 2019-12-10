@@ -8,6 +8,7 @@ import gw.config.CommonServices;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.util.StringUtil;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.Pair;
 import gw.util.concurrent.LockingLazyVar;
@@ -38,7 +39,6 @@ public class PropertiesPropertySet implements PropertySet {
 
     private static final String EXTENSION = ".properties";
 
-    private final IModule _module;
     private final LockingLazyVar<Map<String, IFile>> _filesByTypeName = LockingLazyVar.make( () -> {
       List<Pair<String, IFile>> propertiesFiles = findAllFilesByExtension( EXTENSION );
       final int initialCapacity = propertiesFiles.size();
@@ -58,7 +58,7 @@ public class PropertiesPropertySet implements PropertySet {
     public List<Pair<String, IFile>> findAllFilesByExtension(String extension) {
       List<Pair<String, IFile>> results = new ArrayList<>();
 
-      for (IDirectory sourceEntry : _module.getSourcePath()) {
+      for (IDirectory sourceEntry : TypeSystem.getModule().getSourcePath()) {
         if (sourceEntry.exists()) {
           String prefix = sourceEntry.getName().equals(IModule.CONFIG_RESOURCE_PREFIX) ? IModule.CONFIG_RESOURCE_PREFIX : "";
           addAllLocalResourceFilesByExtensionInternal(prefix, sourceEntry, extension, results);
@@ -68,7 +68,7 @@ public class PropertiesPropertySet implements PropertySet {
     }
 
     private void addAllLocalResourceFilesByExtensionInternal(String relativePath, IDirectory dir, String extension, List<Pair<String, IFile>> results) {
-      List<IDirectory> excludedPath = Arrays.asList(_module.getFileRepository().getExcludedPath());
+      List<IDirectory> excludedPath = Arrays.asList(TypeSystem.getModule().getFileRepository().getExcludedPath());
       if ( excludedPath.contains( dir )) {
         return;
       }
@@ -76,7 +76,7 @@ public class PropertiesPropertySet implements PropertySet {
         for (IFile file : dir.listFiles()) {
           if (file.getName().endsWith(extension)) {
             String path = appendResourceNameToPath(relativePath, file.getName());
-            results.add(new Pair<String, IFile>(path, file));
+            results.add( new Pair<>( path, file ));
           }
         }
         for (IDirectory subdir : dir.listDirs()) {
@@ -113,8 +113,7 @@ public class PropertiesPropertySet implements PropertySet {
       return _filesByTypeName.get().get(name);
     }
 
-    public Source(IModule module) {
-      _module = module;
+    public Source() {
     }
 
     @Override
@@ -195,7 +194,7 @@ public class PropertiesPropertySet implements PropertySet {
 
   private Set<String> getStringPropertyNames(Properties properties) {
     // Can't use properties.stringPropertyNames() because it's not available in Java 1.5
-    Set<String> result = new TreeSet<String>();
+    Set<String> result = new TreeSet<>();
     for (Map.Entry<Object, Object> entry : properties.entrySet()) {
       if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
         result.add((String) entry.getKey());

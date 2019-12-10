@@ -5,7 +5,6 @@
 package gw.internal.gosu.parser;
 
 import gw.lang.reflect.IType;
-import gw.lang.reflect.TypeSystem;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  */
 public class GosuClassCompilingStack
 {
-  private static final ThreadLocal<LinkedList<IType>> g_compilingClassStack = new ThreadLocal<LinkedList<IType>>();
+  private static final ThreadLocal<LinkedList<IType>> g_compilingClassStack = new ThreadLocal<>();
 
   public static IType getCurrentCompilingType()
   {
@@ -46,10 +45,9 @@ public class GosuClassCompilingStack
     LinkedList<IType> list = g_compilingClassStack.get();
     if( list == null )
     {
-      list = new LinkedList<IType>();
+      list = new LinkedList<>();
       g_compilingClassStack.set(list);
     }
-    TypeSystem.pushModule(gsClass.getTypeLoader().getModule());
     list.add( 0, gsClass );
   }
 
@@ -58,8 +56,7 @@ public class GosuClassCompilingStack
     List<IType> list = g_compilingClassStack.get();
     if( list != null )
     {
-      IType type = list.remove( 0 );
-      TypeSystem.popModule( type.getTypeLoader().getModule() );
+      list.remove( 0 );
     }
   }
 }

@@ -6,15 +6,16 @@ package gw.lang.reflect;
 
 import gw.fs.IDirectory;
 import gw.fs.IFile;
-import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 import java.util.Set;
 
+
+import static gw.lang.reflect.TypeSystem.getModule;
+
 public abstract class SimpleTypeLoader extends TypeLoaderBase {
 
-  protected SimpleTypeLoader(IModule module) {
-    super(module);
+  protected SimpleTypeLoader() {
   }
 
   public abstract Set<String> getExtensions();

@@ -7,7 +7,6 @@ package gw.internal.gosu.parser;
 import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -15,13 +14,11 @@ import java.lang.reflect.TypeVariable;
 
 public class TypeVariableJavaTypeVariable extends TypeJavaClassType implements IJavaClassTypeVariable {
   private TypeVariable _typeParameter;
-  private IModule _module;
   private Variance _variance;
 
-  public TypeVariableJavaTypeVariable(TypeVariable typeParameter, IModule module) {
-    super(typeParameter, module);
+  public TypeVariableJavaTypeVariable( TypeVariable typeParameter ) {
+    super(typeParameter);
     _typeParameter = typeParameter;
-    _module = module;
     _variance = Variance.DEFAULT;
   }
 
@@ -45,7 +42,7 @@ public class TypeVariableJavaTypeVariable extends TypeJavaClassType implements I
     Type[] rawBounds = _typeParameter.getBounds();
     IJavaClassType[] bounds = new IJavaClassType[rawBounds.length];
     for (int i = 0; i < bounds.length; i++) {
-      bounds[i] = TypeJavaClassType.createType(rawBounds[i], _module);
+      bounds[i] = TypeJavaClassType.createType(rawBounds[i]);
     }
     return bounds;
   }

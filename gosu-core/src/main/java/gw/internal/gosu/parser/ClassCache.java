@@ -6,33 +6,31 @@ package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
 import gw.fs.IFile;
-import gw.internal.gosu.module.DefaultSingleModule;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmClassLoader;
 import gw.lang.reflect.IInjectableClassLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+
+import static gw.lang.reflect.TypeSystem.getModule;
+
 public class ClassCache {
-  @SuppressWarnings({"unchecked"})
-  private final Map<String, Class> _classMap = new HashMap<String, Class>();
-  private Set<CharSequence> _packages = new HashSet<CharSequence>();
-  private IModule _module;
+  private final Map<String, Class> _classMap = new HashMap<>();
+  private Set<CharSequence> _packages = new HashSet<>();
   private LockingLazyVar<ClassPath> _classPathCache;
   private LockingLazyVar<Set<String>> _allTypeNamesCache = new LockingLazyVar<Set<String>>() {
     @Override
     protected Set<String> init() {
-      HashSet<String> strings = new HashSet<String>();
+      HashSet<String> strings = new HashSet<>();
       Set<String> filteredClassNames = _classPathCache.get().getFilteredClassNames();
       for (String className : filteredClassNames) {
         strings.add(className.replace('$', '.'));
@@ -43,20 +41,18 @@ public class ClassCache {
   private AsmClassLoader _asmClassLoader;
   private boolean ignoreTheCache;
 
-  public ClassCache(final IModule module) {
-    _module = module;
+  public ClassCache() {
     ignoreTheCache = ExecutionMode.isRuntime();
     _classPathCache =
       new LockingLazyVar<ClassPath>() {
         protected ClassPath init() {
           return
-            new ClassPath( _module,
-                    ExecutionMode.isRuntime() ?
-                        IClassPath.ONLY_API_CLASSES : // FIXME-isd: for performance reasons, only select API classes
-                        IClassPath.ALLOW_ALL_WITH_SUN_FILTER);
+            new ClassPath( ExecutionMode.isRuntime() ?
+                           IClassPath.ONLY_API_CLASSES : // FIXME-isd: for performance reasons, only select API classes
+                           IClassPath.ALLOW_ALL_WITH_SUN_FILTER );
         }
       };
-    _asmClassLoader = new AsmClassLoader(_module);
+    _asmClassLoader = new AsmClassLoader();
   }
 
   private Class tryToLoadClass(CharSequence name) {
@@ -68,7 +64,7 @@ public class ClassCache {
     try {
       Class<?> cls;
       try {
-        cls = _module.getModuleClassLoader().loadClass(name.toString());
+        cls = getModule().getModuleClassLoader().loadClass(name.toString());
       } catch (ClassNotFoundException cnfe) {
         return ClassNotFoundMarkerClass.class;
       }
@@ -100,14 +96,8 @@ public class ClassCache {
 
   public boolean classFileExists( String className ) {
     AsmClass primitiveClazz = AsmClass.findPrimitive( className );
-    try {
-      IModule jreModule = _module.getExecutionEnvironment().getJreModule();
-      if( jreModule == _module && primitiveClazz != null ) {
-        return true;
-      }
-    }
-    catch( Exception e ) {
-      // ignore, jreModule isn't available yet
+    if( primitiveClazz != null ) {
+      return true;
     }
 
     if( _classPathCache.get().isEmpty() ) {
@@ -138,14 +128,8 @@ public class ClassCache {
 
   public AsmClass loadAsmClass( String className ) {
     AsmClass primitiveClazz = AsmClass.findPrimitive( className );
-    try {
-      IModule jreModule = _module.getExecutionEnvironment().getJreModule();
-      if( jreModule == _module && primitiveClazz != null ) {
-        return primitiveClazz;
-      }
-    }
-    catch( Exception e ) {
-      // ignore, jreModule isn't available yet
+    if( primitiveClazz != null ) {
+      return primitiveClazz;
     }
 
     if( _classPathCache.get().isEmpty() ) {
@@ -176,7 +160,7 @@ public class ClassCache {
 
   public Class loadClass(String className) {
     Class primitiveClazz = Primitives.get(className);
-    if (_module.getExecutionEnvironment().getJreModule() == _module && primitiveClazz != null) {
+    if (primitiveClazz != null) {
       return primitiveClazz;
     }
 
@@ -219,7 +203,7 @@ public class ClassCache {
   private boolean isPackage( StringBuilder s, int i ) {
     try {
       String maybePackage = s.substring( 0, i );
-      if( getPackageMethod().invoke( _module.getModuleClassLoader(), maybePackage ) != null ) {
+      if( getPackageMethod().invoke( getModule().getModuleClassLoader(), maybePackage ) != null ) {
         return true;
       }
     }
@@ -319,7 +303,7 @@ public class ClassCache {
   }
 
   public void dispose() {
-    _module.disposeLoader();
+    getModule().disposeLoader();
   }
 
   /**
@@ -328,13 +312,13 @@ public class ClassCache {
    * Note, this is a giant hack among many gianter hacks that keep the old test framework floating.
    */
   public void reassignClassLoader() {
-    ClassLoader loader = _module.getModuleClassLoader();
+    ClassLoader loader = getModule().getModuleClassLoader();
     if( loader.getParent() instanceof IInjectableClassLoader ) {
       // Dispose the GosuPluginContainer "singleton" and create a new one
       ((IInjectableClassLoader)loader.getParent()).dispose();
       // Dispose the ModuleClassLoader and create new one, its parent will be the new GosuPluginContainer.
       // Note the ModuleClassLoader in the single module case does absolutely nothing as it has no classpath; it fully delegates to its parent.
-      _module.disposeLoader();
+      getModule().disposeLoader();
     }
   }
 

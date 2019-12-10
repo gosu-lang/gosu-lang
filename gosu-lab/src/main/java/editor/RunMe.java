@@ -7,7 +7,6 @@ import editor.util.SettleModalEventQueue;
 import gw.config.CommonServices;
 import gw.config.IPlatformHelper;
 import gw.lang.Gosu;
-import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
@@ -59,8 +58,7 @@ public class RunMe
                                                deriveClasspath( experiment ),
                                                deriveBackingSourcePath( experiment ),
                                                "",
-                                               Collections.<GosucDependency>emptyList(),
-                                               Collections.<String>emptyList() );
+                                               Collections.emptyList() );
     gosuInitialization.reinitializeSimpleIde( gosucModule );
   }
 

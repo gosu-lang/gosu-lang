@@ -24,7 +24,7 @@ public class TypeNameCache implements ITypeLoaderListener
     {
       protected ITypeLoaderStack init()
       {
-        ITypeLoaderStack moduleLoader = TypeSystem.getGlobalModule().getModuleTypeLoader();
+        ITypeLoaderStack moduleLoader = TypeSystem.getModule().getModuleTypeLoader();
         TypeSystem.addTypeLoaderListenerAsWeakRef( TypeNameCache.this );
         return moduleLoader;
       }

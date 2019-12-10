@@ -16,7 +16,6 @@ import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaType;
-import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.net.URL;
@@ -36,8 +35,8 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public static final String GOSU_RULE_SET_EXT = ".grs";
 
   public static final String[] ALL_EXTS = {GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT};
-  public static final Set<String> ALL_EXTS_SET = new HashSet<String>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
-  public static final Set<String> EXTENSIONS = new HashSet<String>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
+  public static final Set<String> ALL_EXTS_SET = new HashSet<>( Arrays.asList( GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT ) );
+  public static final Set<String> EXTENSIONS = new HashSet<>( Arrays.asList( "gs", "gsx", "gsp", "gst", "gr", "grs" ) );
 
   // These constants are only here because api can't depend on impl currently; they shouldn't be considered
   // part of the API proper
@@ -54,19 +53,9 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     return TypeSystem.getTypeLoader( GosuClassTypeLoader.class );
   }
 
-  public static GosuClassTypeLoader getDefaultClassLoader(IModule module)
-  {
-    return TypeSystem.getTypeLoader( GosuClassTypeLoader.class, module );
-  }
-
   public GosuClassTypeLoader( IGosuClassRepository repository )
   {
-    this( repository.getModule(), repository );
-  }
-
-  public GosuClassTypeLoader( IModule module, IGosuClassRepository repository )
-  {
-    super( module );
+    super();
     _repository = repository;
     makeEnhancementIndex();
   }
@@ -187,7 +176,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     {
       try
       {
-        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<String>() );
+        _namespaces = TypeSystem.getNamespacesFromTypeNames( getAllTypeNames(), new HashSet<>() );
         _namespaces.add( "Libraries" );
       }
       catch( NullPointerException e )
@@ -282,30 +271,25 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
       {
         String strippedName = strName.substring( 0, strName.length() - BLOCK_POSTFIX.length() );
         int iStr = strippedName.lastIndexOf( INNER_BLOCK_PREFIX );
-        String indexStr = strippedName.substring( iStr + INNER_BLOCK_PREFIX.length(), strippedName.length() );
+        String indexStr = strippedName.substring( iStr + INNER_BLOCK_PREFIX.length() );
         int i = Integer.parseInt( indexStr );
         String enclosingClassStr = strippedName.substring( 0, iStr );
 
         IType type = getBlockType( enclosingClassStr );
         if( type == null )
         {
-          type = TypeSystem.getByFullNameIfValid( enclosingClassStr.replace( '$', '.' ), getModule() );
+          type = TypeSystem.getByFullNameIfValid( enclosingClassStr.replace( '$', '.' ) );
         }
 
         // this module check is to make sure that the block class is in the same module as the parent class
         // otherwise the Rule loader loads block classes!
-        if( type instanceof ICompilableType && type.getTypeLoader().getModule() == _module )
+        if( type instanceof ICompilableType )
         {
           classInternal = ((ICompilableType)type).getBlock( i );
         }
       }
-      catch( NumberFormatException e )
+      catch( NumberFormatException | IndexOutOfBoundsException ignore )
       {
-        //ignore
-      }
-      catch( IndexOutOfBoundsException e )
-      {
-        //ignore
       }
     }
     return classInternal;
@@ -387,7 +371,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
 
   @Override
   public Set<TypeName> getTypeNames(String namespace) {
-    return _repository.getTypeNames(namespace, ALL_EXTS_SET, this);
+    return _repository.getTypeNames(namespace, ALL_EXTS_SET);
   }
 
   @Override

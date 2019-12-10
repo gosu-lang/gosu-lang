@@ -29,7 +29,6 @@ import gw.lang.reflect.PropertyInfoBase;
 import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,23 +40,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
 public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeInfo
 {
   private FeatureManager _fm;
-  private Map<IModule, List<IMethodInfo>> _declaredMethods;
-  private Map<IModule, List<IPropertyInfo>> _declaredProperties;
+  private List<IMethodInfo> _declaredMethods;
+  private List<IPropertyInfo> _declaredProperties;
 
   /**
    */
   public MetaTypeTypeInfo( MetaType intrType )
   {
     super( intrType );
-    _declaredMethods = new ConcurrentHashMap<IModule, List<IMethodInfo>>();
-    _declaredProperties = new ConcurrentHashMap<IModule, List<IPropertyInfo>>();
     _fm = new FeatureManager( this, true );
   }
 
@@ -149,7 +145,7 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
   {
     if( FIND.method( methods, "forName", JavaTypes.STRING() ) == null )
     {
-      IType iIntrinsicType = TypeSystem.getByFullName( LocalClassForNameHack.class.getName(), TypeSystem.getGlobalModule() );
+      IType iIntrinsicType = TypeSystem.getByFullName( LocalClassForNameHack.class.getName() );
       StaticMethodInfoDelegate forName =
         new StaticMethodInfoDelegate( this, iIntrinsicType.getTypeInfo().getMethod( "forName", JavaTypes.STRING() ) )
         {
@@ -173,7 +169,7 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
 
   private Map<CharSequence, IPropertyInfo> mergeProperties( ITypeInfo typeTypeInfo )
   {
-    Map<CharSequence, IPropertyInfo> propertiesByName = new HashMap<CharSequence, IPropertyInfo>();
+    Map<CharSequence, IPropertyInfo> propertiesByName = new HashMap<>();
     if( !getOwnersType().isLiteral() ||
         getOwnersType().getType() instanceof IMetaType )
     {
@@ -241,7 +237,7 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
 
   private MethodList mergeMethods( ITypeInfo typeTypeInfo )
   {
-    Set<IMethodInfo> tempMethods = new HashSet<IMethodInfo>();
+    Set<IMethodInfo> tempMethods = new HashSet<>();
 
     if( !getOwnersType().isLiteral() ||
         getOwnersType().getType() instanceof IMetaType )
@@ -341,20 +337,16 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
 
   public List<? extends IPropertyInfo> getDeclaredProperties()
   {
-    IModule module = TypeSystem.getCurrentModule();
-    List<IPropertyInfo> declaredProperties = _declaredProperties.get( module );
-    if( declaredProperties == null )
+    if( _declaredProperties == null )
     {      
       TypeSystem.lock();
       try
       {
-        declaredProperties = _declaredProperties.get( module );
-        if( declaredProperties == null )
+        if( _declaredProperties == null )
         {
           ITypeInfo typeTypeInfo = getOwnersType().getType().getTypeInfo();
           Map<CharSequence, IPropertyInfo> propertiesByName = mergeProperties( typeTypeInfo );
-          declaredProperties = new ArrayList<IPropertyInfo>( propertiesByName.values() );
-          _declaredProperties.put( module, declaredProperties );
+          _declaredProperties = new ArrayList<>( propertiesByName.values() );
         }
       }
       finally
@@ -362,26 +354,22 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
         TypeSystem.unlock();
       }
     }
-    return declaredProperties;
+    return _declaredProperties;
   }
   
   public List<? extends IMethodInfo> getDeclaredMethods()
   {
-    IModule module = TypeSystem.getCurrentModule();
-    List<IMethodInfo> declaredMethods = _declaredMethods.get( module );
-    if( declaredMethods == null )
+    if( _declaredMethods == null )
     {      
       TypeSystem.lock();
       try
       {
-        declaredMethods = _declaredMethods.get( module );
-        if( declaredMethods == null )
+        if( _declaredMethods == null )
         {
           ITypeInfo typeTypeInfo = getOwnersType().getType().getTypeInfo();
           MethodList methods = mergeMethods( typeTypeInfo );
           addForNameMethod( methods );
-          declaredMethods = methods;
-          _declaredMethods.put( module, declaredMethods );
+          _declaredMethods = methods;
         }
       }
       finally
@@ -389,7 +377,7 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
         TypeSystem.unlock();
       }
     }
-    return declaredMethods;
+    return _declaredMethods;
   }
 
   public List<? extends IConstructorInfo> getDeclaredConstructors()
@@ -417,16 +405,11 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
   }
 
   private TreeSet<IType> makeTreeSet() {
-    return new TreeSet<IType>(new Comparator<IType>() {
-      @Override
-      public int compare(IType o1, IType o2) {
-        return o1.getName().compareTo(o2.getName());
-      }
-    });
+    return new TreeSet<>( Comparator.comparing( IType::getName ) );
   }
 
   private IType getTypeOfType(IType type) {
-    return TypeSystem.get( type.getClass(), TypeSystem.getGlobalModule() );
+    return TypeSystem.get( type.getClass() );
   }
 
   private void loadMetaTypeMethods( Set<IMethodInfo> methods )
@@ -483,7 +466,7 @@ public class MetaTypeTypeInfo extends BaseFeatureInfo implements IRelativeTypeIn
   {
     if( getOwnersType().getType() == MetaType.DEFAULT_TYPE.get() )
     {
-      return Collections.singleton( (IType)JavaTypes.ITYPE() );
+      return Collections.singleton( JavaTypes.ITYPE() );
     }
 
     for( IType iface : type.getInterfaces() )

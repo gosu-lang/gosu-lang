@@ -5,14 +5,11 @@
 package gw.internal.gosu.parser;
 
 import gw.config.BaseService;
-import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
 import gw.internal.gosu.ir.builders.SimpleCompiler;
 import gw.internal.gosu.ir.transform.util.IRTypeResolverAPIWrapper;
 import gw.internal.gosu.javadoc.JavaDocFactoryImpl;
-import gw.internal.gosu.module.GlobalModule;
-import gw.internal.gosu.module.Module;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.parser.java.compiler.JavaStubGenerator;
@@ -69,16 +66,11 @@ import gw.lang.reflect.PropertyInfoDelegate;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
-import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ITemplateType;
-import gw.lang.reflect.java.IJavaClassInfo;
-import gw.lang.reflect.module.IClassPath;
-import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.IFeatureFilter;
 
@@ -198,17 +190,6 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     return (ITemplateType)TypeSystem.getOrCreateTypeReference( new GosuTemplateType( strNamespace, strRelativeName, loader, sourceFile, typeUsesMap, symTable ) );
   }
 
-  public IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files)
-  {
-    return createFileSystemGosuClassRepository(module, files, GosuClassTypeLoader.ALL_EXTS);
-  }
-  public IFileSystemGosuClassRepository createFileSystemGosuClassRepository(IModule module, IDirectory[] files, String[] extensions)
-  {
-    IFileSystemGosuClassRepository repository = new FileSystemGosuClassRepository(module);
-    repository.setSourcePath(files);
-    return repository;
-  }
-
   public ITypeUsesMap createTypeUsesMap( List<String> specialTypeUses )
   {
     return new TypeUsesMap( specialTypeUses );
@@ -240,33 +221,14 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     return new EvaluationException( msg );
   }
 
-  public IModule createModule( IExecutionEnvironment execEnv, String strMemberName )
-  {
-    return new Module( execEnv, strMemberName);
-  }
-
   @Override
   public IGosuClass getGosuClassFrom( IType fromType ) {
     return IGosuClassInternal.Util.getGosuClassFrom( fromType );
   }
 
   @Override
-  public IModule createGlobalModule(IExecutionEnvironment execEnv) {
-    return new GlobalModule( execEnv, IExecutionEnvironment.GLOBAL_MODULE_NAME);
-  }
-
-  @Override
-  public IClassPath createClassPath(IModule module, boolean includeAllClasses) {
-    return new ClassPath(module, includeAllClasses ? ClassPath.ALLOW_ALL_FILTER : ClassPath.ONLY_API_CLASSES);
-  }
-
-  @Override
   public IType getPureGenericType(IType type) {
     return TypeLord.getPureGenericType(type);
-  }
-
-  public IJavaClassInfo createClassInfo(Class aClass, IModule module) {
-    return new ClassJavaClassInfo(aClass, module);
   }
 
   @Override

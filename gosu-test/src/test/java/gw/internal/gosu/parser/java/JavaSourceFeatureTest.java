@@ -9,7 +9,6 @@ import gw.internal.gosu.parser.java.classinfo.JavaSourceField;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUnresolvedClass;
 import gw.lang.parser.IExpression;
-import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.java.IJavaClassField;
@@ -162,7 +161,7 @@ public class JavaSourceFeatureTest extends TestClass {
             "  } \n" +
             "} \n"
     );
-    assertErrorLine( errorHandler, 3 );
+    assertErrorLine( errorHandler, 3, 5 );
   }
 
   public void testMisspelledClassKeyword_Inner() {
@@ -618,7 +617,7 @@ public class JavaSourceFeatureTest extends TestClass {
   public IJavaClassInfo createSourceType( DiagnosticCollector<JavaFileObject> errorHandler, String source )
   {
     StringSourceFileHandle handle = new StringSourceFileHandle( "foo.TestClass", source, false, ClassType.JavaClass );
-    IJavaClassInfo type = JavaSourceType.createTopLevel( handle, TypeSystem.getCurrentModule(), errorHandler );
+    IJavaClassInfo type = JavaSourceType.createTopLevel( handle, errorHandler );
     assertEquals( "foo.TestClass", type.getName() );
     assertEquals( "foo", type.getNamespace() );
     return type;

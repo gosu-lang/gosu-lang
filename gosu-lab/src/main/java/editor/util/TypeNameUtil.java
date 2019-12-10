@@ -17,7 +17,7 @@ public class TypeNameUtil
 {
   public static String getTypeNameForFile( Path classFile )
   {
-    GosuClassTypeLoader typeLoader = TypeSystem.getCurrentModule().getModuleTypeLoader().getTypeLoader( GosuClassTypeLoader.class );
+    GosuClassTypeLoader typeLoader = TypeSystem.getModule().getModuleTypeLoader().getTypeLoader( GosuClassTypeLoader.class );
     IFileSystemGosuClassRepository repo = (IFileSystemGosuClassRepository)typeLoader.getRepository();
     IFile classIFile = PathUtil.getIFile( classFile );
     IDirectory[] classPath = repo.getSourcePath();

@@ -40,8 +40,8 @@ public class CompileTimeExpressionParser
     if( text.endsWith( ".class" ) ) {
       text = text.substring( 0, text.lastIndexOf( ".class" ) );
     }
-    ITypeUsesMap usesMap = null;
-    List<String> staticImports = null;
+    ITypeUsesMap usesMap;
+    List<String> staticImports;
     IJavaClassInfo outerMostEnclosingType = TypeLord.getOuterMostEnclosingClass(enclosingType);
     if (outerMostEnclosingType instanceof JavaSourceType) {
       usesMap = ((JavaSourceType) outerMostEnclosingType).getTypeUsesMap().copy();
@@ -93,7 +93,7 @@ public class CompileTimeExpressionParser
 
   private static void pushStaticImports(ISymbolTable symbolTable, List<String> staticImports, IJavaClassInfo enclosingType) {
     for( String imp : staticImports ) {
-      IJavaClassInfo javaClassInfo = TypeSystem.getJavaClassInfo(imp, enclosingType.getModule());
+      IJavaClassInfo javaClassInfo = TypeSystem.getJavaClassInfo( imp );
       if (javaClassInfo != null) {
         for(IJavaClassField field : javaClassInfo.getFields() ) {
           symbolTable.putSymbol( new CompileTimeFieldSymbol( field ) );
@@ -102,7 +102,7 @@ public class CompileTimeExpressionParser
         int endIndex = imp.lastIndexOf('.');
         String typeName = imp.substring(0, endIndex);
         String fieldName = imp.substring(endIndex + 1);
-        javaClassInfo = TypeSystem.getJavaClassInfo(typeName, enclosingType.getModule());
+        javaClassInfo = TypeSystem.getJavaClassInfo( typeName );
         for(IJavaClassField field : javaClassInfo.getFields() ) {
           if (field.getName().equals(fieldName)) {
             symbolTable.putSymbol( new CompileTimeFieldSymbol( field ) );
@@ -185,7 +185,6 @@ public class CompileTimeExpressionParser
     if( value.getClass().isArray() && !IType.class.isAssignableFrom( value.getClass().getComponentType() ) ) {
       Object arrayValue = null;
       for( int i = 0; i < Array.getLength( value ); i++ ) {
-        //noinspection RedundantCast
         Object elemValue = convertValueToInfoFriendlyValue( Array.get( value, i ), enclosingType );
         if( arrayValue == null ) {
           arrayValue = Array.newInstance( elemValue.getClass(), Array.getLength( value ) );

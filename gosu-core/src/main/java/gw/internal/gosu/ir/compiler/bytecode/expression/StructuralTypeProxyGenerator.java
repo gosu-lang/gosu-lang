@@ -27,7 +27,6 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuPropertyInfo;
 import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 /**
  */
@@ -50,19 +49,11 @@ public class StructuralTypeProxyGenerator {
       type = pureGenericType;
     }
     final IType ifaceType = TypeLord.getPureGenericType( TypeSystem.get( iface ) );
-    final IModule module = ifaceType.getTypeLoader().getModule();
-    GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
+    GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader();
     final StructuralTypeProxyGenerator gen = new StructuralTypeProxyGenerator( bStaticImpl );
     IGosuClass gsProxy = loader.makeNewClass(
-      new LazyStringSourceFileHandle( gen.getNamespace( ifaceType ), name, () -> {
-        TypeSystem.pushModule( module );
-        try {
-          return gen.generateProxy( ifaceType, type, name ).toString();
-        }
-        finally {
-          TypeSystem.popModule( module );
-        }
-      }, ClassType.Class ) );
+      new LazyStringSourceFileHandle( gen.getNamespace( ifaceType ), name,
+        () -> gen.generateProxy( ifaceType, type, name ).toString(), ClassType.Class ) );
     return gsProxy.getBackingClass();
   }
 

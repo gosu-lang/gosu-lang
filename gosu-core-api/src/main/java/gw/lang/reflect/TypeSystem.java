@@ -29,7 +29,6 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
-import gw.lang.reflect.module.IProject;
 import gw.util.IFeatureFilter;
 import gw.util.perf.InvocationCounter;
 
@@ -66,26 +65,8 @@ public class TypeSystem
     return CommonServices.getTypeSystem().get( javaClass );
   }
 
-  public static IType get(Class javaClass, IModule module) {
-    TypeSystem.pushModule(module);
-    try {
-      return CommonServices.getTypeSystem().get( javaClass );
-    } finally {
-      TypeSystem.popModule(module);
-    }
-  }
-
   public static IType get(IJavaClassInfo javaClassInfo) {
     return CommonServices.getTypeSystem().get(javaClassInfo);
-  }
-
-  public static IType get(IJavaClassInfo classInfo, IModule module) {
-    TypeSystem.pushModule(module);
-    try {
-      return CommonServices.getTypeSystem().get(classInfo);
-    } finally {
-      TypeSystem.popModule(module);
-    }
   }
 
   /**
@@ -100,16 +81,6 @@ public class TypeSystem
   public static IType getFromObject( Object object )
   {
     return CommonServices.getTypeSystem().getFromObject(object);
-  }
-
-  public static IType getFromObject( Object object, IModule module)
-  {
-    pushModule(module);
-    try {
-      return CommonServices.getTypeSystem().getFromObject(object);
-    } finally {
-      popModule(module);
-    }
   }
 
   public static IType getByRelativeName( String relativeName ) throws ClassNotFoundException
@@ -153,34 +124,6 @@ public class TypeSystem
     return CommonServices.getTypeSystem().getByFullName(fullyQualifiedName);
   }
 
-  public static IType getByFullName( String fullyQualifiedName, IModule module )
-  {
-    TypeSystem.pushModule(module);
-    try {
-      return CommonServices.getTypeSystem().getByFullName(fullyQualifiedName);
-    } finally {
-      TypeSystem.popModule(module);
-    }
-  }
-
-  /** @deprecated call getByFullName( String, IModule ) */
-  public static IType getByFullName( String fullyQualifiedName, String moduleName )
-  {
-    IModule module = moduleName == null ? getExecutionEnvironment().getJreModule() : getExecutionEnvironment().getModule(moduleName);
-    if (module == null) {
-      throw new RuntimeException("Could not find module with name " + moduleName + " for " + fullyQualifiedName);
-    }
-    return getByFullName(fullyQualifiedName, module);
-  }
-
-  public static void pushGlobalModule() {
-    TypeSystem.pushModule(getExecutionEnvironment().getGlobalModule());
-  }
-
-  public static void popGlobalModule() {
-    TypeSystem.popModule(getExecutionEnvironment().getGlobalModule());
-  }
-
   /**
    * Gets a type based on a fully-qualified name.  This could either be the name of an entity,
    * like "entity.User", the name of a typekey, like "typekey.SystemPermission", or a class name, like
@@ -201,15 +144,6 @@ public class TypeSystem
   public static IType getByFullNameIfValidNoJava( String fullyQualifiedName )
   {
     return CommonServices.getTypeSystem().getByFullNameIfValidNoJava(fullyQualifiedName);
-  }
-
-  public static IType getByFullNameIfValid(String typeName, IModule module) {
-    TypeSystem.pushModule(module);
-    try {
-      return getByFullNameIfValid(typeName);
-    } finally {
-      TypeSystem.popModule(module);
-    }
   }
 
   public static void clearErrorTypes()
@@ -287,15 +221,6 @@ public class TypeSystem
   public static INamespaceType getNamespace( String strFqNamespace )
   {
     return CommonServices.getTypeSystem().getNamespace(strFqNamespace);
-  }
-
-  public static INamespaceType getNamespace(String strType, IModule module) {
-    TypeSystem.pushModule(module);
-    try {
-      return getNamespace(strType);
-    } finally {
-      TypeSystem.popModule(module);
-    }
   }
 
   /**
@@ -456,15 +381,6 @@ public class TypeSystem
     return CommonServices.getTypeSystem().getNamespacesFromTypeNames( allTypeNames, namespaces );
   }
 
-  public static void pushTypeLoader( IModule module, ITypeLoader loader )
-  {
-    CommonServices.getTypeSystem().pushTypeLoader(module, loader);
-  }
-  public static void removeTypeLoader( Class<? extends ITypeLoader> loader )
-  {
-    CommonServices.getTypeSystem().removeTypeLoader( loader );
-  }
-
   public static IType getKeyType()
   {
     return CommonServices.getEntityAccess().getKeyType();
@@ -525,14 +441,9 @@ public class TypeSystem
 
   public static <T extends ITypeLoader> T getTypeLoader( Class<? extends T> loaderClass )
   {
-    return CommonServices.getTypeSystem().getTypeLoader( loaderClass, TypeSystem.getGlobalModule() );
+    return CommonServices.getTypeSystem().getTypeLoader( loaderClass );
   }
   
-  public static <T extends ITypeLoader> T getTypeLoader( Class<? extends T> loaderClass, IModule module )
-  {
-    return CommonServices.getTypeSystem().getTypeLoader(loaderClass, module);
-  }
-
   public static String getNameOfParams( IType[] paramTypes, boolean bRelative, boolean bWithEnclosingType )
   {
     return CommonServices.getTypeSystem().getNameOfParams(paramTypes, bRelative, bWithEnclosingType);
@@ -652,14 +563,9 @@ public class TypeSystem
     return CommonServices.getTypeSystem().getExecutionEnvironment();
   }
 
-  public static IExecutionEnvironment getExecutionEnvironment( IProject project )
+  public static IModule getModule()
   {
-    return CommonServices.getTypeSystem().getExecutionEnvironment(project);
-  }
-
-  public static IModule getCurrentModule()
-  {
-    return CommonServices.getTypeSystem().getCurrentModule();
+    return getExecutionEnvironment().getModule();
   }
 
   /**
@@ -728,10 +634,6 @@ public class TypeSystem
   }
 
   public static IJavaClassInfo getJavaClassInfo(Class jClass) {
-    return getJavaClassInfo(jClass, TypeSystem.getCurrentModule());
-  }
-
-  public static IJavaClassInfo getJavaClassInfo(Class jClass, IModule module) {
     if (jClass == null) {
       return null;
     }
@@ -741,13 +643,13 @@ public class TypeSystem
       return type.getBackingClassInfo();
     } else if (jClass.isArray()) {
       Class componentType = jClass.getComponentType();
-      IJavaClassInfo javaClassInfo = getJavaClassInfo(componentType, module);
+      IJavaClassInfo javaClassInfo = getJavaClassInfo(componentType);
       return javaClassInfo.getArrayType();
     } else if(Proxy.class.isAssignableFrom(jClass)) {
-      IDefaultTypeLoader defaultTypeLoader = module.getModuleTypeLoader().getDefaultTypeLoader();
-      return defaultTypeLoader.getJavaClassInfoForClassDirectly(jClass, module);
+      IDefaultTypeLoader defaultTypeLoader = getModule().getModuleTypeLoader().getDefaultTypeLoader();
+      return defaultTypeLoader.getJavaClassInfoForClassDirectly(jClass);
     } else {
-      return getJavaClassInfo(fqn, module);
+      return getJavaClassInfo( fqn );
     }
   }
 
@@ -781,61 +683,20 @@ public class TypeSystem
       iDims++;
       ci = ci.getComponentType();
     }
-    IType reresovledType = TypeSystem.getByFullName( ci.getName().replace('$', '.'), javaType.getTypeLoader().getModule() );
+    IType reresolvedType = getByFullName( ci.getName().replace( '$', '.' ) );
     for( int i = 0; i < iDims; i++ )
     {
-      reresovledType = reresovledType.getArrayType();
+      reresolvedType = reresolvedType.getArrayType();
     }
     if (javaType.isParameterizedType()) {
-      reresovledType = reresovledType.getParameterizedType(javaType.getTypeParameters());
+      reresolvedType = reresolvedType.getParameterizedType(javaType.getTypeParameters());
     }
-    return reresovledType;
+    return reresolvedType;
   }
 
-  public static IJavaClassInfo getJavaClassInfo(String fullyQualifiedName, IModule module) {
-    if( module == null ) {
-      module = TypeSystem.getGlobalModule();
-    }
-    for (IModule m : module.getModuleTraversalList()) {
-      TypeSystem.pushModule(m);
-      try {
-        IDefaultTypeLoader defaultTypeLoader = m.getModuleTypeLoader().getDefaultTypeLoader();
-        if (defaultTypeLoader != null) {
-          IJavaClassInfo javaClassInfo = defaultTypeLoader.getJavaClassInfo(fullyQualifiedName);
-          if (javaClassInfo != null) {
-            return javaClassInfo;
-          }
-        }
-      } finally {
-        TypeSystem.popModule(m);
-      }
-    }
-    return null;
-  }
-
-  public static IModule getModuleFromType(IType type) {
-    IModule result = null;
-    if(type != null) {
-      ITypeLoader loader = type.getTypeLoader();
-      if(loader == null) {
-        IType candidate = type.getEnclosingType();
-        if(candidate != type) {
-          result = getModuleFromType(candidate);
-        }
-        // FIXME circular loop where type == candiate implies null result.
-      } else {
-        result = loader.getModule();
-      }
-    }
-    return result;
-  }
-
-  public static void pushModule(IModule gosuModule) {
-    CommonServices.getTypeSystem().pushModule(gosuModule);
-  }
-
-  public static void popModule(IModule gosuModule) {
-    CommonServices.getTypeSystem().popModule(gosuModule);
+  public static IJavaClassInfo getJavaClassInfo(String fullyQualifiedName) {
+    IDefaultTypeLoader defaultTypeLoader = TypeSystem.getModule().getModuleTypeLoader().getDefaultTypeLoader();
+    return defaultTypeLoader.getJavaClassInfo(fullyQualifiedName);
   }
 
   public static IGosuClassLoader getGosuClassLoader() {
@@ -846,21 +707,12 @@ public class TypeSystem
     CommonServices.getTypeSystem().dumpGosuClassLoader();
   }
 
-  public static IModule getGlobalModule() {
-    return getExecutionEnvironment().getGlobalModule();
-  }
-
   public static IMetaType getDefaultType() {
     return CommonServices.getTypeSystem().getDefaultType();
   }
 
   public static void shutdown(IExecutionEnvironment execEnv) {
-    try {
-      TypeSystem.pushModule( execEnv.getGlobalModule() );
       CommonServices.getTypeSystem().shutdown();
-    } finally {
-//      TypeSystem.popModule( execEnv.getGlobalModule());
-    }
   }
 
   public static void addShutdownListener(TypeSystemShutdownListener listener) {
@@ -871,8 +723,8 @@ public class TypeSystem
     return getExecutionEnvironment().getState();
   }
 
-  public static String[] getTypesForFile(IModule module, IFile file) {
-    return CommonServices.getTypeSystem().getTypesForFile(module, file);
+  public static String[] getTypesForFile(IFile file) {
+    return CommonServices.getTypeSystem().getTypesForFile(file);
   }
 
   public static void refresh( boolean bRefreshCaches )
@@ -880,9 +732,9 @@ public class TypeSystem
     CommonServices.getTypeSystem().refresh(bRefreshCaches);
   }
 
-  public static void refresh(IModule module)
+  public static void refresh()
   {
-    CommonServices.getTypeSystem().refresh(module);
+    CommonServices.getTypeSystem().refresh( true );
   }
 
   /**
@@ -937,10 +789,6 @@ public class TypeSystem
 
   public static boolean isParameterizedWith( IType type, ITypeVariableType... typeVar ) {
     return CommonServices.getTypeSystem().isParameterizedWith( type, typeVar );
-  }
-
-  public static IModule getJreModule() {
-    return getExecutionEnvironment().getJreModule();
   }
 
   public static IType getCompoundType( Set<IType> types ) {

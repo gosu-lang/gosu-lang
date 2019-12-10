@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassParameterizedType;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -14,10 +13,9 @@ import java.lang.reflect.Type;
 public class ParameterizedTypeJavaClassParameterizedType extends TypeJavaClassType implements IJavaClassParameterizedType {
   private ParameterizedType _parameterizedType;
 
-  public ParameterizedTypeJavaClassParameterizedType(ParameterizedType parameterizedType, IModule module) {
-    super(parameterizedType, module);
+  public ParameterizedTypeJavaClassParameterizedType( ParameterizedType parameterizedType ) {
+    super(parameterizedType);
     _parameterizedType = parameterizedType;
-    _module = module;
   }
 
   @Override
@@ -25,14 +23,14 @@ public class ParameterizedTypeJavaClassParameterizedType extends TypeJavaClassTy
     Type[] rawTypes = _parameterizedType.getActualTypeArguments();
     IJavaClassType[] types = new IJavaClassType[rawTypes.length];
     for (int i = 0; i < rawTypes.length; i++) {
-      types[i] = TypeJavaClassType.createType( _parameterizedType.getRawType(), rawTypes[i], _module );
+      types[i] = TypeJavaClassType.createType( _parameterizedType.getRawType(), rawTypes[i]);
     }
     return types;
   }
 
   @Override
   public IJavaClassType getConcreteType() {
-    return TypeJavaClassType.createType(_parameterizedType.getRawType(), _module);
+    return TypeJavaClassType.createType(_parameterizedType.getRawType());
   }
 
   @Override

@@ -8,18 +8,12 @@ import gw.fs.IDirectory;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.RefreshKind;
-import gw.lang.reflect.module.IModule;
 
 import java.net.URL;
 import java.util.Set;
 
 public interface IGosuClassRepository
 {
-  /**
-   * The module having this repository
-   */
-  IModule getModule();
-
   /**
    * Finds the ISourceFileHandle for a given fully-qualified class name, or null if no such source file exists
    *
@@ -29,7 +23,7 @@ public interface IGosuClassRepository
    * @return The source file handle for the given class, or null if no such
    *   source file exists.
    */
-  public ISourceFileHandle findClass(String strQualifiedClassName, String[] extensions);
+  ISourceFileHandle findClass(String strQualifiedClassName, String[] extensions);
 
   /**
    * Finds the given resource in this repository.
@@ -45,7 +39,7 @@ public interface IGosuClassRepository
   /**
    * @return A set containing all type names in this repository (includes enhancement names)
    */
-  public Set<String> getAllTypeNames();
+  Set<String> getAllTypeNames();
 
   /**
    * Returns the names of all types in this repository that end with one of the specified file extensions
@@ -53,12 +47,12 @@ public interface IGosuClassRepository
    * @return A set containing all the type names in this repository.
    * @param extensions the set of file name extensions to consider
    */
-  public Set<String> getAllTypeNames(String... extensions);
+  Set<String> getAllTypeNames(String... extensions);
 
   /**
    * Returns all type names in the given namespace and with the given extensions.
    */
-  Set<TypeName> getTypeNames(String namespace, Set<String> extensions, ITypeLoader loader);
+  Set<TypeName> getTypeNames(String namespace, Set<String> extensions);
 
   /**
    * Returns the number of namespaces this repository has matching the given name.

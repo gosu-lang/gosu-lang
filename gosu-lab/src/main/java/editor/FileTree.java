@@ -366,7 +366,7 @@ public class FileTree implements MutableTreeNode, IFileWatcherListener
     if( isTypeFile( fileTree ) )
     {
       TypeSystem.created( CommonServices.getFileSystem().getIFile( file.toFile() ) );
-      TypeSystem.refresh( TypeSystem.getGlobalModule() );
+      TypeSystem.refresh();
     }
     Path createdFile = SourceFileCreator.instance().getCreated();
     if( createdFile != null && createdFile.equals( file ) )

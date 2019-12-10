@@ -21,7 +21,6 @@ import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.TypeName;
-import gw.lang.reflect.module.IModule;
 import gw.util.DynamicArray;
 import gw.util.StreamUtil;
 import gw.util.cache.FqnCache;
@@ -31,7 +30,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.nio.file.Files;
@@ -45,35 +43,30 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
+
+import static gw.lang.reflect.TypeSystem.getModule;
+
 /**
  */
 public class FileSystemGosuClassRepository implements IFileSystemGosuClassRepository
 {
-  private final Map<String, FqnCache> _missCaches = new HashMap<String, FqnCache>();
+  private final Map<String, FqnCache> _missCaches = new HashMap<>();
   public static final String RESOURCE_LOCATED_W_CLASSES = "gw/config/default.xml";
 
-  private final IModule _module;
 
   // Source paths
-  private List<ClassPathEntry> _sourcePath = new CopyOnWriteArrayList<ClassPathEntry>();
+  private List<ClassPathEntry> _sourcePath = new CopyOnWriteArrayList<>();
   // Excluded paths
-  private Set<IDirectory> _excludedPath = new HashSet<IDirectory>();
-  private String[] _extensions = new String[0];
+  private Set<IDirectory> _excludedPath = new HashSet<>();
+  private String[] _extensions;
 
   // Types and packages in the source paths
   private PackageToClassPathEntryTreeMap _rootNode;
   private Set<String> _allTypeNames;
 
-  public FileSystemGosuClassRepository(IModule module)
+  public FileSystemGosuClassRepository()
   {
-    _module = module;
     _extensions = GosuClassTypeLoader.ALL_EXTS;
-  }
-
-  @Override
-  public IModule getModule()
-  {
-    return _module;
   }
 
   @Override
@@ -95,7 +88,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     {
       _sourcePath.clear();
 
-      Set<String> extensions = new HashSet<String>();
+      Set<String> extensions = new HashSet<>();
       extensions.add(".java");
       extensions.add(".xsd");
       extensions.addAll(Arrays.asList(GosuClassTypeLoader.ALL_EXTS));
@@ -105,7 +98,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
       {
         _sourcePath.add( new ClassPathEntry( file, isTestFolder(file)) );
       }
-      _extensions = extensions.toArray(new String[extensions.size()]);
+      _extensions = extensions.toArray( new String[0] );
 
       reset();
     }
@@ -113,12 +106,12 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
   @Override
   public IDirectory[] getExcludedPath() {
-    return _excludedPath.toArray(new IDirectory[_excludedPath.size()]);
+    return _excludedPath.toArray( new IDirectory[0] );
   }
 
   @Override
   public void setExcludedPath(IDirectory[] excludedPath) {
-    _excludedPath = new HashSet<IDirectory>(Arrays.asList(excludedPath));
+    _excludedPath = new HashSet<>( Arrays.asList( excludedPath ) );
     reset();
   }
 
@@ -166,7 +159,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
   public Set<String> getAllTypeNames()
   {
     if (_allTypeNames == null) {
-      Set<String> classNames = new HashSet<String>();
+      Set<String> classNames = new HashSet<>();
       for( ClassPathEntry path : _sourcePath)
       {
         addTypeNames(path.getPath(), path.getPath(), classNames, _extensions);
@@ -179,7 +172,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
   @Override
   public Set<String> getAllTypeNames(String... extensions)
   {
-    Set<String> enhancementNames = new HashSet<String>();
+    Set<String> enhancementNames = new HashSet<>();
     for( ClassPathEntry path : _sourcePath)
     {
       addTypeNames(path.getPath(), path.getPath(), enhancementNames, extensions);
@@ -366,7 +359,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
   private PackageToClassPathEntryTreeMap loadPackageRoots()
   {
-    PackageToClassPathEntryTreeMap root = new PackageToClassPathEntryTreeMap( null, "", _module );
+    PackageToClassPathEntryTreeMap root = new PackageToClassPathEntryTreeMap( null, "" );
     PackageToClassPathEntryTreeMap gw = root.createChildForDir( null, "gw" );
     gw.createChildForDir( null, "lang" );
     gw.createChildForDir( null, "util" );
@@ -805,17 +798,16 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
     }
   }
 
-  @Override
-  public Set<TypeName> getTypeNames(String namespace, Set<String> extensions, ITypeLoader loader) {
-    Set<TypeName> setNames = new HashSet<TypeName>();
+  public Set<TypeName> getTypeNames(String namespace, Set<String> extensions) {
+    Set<TypeName> setNames = new HashSet<>();
     if (namespace == null) {
       for (String name : getAllTypeNames()) {
-        setNames.add(new TypeName(name, loader, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
+        setNames.add(new TypeName(name, TypeName.Kind.TYPE, TypeName.Visibility.PUBLIC));
       }
     } else {
       PackageToClassPathEntryTreeMap cachedPackage = getCachedPackageCorrectly(namespace);
       if (cachedPackage != null) {
-        return cachedPackage.getTypeNames(extensions, loader);
+        return cachedPackage.getTypeNames(extensions);
       } else {
         return Collections.EMPTY_SET;
       }
@@ -856,7 +848,7 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
 
   @Override
   public IFile findFirstFile(String resourceName) {
-    return findFirstFile(resourceName, _module.getSourcePath());
+    return findFirstFile(resourceName, getModule().getSourcePath());
   }
 
   private IFile findFirstFile(String resourceName, List<? extends IDirectory> searchPath) {
@@ -871,6 +863,6 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
   }
 
   public String toString() {
-    return _module.getName();
+    return getModule().getName();
   }
 }

@@ -5,10 +5,8 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.TypeLoaderBase;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.IModule;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,23 +16,32 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PackageTypeLoader extends TypeLoaderBase
 {
-  private static final Map<IModule, PackageTypeLoader> INSTANCE_BY_MODULE = new HashMap<IModule, PackageTypeLoader>();
+  private static PackageTypeLoader INSTANCE;
+
+  private int _moduleId;
   private final Map<CharSequence, PackageType> _mapTypeByName;
 
   public static PackageTypeLoader instance()
   {
-    IModule module = TypeSystem.getCurrentModule();
-    PackageTypeLoader instance = INSTANCE_BY_MODULE.get( module );
-    if( instance == null )
+    if( INSTANCE == null )
     {
-      INSTANCE_BY_MODULE.put( module, instance = new PackageTypeLoader() );
+      INSTANCE = new PackageTypeLoader();
     }
-    return instance;
+    else
+    {
+      int moduleId = System.identityHashCode( TypeSystem.getModule() );
+      if( moduleId != INSTANCE._moduleId )
+      {
+        INSTANCE = new PackageTypeLoader();
+      }
+    }
+    return INSTANCE;
   }
 
   private PackageTypeLoader()
   {
-    _mapTypeByName = new ConcurrentHashMap<CharSequence, PackageType>();
+    _moduleId = System.identityHashCode( TypeSystem.getModule() );
+    _mapTypeByName = new ConcurrentHashMap<>();
   }
 
   @Override

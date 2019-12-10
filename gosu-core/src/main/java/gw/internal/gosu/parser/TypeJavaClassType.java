@@ -8,7 +8,6 @@ import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.IType;
-import gw.lang.reflect.module.IModule;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -18,11 +17,9 @@ import java.lang.reflect.WildcardType;
 
 public abstract class TypeJavaClassType implements IJavaClassType {
   private Type _type;
-  protected IModule _module;
 
-  public TypeJavaClassType(Type type, IModule module) {
+  public TypeJavaClassType(Type type) {
     _type = type;
-    _module = module;
   }
 
   @Override
@@ -35,25 +32,25 @@ public abstract class TypeJavaClassType implements IJavaClassType {
     return TypeLord.getActualType(_type, typeMap, bKeepTypeVars);
   }
 
-  public static IJavaClassType createType(Type rawType, IModule module) {
-    return createType( null, rawType, module );
+  public static IJavaClassType createType(Type rawType) {
+    return createType( null, rawType );
   }
-  public static IJavaClassType createType(Type genType, Type rawType, IModule module) {
+  public static IJavaClassType createType(Type genType, Type rawType) {
     IJavaClassType type = null;
     if (rawType instanceof TypeVariable) {
-      type = new TypeVariableJavaClassTypeVariable((TypeVariable) rawType, module);
+      type = new TypeVariableJavaClassTypeVariable((TypeVariable) rawType);
     }
     if (rawType instanceof GenericArrayType) {
-      type = new GenericArrayTypeJavaClassGenericArrayType((GenericArrayType) rawType, module);
+      type = new GenericArrayTypeJavaClassGenericArrayType((GenericArrayType) rawType);
     }
     if (rawType instanceof ParameterizedType) {
-      type = new ParameterizedTypeJavaClassParameterizedType((ParameterizedType) rawType, module);
+      type = new ParameterizedTypeJavaClassParameterizedType((ParameterizedType) rawType);
     }
     if (rawType instanceof WildcardType) {
-      type = new WildcardTypeJavaClassWildcardType( genType, (WildcardType) rawType, module);
+      type = new WildcardTypeJavaClassWildcardType( genType, (WildcardType) rawType);
     }
     if (rawType instanceof Class) {
-      type = JavaSourceUtil.getClassInfo((Class) rawType, module);
+      type = JavaSourceUtil.getClassInfo((Class) rawType);
     }
     return type;
   }
@@ -61,11 +58,6 @@ public abstract class TypeJavaClassType implements IJavaClassType {
   @Override
   public String getName() {
     return _type.toString();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _module;
   }
 
   @Override

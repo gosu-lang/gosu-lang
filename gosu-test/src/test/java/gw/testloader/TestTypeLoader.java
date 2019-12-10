@@ -23,12 +23,8 @@ import java.util.concurrent.Callable;
 
 public class TestTypeLoader extends TypeLoaderBase {
   protected Set<String> _namespaces;
-  private Map<String, IType> _types = new HashMap<String, IType>();
+  private Map<String, IType> _types = new HashMap<>();
   public static final String TEST_CLASS_PACKAGE = "testtypeloader";
-
-  public TestTypeLoader() {
-    super( TypeSystem.getCurrentModule() );
-  }
 
   @Override
   protected void doInit() {

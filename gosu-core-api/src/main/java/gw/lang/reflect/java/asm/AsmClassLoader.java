@@ -16,11 +16,9 @@ import java.io.InputStream;
 /**
  */
 public class AsmClassLoader {
-  private Object _module;
   private FqnCache<AsmClass> _cache;
 
-  public AsmClassLoader( Object module ) {
-    _module = module;
+  public AsmClassLoader() {
     _cache = new FqnCache<>();
   }
 
@@ -31,7 +29,7 @@ public class AsmClassLoader {
       if( asmClass == null ) {
         try
         {
-          asmClass = new AsmClass( _module, file.toURI() );
+          asmClass = new AsmClass( file.toURI() );
           _cache.add( fqn, asmClass );
           asmClass.init( getContent( file.openInputStream() ) );
         }
@@ -51,7 +49,7 @@ public class AsmClassLoader {
       if( asmClass == null ) {
         try
         {
-          asmClass = new AsmClass( _module, file.toURI() );
+          asmClass = new AsmClass( file.toURI() );
           _cache.add( fqn, asmClass );
           asmClass.init( getContent( new FileInputStream( file ) ) );
         }

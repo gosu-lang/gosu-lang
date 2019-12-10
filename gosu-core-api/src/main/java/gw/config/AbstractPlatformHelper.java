@@ -7,13 +7,14 @@ package gw.config;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.util.RabinKarpHash;
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.module.IModule;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+
+import static gw.lang.reflect.TypeSystem.getModule;
 
 public abstract class AbstractPlatformHelper extends BaseService implements IPlatformHelper {
 
@@ -87,9 +88,8 @@ public abstract class AbstractPlatformHelper extends BaseService implements IPla
 
   private static RabinKarpHash HASH = new RabinKarpHash(IGNORE_DIRECTORY_PATTERNS);
 
-  private Set<String> EXTENSIONS = new HashSet<String>(Arrays.asList(new String[]{
-      "pcf", "eti", "eix", "etx", "tti", "ttx", "tix", "gr", "grs"
-  }));
+  private Set<String> EXTENSIONS =
+    new HashSet<>( Arrays.asList( "pcf", "eti", "eix", "etx", "tti", "ttx", "tix", "gr", "grs" ) );
 
   protected AbstractPlatformHelper() {
     ExecutionMode.clear();
@@ -113,23 +113,13 @@ public abstract class AbstractPlatformHelper extends BaseService implements IPla
     // for the file existence check if we don't have to, and hasChild() will usually work off the cached sub-files
     // of a given directory
     if (file != null && file.getParent() != null && file.getParent().hasChildFile(file.getName()) && isConfigFile(file)) {
-      final IModule module = TypeSystem.getExecutionEnvironment().getModule(file);
-      if (module != null) {
-        for (IDirectory dir : module.getSourcePath()) {
-          if ("config".equals(dir.getName()) && file.isDescendantOf(dir)) {
-            return false;
-          }
+      for (IDirectory dir : getModule().getSourcePath()) {
+        if ("config".equals(dir.getName()) && file.isDescendantOf(dir)) {
+          return false;
         }
       }
-      //System.out.println("Ignoring: " + relativePath);
       return true;
     }
-
-//    for (String pattern : IGNORE_DIRECTORY_PATTERNS) {
-//      if (relativePath.contains(pattern)) {
-//        return true;
-//      }
-//    }
     return HASH.matches(relativePath);
   }
 

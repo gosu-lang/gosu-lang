@@ -13,7 +13,6 @@ import gw.lang.parser.ISourceCodeTokenizer;
 import gw.lang.parser.IToken;
 import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.ITerminalStatement;
-import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 
@@ -61,11 +60,6 @@ public class ClassFileStatement extends Statement implements IClassFileStatement
   {
     bAbsolute[0] = false;
     return null;
-  }
-
-  public IModule getModule()
-  {    
-    return getGosuClass().getTypeLoader().getModule();
   }
 
   @Override

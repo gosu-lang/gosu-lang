@@ -12,7 +12,6 @@ import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.StandardSymbolTable;
 import gw.lang.parser.ThreadSafeSymbolTable;
 import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.TypeSystemShutdownListener;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.util.Stack;
 import gw.util.concurrent.LockingLazyVar;
@@ -27,20 +26,18 @@ public class CompiledGosuClassSymbolTable extends ThreadSafeSymbolTable
       return new CompiledGosuClassSymbolTable();
     }
   };
-  private static final ThreadLocal<Stack> SYM_TABLE_STACK = new ThreadLocal<Stack>();
-  private static final ThreadLocal<Stack> SYM_TABLE_TRACE_STACK = new ThreadLocal<Stack>();
-  private static final ThreadLocal<Map<ICompilableType, ISymbolTable>> MAP_SYM_TABLE_BY_TYPE = new ThreadLocal<Map<ICompilableType, ISymbolTable>>();
+  private static final ThreadLocal<Stack> SYM_TABLE_STACK = new ThreadLocal<>();
+  private static final ThreadLocal<Stack> SYM_TABLE_TRACE_STACK = new ThreadLocal<>();
+  private static final ThreadLocal<Map<ICompilableType, ISymbolTable>> MAP_SYM_TABLE_BY_TYPE = new ThreadLocal<>();
   private static final boolean DEBUG = false; //enables collection of sym stack push traces
 
   static {
-    TypeSystem.addShutdownListener(new TypeSystemShutdownListener() {
-      public void shutdown() {
-        INSTANCE.clear();
-        GosuShop.clearThreadLocal(SYM_TABLE_STACK);
-        GosuShop.clearThreadLocal(SYM_TABLE_TRACE_STACK);
-        GosuShop.clearThreadLocal(MAP_SYM_TABLE_BY_TYPE);
-      }
-    });
+    TypeSystem.addShutdownListener( () -> {
+      INSTANCE.clear();
+      GosuShop.clearThreadLocal(SYM_TABLE_STACK);
+      GosuShop.clearThreadLocal(SYM_TABLE_TRACE_STACK);
+      GosuShop.clearThreadLocal(MAP_SYM_TABLE_BY_TYPE);
+    } );
   }
 
   public static CompiledGosuClassSymbolTable instance()
@@ -97,7 +94,6 @@ public class CompiledGosuClassSymbolTable extends ThreadSafeSymbolTable
   }
   public void pushCompileTimeSymbolTable( ICompilableType gsClass, ISymbolTable symTable )
   {
-    TypeSystem.pushModule( gsClass.getTypeLoader().getModule() );
     pushCompileTimeSymbolTable( symTable );
     if( getClassMap().containsKey( gsClass ) )
     {
@@ -115,12 +111,6 @@ public class CompiledGosuClassSymbolTable extends ThreadSafeSymbolTable
   {
     // push on a clean symbol table for parsing
     pushSymTableCtx( symTable == this ? new StandardSymbolTable( true ) : symTable );
-  }
-
-  public void popCompileTimeSymbolTable( ICompilableType gsClass )
-  {
-    popCompileTimeSymbolTable();
-    TypeSystem.popModule( gsClass.getTypeLoader().getModule() );
   }
 
   public void popCompileTimeSymbolTable()
@@ -167,7 +157,7 @@ public class CompiledGosuClassSymbolTable extends ThreadSafeSymbolTable
     Map<ICompilableType, ISymbolTable> map = MAP_SYM_TABLE_BY_TYPE.get();
     if( map == null )
     {
-      map = new HashMap<ICompilableType, ISymbolTable>( 8 );
+      map = new HashMap<>( 8 );
       MAP_SYM_TABLE_BY_TYPE.set( map );
     }
     return map;

@@ -50,7 +50,6 @@ public class CommonServices extends ServiceKernel
       defineService( IXmlSchemaCompatibilityConfig.class, (IXmlSchemaCompatibilityConfig)Class.forName( "gw.config.DefaultXmlSchemaCompatibilityConfig" ).newInstance() );
       defineService( IPlatformHelper.class, (IPlatformHelper)Class.forName( "gw.internal.gosu.parser.DefaultPlatformHelper" ).newInstance() );
       defineService( IExtensionFolderLocator.class, (IExtensionFolderLocator)Class.forName( "gw.config.DefaultExtensionFolderLocator" ).newInstance() );
-      defineService( IMemoryMonitor.class, (IMemoryMonitor)Class.forName( "gw.internal.gosu.memory.DefaultMemoryMonitor" ).newInstance() );
       defineService( IGosuInitializationHooks.class, new DefaultGosuInitializationHooks());
       defineService( IGlobalLoaderProvider.class, new DefaultGlobalLoaderProvider());
       defineService( IGosuProfilingService.class, new DefaultGosuProfilingService() );
@@ -146,10 +145,6 @@ public class CommonServices extends ServiceKernel
 
   public static IFileSystem getFileSystem() {
     return _kernel.getService(IFileSystem.class);
-  }
-
-  public static IMemoryMonitor getMemoryMonitor() {
-    return _kernel.getService(IMemoryMonitor.class);
   }
 
   public static CommonServices getKernel() {

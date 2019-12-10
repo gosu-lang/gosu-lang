@@ -22,7 +22,6 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 
@@ -84,11 +83,6 @@ public class JavaSourceTypeVariable implements IJavaClassTypeVariable {
   @Override
   public String getSimpleName() {
     return getName();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _owner.getModule();
   }
 
   @Override

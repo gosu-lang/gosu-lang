@@ -41,11 +41,11 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
   private String _pkgName;
   private String _className;
   private TestExecutionManager _executionManager;
-  private static final ThreadLocal<TestExecutionManager> THREAD_LOCAL_EXECUTION_MANAGER = new ThreadLocal<TestExecutionManager>();
-  private List<TestMetadata> _metadata = new ArrayList<TestMetadata>();
+  private static final ThreadLocal<TestExecutionManager> THREAD_LOCAL_EXECUTION_MANAGER = new ThreadLocal<>();
+  private List<TestMetadata> _metadata = new ArrayList<>();
   private boolean _doNotRun;
   private boolean _knownBreak;
-  private static final Map<String, Integer> _numberOfInstancesCreatedByTypeName = new HashMap<String, Integer>();
+  private static final Map<String, Integer> _numberOfInstancesCreatedByTypeName = new HashMap<>();
   private boolean _isGosuTest;
 
   protected TestClass() {
@@ -87,18 +87,13 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
     String fullName = getFullClassNameInternal();
     int lastDot = fullName.lastIndexOf(".");
     _pkgName = fullName.substring(0, lastDot).replace("_proxy_.", "");
-    _className = fullName.substring(lastDot + 1, fullName.length()).replace('$', '.');
+    _className = fullName.substring(lastDot + 1).replace('$', '.');
 
     // When running from an IDE, we could be running just one method out of a class, or we could be running
     // the entire class.  Since we have no way to get ahold of the suite that the IDE has created, the only
     // way for us to tell how many methods we're running out of a given class is to track how many instances
     // of each class are created.  We can then use that to determine when to run the afterClass() hook.
-    Integer numberOfInstances = _numberOfInstancesCreatedByTypeName.get(getTypeName());
-    if (numberOfInstances == null) {
-      _numberOfInstancesCreatedByTypeName.put(getTypeName(), 1);
-    } else {
-      _numberOfInstancesCreatedByTypeName.put(getTypeName(), numberOfInstances + 1);
-    }
+    _numberOfInstancesCreatedByTypeName.merge( getTypeName(), 1, Integer::sum );
   }
 
   protected String getFullClassNameInternal() {
@@ -243,7 +238,7 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
 
     if( type instanceof IJavaType && ((IHasJavaClass) getType()).getBackingClass() == null ) {
       // Handle case where we are getting IJavaClassInfo from source (getBackingClass() returns null)
-      ClassLoader cl = type.getTypeLoader().getModule().getModuleTypeLoader().getDefaultTypeLoader().getGosuClassLoader().getActualLoader();
+      ClassLoader cl = TypeSystem.getModule().getModuleTypeLoader().getDefaultTypeLoader().getGosuClassLoader().getActualLoader();
       Class<?> testClass = Class.forName( type.getName(), true, cl );
       runMethod = testClass.getMethod( name );
     }
@@ -326,8 +321,6 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
 
   /**
    * Compare two byte arrays, first the size then each byte.
-   * @param expected
-   * @param actual
    */
   public static void assertArrayEquals(String message, byte[] expected, byte[] actual) {
     if (expected.length != actual.length) {
@@ -475,7 +468,7 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
   }
   
   private static Map makeHistogram(Iterable o1) {
-    HashMap<Object, Integer> hist = new HashMap<Object, Integer>();
+    HashMap<Object, Integer> hist = new HashMap<>();
     if( o1 != null )
     {
       for (Object o : o1) {
@@ -609,7 +602,7 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
   }
 
   protected Collection<TestMetadata> createMetadata(List<IAnnotationInfo> annotationInfos) {
-    Map<IType, TestMetadata> map = new HashMap<IType, TestMetadata>();
+    Map<IType, TestMetadata> map = new HashMap<>();
     for (IAnnotationInfo ai : annotationInfos) {
       if (isMetaAnnotationInfo(ai)) {
         map.put(ai.getType(), new TestMetadata(ai));
@@ -661,7 +654,7 @@ public abstract class TestClass extends TestCase implements ITestWithMetadata {
   }
 
   protected Collection<TestMetadata> createMetadata(Annotation[] annotations) {
-    Map<Class<? extends Annotation>, TestMetadata> map = new HashMap<Class<? extends Annotation>, TestMetadata>();
+    Map<Class<? extends Annotation>, TestMetadata> map = new HashMap<>();
     for (Annotation a : annotations) {
       if (isMetaAnnotation(a)) {
         map.put(a.annotationType(), new TestMetadata( GosuShop.getAnnotationInfoFactory().createJavaAnnotation( a, getType().getTypeInfo() ) ) );

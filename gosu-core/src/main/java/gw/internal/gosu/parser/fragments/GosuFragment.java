@@ -14,7 +14,6 @@ import gw.internal.gosu.parser.ICompilableTypeInternal;
 import gw.internal.gosu.parser.IGosuAnnotation;
 import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.statements.ClassStatement;
-import gw.internal.gosu.parser.statements.StatementList;
 import gw.internal.gosu.parser.statements.VarStatement;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
@@ -61,7 +60,7 @@ public class GosuFragment extends AbstractType implements IGosuFragment, ICompil
 
   public static final String FRAGMENT_NAME_PREFIX = "__Fragment__";
   private static final IGenericTypeVariable[] EMTPY_TYPE_VARIABLE_ARRAY = new IGenericTypeVariable[0];
-  private static final IType[] EMTPY_TYPE_ARRAY = new IType[0];
+  private static final IType[] EMTPY_TYPE_ARRAY = IType.EMPTY_TYPE_ARRAY;
 
   private List<IGosuClass> _blocks;
   private GosuFragmentTypeInfo _typeInfo;
@@ -100,7 +99,7 @@ public class GosuFragment extends AbstractType implements IGosuFragment, ICompil
     _name = name;
     _externalSymbols = externalSymbols;
     _supertype = JavaTypes.FRAGMENT_INSTANCE();
-    _allTypesInHierarchy = new HashSet<IType>();
+    _allTypesInHierarchy = new HashSet<>();
     _allTypesInHierarchy.addAll(_supertype.getAllTypesInHierarchy());
     _allTypesInHierarchy.add(this);
   }
@@ -117,7 +116,7 @@ public class GosuFragment extends AbstractType implements IGosuFragment, ICompil
   @Override
   public void addBlock(IBlockClass block) {
     if (_blocks == null) {
-      _blocks = new ArrayList<IGosuClass>();
+      _blocks = new ArrayList<>();
     }
     _blocks.add(block);
   }
@@ -552,9 +551,8 @@ public class GosuFragment extends AbstractType implements IGosuFragment, ICompil
   private FragmentInstance createNewInstance() {
     try {
       return (FragmentInstance) getBackingClass().newInstance();
-    } catch (InstantiationException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
+    }
+    catch( InstantiationException | IllegalAccessException e ) {
       throw new RuntimeException(e);
     }
   }
@@ -562,7 +560,7 @@ public class GosuFragment extends AbstractType implements IGosuFragment, ICompil
   private IJavaClassInfo defineClass() {
     try {
       Class aClass = GosuClassLoader.instance().defineClass(this, true); //getRelativeName().startsWith( FRAGMENT_NAME_PREFIX ) );
-      return new ClassJavaClassInfo(aClass, getTypeLoader().getModule());
+      return new ClassJavaClassInfo(aClass);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException( e );
     }

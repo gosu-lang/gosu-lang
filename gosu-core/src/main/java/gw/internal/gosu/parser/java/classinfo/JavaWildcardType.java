@@ -16,19 +16,16 @@ import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaClassWildcardType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 
 public class JavaWildcardType implements IJavaClassWildcardType {
   private JavaParameterizedType _ownerType;
   private IJavaClassType _bound;
   private boolean _bSuper;
-  private IModule _module;
 
   public JavaWildcardType( IJavaClassType bound, boolean bSuper ) {
     _bound = bound;
     _bSuper = bSuper;
-    _module = bound.getModule();
   }
 
   @Override
@@ -49,11 +46,6 @@ public class JavaWildcardType implements IJavaClassWildcardType {
   @Override
   public String getSimpleName() {
     return getName();
-  }
-
-  @Override
-  public IModule getModule() {
-    return _module;
   }
 
   public String toString() {

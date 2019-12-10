@@ -21,7 +21,6 @@ import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.fingerprint.FP64;
 
 import java.lang.reflect.Field;
@@ -77,23 +76,16 @@ public class FunctionToInterfaceClassGenerator {
 
   private static IGosuClass createProxy( final String name, final IType typeToCoerceTo, IType enclosingType, final String relativeName )
   {
-    IModule mod = enclosingType.getTypeLoader().getModule();
-    TypeSystem.pushModule( mod );
-    try {
-      final String namespace = enclosingType.getNamespace();
-      String enclosingTypeName = TypeLord.getPureGenericType( enclosingType ).getName();
-      LazyStringSourceFileHandle sfh = new LazyStringSourceFileHandle( enclosingTypeName, enclosingType.getName() + "." + relativeName,
-                                                        () -> genProxy( name, typeToCoerceTo, namespace, relativeName ).toString(), ClassType.Class );
-      sfh.setParentType( enclosingTypeName );
-      IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh );
-      gsClass.setEnclosingType( enclosingType );
-      ((IGosuClassInternal)enclosingType).addInnerClass( gsClass );
-      gsClass.compileDeclarationsIfNeeded();
-      return gsClass;
-    }
-    finally {
-      TypeSystem.popModule( mod );
-    }
+    final String namespace = enclosingType.getNamespace();
+    String enclosingTypeName = TypeLord.getPureGenericType( enclosingType ).getName();
+    LazyStringSourceFileHandle sfh = new LazyStringSourceFileHandle( enclosingTypeName, enclosingType.getName() + "." + relativeName,
+                                                      () -> genProxy( name, typeToCoerceTo, namespace, relativeName ).toString(), ClassType.Class );
+    sfh.setParentType( enclosingTypeName );
+    IGosuClassInternal gsClass = (IGosuClassInternal)GosuClassTypeLoader.getDefaultClassLoader().makeNewClass( sfh );
+    gsClass.setEnclosingType( enclosingType );
+    ((IGosuClassInternal)enclosingType).addInnerClass( gsClass );
+    gsClass.compileDeclarationsIfNeeded();
+    return gsClass;
   }
 
   private static StringBuilder genProxy( String name, IType type, String namespace, String relativeName )

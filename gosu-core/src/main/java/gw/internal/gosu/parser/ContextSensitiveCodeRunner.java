@@ -36,7 +36,6 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.gs.IProgramInstance;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.ContextSymbolTableUtil;
 import gw.util.GosuExceptionUtil;
 
 import java.lang.reflect.Constructor;
@@ -95,7 +94,7 @@ public class ContextSensitiveCodeRunner
       Throwable cause = GosuExceptionUtil.findExceptionCause( e );
       if( cause instanceof ParseResultsException ) {
         List<IParseIssue> parseExceptions = ((ParseResultsException)cause).getParseExceptions();
-        if( parseExceptions != null && parseExceptions.size() >= 0 ) {
+        if( parseExceptions != null ) {
           throw GosuExceptionUtil.forceThrow( (Throwable)parseExceptions.get( 0 ) );
         }
       }
@@ -114,7 +113,7 @@ public class ContextSensitiveCodeRunner
         strContextElementClass = fqn;
       }
     }
-    IType type = TypeSystem.getByFullName( strClassContext, TypeSystem.getGlobalModule() );
+    IType type = TypeSystem.getByFullName( strClassContext );
     if( type instanceof IGosuClassInternal )
     {
       IGosuClassInternal gsClass = (IGosuClassInternal)type;
@@ -390,10 +389,7 @@ public class ContextSensitiveCodeRunner
       if( parent instanceof IFunctionStatement )
       {
         IDynamicFunctionSymbol dfs = ((IFunctionStatement)parent).getDynamicFunctionSymbol();
-        if( dfs instanceof IProgramClassFunctionSymbol )
-        {
-          return true;
-        }
+        return dfs instanceof IProgramClassFunctionSymbol;
       }
     }
     return false;

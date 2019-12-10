@@ -20,7 +20,6 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClassRepository;
-import gw.lang.reflect.module.Dependency;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.lang.reflect.module.INativeModule;
@@ -43,18 +42,11 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-public class Module implements IModule
+public abstract class Module implements IModule
 {
   private final IExecutionEnvironment _execEnv;
   private String _strName;
 
-  private List<Dependency> _dependencies = new ArrayList<>();
-  private LocklessLazyVar<IModule[]> _traversalList = new LocklessLazyVar<IModule[]>() {
-    @Override
-    protected IModule[] init() {
-      return buildTraversalList();
-    }
-  };
   private ModuleTypeLoader _modTypeLoader;
 
   // Paths
@@ -65,9 +57,9 @@ public class Module implements IModule
   private ClassLoader _moduleClassLoader;
   private ClassLoader _extensionsClassLoader;
 
-  private final IFileSystemGosuClassRepository _fileRepository = new FileSystemGosuClassRepository(this);
+  private final IFileSystemGosuClassRepository _fileRepository = new FileSystemGosuClassRepository();
 
-  public Module(IExecutionEnvironment execEnv, String strName)
+  protected Module(IExecutionEnvironment execEnv, String strName)
   {
     _execEnv = execEnv;
     _strName = strName;
@@ -81,31 +73,6 @@ public class Module implements IModule
   @Override
   public IFileSystemGosuClassRepository getFileRepository() {
     return _fileRepository;
-  }
-
-  @Override
-  public void setDependencies(List<Dependency> newDeps) {
-    _dependencies = new ArrayList<>(newDeps);
-    _traversalList.clear();
-  }
-
-  @Override
-  public List<Dependency> getDependencies()
-  {
-    return _dependencies;
-  }
-
-  @Override
-  public void addDependency( Dependency d )
-  {
-    _dependencies.add(d);
-    _traversalList.clear();
-  }
-
-  public void removeDependency( Dependency d )
-  {
-    _dependencies.remove(d);
-    _traversalList.clear();
   }
 
   @Override
@@ -138,7 +105,7 @@ public class Module implements IModule
   @Override
   public ClassLoader getModuleClassLoader() {
     if (_moduleClassLoader == null) {
-      _moduleClassLoader = ModuleClassLoader.create(this);
+      _moduleClassLoader = ModuleClassLoader.create();
     }
     return _moduleClassLoader;
   }
@@ -213,18 +180,18 @@ public class Module implements IModule
    *   <li>The Class-Path entry contains a space-delimited list of URIs</li>
    * </ul>
    * <p>Then the entries will be parsed and added to the Gosu classpath.
-   * 
+   *
    * <p>This logic also handles strange libraries packaged pre-Maven such as xalan:xalan:2.4.1
-   * 
+   *
    * <p>The xalan JAR above has a Class-Path attribute referencing the following:
    * <pre>
    *   Class-Path: xercesImpl.jar xml-apis.jar
    * </pre>
-   * 
+   *
    * These unqualified references should have been resolved by the build tooling, and if we try to interfere and resolve
    * the references, we may cause classpath confusion. Therefore any Class-Path entry not resolvable to an absolute
    * path on disk (and, therefore, can be listed as a URL) will be skipped.
-   * 
+   *
    * @see java.util.jar.Attributes.Name#CLASS_PATH
    * @param classpath The module's Java classpath
    * @return The original classpath, possibly with dependencies listed in JAR manifests Class-Path extracted and explicitly listed
@@ -361,63 +328,27 @@ public class Module implements IModule
 
   private Set<String> getExtensionTypeloaderNames() {
     Set<String> set = new HashSet<>();
-    for (IModule m : getModuleTraversalList()) {
-      for (IDirectory dir : m.getJavaClassPath()) {
-        Extensions.getExtensions(set, dir, "Gosu-Typeloaders");
-      }
+    for (IDirectory dir : getJavaClassPath()) {
+      Extensions.getExtensions(set, dir, "Gosu-Typeloaders");
     }
     return set;
   }
 
   protected void createStandardTypeLoaders()
   {
-    CommonServices.getTypeSystem().pushTypeLoader( this, new GosuClassTypeLoader( this, _fileRepository ) );
-    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
-      CommonServices.getTypeSystem().pushTypeLoader( this, new PropertiesTypeLoader( this ) );
-    }
+    CommonServices.getTypeSystem().pushTypeLoader( new GosuClassTypeLoader( _fileRepository ) );
     if( ILanguageLevel.Util.DYNAMIC_TYPE() ) {
-      CommonServices.getTypeSystem().pushTypeLoader( this, new DynamicTypeLoader( this ) );
+      CommonServices.getTypeSystem().pushTypeLoader( new DynamicTypeLoader() );
+    }
+    if( ILanguageLevel.Util.STANDARD_GOSU() ) {
+      CommonServices.getTypeSystem().pushTypeLoader( new PropertiesTypeLoader() );
     }
   }
 
   protected void maybeCreateModuleTypeLoader() {
     if (getModuleTypeLoader() == null) {
-      ModuleTypeLoader tla = new ModuleTypeLoader( this, new DefaultTypeLoader(this) );
+      ModuleTypeLoader tla = new ModuleTypeLoader( new DefaultTypeLoader() );
       setModuleTypeLoader( tla );
-    }
-  }
-
-  public final IModule[] getModuleTraversalList() {
-    return _traversalList.get();
-  }
-
-  private IModule[] buildTraversalList() {
-    // create default traversal list
-    List<IModule> traversalList = new ArrayList<>();
-    traverse(this, traversalList);
-    // make sure that the jre module is last
-    IModule jreModule = getExecutionEnvironment().getJreModule();
-    if (traversalList.remove(jreModule)) {
-      traversalList.add(jreModule);
-    }
-    IModule globalModule = getExecutionEnvironment().getGlobalModule();
-    if (this != globalModule) {
-      traversalList.add(0, globalModule);
-    }
-    return traversalList.toArray( new IModule[traversalList.size()] );
-  }
-
-
-  protected void traverse(final IModule theModule, List<IModule> traversalList) {
-    traversalList.add(theModule);
-    for (Dependency dependency : theModule.getDependencies()) {
-      IModule dependencyModule = dependency.getModule();
-
-      // traverse all direct dependency and indirect exported dependencies
-      if (!traversalList.contains(dependencyModule) &&
-              (dependency.isExported() || theModule == this)) {
-        traverse(dependencyModule, traversalList);
-      }
     }
   }
 
@@ -487,7 +418,7 @@ public class Module implements IModule
     }
     if( typeLoader != null )
     {
-      CommonServices.getTypeSystem().pushTypeLoader( this, typeLoader );
+      CommonServices.getTypeSystem().pushTypeLoader( typeLoader );
       CommonServices.getGosuInitializationHooks().afterTypeLoaderCreation();
     }
     else
@@ -510,13 +441,11 @@ public class Module implements IModule
 
   private URL[] getExtensionURLs() {
     List<URL> urls = new ArrayList<>();
-    for (IModule m : getModuleTraversalList()) {
-      for (IDirectory path : m.getJavaClassPath()) {
-        try {
-          urls.add(path.toURI().toURL());
-        } catch (MalformedURLException e) {
-          //ignore
-        }
+    for (IDirectory path : getJavaClassPath()) {
+      try {
+        urls.add(path.toURI().toURL());
+      }
+      catch (MalformedURLException ignore) {
       }
     }
     return urls.toArray(new URL[urls.size()]);

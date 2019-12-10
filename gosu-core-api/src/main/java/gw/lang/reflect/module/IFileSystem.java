@@ -32,7 +32,7 @@ public interface IFileSystem extends IService {
 
   IFile getIFile( URL url );
 
-  IFile getFakeFile(URL url, IModule module);
+  IFile getFakeFile(URL url);
 
   public enum CachingMode {
     NO_CACHING,

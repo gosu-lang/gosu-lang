@@ -14,7 +14,6 @@ import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 
 import java.io.ObjectStreamException;
 import java.util.Collections;
@@ -29,13 +28,11 @@ public class NamespaceType extends AbstractType implements INamespaceType
   private String _strRelativeNamespace;
   private String _strParent;
   private boolean _bDiscarded;
-  private IModule _module;
   private Set<TypeName> _children;
 
-  public NamespaceType(String strFqNamespace, IModule module)
+  public NamespaceType(String strFqNamespace)
   {
     _strFqNamespace = strFqNamespace;
-    _module = module;
     assignRelativePackageAndParent();
   }
 
@@ -255,21 +252,8 @@ public class NamespaceType extends AbstractType implements INamespaceType
   @Override
   public Set<TypeName> getChildren(IType whosaskin) {
     if (_children == null) {
-      Set<TypeName> allNames = new HashSet<TypeName>();
-      allNames.addAll(TypeSystem.getGlobalModule().getModuleTypeLoader().getTypeNames(_strFqNamespace));
-      for (IModule module : _module.getModuleTraversalList()) {
-        if (module != TypeSystem.getGlobalModule()) {
-          allNames.addAll(module.getModuleTypeLoader().getTypeNames(_strFqNamespace));
-        }
-      }
-      _children = allNames;
+      _children = new HashSet<>( TypeSystem.getModule().getModuleTypeLoader().getTypeNames( _strFqNamespace ) );
     }
     return _children;
   }
-
-  @Override
-  public IModule getModule() {
-    return _module;
-  }
-
 }

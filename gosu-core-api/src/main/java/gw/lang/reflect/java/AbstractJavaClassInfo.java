@@ -47,13 +47,12 @@ public abstract class AbstractJavaClassInfo extends JavaSourceElement implements
     if (thisObj.isArray()) {
       return ((IJavaClassInfo) that).isArray() && thisObj.getComponentType().equals(((IJavaClassInfo) that).getComponentType());
     }
-    return thisObj.getName().equals(((IJavaClassInfo) that).getName()) &&
-            thisObj.getModule().equals(((IJavaClassInfo) that).getModule());
+    return thisObj.getName().equals(((IJavaClassInfo) that).getName());
   }
   
   public static int hashCode(IJavaClassInfo thisObj) {
     return thisObj.isArray() ?
             thisObj.getComponentType().hashCode() :
-            thisObj.getName().hashCode() * 31 + thisObj.getModule().hashCode();
+            thisObj.getName().hashCode();
   }
 }

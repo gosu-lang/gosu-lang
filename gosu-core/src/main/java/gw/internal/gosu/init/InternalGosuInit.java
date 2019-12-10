@@ -3,14 +3,12 @@
  */
 package gw.internal.gosu.init;
 
-import gw.config.ExecutionMode;
 import gw.internal.gosu.parser.ExecutionEnvironment;
 import gw.internal.gosu.parser.TypeLoaderAccess;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.init.IGosuInitialization;
 import gw.lang.reflect.module.IExecutionEnvironment;
-import gw.lang.reflect.module.IModule;
 
 import java.util.Collections;
 import java.util.List;
@@ -62,18 +60,5 @@ public class InternalGosuInit implements IGosuInitialization
 
   public void uninitializeCompiler( IExecutionEnvironment execEnv ) {
     ((ExecutionEnvironment)execEnv).uninitializeCompiler();
-  }
-
-  // multiple modules
-
-  public void initializeMultipleModules( IExecutionEnvironment execEnv, List<? extends IModule> modules ) {
-    ((ExecutionEnvironment)execEnv).initializeMultipleModules( modules );
-  }
-
-  public void uninitializeMultipleModules( IExecutionEnvironment execEnv ) {
-    if (ExecutionMode.isRuntime()) {
-      throw new IllegalStateException( "The typesystem is not in multi-module mode." );
-    }
-    ((ExecutionEnvironment)execEnv).uninitializeMultipleModules();
   }
 }

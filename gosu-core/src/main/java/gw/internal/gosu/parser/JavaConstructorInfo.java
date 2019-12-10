@@ -247,7 +247,7 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
     public Object newInstance( Object... args )
     {
       ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
-      if(TypeSystem.getCurrentModule() != null) {
+      if( TypeSystem.getModule() != null) {
         Thread.currentThread().setContextClassLoader( TypeSystem.getGosuClassLoader().getActualLoader() ); //_ctor.getDeclaringClass().getClassLoader() );
       }
       try

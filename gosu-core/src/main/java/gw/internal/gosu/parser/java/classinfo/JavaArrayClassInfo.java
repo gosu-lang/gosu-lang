@@ -23,7 +23,6 @@ import gw.lang.reflect.java.IJavaPropertyDescriptor;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.java.JavaTypes;
-import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.Serializable;
@@ -76,7 +75,8 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo
   }
 
   @Override
-  public IJavaClassConstructor getConstructor( IJavaClassInfo... params ) throws NoSuchMethodException {
+  public IJavaClassConstructor getConstructor( IJavaClassInfo... params )
+  {
     return null;
   }
 
@@ -138,12 +138,13 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo
   }
 
   @Override
-  public IJavaClassMethod getMethod(String methodName, IJavaClassInfo... paramTypes) throws NoSuchMethodException {
+  public IJavaClassMethod getMethod(String methodName, IJavaClassInfo... paramTypes)
+  {
     return null;
   }
 
   @Override
-  public IJavaClassMethod getDeclaredMethod(String methodName, IJavaClassInfo... paramTypes) throws NoSuchMethodException {
+  public IJavaClassMethod getDeclaredMethod(String methodName, IJavaClassInfo... paramTypes) {
     return null;
   }
 
@@ -319,11 +320,6 @@ public class JavaArrayClassInfo extends AbstractJavaClassInfo
   @Override
   public IJavaClassType resolveImport(String relativeName) {
     return null;
-  }
-
-  @Override
-  public IModule getModule() {
-    return _component.getModule();
   }
 
   @Override

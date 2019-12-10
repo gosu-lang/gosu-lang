@@ -9,7 +9,6 @@ import gw.lang.parser.Keyword;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.IFeatureInfo;
-import gw.lang.reflect.module.IModule;
 import gw.util.StringPool;
 
 /**
@@ -74,9 +73,5 @@ public class UsesStatement extends Statement implements IUsesStatement
   public String toString()
   {
     return Keyword.KW_uses + " " + getTypeName() + (_bFeatureSpace ? "#" : "");
-  }
-
-  public IModule getModule() {
-    return getGosuClass().getClassStatement().getModule();
   }
 }

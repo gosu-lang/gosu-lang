@@ -9,7 +9,6 @@ import gw.lang.parser.resources.ResourceKey;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
-import gw.lang.reflect.module.IModule;
 
 import java.util.List;
 import java.util.Set;
@@ -79,8 +78,6 @@ public interface IParsedElement
   boolean isSynthetic();
 
   String getFunctionName();
-
-  IModule getModule();
 
   IParsedElement findRootParsedElement();
 

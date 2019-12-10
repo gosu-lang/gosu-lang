@@ -4,7 +4,6 @@ import editor.util.Experiment;
 import gw.util.PathUtil;
 import gw.config.AbstractPlatformHelper;
 import gw.config.ExecutionMode;
-import gw.lang.reflect.module.IModule;
 import java.io.File;
 
 /**
@@ -40,7 +39,7 @@ public class GosuEditorPlatformHelper extends AbstractPlatformHelper
   }
 
   @Override
-  public void refresh( IModule module )
+  public void refresh()
   {
   }
 }

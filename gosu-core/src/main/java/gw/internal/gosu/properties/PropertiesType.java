@@ -5,13 +5,13 @@
 package gw.internal.gosu.properties;
 
 import gw.fs.IFile;
-import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IPropertyInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.TypeBase;
+import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IPropertiesType;
 import gw.lang.reflect.gs.ISourceFileHandle;
@@ -163,7 +163,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   {
     for( IPropertiesType innerClass: _innerClasses.get() )
     {
-      if( innerClass.getRelativeName().equals( strTypeName ) )
+      if( innerClass.getRelativeName().equals( strTypeName.toString() ) )
       {
         return innerClass;
       }
@@ -194,8 +194,7 @@ public class PropertiesType extends TypeBase implements IPropertiesType {
   {
     if( _fileHandle == null )
     {
-      IDefaultTypeLoader loader = _typeLoader.getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-      _fileHandle = loader.getSourceFileHandle( getName() );
+      _fileHandle = TypeSystem.getDefaultTypeLoader().getSourceFileHandle( getName() );
     }
     return _fileHandle;
   }

@@ -27,11 +27,9 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.ITypeInfoResolver;
 import gw.lang.reflect.java.JavaSourceElement;
 import gw.lang.reflect.java.Parameter;
-import gw.lang.reflect.module.IModule;
 
 import javax.lang.model.element.Name;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -185,11 +183,6 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
     return null;
   }
 
-  @Override
-  public IModule getModule() {
-    return _containingClass.getModule();
-  }
-
   public String toString() {
     return getName() + "(...)";
   }
@@ -234,7 +227,7 @@ public class JavaSourceMethod extends JavaSourceElement implements IJavaClassMet
   }
 
   @Override
-  public Object invoke(Object ctx, Object[] args) throws InvocationTargetException, IllegalAccessException {
+  public Object invoke(Object ctx, Object[] args) {
     throw new RuntimeException("Not supported");
   }
 

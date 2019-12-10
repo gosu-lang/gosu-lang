@@ -6,7 +6,6 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.CICS;
 import gw.lang.parser.ISource;
-import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IMethodInfo;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
  */
@@ -336,7 +334,7 @@ public class EnhancementIndex implements IEnhancementIndex
     if (request.kind == RefreshKind.CREATION) {
       Set<String> enhancedTypes = indexEnhancements(request.types);
       for (String enhancedType : enhancedTypes) {
-        IType type = TypeSystem.getByFullNameIfValid(enhancedType, _loader.getModule());
+        IType type = TypeSystem.getByFullNameIfValid( enhancedType );
         if (type != null) {
           TypeSystem.refresh((ITypeRef)type);
         }
