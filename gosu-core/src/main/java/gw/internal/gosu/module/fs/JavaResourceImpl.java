@@ -9,7 +9,6 @@ import gw.fs.ResourcePath;
 import gw.fs.IDirectory;
 import gw.config.CommonServices;
 
-import java.io.IOException;
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
@@ -17,6 +16,11 @@ import java.net.URI;
 public abstract class JavaResourceImpl implements IResource, Serializable {
 
   protected File _file;
+  private String _name;
+  private URI _uri;
+  private ResourcePath _path;
+  private IDirectory _parent;
+  private int _hash;
 
   protected JavaResourceImpl(File file) {
     _file = file.getAbsoluteFile();
@@ -24,32 +28,35 @@ public abstract class JavaResourceImpl implements IResource, Serializable {
 
   @Override
   public IDirectory getParent() {
-    File parentFile = _file.getParentFile();
-    if (parentFile == null) {
-      return null;
-    } else {
-      return CommonServices.getFileSystem().getIDirectory(parentFile);
+    if( _parent == null )
+    {
+      File parentFile = _file.getParentFile();
+      if( parentFile != null )
+      {
+        _parent = CommonServices.getFileSystem().getIDirectory( parentFile );
+      }
     }
+    return _parent;
   }
 
   @Override
   public String getName() {
-    return _file.getName();
+    return _name == null ? _name = _file.getName() : _name;
   }
 
   @Override
-  public boolean delete() throws IOException {
+  public boolean delete() {
     return _file.delete();
   }
 
   @Override
   public URI toURI() {
-    return _file.toURI();
+    return _uri == null ? _uri = _file.toURI() : _uri;
   }
 
   @Override
   public ResourcePath getPath() {
-    return ResourcePath.parse(_file.getAbsolutePath());
+    return _path == null ? _path = ResourcePath.parse(_file.getAbsolutePath()) : _path;
   }
 
   @Override
@@ -94,7 +101,7 @@ public abstract class JavaResourceImpl implements IResource, Serializable {
 
   @Override
   public int hashCode() {
-    return _file.hashCode();
+    return _hash == 0 ? _hash = _file.hashCode() : _hash;
   }
 
   @Override

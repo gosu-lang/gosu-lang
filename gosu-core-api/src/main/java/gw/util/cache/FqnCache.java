@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class FqnCache<T> implements IFqnCache<T> {
   private static final TypeSystemAwareCache<String, String[]> PARTS_CACHE =
-     TypeSystemAwareCache.make( "Fqn Parts Cache", 10000, FqnCache::split );
+     TypeSystemAwareCache.make( "Fqn Parts Cache", 50000, FqnCache::split );
 
   private FqnCacheNode<T> _root = new FqnCacheNode<>( "root", null );
 
@@ -163,7 +163,7 @@ public class FqnCache<T> implements IFqnCache<T> {
       parts.add( StringCache.get( part ) );
     }
 
-    return parts.toArray(new String[parts.size()]);
+    return parts.toArray( new String[0] );
   }
 
   public static String[] getParts( String fqn ) {

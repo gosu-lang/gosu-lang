@@ -11,7 +11,6 @@ import gw.fs.ResourcePath;
 import gw.lang.UnstableAPI;
 import gw.fs.IResource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,13 +39,13 @@ public class PhysicalDirectoryImpl extends PhysicalResourceImpl implements IDire
   }
 
   @Override
-  public boolean mkdir() throws IOException {
+  public boolean mkdir() {
     return _backingFileSystem.mkdir(_path);
   }
 
   @Override
   public List<? extends IDirectory> listDirs() {
-    List<IDirectory> dirs = new ArrayList<IDirectory>();
+    List<IDirectory> dirs = new ArrayList<>();
     for (IFileMetadata fm : _backingFileSystem.listFiles(_path)) {
       if (fm.isDir()) {
         dirs.add(new PhysicalDirectoryImpl(_path.join(fm.name()), _backingFileSystem));
@@ -58,7 +57,7 @@ public class PhysicalDirectoryImpl extends PhysicalResourceImpl implements IDire
 
   @Override
   public List<? extends IFile> listFiles() {
-    List<IFile> files = new ArrayList<IFile>();
+    List<IFile> files = new ArrayList<>();
     for (IFileMetadata fm : _backingFileSystem.listFiles(_path)) {
       if (fm.isFile()) {
         files.add(new PhysicalFileImpl(_path.join(fm.name()), _backingFileSystem));

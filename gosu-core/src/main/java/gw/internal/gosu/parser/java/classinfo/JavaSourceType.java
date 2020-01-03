@@ -31,7 +31,6 @@ import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.EnumValuePlaceholder;
 import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IEnumValue;
 import gw.lang.reflect.ILocationInfo;
 import gw.lang.reflect.IScriptabilityModifier;
@@ -574,8 +573,8 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
     {
       constructors.add( new JavaSourceDefaultConstructor( this ) );
     }
-    _methods = methods.toArray( new IJavaClassMethod[methods.size()] );
-    _constructors = constructors.toArray( new IJavaClassConstructor[constructors.size()] );
+    _methods = methods.toArray( new IJavaClassMethod[0] );
+    _constructors = constructors.toArray( new IJavaClassConstructor[0] );
   }
 
   public IJavaClassMethod[] getDeclaredMethods()
@@ -660,7 +659,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
       {
         fields.addAll( Arrays.asList( superclass.getFields() ) );
       }
-      _allFields = fields.toArray( new IJavaClassField[fields.size()] );
+      _allFields = fields.toArray( new IJavaClassField[0] );
     }
     return _allFields;
   }
@@ -679,7 +678,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
           enums.add( new EnumValuePlaceholder( field.getName() ) );
         }
       }
-      _enumConstants = enums.toArray( new IEnumValue[enums.size()] );
+      _enumConstants = enums.toArray( new IEnumValue[0] );
     }
     return _enumConstants;
   }
@@ -811,7 +810,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
         JavaSourceType inner = JavaSourceType.createInner( innerTrees.get( i ), this );
         innerClasses.add( inner );
       }
-      _innerClasses = innerClasses.toArray( new JavaSourceType[innerClasses.size()] );
+      _innerClasses = innerClasses.toArray( new JavaSourceType[0] );
     }
     return _innerClasses;
   }
@@ -884,7 +883,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
   }
 
   @Override
-  public Object newInstance() throws InstantiationException, IllegalAccessException
+  public Object newInstance()
   {
     return null;
   }
@@ -1001,7 +1000,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
       int iDot = relativeName.indexOf( "." );
       if( iDot == 0 )
       {
-        return type = null;
+        return null;
       }
       else if( iDot >= 0 )
       {
@@ -1105,13 +1104,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
   private Object getCachedDetectCyclicType( String relativeName )
   {
     // Short-circuit type cycles
-    Object type = _cache.get( relativeName );
-    if( type != null )
-    {
-      return type;
-    }
-//    _cache.put( relativeName, CACHE_MISS );
-    return null;
+    return _cache.get( relativeName );
   }
 
   private IJavaClassType resolveQualifiedOrSemiQualifiedType( String typeName, IJavaClassInfo whosAskin, int iDot, int ignoreFlags )
@@ -1346,8 +1339,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
   {
     if( _fileHandle == null )
     {
-      IDefaultTypeLoader loader = getModule().getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
-      _fileHandle = loader.getSourceFileHandle( getName() );
+      _fileHandle = TypeSystem.getDefaultTypeLoader().getSourceFileHandle( getName() );
       if( _fileHandle == null )
       {
         _fileHandle = getEnclosingClass().getSourceFileHandle();
@@ -1383,7 +1375,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
 
   public CompilationUnitTree getCompilationUnitTree()
   {
-    if( _enclosingClass instanceof JavaSourceType )
+    if( _enclosingClass != null )
     {
       return _enclosingClass.getCompilationUnitTree();
     }
@@ -1392,7 +1384,7 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
 
   public SourcePositions getSourcePositions()
   {
-    if( _enclosingClass instanceof JavaSourceType )
+    if( _enclosingClass != null )
     {
       return _enclosingClass.getSourcePositions();
     }

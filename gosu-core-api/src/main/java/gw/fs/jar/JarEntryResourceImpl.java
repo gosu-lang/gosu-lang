@@ -23,6 +23,8 @@ public abstract class JarEntryResourceImpl implements IResource {
   protected JarFileDirectoryImpl _jarFile;
   protected String _name;
   private boolean _exists = false;
+  private ResourcePath _path;
+  private URI _uri;
 
   protected JarEntryResourceImpl(String name, IJarFileDirectory parent, JarFileDirectoryImpl jarFile) {
     _name = name;
@@ -65,7 +67,9 @@ public abstract class JarEntryResourceImpl implements IResource {
   @Override
   public URI toURI() {
     try {
-      return new URI("jar:" + _jarFile.toURI().toString() + "!/" + getEntryName().replace(" ","%20"));
+      return _uri == null
+             ? _uri = new URI("jar:" + _jarFile.toURI().toString() + "!/" + getEntryName().replace(" ","%20"))
+             : _uri;
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
@@ -87,7 +91,7 @@ public abstract class JarEntryResourceImpl implements IResource {
 
   @Override
   public ResourcePath getPath() {
-    return _parent.getPath().join(_name);
+    return _path == null ? _path = _parent.getPath().join(_name) : _path;
   }
 
   @Override

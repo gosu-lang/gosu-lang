@@ -12,11 +12,15 @@ import gw.util.GosuStringUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @UnstableAPI
 public class ResourcePath {
 
   public static final String WINDOWS_NETWORK_ROOT = "\\\\";
+
+  private static final ConcurrentHashMap<String, DynamicArray<String>> CACHE = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, ResourcePath> RCACHE = new ConcurrentHashMap<>();
 
   protected final ResourcePath _parent;
   protected final String _name;
@@ -30,6 +34,12 @@ public class ResourcePath {
   }
 
   public static ResourcePath parse(String pathString) {
+    ResourcePath resourcePath = RCACHE.get( pathString );
+    if( resourcePath != null )
+    {
+      return resourcePath;
+    }
+
     String rootElement;
     int lastIndex;
     if (pathString.startsWith(WINDOWS_NETWORK_ROOT)) {
@@ -55,38 +65,45 @@ public class ResourcePath {
 
     results = normalizePath(results);
 
-    return construct(rootElement, results, results.size() - 1);
+    resourcePath = construct( rootElement, results, results.size() - 1 );
+    RCACHE.put( pathString, resourcePath );
+    return resourcePath;
   }
 
   private static DynamicArray<String> tokenizePathFragment(String pathString, int lastIndex) {
-    DynamicArray<String> results = new DynamicArray<String>();
+    DynamicArray<String> list = CACHE.get( pathString );
+    if( list != null )
+    {
+      return list;
+    }
+
+    list = new DynamicArray<>();
     for (int i = lastIndex; i < pathString.length(); i++) {
       char c = pathString.charAt(i);
       if (c == '/' || c == '\\') {
-        results.add(pathString.substring(lastIndex, i));
+        list.add(pathString.substring(lastIndex, i));
         lastIndex = i + 1;
       }
     }
+    list.add( pathString.substring( lastIndex ) );
 
-    pathString = pathString.substring(lastIndex);
-    results.add(pathString);
-    return results;
+    CACHE.put( pathString, list );
+    return list;
   }
 
   private static DynamicArray<String> normalizePath(DynamicArray<String> pathElements) {
-    DynamicArray<String> results = new DynamicArray<String>(pathElements.size());
+    DynamicArray<String> results = new DynamicArray<>( pathElements.size() );
     for (int i = 0; i < pathElements.size; i++) {
       String s = (String) pathElements.data[i];
-      if (s.equals(".") || s.equals("/") || s.equals("\\") || s.equals("")) {
-        // no-op
-      } else if (s.equals("..")) {
-        // TODO - Throw if no more elements
-        results.remove(results.size() - 1);
-      } else {
-        results.add(s);
+      if( !s.isEmpty() && !s.equals( "." ) && !s.equals( "/" ) && !s.equals( "\\" ) )
+      {
+        if (s.equals("..")) {
+          results.remove(results.size() - 1);
+        } else {
+          results.add(s);
+        }
       }
     }
-
     return results;
   }
 
@@ -272,7 +289,7 @@ public class ResourcePath {
   }
 
   public String relativePath(ResourcePath other, String separator) {
-    List<String> pathComponents = new ArrayList<String>();
+    List<String> pathComponents = new ArrayList<>();
     ResourcePath pathToTest = other;
     boolean success = false;
     while (pathToTest != null) {

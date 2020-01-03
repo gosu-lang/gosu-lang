@@ -10,7 +10,6 @@ import gw.fs.IResource;
 import gw.lang.UnstableAPI;
 import gw.fs.IDirectory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -19,9 +18,9 @@ import java.util.ArrayList;
 @UnstableAPI
 public class JarEntryDirectoryImpl extends JarEntryResourceImpl implements IJarFileDirectory {
 
-  private Map<String, IResource> _resources = new HashMap<String, IResource>();
-  private List<IDirectory> _childDirs = new ArrayList<IDirectory>();
-  private List<IFile> _childFiles = new ArrayList<IFile>();
+  private Map<String, IResource> _resources = new HashMap<>();
+  private List<IDirectory> _childDirs = new ArrayList<>();
+  private List<IFile> _childFiles = new ArrayList<>();
 
   public JarEntryDirectoryImpl(String name, IJarFileDirectory parent, JarFileDirectoryImpl jarFile) {
     super(name, parent, jarFile);
@@ -60,13 +59,13 @@ public class JarEntryDirectoryImpl extends JarEntryResourceImpl implements IJarF
   }
 
   @Override
-  public boolean mkdir() throws IOException {
+  public boolean mkdir() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public List<? extends IDirectory> listDirs() {
-    List<IDirectory> results = new ArrayList<IDirectory>();
+    List<IDirectory> results = new ArrayList<>();
     for (IDirectory child : _childDirs) {
       if (child.exists()) {
         results.add(child);
@@ -77,7 +76,7 @@ public class JarEntryDirectoryImpl extends JarEntryResourceImpl implements IJarF
 
   @Override
   public List<? extends IFile> listFiles() {
-    List<IFile> results = new ArrayList<IFile>();
+    List<IFile> results = new ArrayList<>();
     for (IFile child : _childFiles) {
       if (child.exists()) {
         results.add(child);

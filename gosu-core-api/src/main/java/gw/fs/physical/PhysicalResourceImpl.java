@@ -10,13 +10,14 @@ import gw.fs.ResourcePath;
 import gw.lang.UnstableAPI;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 
 @UnstableAPI
 public class PhysicalResourceImpl implements IResource {
-  protected final ResourcePath _path;
-  protected final IPhysicalFileSystem _backingFileSystem;
+  final ResourcePath _path;
+  final IPhysicalFileSystem _backingFileSystem;
+  private File _file;
+  private URI _uri;
 
   protected PhysicalResourceImpl(ResourcePath path, IPhysicalFileSystem backingFileSystem) {
     _path = path;
@@ -43,13 +44,13 @@ public class PhysicalResourceImpl implements IResource {
   }
 
   @Override
-  public boolean delete() throws IOException {
+  public boolean delete() {
     return _backingFileSystem.delete(_path);
   }
 
   @Override
   public URI toURI() {
-    return toJavaFile().toURI();
+    return _uri == null ? _uri = toJavaFile().toURI() : _uri;
   }
 
   @Override
@@ -69,7 +70,7 @@ public class PhysicalResourceImpl implements IResource {
 
   @Override
   public File toJavaFile() {
-    return new File(_path.getPathString());
+    return _file == null ? _file = new File(_path.getPathString()) : _file;
   }
 
   @Override

@@ -32,11 +32,14 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
   private Map<String, IResource> _resources;
   private List<IDirectory> _childDirs;
   private List<IFile> _childFiles;
+  private IDirectory _parent;
+  private String _name;
+  private URI _uri;
 
   public JarFileDirectoryImpl(File file) {
-    _resources = new HashMap<String, IResource>();
-    _childFiles = new ArrayList<IFile>();
-    _childDirs = new ArrayList<IDirectory>();
+    _resources = new HashMap<>();
+    _childFiles = new ArrayList<>();
+    _childDirs = new ArrayList<>();
     _file = file;
 
     if (file.exists()) {
@@ -132,13 +135,13 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
   }
 
   @Override
-  public boolean mkdir() throws IOException {
+  public boolean mkdir() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public List<? extends IDirectory> listDirs() {
-    List<IDirectory> results = new ArrayList<IDirectory>();
+    List<IDirectory> results = new ArrayList<>();
     for (IDirectory child : _childDirs) {
       if (child.exists()) {
         results.add(child);
@@ -149,7 +152,7 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
 
   @Override
   public List<? extends IFile> listFiles() {
-    List<IFile> results = new ArrayList<IFile>();
+    List<IFile> results = new ArrayList<>();
     for (IFile child : _childFiles) {
       if (child.exists()) {
         results.add(child);
@@ -164,18 +167,26 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
   }
 
   @Override
-  public IDirectory getParent() {
-    File parentFile = _file.getParentFile();
-    if (parentFile != null) {
-      return CommonServices.getFileSystem().getIDirectory(parentFile);
-    } else {
-      return null;
+  public IDirectory getParent()
+  {
+    if( _parent == null )
+    {
+      File parentFile = _file.getParentFile();
+      if( parentFile != null )
+      {
+        _parent = CommonServices.getFileSystem().getIDirectory( parentFile );
+      }
+      else
+      {
+        return null;
+      }
     }
+    return _parent;
   }
 
   @Override
   public String getName() {
-    return _file.getName();
+    return _name == null ? _name = _file.getName() : _name;
   }
 
   @Override
@@ -184,13 +195,13 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
   }
 
   @Override
-  public boolean delete() throws IOException {
+  public boolean delete() {
     return _file.delete();
   }
 
   @Override
   public URI toURI() {
-    return _file.toURI();
+    return _uri == null ? _uri = _file.toURI() : _uri;
   }
 
   @Override

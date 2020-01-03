@@ -53,7 +53,6 @@ import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.exceptions.NotImplementedParseException;
 import gw.lang.parser.exceptions.ObsoleteConstructorWarning;
 import gw.lang.parser.exceptions.ParseException;
-import gw.lang.parser.exceptions.ParseIssue;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.expressions.IMemberAccessExpression;
@@ -592,52 +591,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 //      throw new IllegalStateException( buildInconsistentParseErrorMessage( strSource, strTextFromParseTree, diff ) );
 //    }
 
-    //noinspection LoopStatementThatDoesntLoop
     for( IToken token : tokens )
     {
       throw new IllegalStateException( "One or more tokens were not assigned: " + token );
     }
-  }
-
-  private String buildInconsistentParseErrorMessage( String strSource, String strTextFromParseTree, int[] diff )
-  {
-    return
-      "Parsed class, " + getGosuClass().getName() + ", inconsistent with source.\n" +
-      "Line: " + diff[1] + "  Offset: " + diff[0] + "\n" +
-      "*** Parsed Version ***\n" +
-      ParseIssue.makeContextString( diff[1], strTextFromParseTree, diff[2] ) + "\n" +
-      "*** Source Version ***\n" +
-      ParseIssue.makeContextString( diff[1], strSource, diff[2] ) + "\n";
-  }
-
-  private int[] getDiffOffset( String strSource, String strTextFromParseTree )
-  {
-    if( strSource == null || strTextFromParseTree == null )
-    {
-      return null;
-    }
-    int i;
-    int iLineOffset = 0;
-    int iLine = 0;
-    for( i = 0; i < strSource.length(); i++ )
-    {
-      if( i >= strTextFromParseTree.length() )
-      {
-        return new int[] {i, iLine, iLineOffset};
-      }
-      char sourceChar = strSource.charAt( i );
-      char parserChar = strTextFromParseTree.charAt( i );
-      if( sourceChar != parserChar )
-      {
-        return new int[] {i, iLine, iLineOffset};
-      }
-      if( parserChar == '\n' )
-      {
-        iLine++;
-        iLineOffset = i;
-      }
-    }
-    return new int[] {i, iLine, iLineOffset};
   }
 
   private void clearParseTree( IGosuClassInternal gsClass )
@@ -652,7 +609,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       gsClass.getClassStatement().clearParseTreeInformation();
       if( gsClass.isAnonymous() )
       {
-        //noinspection SuspiciousMethodCalls
         if( !getLocationsList().isEmpty() )
         {
           ParseTree last = getLocationsList().get( getLocationsList().size() - 1 );
@@ -1257,7 +1213,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     setLocation( _iClassOffset, _iClassLineNum, _iClassColumn );
     popStatement();
 
-    //noinspection RedundantCast,unchecked
+    //noinspection unchecked
     return (List<ParseException>)(List)getClassStatement().getParseExceptions();
   }
 
@@ -1278,7 +1234,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
 
-    String strMemberKeyword[] = new String[1];
+    String[] strMemberKeyword = new String[1];
     ModifierInfo modifiers = parseUntilMemberKeyword( strMemberKeyword, false, location );
     
     if( modifiers.getModifiers() == -1 )
@@ -1398,7 +1354,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                 if( name.startsWith( "set" ) && dfs.getArgs().size() == 1 )
                 {
                   ITypeInfo ti = enhancedType.getTypeInfo();
-                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( 3, name.length() ) );
+                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( 3 ) );
                   if( pi instanceof GosuPropertyInfo )
                   {
                     ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
@@ -1419,7 +1375,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                 else if( (name.startsWith( "get" ) || name.startsWith( "is" )) && dfs.getArgs().size() == 0 )
                 {
                   ITypeInfo ti = enhancedType.getTypeInfo();
-                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( name.startsWith( "get" ) ? 3 : 2, name.length() ) );
+                  IPropertyInfo pi = ((IRelativeTypeInfo)ti).getProperty( enhancement, name.substring( name.startsWith( "get" ) ? 3 : 2 ) );
                   if( pi instanceof GosuPropertyInfo )
                   {
                     ReducedDynamicPropertySymbol dps = ((GosuPropertyInfo)pi).getDps();
@@ -2299,16 +2255,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       result.add( (TypeVariableDefinitionImpl)typeVar.getTypeVariableDefinition() );
     }
     return result;
-  }
-
-  private void makeSyntheticClassDeclaration( String strClassName, boolean bProgram )
-  {
-    ClassDeclaration classDeclaration = new ClassDeclaration( strClassName );
-    pushExpression( classDeclaration );
-    SourceCodeTokenizer tokenizer = getOwner().getTokenizer();
-    setLocation( bProgram ? 0 : tokenizer.getTokenStart(), tokenizer.getLineNumber(), bProgram ? 0 : tokenizer.getTokenColumn(), true, true );
-    popExpression();
-    getClassStatement().setClassDeclaration( classDeclaration );
   }
 
   private void parseInnerClassHeaders( IGosuClassInternal gsClass, boolean bResolveTypes )
@@ -4689,13 +4635,12 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       int iMin = Integer.MAX_VALUE;
       for( String nameCsr : map.keySet() )
       {
-        String strName = nameCsr.toString();
-        if( strName.toLowerCase().contains( "_duplicate_" + name.toString().toLowerCase() ) )
+        if( nameCsr.toLowerCase().contains( "_duplicate_" + name.toLowerCase() ) )
         {
           VarStatement stmtCsr = map.get( nameCsr );
           if( !stmtCsr.isDefinitionParsed() )
           {
-            int iIndex = Integer.parseInt( strName.substring( 0, strName.indexOf( '_' ) ) );
+            int iIndex = Integer.parseInt( nameCsr.substring( 0, nameCsr.indexOf( '_' ) ) );
             if( iIndex < iMin )
             {
               iMin = iIndex;
@@ -4715,8 +4660,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     boolean bHasName = match( t, SourceCodeTokenizer.TT_WORD );
     String strIdentifier = t._strValue == null ? "" : t._strValue;
     getOwner().maybeEatNonDeclKeyword( bHasName, strIdentifier );
-    String insensitveIdentifier = strIdentifier;
-    VarStatement varStmt = gsClass.getMemberField( insensitveIdentifier );
+    VarStatement varStmt = gsClass.getMemberField( strIdentifier );
     if( varStmt != null )
     {
       varStmt.setNameOffset( iNameOffset, strIdentifier );
@@ -4795,7 +4739,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return new DynamicPropertySymbol( dfs, bGetter );
     }
 
-    assert symbol instanceof DynamicPropertySymbol;
     dps = (DynamicPropertySymbol)symbol;
     if( bGetter )
     {
@@ -4839,7 +4782,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     return dps;
   }
 
-  @SuppressWarnings({"ConstantConditions"})
   private FunctionStatement parseBaseConstructorDefinition( boolean bConstructor, List<IGosuAnnotation> defnAnnotations, ClassScopeCache scopeCache )
   {
     final IGosuClassInternal gsClass = getGosuClass();
