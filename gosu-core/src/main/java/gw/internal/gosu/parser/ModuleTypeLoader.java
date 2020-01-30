@@ -34,7 +34,7 @@ import gw.util.Predicate;
 import gw.util.cache.FqnCacheNode;
 import gw.util.cache.WeakFqnCache;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.Reference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -177,7 +177,7 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   private void removeMissesAndErrorsFromMainCache() {
     _typesByName.visitNodeDepthFirst(new Predicate<FqnCacheNode>() {
       public boolean evaluate(FqnCacheNode node) {
-        WeakReference<IType> ref = (WeakReference<IType>) node.getUserData();
+        Reference<IType> ref = (Reference<IType>) node.getUserData();
         if (ref != null) {
           IType type = ref.get();
           if (type == CACHE_MISS || type instanceof ErrorType) {
