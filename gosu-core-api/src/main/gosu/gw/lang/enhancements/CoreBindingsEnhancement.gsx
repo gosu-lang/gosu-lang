@@ -118,8 +118,9 @@ enhancement CoreBindingsEnhancement : Bindings {
     var iKey = 0
     indent( sb, indent )
     sb.append( "new" ).append( bWithDynamic ? " Dynamic()" : "()" )
+    sb.append(" {")
     if( this.size() > 0) {
-      sb.append(" {\n")
+      sb.append("\n")
       for( key in this.keySet() ) {
         indent( sb, indent + 2 )
         sb.append( ":" ).append( key ).append( " = " )
