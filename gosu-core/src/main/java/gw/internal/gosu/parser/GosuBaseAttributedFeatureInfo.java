@@ -43,27 +43,28 @@ public abstract class GosuBaseAttributedFeatureInfo extends BaseFeatureInfo impl
     if( _declaredAnnotations == null )
     {
       TypeSystem.lock();
-      if( _declaredAnnotations == null )
-      {
-        try {
-          List<IGosuAnnotation> rawAnnotations = getGosuAnnotations();
-          if (rawAnnotations != null) {
-            ArrayList lst = new ArrayList<IAnnotationInfo>();
-            for (int i = 0; i < rawAnnotations.size(); i++) {
-              IGosuAnnotation gosuAnnotation = rawAnnotations.get(i);
-              lst.add(new GosuAnnotationInfo(gosuAnnotation, this, this.getOwnersType()));
-            }
-            lst.trimToSize();
-            _declaredAnnotations = lst;
-          } else {
-            _declaredAnnotations = Collections.emptyList();
-          }
-        }
-        finally
+      try {
+        if( _declaredAnnotations == null )
         {
-          TypeSystem.unlock();
+            List<IGosuAnnotation> rawAnnotations = getGosuAnnotations();
+            if (rawAnnotations != null) {
+              ArrayList lst = new ArrayList<IAnnotationInfo>();
+              for (int i = 0; i < rawAnnotations.size(); i++) {
+                IGosuAnnotation gosuAnnotation = rawAnnotations.get(i);
+                lst.add(new GosuAnnotationInfo(gosuAnnotation, this, this.getOwnersType()));
+              }
+              lst.trimToSize();
+              _declaredAnnotations = lst;
+            } else {
+              _declaredAnnotations = Collections.emptyList();
+            }
         }
       }
+      finally
+      {
+        TypeSystem.unlock();
+      }
+
     }
   }
 
