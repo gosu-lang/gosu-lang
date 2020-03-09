@@ -30,7 +30,7 @@
     <connection>${scm.root}/gosu-lang.git</connection>
     <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
-    <tag>HEAD</tag>
+    <tag>rel/1.14.18</tag>
   </scm>
 
   <properties>
