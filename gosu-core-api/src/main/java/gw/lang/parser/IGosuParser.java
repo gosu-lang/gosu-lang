@@ -41,9 +41,9 @@ public interface IGosuParser extends IParserPart
   /**
    * Set the script or expression to parse and execute.
    *
-   * @param strRule The rule (Gosu) source to parse/execute.
+   * @param script The text of the Gosu source to parse/execute.
    */
-  public void setScript( CharSequence strRule );
+  public void setScript( String script );
 
   /**
    * Set the script or expression to parse and execute.

@@ -15,7 +15,7 @@ public class Keyword implements CharSequence
   //
   // Key/Reserved Words
   //
-  static final Map<String, Keyword> RESERVED_WORDS = new HashMap<>( 90 );
+  private static final Map<String, Keyword> RESERVED_WORDS = new HashMap<>( 90 );
 
   public static final Keyword KW_true = addReservedWord( "true", true );
   public static final Keyword KW_false = addReservedWord( "false", true );

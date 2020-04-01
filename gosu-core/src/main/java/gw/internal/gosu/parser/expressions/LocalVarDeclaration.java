@@ -29,7 +29,7 @@ public class LocalVarDeclaration extends Expression implements ILocalVarDeclarat
     _strLocalVarName = strLocalVarName;
   }
 
-  public CharSequence getLocalVarName()
+  public String getLocalVarName()
   {
     return _strLocalVarName;
   }

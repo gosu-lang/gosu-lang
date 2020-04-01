@@ -174,7 +174,7 @@ public class Token extends IToken
              ? GosuEscapeUtil.escapeForGosuStringLiteral( _strValue, 0, _strValue.length() )
              : _strValue
            : _iType == ISourceCodeTokenizer.TT_INTEGER || _iType == ISourceCodeTokenizer.TT_NUMBER
-             ? _strValue
+             ? null
              : String.valueOf( (char)_iType );
   }
 
@@ -202,7 +202,7 @@ public class Token extends IToken
     if( _iDocLength > 0 )
     {
       int iTokenEnd = Math.min( _iDocPosition + _iDocLength, document.getLength() );
-      strText = document.subsequence( _iDocPosition, iTokenEnd ).toString();
+      strText = document.subsequence( _iDocPosition, iTokenEnd );
       strText = StringCache.get(strText);
     }
     return strText;

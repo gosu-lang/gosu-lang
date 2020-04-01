@@ -17,6 +17,7 @@ public class ContextType {
   public static final ContextType OBJECT_FALSE = new CommonContextType( CommonType.OBJECT, false );
   public static final ContextType pBOOLEAN_FALSE = new CommonContextType( CommonType.pBOOLEAN, false );
   public static final ContextType pINT_FALSE = new CommonContextType( CommonType.pINT, false );
+  public static final ContextType METATYPE = new ContextType( MetaType.DEFAULT_TYPE_TYPE.get() );
 
   private IType _type;
   private IType _unboundType;

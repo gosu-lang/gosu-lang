@@ -8,14 +8,17 @@ import gw.internal.gosu.parser.IGosuAnnotation;
 import gw.internal.gosu.parser.Statement;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.expressions.BlockExpression;
+import gw.internal.gosu.parser.expressions.TypeLiteral;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.expressions.IParameterDeclaration;
 import gw.lang.parser.expressions.IParameterListClause;
 import gw.lang.parser.statements.IFunctionStatement;
+import gw.lang.parser.statements.IPropertyStatement;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.gs.IGosuClass;
 import gw.util.GosuObjectUtil;
 
 import java.util.ArrayList;
@@ -29,6 +32,8 @@ public class FunctionStatement extends Statement implements IFunctionStatement
 {
   private DynamicFunctionSymbol _dfs;
   private int _iNameOffset;
+  private int _bodyOffset;
+  public boolean _okToClear;
 
   public FunctionStatement()
   {
@@ -189,6 +194,26 @@ public class FunctionStatement extends Statement implements IFunctionStatement
     return params;
   }
 
+  public TypeLiteral getReturnTypeLiteral()
+  {
+    List<IParseTree> children = getLocation().getChildren();
+    boolean paramList = false;
+    for( IParseTree parseTree : children )
+    {
+      IParsedElement pe = parseTree.getParsedElement();
+      if( pe instanceof IParameterListClause )
+      {
+        paramList = true;
+      }
+      else if( paramList ||
+               pe instanceof TypeLiteral && getParent() instanceof IPropertyStatement )
+      {
+        return pe instanceof TypeLiteral ? (TypeLiteral)pe : null;
+      }
+    }
+    return null;
+  }
+
   public List<IGosuAnnotation> getAnnotations()
   {
     return getDynamicFunctionSymbol() == null
@@ -200,5 +225,33 @@ public class FunctionStatement extends Statement implements IFunctionStatement
   protected List getExcludedReturnTypeElements()
   {
     return Arrays.asList( BlockExpression.class );
+  }
+
+  public int getBodyOffset()
+  {
+    return _bodyOffset;
+  }
+  public void setBodyOffset( int mark )
+  {
+    _bodyOffset = mark;
+  }
+
+  @Override
+  public boolean shouldClearParseInfo()
+  {
+    IGosuClass gosuClass = getGosuClass();
+    if( gosuClass == null || _okToClear )
+    {
+      return true;
+    }
+
+    return false;
+//    IType outer = TypeLord.getOuterMostEnclosingClass( gosuClass );
+//    if( outer instanceof IGosuClass )
+//    {
+//      gosuClass = (IGosuClass)outer;
+//    }
+//
+//    return !gosuClass.getCompilationState().isCompilingDefinitions();
   }
 }

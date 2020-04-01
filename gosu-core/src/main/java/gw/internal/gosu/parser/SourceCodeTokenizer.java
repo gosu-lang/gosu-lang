@@ -34,7 +34,7 @@ final public class SourceCodeTokenizer implements ISourceCodeTokenizer
     _internal = new SourceCodeTokenizerInternal( initForCopy );
   }
 
-  public SourceCodeTokenizer( CharSequence sourceCode )
+  public SourceCodeTokenizer( String sourceCode )
   {
     this();
     _internal = new SourceCodeTokenizerInternal( new SourceCodeReader( sourceCode ), null );

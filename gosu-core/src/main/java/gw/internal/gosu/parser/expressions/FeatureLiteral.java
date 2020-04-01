@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser.expressions;
 
 import gw.internal.gosu.parser.ErrorType;
+import gw.internal.gosu.parser.ErrorTypeInfo;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.types.ConstructorType;
@@ -127,7 +128,7 @@ public class FeatureLiteral extends Expression implements IFeatureLiteralExpress
 
     boolean foundConstructor = constructorInfo != null;
 
-    constructorInfo = foundConstructor ? constructorInfo : ErrorType.getInstance().getTypeInfo().getConstructor( argTypes );
+    constructorInfo = foundConstructor ? constructorInfo : ErrorTypeInfo.INSTANCE.getConstructor( argTypes );
 
     setFeature( constructorInfo, null );
 

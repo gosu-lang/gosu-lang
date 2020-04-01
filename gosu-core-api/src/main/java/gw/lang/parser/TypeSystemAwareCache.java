@@ -8,6 +8,7 @@ import gw.lang.reflect.RefreshRequest;
 import gw.util.concurrent.Cache;
 import gw.lang.reflect.AbstractTypeSystemListener;
 import gw.lang.reflect.TypeSystem;
+import java.util.function.Function;
 
 public class TypeSystemAwareCache<K, V> extends Cache<K, V>
 {
@@ -15,12 +16,12 @@ public class TypeSystemAwareCache<K, V> extends Cache<K, V>
   @SuppressWarnings({"FieldCanBeLocal"})
   private final AbstractTypeSystemListener _cacheClearer = new CacheClearer(this);
 
-  public static <K, V> TypeSystemAwareCache<K, V> make(String name, int size, MissHandler<K, V> handler)
+  public static <K, V> TypeSystemAwareCache<K, V> make(String name, int size, Function<K, V> handler)
   {
     return new TypeSystemAwareCache<K, V>(name, size, handler);
   }
 
-  public TypeSystemAwareCache( String name, int size, MissHandler<K, V> kvMissHandler )
+  public TypeSystemAwareCache( String name, int size, Function<K, V> kvMissHandler )
   {
     super( name, size, kvMissHandler );
     TypeSystem.addTypeLoaderListenerAsWeakRef( _cacheClearer );

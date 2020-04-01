@@ -31,7 +31,7 @@ import gw.util.cache.WeakFqnCache;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -583,29 +583,25 @@ public class TypeRefFactory implements ITypeRefFactory
     try {
       // Invalidate types, inner types first
       _refByName.visitDepthFirst(
-        new Predicate<AbstractTypeRef>() {
-          public boolean evaluate( AbstractTypeRef typeRef ) {
-            if( typeRef != null ) {
-              typeRef._setStale( RefreshKind.MODIFICATION );
-            }
-            return true;
+        typeRef -> {
+          if( typeRef != null ) {
+            typeRef._setStale( RefreshKind.MODIFICATION );
           }
+          return true;
         } );
 
       // Remove dead types
       _refByName.visitNodeDepthFirst(
-        new Predicate<FqnCacheNode>() {
-          public boolean evaluate( FqnCacheNode node ) {
-            @SuppressWarnings("unchecked")
-            WeakReference<AbstractTypeRef> ref = (WeakReference<AbstractTypeRef>)node.getUserData();
-            if( ref != null ) {
-              AbstractTypeRef typeRef = ref.get();
-              if( typeRef == null ) {
-                node.delete();
-              }
+        node -> {
+          @SuppressWarnings("unchecked")
+          SoftReference<AbstractTypeRef> ref = (SoftReference<AbstractTypeRef>)node.getUserData();
+          if( ref != null ) {
+            AbstractTypeRef typeRef = ref.get();
+            if( typeRef == null ) {
+              node.delete();
             }
-            return true;
           }
+          return true;
         } );
     } finally {
       TypeSystem.unlock();
@@ -613,9 +609,9 @@ public class TypeRefFactory implements ITypeRefFactory
     }
   }
 
-  private int computeSortIndex(Map.Entry<String,WeakReference<AbstractTypeRef>> entry)
+  private int computeSortIndex(Map.Entry<String,AbstractTypeRef> entry)
   {
-    AbstractTypeRef ref = entry.getValue().get();
+    AbstractTypeRef ref = entry.getValue();
     return ref != null ? ref._getIndexForSortingFast(entry.getKey()) : 10000;
   }
 
@@ -960,14 +956,14 @@ public class TypeRefFactory implements ITypeRefFactory
 
   @Override
   public List<ITypeRef> getSubordinateRefs(String topLevelTypeName) {
-    FqnCacheNode<WeakReference<AbstractTypeRef>> node = _refByName.getNode( topLevelTypeName );
+    FqnCacheNode<SoftReference<AbstractTypeRef>> node = _refByName.getNode( topLevelTypeName );
     final List<ITypeRef> types = new ArrayList<ITypeRef>();
     if( node != null ) {
       node.visitNodeDepthFirst(
         new Predicate<FqnCacheNode>() {
           public boolean evaluate( FqnCacheNode node ) {
             @SuppressWarnings("unchecked")
-            WeakReference<AbstractTypeRef> ref = (WeakReference<AbstractTypeRef>)node.getUserData();
+            SoftReference<AbstractTypeRef> ref = (SoftReference<AbstractTypeRef>)node.getUserData();
             if( ref != null ) {
               AbstractTypeRef typeRef = ref.get();
               if( typeRef != null ) {
@@ -982,7 +978,7 @@ public class TypeRefFactory implements ITypeRefFactory
   }
 
   public List<String> getTypesWithPrefix(String namespace, final String prefix) {
-    FqnCacheNode<WeakReference<AbstractTypeRef>> node = _refByName.getNode( namespace );
+    FqnCacheNode<SoftReference<AbstractTypeRef>> node = _refByName.getNode( namespace );
     final List<String> types = new ArrayList<String>();
     if( node != null ) {
       node.visitNodeDepthFirst(
@@ -990,7 +986,7 @@ public class TypeRefFactory implements ITypeRefFactory
           public boolean evaluate( FqnCacheNode node ) {
             if (node.getName().startsWith(prefix)) {
               @SuppressWarnings("unchecked")
-              WeakReference<AbstractTypeRef> ref = (WeakReference<AbstractTypeRef>)node.getUserData();
+              SoftReference<AbstractTypeRef> ref = (SoftReference<AbstractTypeRef>)node.getUserData();
               if( ref != null ) {
                 AbstractTypeRef typeRef = ref.get();
                 if( typeRef != null ) {

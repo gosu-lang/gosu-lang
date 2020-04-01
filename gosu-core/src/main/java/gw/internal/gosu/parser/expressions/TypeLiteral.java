@@ -26,7 +26,7 @@ import gw.lang.reflect.gs.IGosuClass;
  */
 public class TypeLiteral extends Literal implements ITypeLiteralExpression
 {
-  private static final ThreadLocal<Boolean> _isComputingIsDeprecated  = new ThreadLocal<Boolean>();
+  private static final ThreadLocal<Boolean> _isComputingIsDeprecated  = new ThreadLocal<>();
   private Expression _packageExpr;
   private boolean _ignoreTypeDeprecation;
 
@@ -73,7 +73,12 @@ public class TypeLiteral extends Literal implements ITypeLiteralExpression
     {
       super.setType( MetaType.getLiteral( type ) );
     }
-    
+
+    handleDeprecated();
+  }
+
+  public void handleDeprecated()
+  {
     IType gosuClass = GosuClassCompilingStack.getCurrentCompilingType();
 
     if( !_ignoreTypeDeprecation && (!(gosuClass instanceof IGosuClass) || ((IGosuClass)gosuClass).isCompilingDefinitions()) )

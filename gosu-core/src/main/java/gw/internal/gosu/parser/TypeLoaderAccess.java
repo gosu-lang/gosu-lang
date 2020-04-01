@@ -51,7 +51,6 @@ import gw.lang.reflect.module.ITypeLoaderStack;
 import gw.util.GosuExceptionUtil;
 import gw.util.IdentitySet;
 import gw.util.concurrent.LockingLazyVar;
-
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -101,6 +100,9 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   //A weak cache of listeners who will be notified when typesystem events occur
   private final CopyOnWriteArrayList<WeakReference<ITypeLoaderListener>> _listeners;
   private final List<TypeSystemShutdownListener> _shutdownListeners = new ArrayList<>();
+  private ExecutionEnvironment _env;
+  private Module _module;
+  private ModuleTypeLoader _moduleTypeLoader;
 
   public static TypeLoaderAccess instance()
   {
@@ -109,9 +111,14 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public Module getModule()
   {
-    return (Module)getExecutionEnvironment().getModule();
+    return _module == null ? _module = (Module)getExecutionEnvironment().getModule() : _module;
   }
 
+  public ModuleTypeLoader getModuleTypeLoader()
+  {
+    return _moduleTypeLoader == null ? _moduleTypeLoader = getModule().getModuleTypeLoader() : _moduleTypeLoader;
+  }
+  
   public TypeLoaderAccess()
   {
     _listeners = new CopyOnWriteArrayList<>();
@@ -163,7 +170,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public List<ITypeLoader> getAllTypeLoaders() {
-    return new ArrayList<>( TypeSystem.getModule().getModuleTypeLoader().getTypeLoaderStack() );
+    return new ArrayList<>( getModuleTypeLoader().getTypeLoaderStack() );
   }
 
   private List<ITypeLoaderListener> getListeners() {
@@ -190,7 +197,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public ITypeRef getTypeReference(final IType type)
   {
-    ITypeRef ref = getModule().getModuleTypeLoader().getTypeRefFactory().get(type);
+    ITypeRef ref = getModuleTypeLoader().getTypeRefFactory().get(type);
     if( ref == null )
     {
       throw new NoReferenceFoundException( type );
@@ -200,27 +207,30 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public ITypeRef getOrCreateTypeReference(final IType type)
   {
-    return getModule().getModuleTypeLoader().getTypeRefFactory().create(type);
+    return getModuleTypeLoader().getTypeRefFactory().create(type);
   }
 
   public <T extends ITypeLoader> T getTypeLoader( final Class<? extends T> loaderType )
   {
-    return getModule().getModuleTypeLoader().getTypeLoader(loaderType);
+    return getModuleTypeLoader().getTypeLoader(loaderType);
   }
 
-  public INamespaceType getNamespace(String strFqNamespace) {
-    for(int i = 0; i < strFqNamespace.length(); ++i) {
-      char ch = strFqNamespace.charAt(i);
-      if (!(Character.isJavaIdentifierPart(ch) || ch == '.' || ch == '*' )) {
+  public INamespaceType getNamespace( String fqn )
+  {
+    for( int i = 0; i < fqn.length(); ++i )
+    {
+      char c = fqn.charAt( i );
+      if( !(Character.isJavaIdentifierPart( c ) || c == '.' || c == '*') )
+      {
         return null;
       }
     }
-    return getModule().getModuleTypeLoader().getNamespaceType( strFqNamespace );
+    return getModuleTypeLoader().getNamespaceType( fqn );
   }
 
   public IType getIntrinsicTypeFromObject( final Object object )
   {
-    return getModule().getModuleTypeLoader().getIntrinsicTypeFromObject( object );
+    return getModuleTypeLoader().getIntrinsicTypeFromObject( object );
   }
 
   public IType getIntrinsicTypeByFullName( String fullyQualifiedName ) throws ClassNotFoundException
@@ -317,7 +327,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   public void clearErrorTypes()
   {
-    getExecutionEnv().getModule().getModuleTypeLoader().clearErrorTypes();
+    getModuleTypeLoader().clearErrorTypes();
   }
 
   public void refresh( final boolean clearCachedTypes )
@@ -331,7 +341,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       ++_iRefreshChecksum;
       ++_iSingleRefreshChecksum;
 
-      getExecutionEnv().getModule().getModuleTypeLoader().refreshed();
+      getModuleTypeLoader().refreshed();
 
       CommonServices.getPlatformHelper().refresh();
 
@@ -339,13 +349,17 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
       if( clearCachedTypes )
       {
-        getExecutionEnv().getModule().getModuleTypeLoader().getTypeRefFactory().clearCaches();
+        getModuleTypeLoader().getTypeRefFactory().clearCaches();
         MetaType.clearCaches();
       }
 
       SingleServingGosuClassLoader.clearCache();
 
       _defaultTypes = null;
+      
+      _env = null;
+      _module = null;
+      _moduleTypeLoader = null;
     }
     finally
     {
@@ -358,16 +372,14 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     TypeSystem.lock();
     try
     {
-      ExecutionEnvironment executionEnv = getExecutionEnv();
-
-      getExecutionEnv().getModule().getModuleTypeLoader().shutdown();
+      getModuleTypeLoader().shutdown();
 
       for (TypeSystemShutdownListener shutdownListener : _shutdownListeners) {
         shutdownListener.shutdown();
       }
 
+      ExecutionEnvironment executionEnv = getExecutionEnv();
       TypeSystem.refresh(false);
-
       executionEnv.shutdown();
     }
     finally
@@ -377,7 +389,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public void refreshTypes(final RefreshRequest request) {
-    TypeRefFactory typeRefFactory = (TypeRefFactory) TypeSystem.getModule().getModuleTypeLoader().getTypeRefFactory();
+    TypeRefFactory typeRefFactory = (TypeRefFactory) getModuleTypeLoader().getTypeRefFactory();
     TypeSystem.lock();
     try {
       ++_iSingleRefreshChecksum;
@@ -409,7 +421,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
               }
             }
             // add the old enhanced type
-            ITypeLoaderStack moduleTypeLoader = TypeSystem.getModule().getModuleTypeLoader();
+            ITypeLoaderStack moduleTypeLoader = getModuleTypeLoader();
             GosuClassTypeLoader gosuClassTypeLoader = moduleTypeLoader.getTypeLoader(GosuClassTypeLoader.class);
             String orphanedEnhancementName = gosuClassTypeLoader.getEnhancementIndex().getOrphanedEnhancement(type.getName());
             if (orphanedEnhancementName != null) {
@@ -487,7 +499,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
       }
 
       // Step 6: Clear all caches
-      ((ModuleTypeLoader)TypeSystem.getModule().getModuleTypeLoader()).clearFromCaches(request);
+      getModuleTypeLoader().clearFromCaches(request);
 
       // Step 7: notify the typeloader
       for (ITypeLoader typeLoader : typeLoaderToTypeMap.keySet()) {
@@ -574,7 +586,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     TypeSystem.lock();
     try
     {
-      TypeSystem.getModule().getModuleTypeLoader().refreshed();
+      getModuleTypeLoader().refreshed();
       for( ITypeLoaderListener listener : getListeners())
       {
         listener.refreshed();
@@ -788,12 +800,12 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
 
   @Override
   public void refreshed(IResource file, String typeName, RefreshKind refreshKind) {
-    ((ITypeLoaderStackInternal) getModule().getModuleTypeLoader()).refresh(file, typeName, refreshKind);
+    ((ITypeLoaderStackInternal) getModuleTypeLoader()).refresh(file, typeName, refreshKind);
   }
 
   @Override
   public String[] getTypesForFile(IFile file) {
-    for (ITypeLoader loader : getModule().getModuleTypeLoader().getTypeLoaderStack()) {
+    for (ITypeLoader loader : getModuleTypeLoader().getTypeLoaderStack()) {
       final List<String> typeNames = new ArrayList<>();
       if (loader.handlesFile(file)) {
         typeNames.addAll(Arrays.asList(loader.getTypesForFile(file)));
@@ -912,7 +924,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public void pushTypeLoader(ITypeLoader loader) {
-    getModule().getModuleTypeLoader().pushTypeLoader( loader );
+    getModuleTypeLoader().pushTypeLoader( loader );
   }
 
   public void pushIncludeAll() {
@@ -1133,7 +1145,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
   }
 
   public IExecutionEnvironment getExecutionEnvironment() {
-    return ExecutionEnvironment.instance();
+    return _env == null ? _env = ExecutionEnvironment.instance() : _env;
   }
 
   @Override

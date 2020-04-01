@@ -22,6 +22,7 @@ import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.gs.IGosuClass;
 
+import gw.lang.reflect.java.JavaTypes;
 import java.io.ObjectStreamException;
 import java.util.Collections;
 import java.util.Set;

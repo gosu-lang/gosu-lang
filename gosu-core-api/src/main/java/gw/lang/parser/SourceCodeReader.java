@@ -11,18 +11,18 @@ import java.io.Reader;
 
 public class SourceCodeReader
 {
-  private CharSequence _source;
+  private String _source;
   private int _iLength;
   private int _iPosition;
 
-  public SourceCodeReader( CharSequence source )
+  public SourceCodeReader( String source )
   {
     _source = source;
     _iLength = _source == null ? -1 : _source.length();
     _iPosition = 0;
   }
 
-  public int read() throws IOException
+  public int read()
   {
     return _iLength > _iPosition
            ? _source.charAt( _iPosition++ )
@@ -58,12 +58,12 @@ public class SourceCodeReader
 
   public String getSource()
   {
-    return _source.toString();
+    return _source;
   }
 
-  public CharSequence subsequence( int iStart, int iEnd )
+  public String subsequence( int iStart, int iEnd )
   {
-    return _source.subSequence( iStart, iEnd );
+    return _source.substring( iStart, iEnd );
   }
 
   public static SourceCodeReader makeSourceCodeReader( Reader reader )

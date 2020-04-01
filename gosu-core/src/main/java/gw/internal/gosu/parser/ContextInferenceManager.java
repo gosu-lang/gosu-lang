@@ -24,6 +24,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.Stack;
 import gw.util.GosuObjectUtil;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
@@ -96,7 +97,7 @@ public class ContextInferenceManager
   {
     if( ENABLED )
     {
-      _inferenceStack.peek().entries.clear();
+      _inferenceStack.peek().clear();
     }
   }
 
@@ -115,15 +116,15 @@ public class ContextInferenceManager
 
       if( currentEntry == null )
       {
-        _inferenceStack.peek().entries.add( new TypeAsEntry( expression, expression.getType(), type ) );
+        _inferenceStack.peek().add( new TypeAsEntry( expression, expression.getType(), type ) );
       }
-      else if( _inferenceStack.peek().entries.contains( currentEntry ) )
+      else if( _inferenceStack.peek().contains( currentEntry ) )
       {
         currentEntry.inferredType = type;
       }
       else
       {
-        _inferenceStack.peek().entries.add( new TypeAsEntry( currentEntry.expr, currentEntry.originalType, type ) );
+        _inferenceStack.peek().add( new TypeAsEntry( currentEntry.expr, currentEntry.originalType, type ) );
       }
     }
   }
@@ -188,7 +189,7 @@ public class ContextInferenceManager
     {
       for( int i = _inferenceStack.size() - 1; i >= 0; i-- )
       {
-        for( Iterator<TypeAsEntry> it = _inferenceStack.get( i ).entries.iterator(); it.hasNext(); )
+        for( Iterator<TypeAsEntry> it = _inferenceStack.get( i ).iterator(); it.hasNext(); )
         {
           TypeAsEntry typeAsEntry = it.next();
           if( areExpressionsEquivalent( assignmentRoot, typeAsEntry.expr ) )
@@ -345,7 +346,7 @@ public class ContextInferenceManager
   {
     for( int i = _inferenceStack.size() - 1; i >= 0; i-- )
     {
-      List<TypeAsEntry> entries = _inferenceStack.get(i).entries;
+      List<TypeAsEntry> entries = _inferenceStack.get(i).getEntries();
       for (int j = 0; j < entries.size(); j++) {
         TypeAsEntry entry = entries.get(j);
         if( areExpressionsEquivalent( e, entry.expr ) )
@@ -414,8 +415,10 @@ public class ContextInferenceManager
   {
     for( TypeAsContext typeAsContext : _inferenceStack )
     {
-      for( TypeAsEntry entry : typeAsContext.entries )
+      List<TypeAsEntry> entries = typeAsContext.getEntries();
+      for( int i = 0; i < entries.size(); i++ )
       {
+        TypeAsEntry entry = entries.get( i );
         entry.loopCompromised++;
       }
     }
@@ -425,8 +428,10 @@ public class ContextInferenceManager
   {
     for( TypeAsContext typeAsContext : _inferenceStack )
     {
-      for( TypeAsEntry entry : typeAsContext.entries )
+      List<TypeAsEntry> entries = typeAsContext.getEntries();
+      for( int i = 0; i < entries.size(); i++ )
       {
+        TypeAsEntry entry = entries.get( i );
         entry.loopCompromised--;
         if( entry.loopCompromised == 0 )
         {
@@ -446,11 +451,53 @@ public class ContextInferenceManager
 
   private static class TypeAsContext {
     public Statement stmt;
-    public List<TypeAsEntry> entries = new ArrayList<TypeAsEntry>();
+    private List<TypeAsEntry> _entries = Collections.emptyList();
 
     public void merge( TypeAsContext last )
     {
-      entries.addAll( last.entries );
+      if( !last._entries.isEmpty() )
+      {
+        if( _entries.isEmpty() )
+        {
+          _entries = (List<TypeAsEntry>)((ArrayList)last._entries).clone();
+        }
+        else
+        {
+          _entries.addAll( last._entries );
+        }
+      }
+    }
+
+    public void clear()
+    {
+      if( !_entries.isEmpty() )
+      {
+        _entries.clear();
+      }
+    }
+
+    public void add( TypeAsEntry item )
+    {
+      if( _entries.isEmpty() )
+      {
+        _entries = new ArrayList<>( 4 );
+      }
+      _entries.add( item );
+    }
+
+    public boolean contains( TypeAsEntry item )
+    {
+      return _entries.contains( item );
+    }
+
+    public Iterator<TypeAsEntry> iterator()
+    {
+      return _entries.iterator();
+    }
+
+    public List<TypeAsEntry> getEntries()
+    {
+      return _entries;
     }
   }
 

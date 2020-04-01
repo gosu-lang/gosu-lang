@@ -5,7 +5,6 @@
 package gw.lang;
 
 import gw.config.CommonServices;
-import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.lang.init.GosuPathEntry;
 import gw.lang.ir.IRClassCompiler;
@@ -40,7 +39,6 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IEnhancementIndex;
-import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.gs.IGosuProgram;
@@ -119,7 +117,7 @@ public class GosuShop
     return CommonServices.getGosuIndustrialPark().createSimpleTemplateHost();
   }
 
-  public static ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code )
+  public static ISourceCodeTokenizer createSourceCodeTokenizer( String code )
   {
     return CommonServices.getGosuIndustrialPark().createSourceCodeTokenizer( code );
   }

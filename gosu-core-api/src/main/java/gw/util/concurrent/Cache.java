@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 
 import gw.util.concurrent.Cache.ConcurrentLinkedHashMap.Node.State;
 import gw.util.ILogger;
+import java.util.function.Function;
 
 /**
  * static var MY_CACHE = new Cache<Foo, Bar>( 1000, \ foo -> getBar( foo ) )
@@ -31,7 +32,7 @@ import gw.util.ILogger;
 public class Cache<K, V> {
 
   private ConcurrentLinkedHashMap<K, V> _cacheImpl;
-  private final MissHandler<K,V> _missHandler;
+  private final Function<K,V> _missHandler;
   private final String _name;
   private final int _size;
 
@@ -48,7 +49,7 @@ public class Cache<K, V> {
    * @param size the maximum size of the log
    * @param missHandler how to handle misses, this is required not to be null
    */
-  public Cache( String name, int size, MissHandler<K, V> missHandler) {
+  public Cache( String name, int size, Function<K, V> missHandler) {
     _name = name;
     _size = size;
     clearCacheImpl();
@@ -84,10 +85,11 @@ public class Cache<K, V> {
    * @return the found object (may be null)
    */
   public V get(K key) {
+//    return _cacheImpl.computeIfAbsent( key, _missHandler );
     V value = _cacheImpl.get(key);
     _requests.incrementAndGet();
     if (value == null) {
-      value = _missHandler.load(key);
+      value = _missHandler.apply(key);
       _cacheImpl.put(key, value);
       _misses.incrementAndGet();
     } else {
@@ -154,10 +156,6 @@ public class Cache<K, V> {
     }
   }
 
-  public interface MissHandler<L, W> {
-    public W load(L key);
-  }
-
   public void clear() {
     clearCacheImpl();
     _hits.set(0);
@@ -170,8 +168,8 @@ public class Cache<K, V> {
     return "Cache \"" + _name + "\"( Hits:" + getHits() + ", Misses:" + getMisses() + ", Requests:" + getRequests() + ", Hit rate:" + BigDecimal.valueOf(getHitRate() * 100.0).setScale(2, BigDecimal.ROUND_DOWN) + "% )";
   }
 
-  public static <K, V> Cache<K, V> make(String name, int size, MissHandler<K, V> handler) {
-    return new Cache<K, V>(name, size, handler);
+  public static <K, V> Cache<K, V> make(String name, int size, Function<K, V> handler) {
+    return new Cache<>( name, size, handler );
   }
 
   /**

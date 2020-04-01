@@ -1,6 +1,5 @@
 package gw.util;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -20,6 +19,9 @@ public class StringPool
   }
 
   public static String get( String value ) {
+//    String existing = INSTANCE._map.putIfAbsent( value, value );
+//    return existing != null ? existing : value;
+
     String existing = INSTANCE._map.get( value );
     if( existing != null ) {
       return existing;

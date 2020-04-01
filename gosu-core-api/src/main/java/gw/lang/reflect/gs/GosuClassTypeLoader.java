@@ -149,21 +149,18 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
 
   private IGosuClass getAdapterClass( String strFullyQualifiedName )
   {
-    if( getClass() == GosuClassTypeLoader.class )
+    if( strFullyQualifiedName.length() > IGosuClass.PROXY_PREFIX.length() &&
+        strFullyQualifiedName.startsWith( IGosuClass.PROXY_PREFIX ) )
     {
-      if( strFullyQualifiedName.length() > IGosuClass.PROXY_PREFIX.length() &&
-          strFullyQualifiedName.startsWith( IGosuClass.PROXY_PREFIX ) )
+      IType javaType = TypeSystem.getByFullNameIfValid( IGosuClass.ProxyUtil.getNameSansProxy( strFullyQualifiedName ) );
+      if( javaType instanceof IJavaType )
       {
-        IType javaType = TypeSystem.getByFullNameIfValid( IGosuClass.ProxyUtil.getNameSansProxy( strFullyQualifiedName ) );
-        if( javaType instanceof IJavaType )
+        IGosuClass adapterClass = ((IJavaType)javaType).getAdapterClass();
+        if( adapterClass == null )
         {
-          IGosuClass adapterClass = ((IJavaType)javaType).getAdapterClass();
-          if( adapterClass == null )
-          {
-            adapterClass = ((IJavaType)javaType).createAdapterClass();
-          }
-          return adapterClass;
+          adapterClass = ((IJavaType)javaType).createAdapterClass();
         }
+        return adapterClass;
       }
     }
     return null;

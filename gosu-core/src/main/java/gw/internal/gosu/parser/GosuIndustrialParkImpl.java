@@ -260,12 +260,12 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
     return new SimpleTemplateHost();
   }
 
-  public ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code )
+  public ISourceCodeTokenizer createSourceCodeTokenizer( String code )
   {
     return new SourceCodeTokenizer( code );
   }
   
-  public ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code, boolean bTemplate )
+  public ISourceCodeTokenizer createSourceCodeTokenizer( String code, boolean bTemplate )
   {
     SourceCodeTokenizer sourceCodeTokenizer = new SourceCodeTokenizer( code );
     if(bTemplate) {

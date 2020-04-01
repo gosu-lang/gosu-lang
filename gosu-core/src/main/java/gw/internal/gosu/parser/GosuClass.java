@@ -2600,7 +2600,18 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
     GosuParser parser = getOrCreateParser( symbolTable );
     ISource source = _sourceFileHandle.getSource();
-    parser.setScript( source );
+
+    ScriptPartId partId = new ScriptPartId( getOrCreateTypeReference(), null );
+    parser.pushScriptPart( partId );
+    try
+    {
+      parser.setScript( source );
+    }
+    finally
+    {
+      parser.popScriptPart( partId );
+    }
+
     _parseInfo.updateSource( source.getSource() );
     if( ExecutionMode.isIDE() ) {
       parser.setThrowParseExceptionForWarnings(true);

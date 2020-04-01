@@ -14,6 +14,7 @@ import gw.internal.gosu.parser.expressions.NullExpression;
 import gw.internal.gosu.parser.expressions.ParameterListClause;
 import gw.internal.gosu.parser.expressions.SuperTypeClause;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
+import gw.internal.gosu.parser.expressions.TypeVariableDefinition;
 import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.ConstructorStatement;
@@ -293,10 +294,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       // Don't need an isolated scope here because class members are all dynamic
       // and, therefore, don't have to be indexed wrt an isolated scope.
       getSymbolTable().pushScope();
+      int afterHeaderOffset = -1;
       try
       {
         //## todo: reparsing header with annotations this time, any chance we can do that the first time we parse the header, so we can avoid doing it twice?
         String strClassName = parseHeader(gsClass, false, false, true);
+        afterHeaderOffset = getTokenizer().mark();
+        
         if( gsClass instanceof IGosuEnhancementInternal )
         {
           parseEnhancementBodyDecl( gsClass );
@@ -320,6 +324,11 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           setLocation( 0, 1, _iClassColumn, true );
           popStatement();
         }
+
+//        if( classStmt.getClassFileStatement() != null && !classStmt.getClassFileStatement().hasParseIssues() && afterHeaderOffset > 0 )
+//        {
+//          classStmt.setAfterHeaderOffset( afterHeaderOffset );
+//        }
       }
       classStmt.compactParseTree();
     }
@@ -1503,7 +1512,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       ownerType = ownerType.getGenericType();
     }
     IType enhancementType = enhancement;
-    if( enhancementType != null && enhancementType.isParameterizedType() )
+    if( enhancementType.isParameterizedType() )
     {
       enhancementType = enhancementType.getGenericType();
     }
@@ -1980,7 +1989,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
   private ModifierInfo parseModifiersForClass( IGosuClassInternal gsClass, boolean bSetModifiers )
   {
-    ModifierInfo modifiers;ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
+    ModifierInfo modifiers;
+    ICompilableTypeInternal enclosingType = gsClass.getEnclosingType();
     if( enclosingType instanceof IGosuClassInternal && ((IGosuClassInternal)enclosingType).isDeclarationsCompiled() )
     {
       // push static class symbols for annotations (they are part of modifier parsing)
@@ -3117,7 +3127,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     for( Iterator<IGosuAnnotation> iter = modifiers.getAnnotations().iterator(); iter.hasNext(); )
     {
       IGosuAnnotation anno = iter.next();
-      if( anno.getTarget() == AnnotationUseSiteTarget.field || anno.getTarget() == null )
+      if( (anno.getTarget() == AnnotationUseSiteTarget.field || anno.getTarget() == null) && !varStmt.hasParseExceptions() )
       {
         boolean appliesToField = appliesToField( anno );
         verify( varStmt, anno.getTarget() == null || appliesToField, Res.MSG_ANNOTATION_WHEN_NONE_ALLOWED, anno.getName(), Keyword.KW_field.getName() );
@@ -4866,7 +4876,13 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
 
       DynamicFunctionSymbol dfsDecl = findConstructorFunction( gsClass, DynamicFunctionSymbol.getSignatureName( strFunctionName, args ) );
       dfsDecl = (dfsDecl == null || dfsDecl.getType() == GosuTypes.DEF_CTOR_TYPE()) ? null : dfsDecl;
-      functionStmt = dfsDecl == null ? functionStmt : dfsDecl.getDeclFunctionStmt();
+      FunctionStatement declFunctionStmt = dfsDecl == null ? null : dfsDecl.getDeclFunctionStmt();
+      if( declFunctionStmt != null )
+      {
+        declFunctionStmt._okToClear = true;
+        declFunctionStmt.clearParseTreeInformation();
+      }
+      functionStmt = dfsDecl == null ? functionStmt : declFunctionStmt;
       verify( functionStmt, dfsDecl != null, Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
       if( verify( functionStmt, match( null, '{' ), Res.MSG_EXPECTING_OPEN_BRACE_FOR_CONSTRUCTOR_DEF ) )
       {

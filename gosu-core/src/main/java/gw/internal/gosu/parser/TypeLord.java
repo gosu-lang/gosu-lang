@@ -52,7 +52,6 @@ import gw.lang.reflect.java.asm.AsmWildcardType;
 import gw.lang.reflect.java.asm.IAsmType;
 import gw.util.GosuObjectUtil;
 import gw.util.Pair;
-import gw.util.concurrent.Cache;
 
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -78,13 +77,7 @@ public class TypeLord
   // LRUish cache of assignability results (recent tests indicate 99% hit rates)
   private static final TypeSystemAwareCache<Pair<IType, IType>, Boolean> ASSIGNABILITY_CACHE =
     TypeSystemAwareCache.make( "Assignability Cache", getAssignabilityCacheSize(),
-                               new Cache.MissHandler<Pair<IType, IType>, Boolean>()
-                               {
-                                 public final Boolean load( Pair<IType, IType> key )
-                                 {
-                                   return areGenericOrParameterizedTypesAssignableInternal( key.getFirst(), key.getSecond() );
-                                 }
-                               } );
+      key -> areGenericOrParameterizedTypesAssignableInternal( key.getFirst(), key.getSecond() ) );
 
   private static final int DEFAULT_ASSIGNABILITY_CACHE_SIZE = 1000;
 

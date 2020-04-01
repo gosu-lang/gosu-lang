@@ -22,6 +22,7 @@ public final class ClassStatement extends Statement implements IClassStatement
   private IGosuClassInternal _gsClass;
   private ClassFileStatement _cfs;
   private ClassDeclaration _classDeclaration;
+  private int _afterHeaderOffset;
 
   public ClassStatement( IGosuClassInternal gsClass )
   {
@@ -123,5 +124,14 @@ public final class ClassStatement extends Statement implements IClassStatement
   public List<IGosuAnnotation> getAnnotations()
   {
     return getGosuClass().getModifierInfo().getAnnotations();
+  }
+
+  public int getAfterHeaderOffset()
+  {
+    return _afterHeaderOffset;
+  }
+  public void setAfterHeaderOffset( int mark )
+  {
+    _afterHeaderOffset = mark;
   }
 }

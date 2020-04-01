@@ -30,15 +30,10 @@ public class CacheTest extends TestClass {
   final static Integer FOUR = 4;
 
   public void testCache() {
-    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 2, new Cache.MissHandler<Integer,String>() {
-     @Override
-     public String load(Integer key) {
-       return LOAD[key];
-     }
-   });
+    Cache<Integer,String> cache = new Cache<>( "testCache", 2, key -> LOAD[key] );
     assertEquals(0, cache.getUtilizedSize());
 
-    int counts[] = getCounts(cache);
+    int[] counts = getCounts(cache);
     assertEquals(LOAD[0], cache.get(ZERO));
     assertEquals(1, cache.getUtilizedSize());
     assertMiss(counts, cache);
@@ -93,12 +88,7 @@ public class CacheTest extends TestClass {
   }
 
   public void testCacheOverlookOccasionalMiss() {
-    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 2, new Cache.MissHandler<Integer,String>() {
-     @Override
-     public String load(Integer key) {
-       return LOAD[key];
-     }
-   });
+    Cache<Integer,String> cache = new Cache<>( "testCache", 2, key -> LOAD[key] );
     assertEquals(0, cache.getUtilizedSize());
 
     int counts[] = getCounts(cache);
@@ -146,12 +136,7 @@ public class CacheTest extends TestClass {
   }
 
   public void testRequestIncrementRegardlessOfHitOrMiss() {
-    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 1, new Cache.MissHandler<Integer,String>() {
-     @Override
-     public String load(Integer key) {
-       return LOAD[key];
-     }
-   });
+    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 1, key -> LOAD[key] );
     int counts[] = getCounts(cache);
     assertEquals(LOAD[0], cache.get(ZERO));
     assertEquals(1, cache.getUtilizedSize());
@@ -179,12 +164,7 @@ public class CacheTest extends TestClass {
   }
 
   public void testManualEviction() {
-    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 1, new Cache.MissHandler<Integer,String>() {
-     @Override
-     public String load(Integer key) {
-       return LOAD[key];
-     }
-   });
+    Cache<Integer,String> cache = new Cache<>( "testCache", 1, key -> LOAD[key] );
     assertEquals(LOAD[2], cache.get(TWO));
     assertEquals(1, cache.getUtilizedSize());
     assertEquals(1, cache.getMisses());
@@ -207,12 +187,7 @@ public class CacheTest extends TestClass {
   }
 
   public void testManualPut() {
-    Cache<Integer,String> cache = new Cache<Integer,String>("testCache", 1, new Cache.MissHandler<Integer,String>() {
-     @Override
-     public String load(Integer key) {
-       return LOAD[key];
-     }
-   });
+    Cache<Integer,String> cache = new Cache<>( "testCache", 1, key -> LOAD[key] );
     cache.put(ONE, LOAD[1]);
     assertEquals(1, cache.getUtilizedSize());
     assertEquals(0, cache.getMisses());
@@ -237,7 +212,7 @@ public class CacheTest extends TestClass {
   }
 
   private int[] getCounts(Cache cache) {
-    int counts[] = new int[3];
+    int[] counts = new int[3];
     counts[0] = cache.getRequests();
     counts[1] = cache.getMisses();
     counts[2] = cache.getHits();

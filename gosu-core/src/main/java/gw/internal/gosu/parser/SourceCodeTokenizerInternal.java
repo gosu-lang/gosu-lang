@@ -107,7 +107,7 @@ final public class SourceCodeTokenizerInternal
     }
   }
 
-  public SourceCodeTokenizerInternal( CharSequence sourceCode )
+  public SourceCodeTokenizerInternal( String sourceCode )
   {
     this( new SourceCodeReader( sourceCode ), null );
   }
@@ -899,7 +899,7 @@ final public class SourceCodeTokenizerInternal
       while( (iCharType & (CT_ALPHA | CT_DIGIT)) != 0 && !stopOnDot( c ) );
 
       _peekc = c;
-      _strValue = _reader.subsequence( iStart, _iPos-1 ).toString();
+      _strValue = _reader.subsequence( iStart, _iPos-1 );
       if( _bForceLower )
       {
         _strValue = _strValue.toLowerCase();

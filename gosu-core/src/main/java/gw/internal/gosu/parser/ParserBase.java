@@ -1605,11 +1605,18 @@ public abstract class ParserBase implements IParserPart
 
   ICompilableTypeInternal getGosuClass()
   {
-    return getOwner() == null || getOwner().getScriptPart() == null
-           ? null
-           : getOwner().getScriptPart().getContainingType() instanceof ICompilableTypeInternal
-             ? (ICompilableTypeInternal)getOwner().getScriptPart().getContainingType()
-             : null;
+    GosuParser owner = getOwner();
+    if( owner == null )
+    {
+      return null;
+    }
+    IScriptPartId scriptPart = owner.getScriptPart();
+    if( scriptPart == null )
+    {
+      return null;
+    }
+    IType containingType = scriptPart.getContainingType();
+    return containingType instanceof ICompilableTypeInternal ? (ICompilableTypeInternal)containingType : null;
   }
 
   ClassStatement getClassStatement()
@@ -1837,6 +1844,10 @@ public abstract class ParserBase implements IParserPart
 
   protected void parseAnnotation( List<IGosuAnnotation> annotations )
   {
+    parseAnnotation( annotations, getGosuClass().shouldFullyCompileAnnotations() );
+  }
+  protected void parseAnnotation( List<IGosuAnnotation> annotations, boolean fullyParse )
+  {
     int iOffset = getTokenizer().getTokenStart();
     int iLineNum = getTokenizer().getLineNumber();
     int iColumn = getTokenizer().getTokenColumn();
@@ -1873,7 +1884,7 @@ public abstract class ParserBase implements IParserPart
         e = annoExpr;
         end = token.getTokenEnd();
       }
-      else if( getGosuClass() == null || getGosuClass().shouldFullyCompileAnnotations() )
+      else if( getGosuClass() == null || fullyParse )
       {
         getOwner().parseNewExpressionOrAnnotation( true );
         setLocation( iOffset, iLineNum, iColumn, true );

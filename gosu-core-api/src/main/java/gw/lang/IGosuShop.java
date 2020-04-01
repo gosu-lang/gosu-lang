@@ -82,8 +82,8 @@ public interface IGosuShop extends IService
 
   ITemplateHost createSimpleTemplateHost();
 
-  ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code );
-  ISourceCodeTokenizer createSourceCodeTokenizer( CharSequence code, boolean bTemplate );  
+  ISourceCodeTokenizer createSourceCodeTokenizer( String code );
+  ISourceCodeTokenizer createSourceCodeTokenizer( String code, boolean bTemplate );
   ISourceCodeTokenizer createSourceCodeTokenizer( Reader reader );
   ITokenizerInstructor createTemplateInstructor( ISourceCodeTokenizer tokenizer );
 

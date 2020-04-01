@@ -574,11 +574,6 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
   {
     for (int i = 0; i < _globalStack.size(); i++) {
       ITypeLoader loader = _globalStack.get( i );
-      if(loader instanceof IGosuObject) {
-        if(GosuClassCompilingStack.getCompilingType(((IGosuObject)loader).getIntrinsicType().getName()) != null) {
-          continue;
-        }
-      }
       if ( loader.hasNamespace( namespace ) || isProxyType( namespace, loader ) ) {
         return new NamespaceType( namespace );
       }

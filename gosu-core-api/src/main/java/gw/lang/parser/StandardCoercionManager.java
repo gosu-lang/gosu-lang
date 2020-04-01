@@ -26,7 +26,6 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 import gw.util.Pair;
 import gw.util.Rational;
-import gw.util.concurrent.Cache;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -50,21 +49,17 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
   // LRUish cache of coercers
   public final TypeSystemAwareCache<Pair<IType, IType>, ICoercer> _coercerCache =
       TypeSystemAwareCache.make( "Coercer Cache", 1000,
-                                 new Cache.MissHandler<Pair<IType, IType>, ICoercer>()
-                                 {
-                                   public final ICoercer load( Pair<IType, IType> key )
-                                   {
-                                     ICoercer coercer = findCoercerImpl( key.getFirst(), key.getSecond(), false );
-                                     if( coercer == null )
-                                     {
-                                       return NullSentinalCoercer.instance();
-                                     }
-                                     else
-                                     {
-                                       return coercer;
-                                     }
-                                   }
-                                 } )/*.logEveryNSeconds( 10, new SystemOutLogger( SystemOutLogger.LoggingLevel.INFO ) )*/;
+        key -> {
+          ICoercer coercer = findCoercerImpl( key.getFirst(), key.getSecond(), false );
+          if( coercer == null )
+          {
+            return NullSentinalCoercer.instance();
+          }
+          else
+          {
+            return coercer;
+          }
+        } )/*.logEveryNSeconds( 10, new SystemOutLogger( SystemOutLogger.LoggingLevel.INFO ) )*/;
 
   public final boolean canCoerce( IType lhsType, IType rhsType )
   {

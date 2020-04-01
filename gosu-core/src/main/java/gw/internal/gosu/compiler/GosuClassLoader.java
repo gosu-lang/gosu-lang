@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import manifold.internal.runtime.Bootstrap;
 import manifold.internal.runtime.UrlClassLoaderWrapper;
 
@@ -466,10 +467,10 @@ public class GosuClassLoader implements IGosuClassLoader
       {
         //noinspection Convert2Lambda
         super( "Discrete Loaders", 100,
-               new MissHandler<String, WeakReference<DiscreteClassLoader>>()
+               new Function<String, WeakReference<DiscreteClassLoader>>()
                {
                   @Override
-                  public WeakReference<DiscreteClassLoader> load( String key )
+                  public WeakReference<DiscreteClassLoader> apply( String key )
                   {
                     Optional<String> match = getDiscretePackages().stream().filter( key::startsWith ).findFirst();
                     if( !match.isPresent() )
