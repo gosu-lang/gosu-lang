@@ -4,11 +4,18 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import javax.lang.model.type.DeclaredType;
+import manifold.api.gen.SrcAnnotated;
 
 /**
  */
@@ -27,6 +34,31 @@ public class AsmField {
     _annotations = Collections.emptyList();
     _type = AsmUtil.makeType( desc );
     _staticValue = value;
+  }
+
+  public AsmField( AsmClass owner, Symbol.VarSymbol field ) {
+    _owner = owner;
+    _modifiers = (int)SrcAnnotated.modifiersFrom( field.getModifiers() );
+    _name = field.name.toString();
+    _annotations = Collections.emptyList();
+    _type = AsmUtil.makeType( field.type );
+    _staticValue = field.getConstantValue();
+
+    // assign annotations
+    List<AsmAnnotation> annotations = new ArrayList<>();
+    for( com.sun.tools.javac.code.Attribute.Compound annotationMirror: field.getAnnotationMirrors() )
+    {
+      DeclaredType annotationType = annotationMirror.getAnnotationType();
+      Retention retention = annotationType.getAnnotation( Retention.class );
+      boolean isRuntime = retention != null && retention.value() == RetentionPolicy.RUNTIME;
+      AsmAnnotation annotation = new AsmAnnotation( (com.sun.tools.javac.code.Type)annotationType, isRuntime );
+      for( Map.Entry<Symbol.MethodSymbol, Attribute> entry: annotationMirror.getElementValues().entrySet() )
+      {
+        annotation.setValue( entry.getKey().flatName().toString(), entry.getValue().getValue() );
+      }
+      annotations.add( annotation );
+    }
+    _annotations = annotations;
   }
 
   public String getName() {

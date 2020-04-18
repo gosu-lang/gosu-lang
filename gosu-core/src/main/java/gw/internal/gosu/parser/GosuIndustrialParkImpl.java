@@ -411,4 +411,10 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   {
     return JavaStubGenerator.instance().genStub( gsClass );
   }
+
+  @Override
+  public String generateJavaStub( IGosuClass gsClass, boolean classStructureOnly )
+  {
+    return JavaStubGenerator.instance().genStub( gsClass, classStructureOnly );
+  }
 }

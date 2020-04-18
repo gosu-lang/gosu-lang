@@ -8,6 +8,7 @@ import gw.lang.init.GosuRuntimeManifoldHost;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeLoader;
 import manifold.api.host.IModule;
+import manifold.internal.javac.JavacPlugin;
 
 //## todo: delete this class and use manifold's TypeName
 public class TypeName extends manifold.api.type.TypeName {
@@ -17,7 +18,9 @@ public class TypeName extends manifold.api.type.TypeName {
   public final ITypeLoader loader;
 
   public TypeName(String name, ITypeLoader loader, Kind kind, Visibility visibility) {
-    super(name, GosuRuntimeManifoldHost.get().getSingleModule(), kind, visibility );
+    super(name, JavacPlugin.instance() != null
+                ? JavacPlugin.instance().getHost().getSingleModule()
+                : GosuRuntimeManifoldHost.get().getSingleModule(), kind, visibility );
     this.name = name;
     this.loader = loader;
     this.kind = kind;
@@ -58,7 +61,9 @@ public class TypeName extends manifold.api.type.TypeName {
   }
 
   public IModule getModule() {
-    return GosuRuntimeManifoldHost.get().getSingleModule();
+    return JavacPlugin.instance() != null
+           ? JavacPlugin.instance().getHost().getSingleModule()
+           : GosuRuntimeManifoldHost.get().getSingleModule();
   }
   public gw.lang.reflect.module.IModule getGosuModule() {
     return loader.getModule();

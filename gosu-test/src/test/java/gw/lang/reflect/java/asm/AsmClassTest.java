@@ -283,13 +283,13 @@ public class AsmClassTest extends TestClass {
       if( location.getFile().toLowerCase().endsWith( ".jar" ) ) {
         fileLocation = "jar:" + location.toExternalForm() + "!/" + cls.getPackage().getName().replace( '.', '/' ) + '/' + getSimpleName( cls ) + ".class";
         IFile classFile = FileFactory.instance().getIFile( new URL( fileLocation ), false );
-        return _asmClassLoader.findClass( cls.getName(), classFile );
+        return _asmClassLoader.findClassUsingAsm( cls.getName(), classFile );
       }
       else {
         File dir = new File( location.toURI() );
         dir = new File( dir, cls.getPackage().getName().replace( '.', '/' ) );
         File classFile = new File( dir, getSimpleName( cls ) + ".class" );
-        return _asmClassLoader.findClass( cls.getName(), classFile );
+        return _asmClassLoader.findClassUsingAsm( cls.getName(), classFile );
       }
     }
     catch( Exception e ) {

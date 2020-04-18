@@ -297,7 +297,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
       module.initializeTypeLoaders();
       CommonServices.getEntityAccess().init();
 
-      FrequentUsedJavaTypeCache.instance( this ).init();
+      FrequentUsedJavaTypeCache.instance( this ); //.init();
     } finally {
       _state = TypeSystemState.STARTED;
     }

@@ -21,6 +21,7 @@ import manifold.api.type.ContributorKind;
 import manifold.api.type.ISourceKind;
 import manifold.api.type.ITypeManifold;
 import manifold.api.type.TypeName;
+import manifold.internal.javac.JavacPlugin;
 
 /**
  * Loads Java from source (*.java files) using Gosu's Java support.
@@ -62,6 +63,9 @@ public class JavaTypeManifold implements ITypeManifold
   @Override
   public boolean isType( String fqn )
   {
+    if( JavacPlugin.instance() != null ) {
+      return false;
+    }
     return findJavaClass( fqn ) != null;
   }
 
@@ -98,7 +102,7 @@ public class JavaTypeManifold implements ITypeManifold
   }
 
   @Override
-  public String contribute( JavaFileManager.Location location, String fqn, String existing, DiagnosticListener<JavaFileObject> errorHandler )
+  public String contribute( JavaFileManager.Location location, String fqn, boolean genStubs, String existing, DiagnosticListener<JavaFileObject> errorHandler )
   {
     // DebugLogUtil.log( "c:\\temp\\gosu_type_man_log.log", "JAVA: " + fqn, true );
     IJavaType javaClass = (IJavaType)findJavaClass( fqn );

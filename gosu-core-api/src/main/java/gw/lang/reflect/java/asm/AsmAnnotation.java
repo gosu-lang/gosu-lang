@@ -4,6 +4,8 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol;
 import gw.internal.ext.org.objectweb.asm.Type;
 
 import gw.util.Array;
@@ -22,7 +24,13 @@ public class AsmAnnotation {
   public AsmAnnotation( String desc, boolean bVisibleAtRuntime ) {
     _type = AsmUtil.makeType( desc );
     _bVisibleAtRuntime = bVisibleAtRuntime;
-    _fieldValues = new HashMap<String, Object>();
+    _fieldValues = new HashMap<>();
+  }
+
+  public AsmAnnotation( com.sun.tools.javac.code.Type type, boolean bVisibleAtRuntime ) {
+    _type = AsmUtil.makeType( type );
+    _bVisibleAtRuntime = bVisibleAtRuntime;
+    _fieldValues = new HashMap<>();
   }
 
   public AsmType getType() {
@@ -63,14 +71,30 @@ public class AsmAnnotation {
         cls == AsmAnnotation.class ) {
       return value;
     }
-    if( cls == Type.class ) {
+    if( value instanceof Type ) {
       AsmType type = AsmUtil.makeType( (Type)value );
       return type.getFqn();
     }
+    if( value instanceof Attribute.Enum )
+    {
+      return ((Attribute.Enum)value).value.toString();
+    }
+    if( value instanceof Symbol.VarSymbol )
+    {
+      return value.toString();
+    }
     if( cls.isArray() ) {
-      List<Object> values = new ArrayList<Object>();
+      List<Object> values = new ArrayList<>();
       for( int i = 0; i < Array.getLength( value ); i++ ) {
         values.add( makeAppropriateValue( Array.get( value, i ) ) );
+      }
+      return values;
+    }
+    if( value instanceof com.sun.tools.javac.util.List )
+    {
+      List<Object> values = new ArrayList<>();
+      for( Object e: (com.sun.tools.javac.util.List)value ) {
+        values.add( makeAppropriateValue( e ) );
       }
       return values;
     }

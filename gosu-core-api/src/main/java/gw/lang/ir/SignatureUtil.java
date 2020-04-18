@@ -87,7 +87,7 @@ public class SignatureUtil {
     return type;
   }
 
-  private static String processName( IType type ) {
+  public static String processName( IType type ) {
     String name = makeJavaName( type );
     if( name.length() > IGosuClass.PROXY_PREFIX.length() && name.startsWith( IGosuClass.PROXY_PREFIX ) ) {
       name = IGosuClass.ProxyUtil.getNameSansProxy( name );
@@ -95,7 +95,7 @@ public class SignatureUtil {
     return name.replace( '.', '/' );
   }
 
-  private static String makeJavaName( IType type ) {
+  public static String makeJavaName( IType type ) {
     IType enclosingType = type.getEnclosingType();
     if( enclosingType != null ) {
       return makeJavaName( enclosingType ) + '$' + getSimpleName( type.getRelativeName() );

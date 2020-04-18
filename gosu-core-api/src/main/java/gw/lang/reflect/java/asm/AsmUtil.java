@@ -4,7 +4,11 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Types;
 import gw.internal.ext.org.objectweb.asm.Type;
+import manifold.api.gen.SrcAnnotated;
+import manifold.internal.javac.JavacPlugin;
 
 /**
  */
@@ -42,8 +46,12 @@ public class AsmUtil {
   }
   public static AsmType makeType( String name ) {
     if( name.length() == 1 ) {
-      return AsmPrimitiveType.findPrimitive( name );
+      AsmPrimitiveType primitive = AsmPrimitiveType.findPrimitive( name );
+      if( primitive != null ) {
+        return primitive;
+      }
     }
+
     int iDims = 0;
     while( name.charAt( 0 ) == '[' ) {
       iDims++;
@@ -59,6 +67,92 @@ public class AsmUtil {
       }
     }
     return new AsmType( makeDotName( name ), iDims );
+  }
+
+  public static AsmType makeErasedType( com.sun.tools.javac.code.Type type )
+  {
+    return makeType( type, true );
+  }
+  public static AsmType makeType( com.sun.tools.javac.code.Type type )
+  {
+    return makeType( type, false );
+  }
+
+  private static AsmType makeType( com.sun.tools.javac.code.Type type, boolean erased )
+  {
+    if( erased )
+    {
+      type = Types.instance( JavacPlugin.instance().getContext() ).erasure( type );
+    }
+
+    switch( type.getKind() )
+    {
+      case WILDCARD:
+        com.sun.tools.javac.code.Type.WildcardType wildcard = (com.sun.tools.javac.code.Type.WildcardType)type;
+        com.sun.tools.javac.code.Type bound = wildcard.isUnbound()
+                                              ? Types.instance( JavacPlugin.instance().getContext() ).erasure( wildcard )
+                                              : wildcard.isExtendsBound()
+                                                ? wildcard.getExtendsBound()
+                                                : wildcard.isSuperBound()
+                                                  ? wildcard.getSuperBound()
+                                                  : Types.instance( JavacPlugin.instance().getContext() ).erasure( wildcard );
+        AsmType boundType = AsmUtil.makeType( bound, false );
+        return new AsmWildcardType( boundType, !wildcard.isSuperBound() );
+
+      case TYPEVAR:
+        AsmType typeVar = new AsmType( type.tsym.name.toString() );
+        typeVar.setTypeVariable();
+        typeVar.setFunctionTypeVariable( type.tsym.owner instanceof Symbol.MethodSymbol );
+        return typeVar;
+    }
+
+    int dims = 0;
+    com.sun.tools.javac.code.Type compType = type;
+    while( compType instanceof com.sun.tools.javac.code.Type.ArrayType )
+    {
+      dims++;
+      compType =((com.sun.tools.javac.code.Type.ArrayType)type).getComponentType();
+    }
+
+    AsmType asmType;
+    if( dims > 0 )
+    {
+      asmType = makeType( compType );
+      for( int i = 0; i < dims; i++ )
+      {
+        asmType.incArrayDims();
+      }
+    }
+    else
+    {
+      asmType = new AsmType( type.tsym.getQualifiedName().toString() );
+    }
+
+    if( type.isParameterized() )
+    {
+      for( com.sun.tools.javac.code.Type param: type.getTypeArguments() )
+      {
+        asmType.addTypeParameter( makeType( param, false ) );
+      }
+    }
+
+    return asmType;
+  }
+
+  public static AsmInnerClassType makeInnerType( Symbol.ClassSymbol innerClassSym )
+  {
+    int modifiers = (int)SrcAnnotated.modifiersFrom( innerClassSym.getModifiers() );
+    AsmInnerClassType t = new AsmInnerClassType( innerClassSym.getQualifiedName().toString(), modifiers );
+
+    if( innerClassSym.type.isParameterized() )
+    {
+      for( com.sun.tools.javac.code.Type param: innerClassSym.type.getParameterTypes() )
+      {
+        t.addTypeParameter( makeType( param ) );
+      }
+    }
+
+    return t;
   }
 
   public static AsmType makeNonPrimitiveType(String name) {

@@ -414,6 +414,12 @@ public class Gosu
         {
           try
           {
+            if( url.getPath().endsWith( "/./" ) || url.getPath().endsWith( "/." ) )
+            {
+              // Java's ClassPathLocationHandler#createPath() appends the '.' (current directory) to the classpath :/
+              continue;
+            }
+
             IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
             if( file.exists() )
             {
@@ -444,6 +450,12 @@ public class Gosu
         {
           try
           {
+            if( url.getPath().endsWith( "/./" ) || url.getPath().endsWith( "/." ) )
+            {
+              // Java's ClassPathLocationHandler#createPath() appends the '.' (current directory) to the classpath :/
+              continue;
+            }
+
             IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
             if( file.exists() )
             {

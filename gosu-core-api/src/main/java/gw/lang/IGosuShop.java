@@ -170,4 +170,5 @@ public interface IGosuShop extends IService
   String toString( Object val );
 
   String generateJavaStub( IGosuClass gsClass );
+  String generateJavaStub( IGosuClass gsClass, boolean classStructureOnly );
 }

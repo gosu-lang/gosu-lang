@@ -15755,6 +15755,12 @@ public final class GosuParser extends ParserBase implements IGosuParser
   }
   public TypeLiteral resolveTypeLiteral( String strTypeName, boolean bRelative, boolean bInterface )
   {
+    IJavaType primitiveType = JavaType.getPrimitiveType( strTypeName );
+    if( primitiveType != null )
+    {
+      return new TypeLiteral( MetaType.getLiteral( primitiveType ), _ignoreTypeDeprecation > 0 );
+    }
+
     int iArrayDims = 0;
     if( strTypeName.length() > 0 && strTypeName.charAt( strTypeName.length()-1 ) == ']' )
     {

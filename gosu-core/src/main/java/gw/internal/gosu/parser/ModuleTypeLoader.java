@@ -593,16 +593,10 @@ public class ModuleTypeLoader implements ITypeLoaderStackInternal {
 
     for( ITypeLoader loader : _globalStack )
     {
-      if(loader instanceof IGosuObject) {
-        if(((IGosuObject)loader).getIntrinsicType().getName().equals(fullyQualifiedName) ||
-            GosuClassCompilingStack.getCompilingType(((IGosuObject)loader).getIntrinsicType().getName()) != null) {
-          continue;
-        }
-      }
       if( loader.handlesNonPrefixLoads() && loader.isInited() )
       {
         // Only look through loaders that can do non-prefix loading
-        if (loader instanceof IDefaultTypeLoader && skipJava) {
+        if (skipJava && loader instanceof IDefaultTypeLoader) {
           // Forbid going back into classloaders world (for example, we are loading Gosu type through URL handler)
           continue;
         }

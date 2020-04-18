@@ -6,6 +6,7 @@ package gw.internal.gosu.ir.nodes;
 
 import gw.internal.gosu.parser.ReducedParameterizedDynamicFunctionSymbol;
 import gw.lang.parser.IReducedDynamicFunctionSymbol;
+import gw.lang.reflect.IAnnotatedFeatureInfo;
 import gw.lang.reflect.IAspectMethodInfoDelegate;
 import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IMethodInfo;
@@ -334,5 +335,10 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     return jmi.getMethod();
   }
 
+  @Override
+  public IAnnotatedFeatureInfo getFeatureInfo()
+  {
+    return _terminalMethod;
+  }
 }
 

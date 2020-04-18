@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import manifold.internal.javac.JavacPlugin;
 
 @UnstableAPI
 public class GosuInitialization
@@ -81,9 +82,12 @@ public class GosuInitialization
     getGosuInitialization().initializeCompiler( _execEnv, module );
     _initialized = true;
 
-    GosuRuntimeManifoldHost.clear();
-    GosuRuntimeManifoldHost.get().init( module.getAllSourceRoots().stream().map( makeFile() ).collect( Collectors.toList() ),
-      module.getClasspath().stream().filter( p -> !p.startsWith( "jrt:" ) ).map( makeFile() ).collect( Collectors.toList() ) );
+    if( JavacPlugin.instance() == null )
+    {
+      GosuRuntimeManifoldHost.clear();
+      GosuRuntimeManifoldHost.get().init( module.getAllSourceRoots().stream().map( makeFile() ).collect( Collectors.toList() ),
+        module.getClasspath().stream().filter( p -> !p.startsWith( "jrt:" ) ).map( makeFile() ).collect( Collectors.toList() ) );
+    }
   }
 
   private Function<String, File> makeFile()

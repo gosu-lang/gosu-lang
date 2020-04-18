@@ -4,12 +4,16 @@
 
 package gw.internal.gosu.parser;
 
+import com.sun.tools.javac.api.BasicJavacTask;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
 import gw.internal.gosu.compiler.GosuClassLoader;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceClass;
+import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
+import gw.lang.init.GosuTypeManifold;
 import gw.lang.parser.IBlockClass;
-import gw.lang.parser.ILanguageLevel;
 import gw.lang.reflect.IDefaultTypeLoader;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IExtendedTypeLoader;
@@ -18,9 +22,11 @@ import gw.lang.reflect.RefreshKind;
 import gw.lang.reflect.RefreshRequest;
 import gw.lang.reflect.SimpleTypeLoader;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.gs.IGosuClassLoader;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.gs.StringSourceFileHandle;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
@@ -29,6 +35,11 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.module.IModule;
 
+import gw.util.StreamUtil;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,6 +48,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import manifold.api.util.Pair;
+import manifold.internal.javac.ClassSymbols;
+import manifold.internal.javac.JavacPlugin;
 import manifold.internal.runtime.Bootstrap;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
@@ -128,14 +142,14 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     return result == IJavaClassInfo.NULL_TYPE ? null : result;
   }
 
-  public IJavaClassInfo getJavaClassInfo( AsmClass aClass, IModule gosuModule ) {
+  public IJavaClassInfo getJavaClassInfo( AsmClass asmClass, IModule gosuModule ) {
     if (ExecutionMode.isIDE() && _module != TypeSystem.getJreModule() && _module.equals( TypeSystem.getGlobalModule() )) {
       return null;
     } else {
-    String fullyQualifiedName = aClass.getName().replace('$', '.');
+    String fullyQualifiedName = asmClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
     if( result == null ) {
-      result = new AsmClassJavaClassInfo( aClass, gosuModule );
+      result = new AsmClassJavaClassInfo( asmClass, gosuModule );
       _classInfoCache.put( fullyQualifiedName, result );
     }
     return result == IJavaClassInfo.NULL_TYPE ? null : result;
@@ -195,35 +209,51 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     // references a Gosu class e.g., in a method return type.  Gosu needs to get
     // the type info at the *IJavaClassInfo* level for the the Gosu class.
 
-    if( !ExecutionMode.isIDE() && classFileExists( fqn ) )
+    boolean compilerModeOrClassFile = !ExecutionMode.isIDE() && (JavacPlugin.instance() != null || classFileExists( fqn ));
+    if( compilerModeOrClassFile )
     {
-      // If not in an IDE, favor .class files as the basis for Java types.
+      // If compiling with javac, favor javac as the basis for Java types.
       //
       // Note since we can dynamically compile and load a Java class from Java source and since this process can
       // be triggered via the class loader, we must avoid loading it via getByClass(), which will indirectly load
       // the bytecode class via source.
-      //
-      // We avoid this at runtime for the use-case where we are running both a Gosu class and a Java class from
-      // source.  The Java class extends the Gosu class (the Gosu class may be generic) and the Gosu class references
-      // the Java class in one of its member declaration types.
-      //
-      // Essentially, in order for Java and Gosu to reference each other in this way Gosu we must parse against our
-      // declaration-level source-based IJavaClassInfo, not the full bytecode class-based IJavaClasaInfo.
-      // Otherwise the bytecode IJavaClassInfo resolves Gosu references via on-demand Java stub file generation from
-      // declaration-compiled Gosu, which won't work since declaration-compiled Gosu needs the IJavaClassInfo for
-      // the Java class reference.  The source-based IJavaClassInfo can resolve type references using lazy Java
-      // stub files generated from Gosu and avoid this paradox.
 
-      return getByClass( fqn, _module, _module );
+      IJavaClassInfo classInfo = getFromClassFileOrClassSymbol( fqn, _module, _module );
+      if( classInfo != null )
+      {
+        return classInfo;
+      }
     }
 
+    // Attempt to load from a physical .java source file
+    //
+    IJavaClassInfo classInfo = getFromSourceFile( fqn );
+    if( classInfo != null )
+    {
+      return classInfo;
+    }
+
+    if( !compilerModeOrClassFile )
+    {
+      // Load from .class file or source
+      //
+      classInfo = getFromClassFileOrClassSymbol( fqn, _module, _module );
+    }
+
+    return classInfo;
+  }
+
+  private IJavaClassInfo getFromSourceFile( String fqn )
+  {
     // First check for a .java file and load a JavaSourceType...
     ISourceFileHandle fileHandle = getSourceFileHandle( fqn );
     if( fileHandle == null )
     {
-      // If no .java file is found, load from .class file
-      return getByClass( fqn, _module, _module );
+      // If no .java file is found
+      return null;
     }
+
+    // loading from .java file...
 
     if( fileHandle.getParentType() != null && !fileHandle.getParentType().isEmpty() )
     {
@@ -264,20 +294,171 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     return aClass;
   }
 
-  private IJavaClassInfo getByClass( String className, IModule lookupModule, IModule actualModule ) {
+  private IJavaClassInfo getFromClassFileOrClassSymbol( String fqn, IModule lookupModule, IModule actualModule ) {
     DefaultTypeLoader loader = (DefaultTypeLoader)lookupModule.getTypeLoaders( IDefaultTypeLoader.class ).get( 0 );
     if( ExecutionMode.isRuntime() ) {
-      Class theClass = loader.loadClass( className );
+
+      // Runtime
+
+      Class theClass = loader.loadClass( fqn );
       if( theClass == null ) {
         return null;
       }
       return getJavaClassInfo( theClass, actualModule );
-    } else {
-      AsmClass theClass = loader.loadAsmClass( className );
-      if( theClass == null ) {
+    }
+    else {
+
+      // Compile-time (or IDE)
+
+      // When in javac prefer the ClassSymbol as the source of type info
+
+      if( JavacPlugin.instance() != null )
+      {
+        // First, see if the type is Enter complete in javac. Meaning:
+        //
+        // 1. it's a Java *source* file (maybe from Manifold) and
+        // 2. its members' types are resolved, thus
+        // 3. it's safe to get type info from javac's ClassSymbol for it, which we prefer over loading and parsing the
+        //    type ourselves, particularly if it is used on the java side too (sharing is good)
+
+        if( GosuTypeManifold.isPostJava() || isJavacProcessedType( fqn ) )
+        {
+          AsmClass theClass = loader.loadAsmClassUsingJavac( fqn );
+          if( theClass != null )
+          {
+            return getJavaClassInfo( theClass, actualModule );
+          }
+        }
+
+        // Next, we attempt to load from source and parse it ourselves (only declarations).
+        //
+        // Note the source can come from Manifold, which comes from a ClassSymbol. Thus, failing a check for a physical
+        // file e try to find the CompilationUnit from a javac ClassSymbol (the source of which may come from Manifold).
+        IJavaClassInfo parsedClassInfo = maybeLoadFromSource( fqn );
+        if( parsedClassInfo != null )
+        {
+          return parsedClassInfo;
+        }
+      }
+
+      // Finally, load from the .class file using either javac ClassSymbol or ASM
+      //
+      AsmClass theClass = loader.loadAsmClass( fqn );
+      return theClass == null ? null : getJavaClassInfo( theClass, actualModule );
+    }
+  }
+
+  private boolean isJavacProcessedType( String fqn )
+  {
+    Map<String, Boolean> typesToProcess = JavacPlugin.instance().getTypeProcessor().getTypesToProcess();
+    return typesToProcess.containsKey( fqn );
+  }
+
+  private IJavaClassInfo maybeLoadFromSource( String fqn )
+  {
+    if( JavacPlugin.instance() == null )
+    {
+      // Not compiling with javac
+
+      return null;
+    }
+
+    // First, try to load directly from a physical source file (trying a ClassSymbol first may cause gosu to load prematurely if there is a cycle with references)
+    //
+    IJavaClassInfo classInfo = maybeLoadDirectlyFromSourceFile( fqn ); //getFromSourceFile( fqn );
+    if( classInfo != null )
+    {
+      return classInfo;
+    }
+
+    // Next, try to load from the source from a ClassSymbol (source may be from Manifold)
+    //
+    if( !GosuTypeManifold.isPostJava() )
+    {
+      // javac is still compiling .java files, so we have to consider ClassSymbols incomplete,
+      // thus we load/parse from source or use ASM on .class file.
+
+      ClassSymbols classSymbols = ClassSymbols.instance( JavacPlugin.instance().getHost().getSingleModule() );
+      BasicJavacTask javacTask = JavacPlugin.instance().getJavacTask();
+      Pair<Symbol.ClassSymbol, JCTree.JCCompilationUnit> classSymPair = classSymbols.getClassSymbol( javacTask, fqn );
+      classInfo = null;
+      if( classSymPair != null )
+      {
+        JCTree.JCCompilationUnit compUnit = classSymPair.getSecond();
+        if( compUnit != null )
+        {
+          // .java file: a compilation unit indicates source (potentially dynamic source generated from Manifold)
+
+          try
+          {
+            CharSequence source = compUnit.getSourceFile().getCharContent( true );
+            classInfo = JavaSourceType.createTopLevel( new StringSourceFileHandle( fqn, source, false, ClassType.Class ),
+              _module, null );
+            // cache the top-level class + all its nested classes
+            cacheSourceClass( fqn, classInfo );
+          }
+          catch( IOException ignore )
+          {
+            //todo: log:
+            System.err.println( "***\nFailed to load " + fqn + " from source. ***\n" );
+          }
+        }
+        else if( classSymPair.getFirst() != null )
+        {
+          // .class file: load using javac ClassSymbol
+
+          AsmClass theClass = loadAsmClassUsingJavac( fqn );
+          classInfo = theClass == null ? null : getJavaClassInfo( theClass, _module );
+        }
+      }
+      return classInfo;
+    }
+    return null;
+  }
+
+  private IJavaClassInfo maybeLoadDirectlyFromSourceFile( String fqn )
+  {
+    try
+    {
+      if( classFileExists( fqn ) )
+      {
         return null;
       }
-      return getJavaClassInfo( theClass, actualModule );
+
+      File file = null;
+      String relative = fqn.replace( '.', File.separatorChar ) + ".java";
+      for( String path: JavacPlugin.instance().getJavaSourcePath() )
+      {
+        File f = new File( path, relative );
+        if( f.isFile() )
+        {
+          file = f;
+          break;
+        }
+      }
+      if( file == null )
+      {
+        return null;
+      }
+      String source = StreamUtil.getContent( new BufferedReader( new FileReader( file ) ) );
+      IJavaClassInfo classInfo = JavaSourceType.createTopLevel( new StringSourceFileHandle( fqn, source, false, ClassType.Class ),
+        _module, null );
+      // cache the top-level class + all its nested classes
+      cacheSourceClass( fqn, classInfo );
+      return classInfo;
+    }
+    catch( IOException e )
+    {
+      return null; // 'tarded API :(
+    }
+  }
+
+  private void cacheSourceClass( String fqn, IJavaClassInfo classInfo )
+  {
+    _classInfoCache.put( fqn, classInfo );
+    for( IJavaClassInfo declaredClass: classInfo.getDeclaredClasses() )
+    {
+      cacheSourceClass( declaredClass.getName().replace( '$', '.' ), declaredClass );
     }
   }
 
@@ -375,6 +556,10 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   public AsmClass loadAsmClass(String className) {
     return _classCache.loadAsmClass( className );
+  }
+
+  public AsmClass loadAsmClassUsingJavac(String className) {
+    return _classCache.loadClassUsingJavac( className );
   }
 
   public boolean classFileExists( String className ) {

@@ -1,8 +1,6 @@
 package gw.internal.gosu.parser.java.compiler;
 
-import gw.config.CommonServices;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
-import gw.internal.gosu.ir.transform.util.IRTypeResolver;
 import gw.internal.gosu.parser.CompoundType;
 import gw.internal.gosu.parser.DynamicFunctionSymbol;
 import gw.internal.gosu.parser.DynamicPropertySymbol;
@@ -16,9 +14,12 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.expressions.ITypeVariableDefinition;
 import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.LazyTypeResolver;
@@ -51,25 +52,36 @@ public class JavaStubGenerator
 
   public String genStub( IGosuClass type )
   {
+    return genStub( type, false );
+  }
+  public String genStub( IGosuClass type, boolean classStructureOnly )
+  {
     StringBuilder sb = new StringBuilder();
     genPackage( type, sb );
-    genType( type, sb );
+    genType( type, sb, classStructureOnly );
     return sb.toString();
   }
 
-  private void genType( IGosuClass type, StringBuilder sb )
+  private void genType( IGosuClass type, StringBuilder sb, boolean classStructureOnly )
   {
-    if( type.isEnum() )
+    if( classStructureOnly )
     {
-      genEnum( type, sb );
-    }
-    else if( type.isAnnotation() )
-    {
-      genAnnotation( type, sb );
+      genClassOrInterface( type, sb, true );
     }
     else
     {
-      genClassOrInterface( type, sb );
+      if( type.isEnum() )
+      {
+        genEnum( type, sb );
+      }
+      else if( type.isAnnotation() )
+      {
+        genAnnotation( type, sb );
+      }
+      else
+      {
+        genClassOrInterface( type, sb, false );
+      }
     }
   }
 
@@ -127,20 +139,32 @@ public class JavaStubGenerator
     }
   }
 
-  private void genClassOrInterface( IGosuClass type, StringBuilder sb )
+  private void genClassOrInterface( IGosuClass type, StringBuilder sb, boolean classStructureOnly )
   {
     IGosuClassInternal gsClass = (IGosuClassInternal)type;
 
     gsClass.compileDeclarationsIfNeeded();
 
-    genAnnotations( sb, type.getTypeInfo().getDeclaredAnnotations() );
-    genModifiers( sb, type.getModifiers(), false, Modifier.PUBLIC );
-    sb.append( type.isInterface() ? "interface " : "class " ).append( SignatureUtil.getSimpleName( type.getName() ) ).append( getTypeVariables( type ) )
-      .append( genClassExtends( type ) )
-      .append( genClassImplements( type ) )
-      .append( " {\n" );
+    if( !classStructureOnly )
+    {
+      genAnnotations( sb, type.getTypeInfo().getDeclaredAnnotations() );
+      genModifiers( sb, type.getModifiers(), false, Modifier.PUBLIC );
+      sb.append( type.isInterface() ? "interface " : "class " ).append( SignatureUtil.getSimpleName( type.getName() ) ).append( getTypeVariables( type ) )
+        .append( genClassExtends( type ) )
+        .append( genClassImplements( type ) )
+        .append( " {\n" );
 
-    genClassFeatures( sb, gsClass );
+      genClassFeatures( sb, gsClass );
+    }
+    else
+    {
+      // to support javac case where compiling Gosu classes after Java classes have compiled, GosuTypeManifold is self-compiled...
+      genModifiers( sb, type.getModifiers(), false, Modifier.PUBLIC );
+      sb.append( type.isInterface() ? "interface " : "class " ).append( SignatureUtil.getSimpleName( type.getName() ) )
+        .append( " {\n" );
+
+      genInnerClasses( sb, gsClass, true );
+    }
 
     sb.append( "}" );
   }
@@ -153,7 +177,7 @@ public class JavaStubGenerator
     genConstructors( sb, gsClass, parseInfo );
     genProperties( sb, gsClass, parseInfo );
     genMethods( sb, gsClass, parseInfo );
-    genInnerClasses( sb, gsClass );
+    genInnerClasses( sb, gsClass, false );
   }
 
   private String genClassImplements( IGosuClass type )
@@ -220,13 +244,21 @@ public class JavaStubGenerator
     return sb.toString();
   }
 
-  private void genInnerClasses( StringBuilder sb, IGosuClassInternal gsClass )
+  private void genInnerClasses( StringBuilder sb, IGosuClassInternal gsClass, boolean classStructureOnly )
   {
     sb.append( "\n// inner classes //\n" );
     for( IGosuClass innerClass : gsClass.getInnerClasses() )
     {
-      genType( innerClass, sb );
+      genType( innerClass, sb, classStructureOnly );
     }
+//
+// Can't get blocks now because it forces full parsing, which may cause cycles in Gosu/Java refs
+//
+//    // include blocks to force Javac to emit the inner classes to disk
+//    for( IGosuClass innerClass : gsClass.getBlocks() )
+//    {
+//      genType( innerClass, sb, classStructureOnly );
+//    }
   }
 
   private void genFields( StringBuilder sb, IGosuClassInternal gsClass, GosuClassParseInfo parseInfo )
@@ -254,14 +286,18 @@ public class JavaStubGenerator
   {
     sb.append( "\n  // constructors //\n" );
 
+    boolean atLeastOne = false;
+    boolean privateCtor = false;
     Collection<DynamicFunctionSymbol> constructors = parseInfo.getConstructorFunctions().values();
     for( DynamicFunctionSymbol constructor : constructors )
     {
       if( constructor.isPrivate() )
       {
+        privateCtor = true;
         continue;
       }
 
+      atLeastOne = true;
       List<GosuAnnotationInfo> gosuAnnotationInfos = AbstractElementTransformer.makeAnnotationInfos( constructor.getAnnotations(), gsClass.getTypeInfo() );
       genAnnotations( sb, gosuAnnotationInfos );
 
@@ -269,7 +305,119 @@ public class JavaStubGenerator
       genModifiers( sb, constructor.getModifiers(), false, Modifier.PUBLIC );
       sb.append( SignatureUtil.getSimpleName( gsClass.getName() ) ).append( "(" );
       genParameters( sb, constructor );
-      sb.append( ") {}\n" );
+      sb.append( ") {" ).append( genSuperCtorCall( gsClass.getSupertype() ) ).append( "}\n" );
+    }
+
+    if( !atLeastOne && privateCtor )
+    {
+      // make a private no-arg ctor to avoid the implied public one
+      sb.append( "  " );
+      genModifiers( sb, Modifier.PRIVATE, false, Modifier.PUBLIC );
+      sb.append( SignatureUtil.getSimpleName( gsClass.getName() ) )
+        .append( "() {" ).append( genSuperCtorCall( gsClass.getSupertype() ) ).append( "}\n" );
+    }
+  }
+
+  private String genSuperCtorCall( IType superClass )
+  {
+    String bodyStmt;
+    if( superClass == null || superClass == JavaTypes.OBJECT() )
+    {
+      bodyStmt = "";
+    }
+    else
+    {
+      IConstructorInfo superCtor = findConstructor( ((IRelativeTypeInfo)superClass.getTypeInfo()).getDeclaredConstructors() );
+      if( superCtor == null )
+      {
+        bodyStmt = "";
+      }
+      else
+      {
+        bodyStmt = genSuperCtorCall( superCtor );
+      }
+    }
+    return bodyStmt;
+  }
+
+  private String genSuperCtorCall( IConstructorInfo superCtor )
+  {
+    String bodyStmt;
+    StringBuilder sb = new StringBuilder( "super(" );
+    IParameterInfo[] parameters = superCtor.getParameters();
+    for( int i = 0; i < parameters.length; i++ )
+    {
+      IParameterInfo param = parameters[i];
+      if( i > 0 )
+      {
+        sb.append( ", " );
+      }
+      sb.append( getValueForType( param.getFeatureType() ) );
+    }
+    sb.append( ");" );
+    bodyStmt = sb.toString();
+    return bodyStmt;
+  }
+
+  private IConstructorInfo findConstructor( List<? extends IConstructorInfo> declaredConstructors )
+  {
+    IConstructorInfo ctor = null;
+    for( IConstructorInfo csr: declaredConstructors )
+    {
+      if( ctor == null )
+      {
+        ctor = csr;
+      }
+      else
+      {
+        ctor = mostAccessible( ctor, csr );
+      }
+      if( ctor.isPublic() )
+      {
+        return ctor;
+      }
+    }
+    return ctor;
+  }
+
+  private IConstructorInfo mostAccessible( IConstructorInfo ctor, IConstructorInfo sym )
+  {
+    if( ctor.isPublic() )
+    {
+      return ctor;
+    }
+    if( sym.isPublic() )
+    {
+      return sym;
+    }
+    if( ctor.isProtected() )
+    {
+      return ctor;
+    }
+    if( sym.isProtected() )
+    {
+      return sym;
+    }
+    if( ctor.isPrivate() )
+    {
+      return sym.isPrivate() ? ctor : sym;
+    }
+    return ctor;
+  }
+
+  private String getValueForType( IType type )
+  {
+    if( type == JavaTypes.pBOOLEAN() )
+    {
+      return "false";
+    }
+    else if( type.isPrimitive() )
+    {
+      return "0";
+    }
+    else
+    {
+      return "(" + type.getName() + ")null"; // cast to disambiguate when used as an argument
     }
   }
 
@@ -368,7 +516,7 @@ public class JavaStubGenerator
       }
       else
       {
-        genReturnStmt( sb, returnType );
+        sb.append( " throw new RuntimeException(); }\n" );
       }
     }
   }
@@ -456,29 +604,18 @@ public class JavaStubGenerator
     return value.toString();
   }
 
-  private void genReturnStmt( StringBuilder sb, IType returnType )
-  {
-    sb.append( " return " ).append( !returnType.isPrimitive() ? "null" : makeDefaultPrimitiveValue( returnType ) ).append( "; }\n" );
-  }
-
-  private String makeDefaultPrimitiveValue( IType returnType )
-  {
-    return genCompileTimeConstantExpression( returnType, CommonServices.getCoercionManager().convertNullAsPrimitive( returnType, false ) );
-  }
-
   private void genParameters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
     List<ISymbol> parameters = dfs.getArgs();
-    int iParam = addReifiedTypeParamaters( sb, dfs );
-    for( int i = 0; i < parameters.size(); i++ )
+    int iParam = addReifiedTypeParameters( sb, dfs );
+    for( ISymbol param: parameters )
     {
-      ISymbol param = parameters.get( i );
       sb.append( iParam > 0 ? ", " : "" ).append( getTypeName( param.getType() ) ).append( ' ' ).append( param.getDisplayName() );
       iParam++;
     }
   }
 
-  private int addReifiedTypeParamaters( StringBuilder sb, DynamicFunctionSymbol dfs )
+  private int addReifiedTypeParameters( StringBuilder sb, DynamicFunctionSymbol dfs )
   {
     int iParam = 0;
     if( dfs.getType().isGenericType() && dfs.isReified() )

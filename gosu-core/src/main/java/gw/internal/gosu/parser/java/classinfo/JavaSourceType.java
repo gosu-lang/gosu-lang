@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser.java.classinfo;
 
+import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
@@ -244,6 +245,11 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
         return new JavaWildcardType( NULL_TYPE, false );
       }
       return new JavaWildcardType( createType( typeResolver, wildcardTree.getBound() ), kind == Tree.Kind.SUPER_WILDCARD );
+    }
+    else if( tree instanceof AnnotatedTypeTree )
+    {
+      //todo: don't ignore annotations on types
+      return createType( typeResolver, ((AnnotatedTypeTree)tree).getUnderlyingType() );
     }
     else if( tree instanceof IdentifierTree ||
              tree instanceof PrimitiveTypeTree ||

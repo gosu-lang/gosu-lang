@@ -474,4 +474,9 @@ public class GosuShop
   {
     return CommonServices.getGosuIndustrialPark().generateJavaStub( gsClass );
   }
+
+  public static String generateJavaStub( IGosuClass gsClass, boolean classStructureOnly )
+  {
+    return CommonServices.getGosuIndustrialPark().generateJavaStub( gsClass, classStructureOnly );
+  }
 }

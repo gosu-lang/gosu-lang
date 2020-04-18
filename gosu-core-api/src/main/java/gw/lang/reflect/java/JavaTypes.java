@@ -67,6 +67,7 @@ import java.util.TimeZone;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import manifold.ext.ExtensionMethod;
 
 public class JavaTypes {
   private static final Map<IProject, Map<Class, IJavaType>> CACHE = new WeakHashMap<>();
@@ -543,6 +544,14 @@ public class JavaTypes {
       return THIS.BINDINGS == null ? THIS.BINDINGS = getGosuType( Bindings.class ) : THIS.BINDINGS;
     }
     return getJreType(Bindings.class);
+  }
+
+  private IJavaType EXTENSION_METHOD = null;
+  public static IJavaType EXTENSION_METHOD() {
+    if( !ExecutionMode.get().isRefreshSupportEnabled() ) {
+      return THIS.EXTENSION_METHOD == null ? THIS.EXTENSION_METHOD = getJreType( ExtensionMethod.class ) : THIS.EXTENSION_METHOD;
+    }
+    return getJreType(ExtensionMethod.class);
   }
 
 

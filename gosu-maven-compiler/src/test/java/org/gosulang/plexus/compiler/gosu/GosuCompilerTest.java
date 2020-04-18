@@ -4,6 +4,7 @@ import org.codehaus.plexus.compiler.AbstractCompilerTest;
 import org.codehaus.plexus.compiler.Compiler;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerMessage;
+import org.codehaus.plexus.compiler.CompilerResult;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
@@ -61,7 +62,8 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
       org.codehaus.plexus.compiler.Compiler compiler = (Compiler) lookup( Compiler.ROLE, getRoleHint() );
 
-      messages.addAll( compiler.performCompile( compilerConfig ).getCompilerMessages() );
+      CompilerResult compilerResult = compiler.performCompile( compilerConfig );
+      messages.addAll( compilerResult.getCompilerMessages() );
 
       if ( outputDir.isDirectory() )
       {

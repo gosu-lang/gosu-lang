@@ -4,6 +4,9 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.api.BasicJavacTask;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import gw.fs.IFile;
 import gw.util.cache.FqnCache;
 
@@ -12,6 +15,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import manifold.api.util.Pair;
+import manifold.internal.javac.ClassSymbols;
+import manifold.internal.javac.JavacPlugin;
+
+
+import static gw.lang.reflect.java.asm.AsmClass.Origin.ASM;
+import static gw.lang.reflect.java.asm.AsmClass.Origin.Javac;
 
 /**
  */
@@ -24,41 +34,62 @@ public class AsmClassLoader {
     _cache = new FqnCache<>();
   }
 
-  public AsmClass findClass( String fqn, IFile file ) {
-    AsmClass asmClass = _cache.get( fqn );
+  public AsmClass findClassUsingAsm( String fqn, IFile file ) {
+    AsmClass asmClass = getAsmClass( fqn );
     if( asmClass == null ) {
-      asmClass = _cache.get( fqn );
-      if( asmClass == null ) {
-        try
-        {
-          asmClass = new AsmClass( _module, file.toURI() );
-          _cache.add( fqn, asmClass );
-          asmClass.init( getContent( file.openInputStream() ) );
-        }
-        catch( IOException e )
-        {
-          throw new RuntimeException( e );
-        }
+      try
+      {
+        asmClass = new AsmClass( _module, ASM );
+        _cache.add( fqn, asmClass );
+        asmClass.init( getContent( file.openInputStream() ) );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
       }
     }
     return asmClass;
   }
 
-  public AsmClass findClass( String fqn, File file ) {
-    AsmClass asmClass = _cache.get( fqn );
+  public AsmClass findClassUsingJavac( String fqn ) {
+    AsmClass asmClass = getAsmClass( fqn );
     if( asmClass == null ) {
-      asmClass = _cache.get( fqn );
-      if( asmClass == null ) {
-        try
-        {
-          asmClass = new AsmClass( _module, file.toURI() );
-          _cache.add( fqn, asmClass );
-          asmClass.init( getContent( new FileInputStream( file ) ) );
-        }
-        catch( IOException e )
-        {
-          throw new RuntimeException( e );
-        }
+      asmClass = new AsmClass( _module, Javac );
+      _cache.add( fqn, asmClass );
+      ClassSymbols classSymbols = ClassSymbols.instance( JavacPlugin.instance().getHost().getSingleModule() );
+      BasicJavacTask javacTask = JavacPlugin.instance().getJavacTask();
+      Pair<Symbol.ClassSymbol, JCTree.JCCompilationUnit> classSym = classSymbols.getClassSymbol( javacTask, fqn );
+      if( classSym == null )
+      {
+        _cache.remove( fqn );
+        return null;
+      }
+      asmClass.init( classSym.getFirst() );
+    }
+    return asmClass;
+  }
+
+  private AsmClass getAsmClass( String fqn )
+  {
+    AsmClass asmClass = _cache.get( fqn );
+    if( asmClass == null && fqn.indexOf( '$' ) > 0 ) {
+      asmClass = _cache.get( fqn.replace( '$', '.' ) );
+    }
+    return asmClass;
+  }
+
+  public AsmClass findClassUsingAsm( String fqn, File file ) {
+    AsmClass asmClass = getAsmClass( fqn );
+    if( asmClass == null ) {
+      try
+      {
+        asmClass = new AsmClass( _module, ASM );
+        _cache.add( fqn, asmClass );
+        asmClass.init( getContent( new FileInputStream( file ) ) );
+      }
+      catch( IOException e )
+      {
+        throw new RuntimeException( e );
       }
     }
     return asmClass;

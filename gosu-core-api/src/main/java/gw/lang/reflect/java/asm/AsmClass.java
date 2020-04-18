@@ -4,6 +4,9 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import gw.internal.ext.org.objectweb.asm.AnnotationVisitor;
 import gw.internal.ext.org.objectweb.asm.Attribute;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
@@ -17,14 +20,22 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IAsmJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.module.IModule;
-
+import gw.util.concurrent.LocklessLazyVar;
 import java.lang.annotation.Annotation;
-import java.net.URI;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.lang.model.type.DeclaredType;
+import manifold.api.gen.SrcAnnotated;
+
+
+import static gw.lang.reflect.Modifier.ANNOTATION;
+import static gw.lang.reflect.Modifier.ENUM;
+import static java.lang.reflect.Modifier.INTERFACE;
 
 /**
  */
@@ -38,7 +49,7 @@ public class AsmClass implements IAsmType, IGeneric {
   public static final AsmClass DOUBLE;
   public static final AsmClass BOOLEAN;
   public static final AsmClass VOID;
-  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<String, AsmClass>();
+  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<>();
   static {
     PRIMITIVES.put( "byte", BYTE = new AsmClass( AsmPrimitiveType.findPrimitive( "byte" ) ) );
     PRIMITIVES.put( "short", SHORT = new AsmClass( AsmPrimitiveType.findPrimitive( "short" ) ) );
@@ -55,34 +66,42 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   private Object _module;
-  private URI _uri;
+  private Origin _origin;
   private int _version;
   private int _modifiers;
-  private AsmType _type;
-  private AsmType _superClass;
-  private List<AsmType> _interfaces;
-  private AsmType _enclosingType;
   private boolean _bGeneric;
-  private Map<String, AsmInnerClassType> _innerClasses;
-  private List<AsmField> _fields;
-  private List<AsmMethod> _methodsAndCtors;
-  private List<AsmAnnotation> _annotations;
+  private AsmType _type;
+  private LocklessLazyVar<AsmType> _superClass;
+  private LocklessLazyVar<List<AsmType>> _interfaces;
+  private LocklessLazyVar<AsmType> _enclosingType;
+  private LocklessLazyVar<Map<String, AsmInnerClassType>> _innerClasses;
+  private LocklessLazyVar<List<AsmField>> _fields;
+  private LocklessLazyVar<List<AsmMethod>> _methodsAndCtors;
+  private LocklessLazyVar<List<AsmAnnotation>> _annotations;
 
+  enum Origin {Javac, ASM}
 
-  AsmClass( Object module, URI uri ) {
+  AsmClass( Object module, Origin origin ) {
     _module = module;
-    _uri = uri;
+    _origin = origin;
+    assignLazyVars();
   }
 
   private AsmClass( AsmPrimitiveType ptype ) {
     _type = ptype;
     _modifiers = Modifier.PUBLIC | Modifier.STATIC;
-    _superClass = null;
-    _innerClasses = Collections.emptyMap();
-    _interfaces = Collections.emptyList();
-    _fields = Collections.emptyList();
-    _methodsAndCtors = Collections.emptyList();
-    _annotations = Collections.emptyList();
+    assignLazyVars();
+  }
+
+  private void assignLazyVars()
+  {
+    _superClass = LocklessLazyVar.make( () -> null );
+    _enclosingType = LocklessLazyVar.make( () -> null );
+    _interfaces = LocklessLazyVar.make( Collections::emptyList );
+    _innerClasses = LocklessLazyVar.make( Collections::emptyMap );
+    _fields = LocklessLazyVar.make( Collections::emptyList );
+    _methodsAndCtors = LocklessLazyVar.make( Collections::emptyList );
+    _annotations = LocklessLazyVar.make( Collections::emptyList );
   }
 
   public void init( byte[] classBytes ) {
@@ -90,8 +109,111 @@ public class AsmClass implements IAsmType, IGeneric {
     cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
   }
 
-  public URI getUri() {
-    return _uri;
+  public void init( Symbol.ClassSymbol classSym ) {
+    _type = new AsmType( classSym.type.tsym.getQualifiedName().toString() );
+    _modifiers = (int)SrcAnnotated.modifiersFrom( classSym.getModifiers() );
+    if( classSym.isInterface() )
+    {
+      _modifiers |= INTERFACE;
+    }
+    if( (classSym.flags() & Flags.ANNOTATION) != 0 )
+    {
+      _modifiers |= ANNOTATION;
+    }
+    if( classSym.isEnum() )
+    {
+      _modifiers |= ENUM;
+    }
+    for( Symbol.TypeVariableSymbol typeVar: classSym.getTypeParameters() )
+    {
+      setGeneric();
+      AsmType tv = AsmUtil.makeTypeVariable( typeVar.name.toString(), false );
+      _type.addTypeParameter( tv );
+    }
+
+    _annotations = LocklessLazyVar.make( () -> {
+        List<AsmAnnotation> annotations = new ArrayList<>();
+        for( com.sun.tools.javac.code.Attribute.Compound annotationMirror: classSym.getAnnotationMirrors() )
+        {
+
+          DeclaredType annotationType = annotationMirror.getAnnotationType();
+          Retention retention = annotationType.getAnnotation( Retention.class );
+          boolean isRuntime = retention != null && retention.value() == RetentionPolicy.RUNTIME;
+          AsmAnnotation annotation = new AsmAnnotation( (Type)annotationType, isRuntime );
+          for( Map.Entry<Symbol.MethodSymbol, com.sun.tools.javac.code.Attribute> entry: annotationMirror.getElementValues().entrySet() )
+          {
+            annotation.setValue( entry.getKey().flatName().toString(), entry.getValue().getValue() );
+          }
+          annotations.add( annotation );
+        }
+        return annotations;
+      } );
+
+    _superClass = LocklessLazyVar.make( () -> {
+        Type superclass = classSym.getSuperclass();
+        if( superclass == Type.noType )
+        {
+          //superclass = Symtab.instance( JavacPlugin.instance().getContext() ).objectType;
+          return null;
+        }
+        return AsmUtil.makeType( superclass );
+      } );
+
+    _interfaces = LocklessLazyVar.make( () -> {
+        List<AsmType> interfaces = new ArrayList<>();
+        for( Type iface: classSym.getInterfaces() )
+        {
+          AsmType type = AsmUtil.makeType( iface );
+          interfaces.add( type );
+        }
+        return interfaces;
+      } );
+
+    _enclosingType = LocklessLazyVar.make( () -> {
+      Symbol.ClassSymbol enclosingClass = classSym.enclClass();
+      return enclosingClass == classSym || enclosingClass == null
+             ? null
+             : AsmUtil.makeType( enclosingClass.type );
+    } );
+
+    _innerClasses = LocklessLazyVar.make( () -> {
+      Map<String, AsmInnerClassType> innerClasses = new HashMap<>();
+      for( Symbol member: classSym.getEnclosedElements() )
+      {
+        if( member instanceof Symbol.ClassSymbol )
+        {
+          AsmInnerClassType innerType = AsmUtil.makeInnerType( (Symbol.ClassSymbol)member );
+          innerClasses.put( member.getQualifiedName().toString(), innerType );
+        }
+      }
+      return innerClasses;
+    } );
+
+    _fields = LocklessLazyVar.make( () -> {
+      List<AsmField> fields = new ArrayList<>();
+      for( Symbol member: classSym.getEnclosedElements() )
+      {
+        if( member instanceof Symbol.VarSymbol )
+        {
+          AsmField field = new AsmField( this, (Symbol.VarSymbol)member );
+          fields.add( field );
+        }
+      }
+      return fields;
+    } );
+
+    _methodsAndCtors = LocklessLazyVar.make( () -> {
+      List<AsmMethod> methods = new ArrayList<>();
+      for( Symbol member: classSym.getEnclosedElements() )
+      {
+        if( member instanceof Symbol.MethodSymbol )
+        {
+          AsmMethod method = new AsmMethod( this, (Symbol.MethodSymbol)member );
+          methods.add( method );
+        }
+      }
+      return methods;
+    } );
   }
 
   public AsmType getType() {
@@ -103,7 +225,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public AsmType getEnclosingType() {
-    return _enclosingType;
+    return _enclosingType.get();
   }
 
   public AsmType getComponentType() {
@@ -111,48 +233,48 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public AsmType getSuperClass() {
-    return _superClass;
+    return _superClass.get();
   }
   public void setSuperClass( AsmType type ) {
-    _superClass = type;
+    _superClass = LocklessLazyVar.make( () -> type );
   }
 
   public Map<String, AsmInnerClassType> getInnerClasses() {
-    return _innerClasses;
+    return _innerClasses.get();
   }
 
   public List<AsmType> getInterfaces() {
-    return _interfaces;
+    return _interfaces.get();
   }
 
   public List<AsmField> getDeclaredFields() {
-    return _fields;
+    return _fields.get();
   }
   private void addField( AsmField field ) {
-    if( _fields.isEmpty() ) {
-      _fields = new ArrayList<AsmField>();
+    if( _fields.get().isEmpty() ) {
+      _fields = LocklessLazyVar.make( ArrayList::new );
     }
-    _fields.add( field );
+    _fields.get().add( field );
   }
 
   public List<AsmMethod> getDeclaredMethodsAndConstructors() {
-    return _methodsAndCtors;
+    return _methodsAndCtors.get();
   }
   private void addMethod( AsmMethod method ) {
-    if( _methodsAndCtors.isEmpty() ) {
-      _methodsAndCtors = new ArrayList<AsmMethod>();
+    if( _methodsAndCtors.get().isEmpty() ) {
+      _methodsAndCtors = LocklessLazyVar.make( ArrayList::new );
     }
-    _methodsAndCtors.add( method );
+    _methodsAndCtors.get().add( method );
   }
 
   public List<AsmAnnotation> getDeclaredAnnotations() {
-    return _annotations;
+    return _annotations.get();
   }
   private void addAnnotation( AsmAnnotation annotation ) {
-    if( _annotations.isEmpty() ) {
-      _annotations = new ArrayList<AsmAnnotation>();
+    if( _annotations.get().isEmpty() ) {
+      _annotations = LocklessLazyVar.make( ArrayList::new );
     }
-    _annotations.add( annotation );
+    _annotations.get().add( annotation );
   }
 
   public boolean isGeneric() {
@@ -185,7 +307,7 @@ public class AsmClass implements IAsmType, IGeneric {
   @Override
   public String getSimpleName() {
     String name = _type.getSimpleName();
-    int iDollar = _enclosingType == null ? -1 : name.lastIndexOf( '$' );
+    int iDollar = _enclosingType.get() == null ? -1 : name.lastIndexOf( '$' );
     if( iDollar > 0 ) {
       name = name.substring( iDollar+1 );
     }
@@ -249,44 +371,54 @@ public class AsmClass implements IAsmType, IGeneric {
     return null;
   }
 
-  private class AsmClassVisitor extends ClassVisitor {
-    public AsmClassVisitor() {
+  private class AsmClassVisitor extends ClassVisitor
+  {
+    public AsmClassVisitor()
+    {
       super( Opcodes.ASM7 );
     }
 
     @Override
-    public void visit( int version, int access, String name, String signature, String superName, String[] interfaces ) {
-      _type = AsmUtil.makeNonPrimitiveType(name);
+    public void visit( int version, int access, String name, String signature, String superName, String[] interfaces )
+    {
+      _type = AsmUtil.makeNonPrimitiveType( name );
       AsmClass outerClass = ensureOuterIsLoadedFirst(); // barf
       _version = version;
       _modifiers = access;
-      if( outerClass != null ) {
+      if( outerClass != null )
+      {
         barf( outerClass );
       }
-      _superClass = Modifier.isInterface( access ) ? null : (superName != null ? AsmUtil.makeType( superName ) : null);
-      _innerClasses = Collections.emptyMap();
-      _fields = Collections.emptyList();
-      _methodsAndCtors = Collections.emptyList();
-      _annotations = Collections.emptyList();
+      _superClass = LocklessLazyVar.make( () -> Modifier.isInterface( access ) ? null : (superName != null ? AsmUtil.makeType( superName ) : null) );
+      _innerClasses = LocklessLazyVar.make( Collections::emptyMap );
+      _fields = LocklessLazyVar.make( Collections::emptyList );
+      _methodsAndCtors = LocklessLazyVar.make( Collections::emptyList );
+      _annotations = LocklessLazyVar.make( Collections::emptyList );
       assignInterfaces( interfaces );
       assignGenericInfo( signature );
     }
 
-    private void barf( AsmClass outerClass ) {
+    private void barf( AsmClass outerClass )
+    {
       AsmInnerClassType innerClass = outerClass.getInnerClasses().get( _type.getName() );
-      if( innerClass !=  null ) {
+      if( innerClass != null )
+      {
         _modifiers = innerClass.getModifiers();
       }
     }
 
-    private AsmClass ensureOuterIsLoadedFirst() {
+    private AsmClass ensureOuterIsLoadedFirst()
+    {
       String typeName = _type.getName();
       int iDollar = typeName.lastIndexOf( '$' );
-      if( iDollar > 0 ) {
+      if( iDollar > 0 )
+      {
         String outerName = typeName.substring( 0, iDollar );
-        IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( outerName, (IModule)_module );
-        if( classInfo != null ) {
-          _enclosingType = AsmUtil.makeType( outerName );
+        IJavaClassInfo classInfo = TypeSystem.getJavaClassInfo( outerName,
+          _module instanceof IModule ? (IModule)_module : TypeSystem.getExecutionEnvironment().getJreModule() );
+        if( classInfo != null )
+        {
+          _enclosingType = LocklessLazyVar.make( () -> AsmUtil.makeType( outerName ) );
           return (AsmClass)((IAsmJavaClassInfo)classInfo).getAsmType();
         }
       }
@@ -294,53 +426,64 @@ public class AsmClass implements IAsmType, IGeneric {
     }
 
     @Override
-    public void visitSource( String s, String s2 ) {
+    public void visitSource( String s, String s2 )
+    {
     }
 
     @Override
-    public void visitOuterClass( String owner, String name, String desc ) {
-      _enclosingType = owner == null ? null : AsmUtil.makeType( owner );
+    public void visitOuterClass( String owner, String name, String desc )
+    {
+      _enclosingType = LocklessLazyVar.make( () -> owner == null ? null : AsmUtil.makeType( owner ) );
     }
 
     @Override
-    public AnnotationVisitor visitAnnotation( String desc, boolean bVisibleAtRuntime ) {
+    public AnnotationVisitor visitAnnotation( String desc, boolean bVisibleAtRuntime )
+    {
       AsmAnnotation asmAnnotation = new AsmAnnotation( desc, bVisibleAtRuntime );
       addAnnotation( asmAnnotation );
       return new AsmAnnotationVisitor( asmAnnotation );
     }
 
     @Override
-    public void visitAttribute( Attribute attribute ) {
+    public void visitAttribute( Attribute attribute )
+    {
     }
 
     @Override
-    public void visitInnerClass( String name, String outerName, String innerName, int access ) {
-      if( outerName != null && !AsmUtil.makeDotName( outerName ).equals( getType().getName() ) ) {
+    public void visitInnerClass( String name, String outerName, String innerName, int access )
+    {
+      if( outerName != null && !AsmUtil.makeDotName( outerName ).equals( getType().getName() ) )
+      {
         return;
       }
-      if( innerName == null ) {
+      if( innerName == null )
+      {
         // anonymous
         return;
       }
 
       int iDollar = name.lastIndexOf( '$' );
       if( iDollar >= 0 && iDollar < name.length() - 1 &&
-          Character.isDigit( name.charAt( iDollar + 1 ) ) ) {
+          Character.isDigit( name.charAt( iDollar + 1 ) ) )
+      {
         // local inner class
         return;
       }
 
-      if( _innerClasses.isEmpty() ) {
-        _innerClasses = new HashMap<String, AsmInnerClassType>( 2 );
+      if( _innerClasses.get().isEmpty() )
+      {
+        _innerClasses = LocklessLazyVar.make( () -> new HashMap<>( 2 ) );
       }
       String innerClass = AsmUtil.makeDotName( name );
-      _innerClasses.put( innerClass, new AsmInnerClassType( innerClass, access ) );
+      _innerClasses.get().put( innerClass, new AsmInnerClassType( innerClass, access ) );
     }
 
     @Override
-    public FieldVisitor visitField( int access, String name, String desc, String signature, Object value ) {
+    public FieldVisitor visitField( int access, String name, String desc, String signature, Object value )
+    {
       AsmField field = new AsmField( AsmClass.this, access, name, desc, value );
-      if( signature != null ) {
+      if( signature != null )
+      {
         SignatureReader sr = new SignatureReader( signature );
         DeclarationPartSignatureVisitor visitor = new DeclarationPartSignatureVisitor();
         sr.accept( visitor );
@@ -351,9 +494,11 @@ public class AsmClass implements IAsmType, IGeneric {
     }
 
     @Override
-    public MethodVisitor visitMethod( int access, String name, String desc, String signature, String[] exceptions ) {
+    public MethodVisitor visitMethod( int access, String name, String desc, String signature, String[] exceptions )
+    {
       AsmMethod method = new AsmMethod( AsmClass.this, access, name, desc, exceptions );
-      if( signature != null ) {
+      if( signature != null )
+      {
         SignatureReader sr = new SignatureReader( signature );
         MethodDeclarationSignatureVisitor visitor = new MethodDeclarationSignatureVisitor( method );
         sr.accept( visitor );
@@ -364,11 +509,14 @@ public class AsmClass implements IAsmType, IGeneric {
     }
 
     @Override
-    public void visitEnd() {
+    public void visitEnd()
+    {
     }
 
-    private void assignGenericInfo( String signature ) {
-      if( signature != null ) {
+    private void assignGenericInfo( String signature )
+    {
+      if( signature != null )
+      {
         SignatureReader sr = new SignatureReader( signature );
         TypeDeclarationSignatureVisitor visitor = new TypeDeclarationSignatureVisitor( AsmClass.this );
         sr.accept( visitor );
@@ -376,17 +524,23 @@ public class AsmClass implements IAsmType, IGeneric {
       }
     }
 
-    private void assignInterfaces( String[] interfaces ) {
-      if( interfaces != null ) {
-        List<AsmType> ifaces = new ArrayList<AsmType>( interfaces.length );
-        for( int i = 0; i < interfaces.length; i++ ) {
-          ifaces.add( AsmUtil.makeType( interfaces[i] ) );
+    private void assignInterfaces( String[] interfaces )
+    {
+      _interfaces = LocklessLazyVar.make( () -> {
+        if( interfaces != null )
+        {
+          List<AsmType> ifaces = new ArrayList<>( interfaces.length );
+          for( int i = 0; i < interfaces.length; i++ )
+          {
+            ifaces.add( AsmUtil.makeType( interfaces[i] ) );
+          }
+          return ifaces;
         }
-        _interfaces = ifaces;
-      }
-      else {
-        _interfaces = Collections.emptyList();
-      }
+        else
+        {
+          return Collections.emptyList();
+        }
+      } );
     }
   }
 }

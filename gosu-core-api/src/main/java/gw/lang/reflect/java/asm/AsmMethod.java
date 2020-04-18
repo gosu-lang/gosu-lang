@@ -4,15 +4,25 @@
 
 package gw.lang.reflect.java.asm;
 
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
 import gw.internal.ext.org.objectweb.asm.Type;
 
 import gw.lang.reflect.java.Parameter;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
+import manifold.api.gen.SrcAnnotated;
 
 /**
  */
@@ -48,6 +58,77 @@ public class AsmMethod implements IGeneric {
     //noinspection unchecked
     _paramAnnotations = new List[_parameters.size()];
     assignExceptions( exceptions );
+  }
+
+  public AsmMethod( AsmClass owner, Symbol.MethodSymbol methodSymbol ) {
+    _owner = owner;
+    _modifiers = (int)SrcAnnotated.modifiersFrom( methodSymbol.getModifiers() );
+    long flags = methodSymbol.flags();
+    if( (flags & Flags.ACC_BRIDGE) != 0 )
+    {
+      _modifiers |= 0x00000040;  // Modifier.BRIDGE
+    }
+    if( (flags & Flags.ACC_VARARGS) != 0 )
+    {
+      _modifiers |= 0x00000080; // Modifier.VARARGS
+    }
+    _methodType = new AsmType( methodSymbol.name.toString() );
+    _annotations = Collections.emptyList();
+    _exceptions = Collections.emptyList();
+    _parameters = Collections.emptyList();
+    _genericExceptions = Collections.emptyList();
+    _genericParameters = Collections.emptyList();
+    _paramInfos = Collections.emptyList();
+    _iLine = -1;
+    ExecutableType type = (ExecutableType)methodSymbol.type;
+    assignTypeFromDesc( type );
+    //noinspection unchecked
+    _paramAnnotations = new List[_parameters.size()];
+    assignExceptions( type.getThrownTypes() );
+
+    // assign type vars
+    for( Symbol.TypeVariableSymbol member: methodSymbol.getTypeParameters() )
+    {
+      setGeneric();
+      AsmType typeVar = AsmUtil.makeTypeVariable( member.name.toString(), true );
+      _methodType.addTypeParameter( typeVar );
+    }
+
+    // assign annotations
+    List<AsmAnnotation> annotations = new ArrayList<>();
+    for( com.sun.tools.javac.code.Attribute.Compound annotationMirror: methodSymbol.getAnnotationMirrors() )
+    {
+      DeclaredType annotationType = annotationMirror.getAnnotationType();
+      Retention retention = annotationType.getAnnotation( Retention.class );
+      boolean isRuntime = retention != null && retention.value() == RetentionPolicy.RUNTIME;
+      AsmAnnotation annotation = new AsmAnnotation( (com.sun.tools.javac.code.Type)annotationType, isRuntime );
+      for( Map.Entry<Symbol.MethodSymbol, Attribute> entry: annotationMirror.getElementValues().entrySet() )
+      {
+        annotation.setValue( entry.getKey().flatName().toString(), entry.getValue().getValue() );
+      }
+      annotations.add( annotation );
+    }
+    _annotations = annotations;
+
+    // assign parameter annotations
+    com.sun.tools.javac.util.List<Symbol.VarSymbol> parameters = methodSymbol.getParameters();
+    for( int i = 0; i < parameters.size(); i++ )
+    {
+      Symbol.VarSymbol parameter = parameters.get( i );
+      // assign annotations
+      List<AsmAnnotation> paramAnnos = new ArrayList<>();
+      for( Attribute.Compound annotationMirror: parameter.getAnnotationMirrors() )
+      {
+
+        DeclaredType annotationType = annotationMirror.getAnnotationType();
+        Retention retention = annotationType.getAnnotation( Retention.class );
+        boolean isRuntime = retention != null && retention.value() == RetentionPolicy.RUNTIME;
+        AsmAnnotation annotation = new AsmAnnotation( (com.sun.tools.javac.code.Type)annotationType, isRuntime );
+        paramAnnos.add( annotation );
+      }
+      _paramAnnotations[i] = paramAnnos;
+    }
+
   }
 
   public void update( List<DeclarationPartSignatureVisitor> paramTypes, DeclarationPartSignatureVisitor returnType, List<DeclarationPartSignatureVisitor> exceptionTypes  ) {
@@ -175,6 +256,20 @@ public class AsmMethod implements IGeneric {
     }
   }
 
+  private void assignExceptions( List<? extends TypeMirror> exceptions ) {
+    if( exceptions == null ) {
+      return;
+    }
+    for( TypeMirror exception : exceptions ) {
+      if( _exceptions.isEmpty() ) {
+        _exceptions = new ArrayList<>( exceptions.size() );
+        _genericExceptions = new ArrayList<>( exceptions.size() );
+      }
+      _genericExceptions.add( AsmUtil.makeType( (com.sun.tools.javac.code.Type)exception ) );
+      _exceptions.add( AsmUtil.makeErasedType( (com.sun.tools.javac.code.Type)exception ) );
+    }
+  }
+
   private void assignTypeFromDesc( String desc ) {
     Type returnType = Type.getReturnType( desc );
     _returnType = AsmUtil.makeType( returnType );
@@ -185,6 +280,21 @@ public class AsmMethod implements IGeneric {
         _parameters = new ArrayList<>( params.length );
       }
       _parameters.add( AsmUtil.makeType( param ) );
+    }
+  }
+
+  private void assignTypeFromDesc( ExecutableType type ) {
+    _returnType = AsmUtil.makeErasedType( (com.sun.tools.javac.code.Type)type.getReturnType() );
+    _genericReturnType = AsmUtil.makeType( (com.sun.tools.javac.code.Type)type.getReturnType() );
+
+    List<? extends TypeMirror> parameterTypes = type.getParameterTypes();
+    for( TypeMirror param : parameterTypes ) {
+      if( _parameters.isEmpty() ) {
+        _parameters = new ArrayList<>( parameterTypes.size() );
+        _genericParameters = new ArrayList<>( parameterTypes.size() );
+      }
+      _parameters.add( AsmUtil.makeErasedType( (com.sun.tools.javac.code.Type)param ) );
+      _genericParameters.add( AsmUtil.makeType( (com.sun.tools.javac.code.Type)param ) );
     }
   }
 
@@ -212,30 +322,30 @@ public class AsmMethod implements IGeneric {
   }
 
   private String makeParameterString() {
-    String paramString = "(";
+    StringBuilder paramString = new StringBuilder( "(" );
     for( AsmType param : _genericParameters.isEmpty() ? _parameters : _genericParameters ) {
       if( paramString.length() > 1 ) {
-        paramString += ", ";
+        paramString.append( ", " );
       }
-      paramString += param.getFqn();
+      paramString.append( param.getFqn() );
     }
-    paramString += ")";
-    return paramString;
+    paramString.append( ")" );
+    return paramString.toString();
   }
 
   private String makeTypeVarsString() {
-    String tvString = "";
+    StringBuilder tvString = new StringBuilder();
     if( isGeneric() ) {
-      tvString = "<";
+      tvString = new StringBuilder( "<" );
       for( AsmType tv : getMethodType().getTypeParameters() ) {
         if( tvString.length() > 1 ) {
-          tvString += ", ";
+          tvString.append( ", " );
         }
-        tvString += tv.getFqn();
+        tvString.append( tv.getFqn() );
       }
-      tvString += ">";
+      tvString.append( ">" );
     }
-    return tvString;
+    return tvString.toString();
   }
 
   void assignLineNumber( int iLine ) {

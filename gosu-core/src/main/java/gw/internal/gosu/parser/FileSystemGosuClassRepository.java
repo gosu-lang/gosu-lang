@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.lang.ref.SoftReference;
@@ -757,27 +758,29 @@ public class FileSystemGosuClassRepository implements IFileSystemGosuClassReposi
         content = _content.get();
       }
       if( content == null ) {
-        Stream<String> lines = null;
+//        Stream<String> lines = null;
         try {
-          if( _file.isJavaFile() && _classType != ClassType.JavaClass ) {
-            lines = Files.lines( _file.toJavaFile().toPath() );
-          }
-          else {
-            BufferedReader reader = new BufferedReader( getReader() );
-            lines = reader.lines().onClose( callClose( reader ) );
-          }
-          StringBuilder sb = new StringBuilder();
-          lines.forEach( line -> sb.append( line ).append( '\n') );
-          if( sb.length() > 0 ) {
-            sb.setLength( sb.length() - 1 ); // remove last \n
-          }
-          content = sb.toString();
+          content = StreamUtil.getContent( new BufferedReader( new InputStreamReader( _file.openInputStream() ) ) );
+
+//          if( _file.isJavaFile() && _classType != ClassType.JavaClass ) {
+//            lines = Files.lines( _file.toJavaFile().toPath() );
+//          }
+//          else {
+//            BufferedReader reader = new BufferedReader( getReader() );
+//            lines = reader.lines().onClose( callClose( reader ) );
+//          }
+//          StringBuilder sb = new StringBuilder();
+//          lines.forEach( line -> sb.append( line ).append( '\n') );
+//          if( sb.length() > 0 ) {
+//            sb.setLength( sb.length() - 1 ); // remove last \n
+//          }
+//          content = sb.toString();
         }
         catch( Exception e ) {
           throw new RuntimeException( e );
         }
         finally {
-          lines.close();
+//          lines.close();
         }
         _content = _classType == ClassType.JavaClass ? new SoftReference<>( null ) : new SoftReference<>(content);
       }

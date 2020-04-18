@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
 import gw.fs.IFile;
-import gw.internal.gosu.module.DefaultSingleModule;
+import gw.lang.init.GosuTypeManifold;
 import gw.lang.reflect.java.asm.AsmClass;
 import gw.lang.reflect.java.asm.AsmClassLoader;
 import gw.lang.reflect.IInjectableClassLoader;
@@ -16,12 +16,12 @@ import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import manifold.internal.javac.JavacPlugin;
 
 public class ClassCache {
   @SuppressWarnings({"unchecked"})
@@ -56,7 +56,17 @@ public class ClassCache {
                         IClassPath.ALLOW_ALL_WITH_SUN_FILTER);
         }
       };
-    _asmClassLoader = new AsmClassLoader(_module);
+    _asmClassLoader = new AsmClassLoader( getAsmContext() );
+  }
+
+  private Object getAsmContext()
+  {
+    JavacPlugin javacPlugin = JavacPlugin.instance();
+    if( javacPlugin != null )
+    {
+      return javacPlugin.getHost().getSingleModule();
+    }
+    return _module;
   }
 
   private Class tryToLoadClass(CharSequence name) {
@@ -137,6 +147,14 @@ public class ClassCache {
   }
 
   public AsmClass loadAsmClass( String className ) {
+    if( GosuTypeManifold.isPostJava() ) {
+      return loadClassUsingJavac( className );
+    }
+    return loadClassUsingAsm( className );
+  }
+
+  AsmClass loadClassUsingAsm( String className )
+  {
     AsmClass primitiveClazz = AsmClass.findPrimitive( className );
     try {
       IModule jreModule = _module.getExecutionEnvironment().getJreModule();
@@ -158,7 +176,7 @@ public class ClassCache {
       if( ignoreTheCache || _classPathCache.get().contains( className ) ) {
         IFile file = _classPathCache.get().get( className );
         if( file != null ) {
-          return _asmClassLoader.findClass( className, file );
+          return _asmClassLoader.findClassUsingAsm( className, file );
         }
       }
       i = s.lastIndexOf( "." );
@@ -172,6 +190,26 @@ public class ClassCache {
     } while( i >= 0 );
 
     return null;
+  }
+
+  AsmClass loadClassUsingJavac( String className )
+  {
+    AsmClass primitiveClazz = AsmClass.findPrimitive( className );
+    try {
+      IModule jreModule = _module.getExecutionEnvironment().getJreModule();
+      if( jreModule == _module && primitiveClazz != null ) {
+        return primitiveClazz;
+      }
+    }
+    catch( Exception e ) {
+      // ignore, jreModule isn't available yet
+    }
+
+    if( _classPathCache.get().isEmpty() ) {
+      return null;
+    }
+
+    return _asmClassLoader.findClassUsingJavac( className );
   }
 
   public Class loadClass(String className) {
