@@ -43,6 +43,8 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.IJavaClassInfo;
+import gw.lang.reflect.java.IJavaClassType;
+import gw.lang.reflect.java.IJavaClassTypeVariable;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.java.asm.AsmClass;
@@ -451,15 +453,28 @@ public class TypeLord
                 IJavaClassInfo classInfo = TypeSystem.getDefaultTypeLoader().getJavaClassInfo( type.getRawType().getName() );
                 if( classInfo != null && !isContravariantWildcardOnFunctionalInterface( (AsmWildcardType)typeArg, classInfo.getName() ) )
                 {
-                  List<AsmType> boundingTypes = ((AsmTypeJavaClassType)classInfo.getTypeParameters()[i]).getType().getTypeParameters();
-                  AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
-                  if( boundingType != null )
+                  IJavaClassTypeVariable typeVar = classInfo.getTypeParameters()[i];
+                  if( typeVar instanceof AsmTypeJavaClassType )
                   {
-                    typeArg = boundingType;
+                    List<AsmType> boundingTypes = ((AsmTypeJavaClassType)typeVar).getType().getTypeParameters();
+                    AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
+                    if( boundingType != null )
+                    {
+                      typeArg = boundingType;
+                    }
+                  }
+                  else
+                  {
+                    IJavaClassType[] boundingTypes = typeVar.getBounds();
+                    IJavaClassType boundingType = boundingTypes == null || boundingTypes.length == 0 ? null : boundingTypes[0];
+                    if( boundingType != null )
+                    {
+                      typeParam = boundingType.getActualType( actualParamByVarName, bKeepTypeVars );
+                    }
                   }
                 }
               }
-              typeParam = getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
+              typeParam = typeParam != null ? typeParam : getActualType( typeArg, actualParamByVarName, bKeepTypeVars, recursiveTypes );
             }
             types.add( typeParam );
           }

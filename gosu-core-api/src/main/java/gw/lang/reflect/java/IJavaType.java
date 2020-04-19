@@ -50,4 +50,6 @@ public interface IJavaType extends IJavaBackedType, IEnhanceableType, IHasInnerC
   IGosuClass createAdapterClass();
 
   ObjectSize getRetainedMemory();
+
+  boolean isStructure();
 }

@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+import manifold.ext.api.Structural;
 import manifold.internal.javac.IJavaParser;
 import manifold.internal.javac.InMemoryClassJavaFileObject;
 
@@ -890,9 +891,16 @@ public abstract class JavaSourceType extends AbstractJavaClassInfo implements IT
     return this instanceof JavaSourceClass;
   }
 
+  @Override
   public boolean isInterface()
   {
     return this instanceof JavaSourceInterface;
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    return isAnnotationPresent( Structural.class );
   }
 
   @Override

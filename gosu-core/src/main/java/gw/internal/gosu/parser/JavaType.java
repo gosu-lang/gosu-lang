@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import manifold.ext.api.Structural;
 
 /**
  */
@@ -98,6 +99,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient private int _tiChecksum;
   transient volatile private List<IJavaType> _innerClasses;
   transient private Boolean _bStrictGenerics;
+  transient private Boolean _bStructure;
 
   public static IJavaTypeInternal get( Class cls, DefaultTypeLoader loader )
   {
@@ -609,6 +611,18 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   public boolean isInterface()
   {
     return _classInfo.isInterface() || _classInfo.isAnnotation();
+  }
+
+  @Override
+  public boolean isStructure()
+  {
+    if( _bStructure != null )
+    {
+      return _bStructure;
+    }
+
+    return _bStructure = getBackingClass() != null && Arrays.stream( getBackingClass().getAnnotations() )
+      .anyMatch( anno -> anno.getClass() == Structural.class );
   }
 
   public boolean isEnum()
@@ -1461,11 +1475,16 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   }
 
   @Override
-  public IFile[] getSourceFiles() {
-    if (getSourceFileHandle() == null) {
+  public IFile[] getSourceFiles()
+  {
+    if( getSourceFileHandle() == null )
+    {
       return IFile.EMPTY_ARRAY;
-    } else {
-      return new IFile[] {getSourceFileHandle().getFile()};
+    }
+    else
+    {
+      IFile file = getSourceFileHandle().getFile();
+      return file == null ? IFile.EMPTY_ARRAY : new IFile[]{file};
     }
   }
 

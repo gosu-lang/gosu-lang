@@ -26,8 +26,9 @@ public class IRMethodCallExpression extends IRExpression {
     _name = name;
     _ownersType = ownersType;
     _interface = isInterface;
+    // must erase structural return type to support covariant return types (we could instead use bridges :/)
     _returnType = maybeEraseStructuralType( ownersType, returnType );
-    _parameterTypes = maybeEraseStructuralTypes( ownersType, parameterTypes );
+    _parameterTypes = parameterTypes;
     _root = root;
     _args = args;
 

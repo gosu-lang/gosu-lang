@@ -14978,8 +14978,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   boolean doTypesReifyToTheSameBytecodeType( IType toArg, IType arg )
   {
-    IRType toArgType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( toArg ) );
-    IRType argType = IRElement.maybeEraseStructuralType( null, IRTypeResolver.getDescriptor( arg ) );
+    IRType toArgType = IRTypeResolver.getDescriptor( toArg );
+    IRType argType = IRTypeResolver.getDescriptor( arg );
     return argType.equals( toArgType );
   }
 

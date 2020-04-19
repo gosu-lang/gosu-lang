@@ -111,6 +111,7 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
                           IRMethodCallExpressionCompiler.class.getName().replace( '.', '/' ),
                           "constructProxy",
                           "(Ljava/lang/Object;Ljava/lang/Class;)Ljava/lang/Object;" );
+      mv.visitTypeInsn( CHECKCAST, ownersType.getSlashName() );
       mv.visitLabel( labelEnd );
       return ownersType;
     }

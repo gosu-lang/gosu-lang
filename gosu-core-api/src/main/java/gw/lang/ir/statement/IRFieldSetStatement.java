@@ -21,7 +21,7 @@ public class IRFieldSetStatement extends IRStatement {
     _lhs = lhs;
     _rhs = rhs;
     _name = name;
-    _fieldType = maybeEraseStructuralType( ownersType, fieldType );
+    _fieldType = fieldType;
     _ownersType = ownersType;
 
     if (lhs != null) {

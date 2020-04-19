@@ -29,6 +29,9 @@ import gw.lang.reflect.gs.LazyStringSourceFileHandle;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 
+
+import static gw.internal.gosu.parser.GosuClassProxyFactory.isPropertyMethod;
+
 /**
  */
 public class StructuralTypeProxyGenerator {
@@ -146,6 +149,9 @@ public class StructuralTypeProxyGenerator {
       return;
     }
     if( mi.getDisplayName().startsWith( "@" ) ) { // property
+      return;
+    }
+    if( isPropertyMethod( mi ) ) {
       return;
     }
     if( GosuClassProxyFactory.isObjectMethod( mi ) ) {

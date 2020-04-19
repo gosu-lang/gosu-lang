@@ -9,7 +9,6 @@ import gw.internal.gosu.ir.nodes.IRMethodFromMethodInfo;
 import gw.internal.gosu.ir.transform.AbstractElementTransformer;
 import gw.internal.gosu.ir.transform.util.NameResolver;
 import gw.internal.gosu.parser.java.classinfo.CompileTimeExpressionParser;
-import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IReducedSymbol;
@@ -298,7 +297,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
         List<IRType> allParameterTypes = irMethod.getAllParameterTypes();
         Class[] paramClasses = new Class[allParameterTypes.size()];
         for (int i = 0; i < allParameterTypes.size(); i++) {
-          paramClasses[i] = IRElement.maybeEraseStructuralType( allParameterTypes.get( i ) ).getJavaClass();
+          paramClasses[i] = allParameterTypes.get( i ).getJavaClass();
         }
         Method method = getMethod( clazz, NameResolver.getFunctionName( dfs ), paramClasses );
         return method.invoke( gsClassInstance, args );

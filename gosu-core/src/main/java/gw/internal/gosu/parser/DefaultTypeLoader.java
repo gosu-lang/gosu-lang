@@ -103,6 +103,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       return null;
     }
 
+    fullyQualifiedName = fullyQualifiedName.replace( '$', '.' );
+
     // strip off all trailing array brackets "[]"
     String fqnNoArrays = ModuleTypeLoader.stripArrayBrackets(fullyQualifiedName);
 
