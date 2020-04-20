@@ -1,8 +1,10 @@
 package gw.abc;
 
 import java.math.BigDecimal;
+import java.util.function.Function;
+import manifold.api.json.DataBindings;
 import org.junit.Test;
-
+import gw.sample.QueryTest;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -14,6 +16,13 @@ public class MyJavaTest
     assertEquals( "Mo", mo.getName() );
     assertEquals( "osu", new MyGosuClass.MyInner().blah() );
     assertEquals( "HI,BYE,I,YE,", mo.foo() );
+  }
+
+  @Test
+  public void testGosuInSrcDir() {
+    SrcGosuClass mo = new SrcGosuClass();
+    mo.setFoo( "hi" );
+    assertEquals( "hi", mo.getFoo() );
   }
 
   @Test
@@ -62,5 +71,46 @@ public class MyJavaTest
     MyGosuList<String> list = new MyGosuList<>( 5 );
     list.add( "a" );
     String result = list.myGenFun( "hi" );
+  }
+
+  @Test
+  public void testGraphQL()
+  {
+    QueryTest qt = new QueryTest();
+    qt.testMoviesQuery();
+  }
+
+  @Test
+  public void testJavaStructural()
+  {
+    IMyStructuralInterface foo = (IMyStructuralInterface)new JavaStructuralInterfaceImpl();
+    foo.setName( "scott" );
+    assertEquals( "scott", foo.getName() );
+    foo.setAge( 100 );
+    assertEquals( 100, foo.getAge() );
+    assertEquals( "hi", foo.foo( "hi" ) );
+
+    DataBindings db = new DataBindings();
+    db.put( "Name", "bob" );
+    db.put( "Age", 52 );
+    db.put( "foo", (Function<String, String>) arg -> arg );
+    IMyStructuralInterface mdb = (IMyStructuralInterface)db;
+    assertEquals( "bob", mdb.getName() );
+    assertEquals( 52, mdb.getAge() );
+    assertEquals( "hi", mdb.foo( "hi" ) );
+  }
+
+  @Test
+  public void testGosuStructural()
+  {
+    IMyStructuralInterface foo = (IMyStructuralInterface)new GosuStructuralInterfaceImpl();
+    foo.setName( "scott" );
+    assertEquals( "scott", foo.getName() );
+    foo.setAge( 100 );
+    assertEquals( 100, foo.getAge() );
+    assertEquals( "hi", foo.foo( "hi" ) );
+
+    GosuStructuralTest gst = new GosuStructuralTest();
+    gst.testJavaStructural();
   }
 }

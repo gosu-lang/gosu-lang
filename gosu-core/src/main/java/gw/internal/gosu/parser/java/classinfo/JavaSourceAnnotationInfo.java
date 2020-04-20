@@ -77,7 +77,7 @@ public class JavaSourceAnnotationInfo implements IAnnotationInfo {
     if( valueTree == null ) {
       Object defaultValue = method.getDefaultValue();
       if (method instanceof MethodJavaClassMethod || method instanceof AsmMethodJavaClassMethod) {
-        if (defaultValue.getClass().isArray()) {
+        if (defaultValue != null && defaultValue.getClass().isArray()) {
           String[] value = new String[Array.getLength(defaultValue)];
           for (int i = 0; i < value.length; i++) {
             value[i] = Array.get(defaultValue, i).toString();
@@ -117,8 +117,8 @@ public class JavaSourceAnnotationInfo implements IAnnotationInfo {
       return parseEnum(text, type);
     } else {
       JavaSourceType enclosingType = getEnclosingType( _owner );
-      IExpression pr = CompileTimeExpressionParser.parse( text, enclosingType, handleSingleElementArrayType( text, type ) );
       try {
+        IExpression pr = CompileTimeExpressionParser.parse( text, enclosingType, handleSingleElementArrayType( text, type ) );
         return pr.evaluate();
       } catch (Exception e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

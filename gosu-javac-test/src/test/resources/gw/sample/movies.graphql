@@ -1,0 +1,97 @@
+#
+# A very simple schema for movies
+#
+
+schema {
+  query: QueryRoot
+  mutation: MutationRoot
+}
+
+type QueryRoot {
+  movies(title: String, genre: Genre = Action, releaseDate: Date, actors: [ActorInput!]) : [Movie!]
+  actors(title: String, genre: Genre) : [CastMember!]!
+  movie(id: ID!) : Movie
+  role(id: ID!) : Role
+  person(id: ID!) : Person
+  animal(id: ID!) : Animal
+  review(id: ID!) : Review
+}
+
+type MutationRoot {
+  createReview(movie: ID!, review: ReviewInput) : Review
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  genre: [Genre!]!
+  releaseDate: Date!
+  cast: [Role!]!
+  starring: CastMember
+}
+
+type Role {
+  id: ID!
+  actor: Actor!
+  name: String!
+  type: Type!
+}
+
+type Person implements Actor {
+  id: ID!
+  name: String!
+  dateOfBirth: Date!
+  nationality: String
+  height: Float # meters
+}
+
+type Animal implements Actor {
+  id: ID!
+  name: String!
+  nationality: String
+  kind: String
+}
+
+
+interface Actor {
+  id: ID!
+  name: String!
+  nationality: String
+}
+
+type Review {
+  id: ID!
+  movie: Movie!
+  stars: Int!
+  comment: String
+}
+
+input ReviewInput {
+  stars: Int!
+  comment: String
+}
+
+input ActorInput {
+  name: String!
+  nationality: String
+}
+
+input MovieInput {
+  title: String!
+  genre: Genre!
+  releaseDate: Date
+}
+
+union CastMember = Person | Animal
+
+scalar Date
+
+enum Type {
+  Main, Supporting, Antagonist, Tertiary, Flat
+}
+
+enum Genre {
+  Action, Comedy, Drama, Fantasy, Horror, Romance, SciFi, Western
+}
+
+

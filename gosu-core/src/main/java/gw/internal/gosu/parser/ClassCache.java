@@ -231,7 +231,11 @@ public class ClassCache {
       i = s.lastIndexOf(".");
       if (i >= 0) {
         if( isPackage( s, i ) ) {
-          return null;
+          Class cls = loadClass( s.subSequence( 0, i ).toString() );
+          if( cls == null)
+          {
+            return null;
+          }
         }
         s.setCharAt(i, '$');
         className = s.toString();

@@ -75,6 +75,11 @@ public class AsmAnnotation {
       AsmType type = AsmUtil.makeType( (Type)value );
       return type.getFqn();
     }
+    if( value instanceof com.sun.tools.javac.code.Type )
+    {
+      AsmType type = AsmUtil.makeType( (com.sun.tools.javac.code.Type)value );
+      return type.getFqn();
+    }
     if( value instanceof Attribute.Enum )
     {
       return ((Attribute.Enum)value).value.toString();

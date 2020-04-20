@@ -12243,7 +12243,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       IType type = typeLiteral.getType().getType();
       IGosuClass gsType = IGosuClassInternal.Util.getGosuClassFrom( type );
-      verify( usesStmt, gsType != null, Res.MSG_ONLY_GOSU_JAVA_TYPES );
+      verify( usesStmt, gsType != null || type instanceof ErrorType, Res.MSG_ONLY_GOSU_JAVA_TYPES );
       if( fl == null )
       {
         usesStmt.setTypeName( TypeLord.getPureGenericType( typeLiteral.getType().getType() ).getName() );

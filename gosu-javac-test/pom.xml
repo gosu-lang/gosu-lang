@@ -28,6 +28,11 @@
       <artifactId>gosu-core-api-precompiled</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>systems.manifold</groupId>
+      <artifactId>manifold-graphql</artifactId>
+      <version>2020.1.4-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

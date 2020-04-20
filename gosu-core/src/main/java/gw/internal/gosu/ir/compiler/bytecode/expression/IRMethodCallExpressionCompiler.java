@@ -22,6 +22,9 @@ import gw.lang.reflect.gs.IGosuClass;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import manifold.ext.RuntimeMethods;
+import manifold.ext.api.IProxyFactory;
+
 
 import static gw.internal.ext.org.objectweb.asm.Opcodes.*;
 
@@ -87,7 +90,8 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
   }
 
   private static IRType maybeProxyStructuralCallRoot( IRMethodCallExpression expression, IRBytecodeContext context ) {
-    IRType ownersType = expression.getOwnersType();
+    IRType ownersType = expression.getRoot().getType();
+    ownersType = ownersType.isStructural() ? ownersType : expression.getOwnersType();
     if( ownersType.isStructural() ) {
       // Generate the following: (note rootObject is top on the stack from the caller of this method)
       //   if( rootObject instanceof <structure-iface> ) {
@@ -137,14 +141,14 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
 //    return proxyInstance;
 //  }
 
-  private static Map<Class, Map<Class, Constructor>> PROXY_CACHE = new ConcurrentHashMap<Class, Map<Class, Constructor>>();
-  private static Object createNewProxy( Object root, Class iface ) {
-    Map<Class, Constructor> proxyByClass = PROXY_CACHE.get( iface );
+  private static Map<Class, Map<Class, Object>> PROXY_CACHE = new ConcurrentHashMap<>();
+  private static Object createNewProxy( Object root, Class<?> iface ) {
+    Map<Class, Object> proxyByClass = PROXY_CACHE.get( iface );
     if( proxyByClass == null ) {
-      PROXY_CACHE.put( iface, proxyByClass = new ConcurrentHashMap<Class, Constructor>() );
+      PROXY_CACHE.put( iface, proxyByClass = new ConcurrentHashMap<>() );
     }
     boolean bStaticImpl;
-    Class rootClass;
+    Class<?> rootClass;
     if( root instanceof IGosuClass ) {
       bStaticImpl = true;
       rootClass = ((IGosuClass) root).getBackingClass();
@@ -158,13 +162,25 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
       bStaticImpl = false;
       rootClass = root.getClass();
     }
-    Constructor proxyClassCtor = proxyByClass.get( rootClass );
+    Object proxyClassCtor = proxyByClass.get( rootClass );
     if( proxyClassCtor == null ) {
-      Class proxyClass = createProxy( iface, rootClass, bStaticImpl );
-      proxyByClass.put( rootClass, proxyClassCtor = proxyClass.getConstructors()[0] );
+
+      IProxyFactory proxyFactory = RuntimeMethods.maybeSelfProxyClass( rootClass, iface );
+      if( proxyFactory != null ) {
+        // Handle IProxyFactory from Manifold
+        proxyByClass.put( rootClass, proxyClassCtor = proxyFactory );
+      }
+      else
+      {
+        Class proxyClass = createProxy( iface, rootClass, bStaticImpl );
+        proxyByClass.put( rootClass, proxyClassCtor = proxyClass.getConstructors()[0] );
+      }
     }
     try {
-      return proxyClassCtor.newInstance( root );
+      if( proxyClassCtor instanceof IProxyFactory ) {
+        return ((IProxyFactory)proxyClassCtor).proxy( root, iface );
+      }
+      return ((Constructor)proxyClassCtor).newInstance( root );
     }
     catch( Exception e ) {
       throw new RuntimeException( e );
