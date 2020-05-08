@@ -35,7 +35,7 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-ext</artifactId>
-      <version>2020.1.4-SNAPSHOT</version>
+      <version>2020.1.9</version>
     </dependency>
   </dependencies>
   

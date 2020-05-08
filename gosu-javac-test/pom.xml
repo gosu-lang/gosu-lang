@@ -31,7 +31,7 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-graphql</artifactId>
-      <version>2020.1.4-SNAPSHOT</version>
+      <version>2020.1.9</version>
     </dependency>
   </dependencies>
 
@@ -49,7 +49,8 @@
           <encoding>UTF-8</encoding>
           <compilerArgs>
             <arg>-Xplugin:Manifold</arg>
-            <arg>-Aother.source.files=C:\gosu-lang\gosu-lang\gosu-javac-test\src\test\resources\gw\abc\GosuExtendsJavaBase.gs C:\gosu-lang\gosu-lang\gosu-javac-test\src\test\resources\gw\abc\MyUnreferencedGosuClass.gs C:\gosu-lang\gosu-lang\gosu-javac-test\src\test\resources\gw\abc\Dummy.gs C:\gosu-lang\gosu-lang\gosu-javac-test\src\test\resources\gw\interop\InteropTest.gs</arg>
+            <!-- Test static Gosu compilation with javac command line, apply a contrived regex to test -->
+            <arg>-Amanifold.source.gs=^.*\.(GosuExtendsJavaBase|MyUnreferencedGosuClass|Dummy|InteropTest)$</arg>
           </compilerArgs>
         </configuration>
       </plugin>

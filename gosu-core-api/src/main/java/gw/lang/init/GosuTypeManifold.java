@@ -193,8 +193,9 @@ public class GosuTypeManifold implements ITypeManifold
   @Override
   public Collection<String> getAllTypeNames()
   {
-    //## todo: is this ok?  don't want to invoke if unnecessary
-    return Collections.emptyList();
+    // necessary for static compilation via -Amanifld.source.<file-ext>=<type-name-regex> javac command line option
+    // e.g., to statically compile all Gosu types using javac:  -Amanifld.source.gs=.*
+    return GosuClassTypeLoader.getDefaultClassLoader().getAllTypeNames();
   }
 
   @Override
