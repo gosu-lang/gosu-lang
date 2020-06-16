@@ -1,6 +1,6 @@
 package gw.lang.reflect.json;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import javax.script.ScriptException;
 
 public class DefaultParser_Big extends DefaultParser {

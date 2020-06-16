@@ -1,10 +1,10 @@
 package gw.lang.reflect.json;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleBindings;
+import manifold.json.rt.api.DataBindings;
 import java.util.List;
 
 /**
@@ -47,7 +47,7 @@ public class NashornJsonParser implements IJsonParser
         result instanceof Number ||
         result instanceof Boolean )
     {
-      Bindings wrapper = new SimpleBindings();
+      Bindings wrapper = new DataBindings();
       wrapper.put( "value", result );
       return wrapper;
     }

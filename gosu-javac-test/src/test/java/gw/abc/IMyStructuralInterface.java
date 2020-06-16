@@ -1,6 +1,6 @@
 package gw.abc;
 
-import manifold.ext.api.Structural;
+import manifold.ext.rt.api.Structural;
 
 @Structural
 public interface IMyStructuralInterface

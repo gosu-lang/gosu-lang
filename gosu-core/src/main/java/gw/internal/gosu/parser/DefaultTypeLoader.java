@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import manifold.api.util.Pair;
+import manifold.rt.api.util.Pair;
 import manifold.internal.javac.ClassSymbols;
 import manifold.internal.javac.JavacPlugin;
 import manifold.internal.runtime.Bootstrap;

@@ -25,7 +25,7 @@ class CustomExpandoTest extends gw.BaseVerifyErrantTest {
     assertEquals( "special", res )
   }
 
-  static class CustomExpando extends javax.script.SimpleBindings implements IExpando {
+  static class CustomExpando extends manifold.json.rt.api.DataBindings implements IExpando {
     override function getFieldValue( field: String ) : Object {
       return get( field )
     }

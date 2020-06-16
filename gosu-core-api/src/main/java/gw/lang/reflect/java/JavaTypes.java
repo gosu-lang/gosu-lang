@@ -46,7 +46,7 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IProject;
 import gw.util.Rational;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;

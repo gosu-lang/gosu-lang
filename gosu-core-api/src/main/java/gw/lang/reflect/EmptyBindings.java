@@ -1,6 +1,6 @@
 package gw.lang.reflect;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;

@@ -1,5 +1,5 @@
 package gw.specContrib.scopes.accessibility
 
-    uses javax.script.Bindings
+    uses manifold.rt.api.Bindings
     var s = "Hello World"
     print(s)

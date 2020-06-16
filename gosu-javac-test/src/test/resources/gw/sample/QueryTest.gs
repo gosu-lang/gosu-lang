@@ -3,8 +3,8 @@ package gw.sample;
 uses java.time.LocalDate;
 uses java.util.Collections;
 uses java.util.List;
-uses manifold.ext.api.Jailbreak;
-uses manifold.graphql.request.Executor;
+uses manifold.ext.rt.api.Jailbreak;
+uses manifold.graphql.rt.api.request.Executor;
 uses org.junit.Test;
 
 

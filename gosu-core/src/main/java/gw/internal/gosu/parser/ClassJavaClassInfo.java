@@ -39,7 +39,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import manifold.ext.api.Structural;
+import manifold.ext.rt.api.Structural;
 
 public class ClassJavaClassInfo extends TypeJavaClassType implements IClassJavaClassInfo {
   private Class<?> _class;

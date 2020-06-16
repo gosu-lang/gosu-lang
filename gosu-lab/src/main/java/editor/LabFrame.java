@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Predicate;
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;

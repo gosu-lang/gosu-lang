@@ -1,6 +1,6 @@
 package gw.abc
 
-uses manifold.api.json.DataBindings;
+uses manifold.json.rt.api.DataBindings;
 uses org.junit.Assert#*
 
 class GosuStructuralTest

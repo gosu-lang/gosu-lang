@@ -2,7 +2,7 @@ package gw.abc;
 
 import java.math.BigDecimal;
 import java.util.function.Function;
-import manifold.api.json.DataBindings;
+import manifold.json.rt.api.DataBindings;
 import org.junit.Test;
 import gw.sample.QueryTest;
 

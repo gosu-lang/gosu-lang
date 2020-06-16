@@ -5,7 +5,7 @@ uses java.net.URLEncoder
 uses java.net.HttpURLConnection
 uses java.io.InputStreamReader
 uses java.io.BufferedReader
-uses javax.script.Bindings
+uses manifold.rt.api.Bindings
 uses gw.util.StreamUtil
 uses gw.lang.reflect.json.Json
 
@@ -13,7 +13,7 @@ enhancement CoreUrlEnhancement : URL {
   /**
    * Make a JSON-friendly URL with the arguments from the Bindings.
    * <p>
-   * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
+   * If an argument is a Gosu Dynamic Expando or a manifold.rt.api.Bindings or a List,
    * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
    * arguments are URL encoded.
    * <p>
@@ -24,8 +24,8 @@ enhancement CoreUrlEnhancement : URL {
    * <p>
    * @see #TextContent
    * @see #JsonContent
-   * @see #postForTextContent(javax.script.Bindings)
-   * @see #postForJsonContent(javax.script.Bindings)
+   * @see #postForTextContent(manifold.rt.api.Bindings)
+   * @see #postForJsonContent(manifold.rt.api.Bindings)
    */
   static function makeUrl( url: String, arguments: Bindings ) : URL {
     if( arguments.size() > 0 ) {
@@ -53,7 +53,7 @@ enhancement CoreUrlEnhancement : URL {
    * @return If the content of this URL is a JSON document, a JSON object reflecting the document.
    *
    * @see #TextContent
-   * @see #postForJsonContent(javax.script.Bindings)
+   * @see #postForJsonContent(manifold.rt.api.Bindings)
    */
   property get JsonContent(): Dynamic {
     return Json.fromJson( TextContent )
@@ -62,13 +62,13 @@ enhancement CoreUrlEnhancement : URL {
   /**
    * Use http POST to pass arguments and get the full content of this URL as a String.
    * <p>
-   * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
+   * If an argument is a Gosu Dynamic Expando or a manifold.rt.api.Bindings or a List,
    * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
    * arguments are URL encoded.
    *
    * @return The full content of this URL coerced to a String.
    *
-   * @see #postForJsonContent(javax.script.Bindings)
+   * @see #postForJsonContent(manifold.rt.api.Bindings)
    * @see #TextContent
    * @see #JsonContent
    */
@@ -90,13 +90,13 @@ enhancement CoreUrlEnhancement : URL {
   /**
    * Use http POST to pass arguments and get the full content of this URL as a JSON object.
    * <p>
-   * If an argument is a Gosu Dynamic Expando or a javax.script.Bindings or a List,
+   * If an argument is a Gosu Dynamic Expando or a manifold.rt.api.Bindings or a List,
    * it is transformed to JSON.  Otherwise, the argument is coerced to a String.  All
    * arguments are URL encoded.
    *
    * @return The full content of this URL's stream as a JSON object.
    *
-   * @see #postForTextContent(javax.script.Bindings)
+   * @see #postForTextContent(manifold.rt.api.Bindings)
    * @see #TextContent
    * @see #JsonContent
    */

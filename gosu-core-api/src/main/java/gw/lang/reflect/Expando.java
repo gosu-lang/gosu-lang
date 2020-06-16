@@ -6,14 +6,14 @@ package gw.lang.reflect;
 
 import gw.lang.function.IBlock;
 
-import javax.script.SimpleBindings;
+import manifold.json.rt.api.DataBindings;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  */
-public class Expando extends SimpleBindings implements IExpando
+public class Expando extends DataBindings implements IExpando
 {
   public Expando()
   {

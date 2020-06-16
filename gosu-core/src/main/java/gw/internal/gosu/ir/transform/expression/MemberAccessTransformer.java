@@ -58,8 +58,8 @@ import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.GosuTypes;
 import gw.lang.reflect.java.JavaTypes;
 
-import javax.script.Bindings;
-import javax.script.SimpleBindings;
+import manifold.rt.api.Bindings;
+import manifold.json.rt.api.DataBindings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -596,7 +596,7 @@ public class MemberAccessTransformer extends AbstractExpressionTransformer<Membe
     }
 
     if( rootValue instanceof Bindings ) {
-      Bindings value = new SimpleBindings();
+      Bindings value = new DataBindings();
       //noinspection unchecked
       ((Bindings)rootValue).put( propertyName, value );
       return value;

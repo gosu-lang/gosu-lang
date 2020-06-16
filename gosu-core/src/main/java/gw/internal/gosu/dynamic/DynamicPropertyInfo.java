@@ -11,7 +11,7 @@ import gw.lang.reflect.ITypeInfo;
 import gw.lang.reflect.PropertyInfoBase;
 import gw.lang.reflect.ReflectUtil;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import java.util.Collections;
 import java.util.List;
 

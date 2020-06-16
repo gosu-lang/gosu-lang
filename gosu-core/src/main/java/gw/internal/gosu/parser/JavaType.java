@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import manifold.ext.api.Structural;
+import manifold.ext.rt.api.Structural;
 
 /**
  */

@@ -69,7 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
-import manifold.ext.api.Structural;
+import manifold.ext.rt.api.Structural;
 import manifold.internal.javac.IJavaParser;
 import manifold.internal.javac.InMemoryClassJavaFileObject;
 

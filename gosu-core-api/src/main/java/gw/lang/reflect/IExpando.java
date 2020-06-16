@@ -4,7 +4,7 @@
 
 package gw.lang.reflect;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 
 /**
  */

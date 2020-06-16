@@ -3,7 +3,7 @@ package gw.lang.reflect.json;
 import gw.lang.reflect.Expando;
 import gw.lang.reflect.Modifier;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;

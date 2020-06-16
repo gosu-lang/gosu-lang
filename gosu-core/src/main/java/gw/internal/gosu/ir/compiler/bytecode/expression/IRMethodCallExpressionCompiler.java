@@ -22,8 +22,8 @@ import gw.lang.reflect.gs.IGosuClass;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import manifold.ext.RuntimeMethods;
-import manifold.ext.api.IProxyFactory;
+import manifold.ext.rt.RuntimeMethods;
+import manifold.ext.rt.api.IProxyFactory;
 
 
 import static gw.internal.ext.org.objectweb.asm.Opcodes.*;

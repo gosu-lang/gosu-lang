@@ -60,9 +60,9 @@ class Errant_TypeAssignment {
       return x as  java.util.LinkedList
     }
 
-    function test3() : javax.script.Bindings {
+    function test3() : manifold.rt.api.Bindings {
       var x: java.lang.Object
-      return  x as javax.script.Bindings
+      return  x as manifold.rt.api.Bindings
     }
 
   }

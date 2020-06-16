@@ -1,6 +1,6 @@
 package gw.lang.enhancements
 
-uses javax.script.Bindings
+uses manifold.rt.api.Bindings
 uses dynamic.Dynamic
 uses gw.lang.reflect.json.Json
 uses gw.lang.reflect.EmptyBindings

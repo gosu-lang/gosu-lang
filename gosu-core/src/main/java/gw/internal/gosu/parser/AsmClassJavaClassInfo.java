@@ -52,7 +52,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import manifold.ext.api.Structural;
+import manifold.ext.rt.api.Structural;
 
 public class AsmClassJavaClassInfo extends AsmTypeJavaClassType implements IAsmJavaClassInfo {
   private AsmClass _class;

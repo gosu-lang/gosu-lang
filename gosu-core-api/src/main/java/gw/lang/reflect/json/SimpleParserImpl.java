@@ -1,6 +1,6 @@
 package gw.lang.reflect.json;
 
-import javax.script.SimpleBindings;
+import manifold.json.rt.api.DataBindings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -93,7 +93,7 @@ final class SimpleParserImpl {
 
   // object = "{" [ member { "," member } ] "}".
   public Object parseObject() {
-    Map map = new SimpleBindings();
+    Map map = new DataBindings();
     advance();
     if(T.getType() == TokenType.STRING) {
       parseMember(map);

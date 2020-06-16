@@ -25,7 +25,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.GosuExceptionUtil;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

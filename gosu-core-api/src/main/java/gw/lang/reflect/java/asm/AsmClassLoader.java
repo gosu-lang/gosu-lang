@@ -15,9 +15,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import manifold.api.util.Pair;
 import manifold.internal.javac.ClassSymbols;
 import manifold.internal.javac.JavacPlugin;
+import manifold.rt.api.util.Pair;
 
 
 import static gw.lang.reflect.java.asm.AsmClass.Origin.ASM;

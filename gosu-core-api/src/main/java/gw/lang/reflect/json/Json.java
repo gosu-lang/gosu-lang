@@ -3,7 +3,7 @@ package gw.lang.reflect.json;
 
 import gw.util.concurrent.LocklessLazyVar;
 
-import javax.script.Bindings;
+import manifold.rt.api.Bindings;
 import javax.script.ScriptException;
 import java.util.List;
 
@@ -47,10 +47,10 @@ public class Json
     };
 
   /**
-   * Parse the JSON string as one of a javax.script.Bindings instance.
+   * Parse the JSON string as one of a manifold.rt.api.Bindings instance.
    *
    * @param json A Standard JSON formatted string
-   * @return A javax.script.Bindings instance
+   * @return A manifold.rt.api.Bindings instance
    */
   @SuppressWarnings("UnusedDeclaration")
   public static Bindings fromJson( String json )
