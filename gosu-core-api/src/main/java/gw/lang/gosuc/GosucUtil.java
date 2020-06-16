@@ -119,29 +119,38 @@ public class GosucUtil {
     return getGosuBootstrapJars_Java9();
   }
   public static List<String> getGosuBootstrapJars_Java8() {
-    return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
+    List<String> jars = new ArrayList<String>( getManifoldJars() );
+    jars.addAll( Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
-        getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
-        getClassLocation("manifold.rt.BootstrapRt"), //get manifold-rt
-        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
-        getClassLocation("manifold.ext.rt.api.Extension"), //get manifold-ext-rt
-        getClassLocation("manifold.json.rt.api.DataBindings"), //get manifold-json-rt
-        getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
         //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
         getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
         getClassLocation("com.sun.source.tree.Tree"), //get tools.jar
         getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
-    );
+    ) );
+    return jars;
   }
+
   public static List<String> getGosuBootstrapJars_Java9() {
-    return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
+    List<String> jars = new ArrayList<String>( getManifoldJars() );
+    jars.addAll(
+      Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
-        getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
-        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
-        getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
         //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
         getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
         getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander
+    ) );
+    return jars;
+  }
+
+  private static List<String> getManifoldJars()
+  {
+    return Arrays.asList(
+      getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
+      getClassLocation("manifold.rt.BootstrapRt"), //get manifold-rt
+      getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
+      getClassLocation("manifold.ext.rt.api.Extension"), //get manifold-ext-rt
+      getClassLocation("manifold.json.rt.api.DataBindings"), //get manifold-json-rt
+      getClassLocation("manifold.util.ReflectUtil") //get manifold-util
     );
   }
 
