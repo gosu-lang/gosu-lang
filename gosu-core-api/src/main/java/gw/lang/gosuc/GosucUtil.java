@@ -135,6 +135,7 @@ public class GosucUtil {
     jars.addAll(
       Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
+        getClassLocation("gw.lang.enhancements.CoreIterableEnhancement"), //get gosu-core-api
         //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
         getClassLocation("gw.internal.ext.org.objectweb.asm.ClassWriter"), //get asm
         getClassLocation("gw.internal.ext.com.beust.jcommander.JCommander") //get jcommander

@@ -19,6 +19,17 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-core</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.gosu-lang.gosu</groupId>
+      <artifactId>gosu-core-api-precompiled</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
