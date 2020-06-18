@@ -90,31 +90,7 @@ import gw.lang.parser.IReducedSymbol;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.statements.IFunctionStatement;
-import gw.lang.reflect.ClassLazyTypeResolver;
-import gw.lang.reflect.FunctionType;
-import gw.lang.reflect.IAnnotatedFeatureInfo;
-import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IBlockType;
-import gw.lang.reflect.IConstructorInfo;
-import gw.lang.reflect.IEnumConstant;
-import gw.lang.reflect.IErrorType;
-import gw.lang.reflect.IFeatureInfo;
-import gw.lang.reflect.IFunctionType;
-import gw.lang.reflect.IMetaType;
-import gw.lang.reflect.IMethodInfo;
-import gw.lang.reflect.IParameterInfo;
-import gw.lang.reflect.IPropertyInfo;
-import gw.lang.reflect.IRelativeTypeInfo;
-import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.ITypeVariableType;
-import gw.lang.reflect.LazyTypeResolver;
-import gw.lang.reflect.Modifier;
-import gw.lang.reflect.NotLazyTypeResolver;
-import gw.lang.reflect.ParameterizedFunctionType;
-import gw.lang.reflect.PropertyInfoDelegate;
-import gw.lang.reflect.SimpleTypeLazyTypeResolver;
-import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.*;
 import gw.lang.reflect.gs.BytecodeOptions;
 import gw.lang.reflect.gs.ICompilableType;
 import gw.lang.reflect.gs.IExternalSymbolMap;
@@ -565,7 +541,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
   private IRExpression pushLazyTypeWithInvokeDynamic( IType type, IGenericTypeVariable[] tvs ) {
     IRMethodStatement method = makeLazyTypeMethod( type, tvs );
     _cc().getIrClass().addMethod( method );
-    return buildNewExpression( LazyTypeResolver.class, new Class[]{LazyTypeResolver.ITypeResolver.class},
+    return buildNewExpression( LazyTypeResolver.class, new Class[]{ITypeResolver.class},
                                Collections.<IRExpression>singletonList( buildLazyTypeResolverCall( method, tvs ) ) );
   }
 

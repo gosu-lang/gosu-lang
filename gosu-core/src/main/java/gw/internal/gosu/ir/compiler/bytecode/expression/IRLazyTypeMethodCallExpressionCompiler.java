@@ -10,6 +10,7 @@ import gw.internal.ext.org.objectweb.asm.Type;
 import gw.internal.gosu.ir.compiler.bytecode.AbstractBytecodeCompiler;
 import gw.internal.gosu.ir.compiler.bytecode.IRBytecodeContext;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeResolver;
 import gw.lang.reflect.LazyTypeResolver;
 import gw.lang.ir.expression.IRLazyTypeMethodCallExpression;
 
@@ -26,9 +27,9 @@ public class IRLazyTypeMethodCallExpressionCompiler extends AbstractBytecodeComp
       MethodType mt = MethodType.methodType( CallSite.class,MethodHandles.Lookup.class, String.class, MethodType.class, MethodType.class, MethodHandle.class, MethodType.class );
       Handle bootstrap = new Handle( Opcodes.H_INVOKESTATIC, LambdaMetafactory.class.getName().replace( '.', '/' ), "metafactory",
                                      mt.toMethodDescriptorString(), false );
-      Type resolveDesc = Type.getType( LazyTypeResolver.ITypeResolver.class.getDeclaredMethod( "resolve" ) );
+      Type resolveDesc = Type.getType( ITypeResolver.class.getDeclaredMethod( "resolve" ) );
       context.getMv().visitInvokeDynamicInsn( "resolve",
-                                              Type.getMethodDescriptor( Type.getType( LazyTypeResolver.ITypeResolver.class ), getAnonCtorParams( expression ) ),
+                                              Type.getMethodDescriptor( Type.getType( ITypeResolver.class ), getAnonCtorParams( expression ) ),
                                               bootstrap,
                                                 resolveDesc,
                                                 new Handle( expression.isStatic() ? Opcodes.H_INVOKESTATIC : Opcodes.H_INVOKESPECIAL,

@@ -20,7 +20,4 @@ public class LazyTypeResolver extends LocklessLazyVar<IType> {
     return _resolver.resolve();
   }
 
-  public interface ITypeResolver {
-    IType resolve();
-  }
 }
