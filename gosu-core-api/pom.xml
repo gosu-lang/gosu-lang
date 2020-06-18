@@ -35,13 +35,13 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-ext</artifactId>
-      <version>2020.1.13</version>
+      <version>${manifold.version}</version>
     </dependency>
     <!-- json-rt is for DataBindings class as a standard replacement for javax.script.SimpleBindings -->
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-json-rt</artifactId>
-      <version>2020.1.13</version>
+      <version>${manifold.version}</version>
     </dependency>
   </dependencies>
   

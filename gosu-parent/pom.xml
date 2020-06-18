@@ -37,6 +37,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dist.man.snapshotrepo.url>https://oss.sonatype.org/content/repositories/snapshots</dist.man.snapshotrepo.url>
     <scm.root>scm:git:git@github.com:gosu-lang</scm.root>
+    <manifold.version>2020.1.13</manifold.version>
   </properties>
 
   <repositories>

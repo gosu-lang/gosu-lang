@@ -20,23 +20,13 @@
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-core-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
-      <artifactId>gosu-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.gosu-lang.gosu</groupId>
       <artifactId>gosu-core-api-precompiled</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold-graphql</artifactId>
-      <version>2020.1.13</version>
+      <version>${manifold.version}</version>
     </dependency>
   </dependencies>
 
