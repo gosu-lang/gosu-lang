@@ -238,6 +238,19 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
 
     List<IRElement> namedArgElements = handleNamedArgs( explicitArgs, namedArgOrder );
 
+    if( method.getName().equals( "bd" ) &&
+        method.getOwningIRType().toString().equals( String.class.getTypeName() ) )
+    {
+      StringBuilder sb = new StringBuilder("WHAT THE FUCK");
+      if( !method.isManifoldExtension() )
+      {
+        sb.append( ":nope:" );
+        IAnnotatedFeatureInfo fi = method.getFeatureInfo();
+        fi.getAnnotations().forEach( e -> sb.append(" : ").append( e.getName() ) );
+      }
+      throw new RuntimeException( sb.toString() );
+    }
+
     if( (owner instanceof IGosuEnhancement || method.isManifoldExtension()) && !method.isStatic() )
     {
       // For enhancements, we want argument/root evaluation to happen the same as for a normal method
