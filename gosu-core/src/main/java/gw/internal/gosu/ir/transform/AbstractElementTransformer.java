@@ -245,12 +245,10 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
       StringBuilder sb = new StringBuilder("WHAT THE FUCK");
       if( !method.isManifoldExtension() )
       {
-        sb.append( manifold.util.ReflectUtil.method( JavacPlugin.instance().getJavacElements().getTypeElement( "java.lang.String" ).sourcefile,
-          "getCharContent", boolean.class ).invoke( true ) );
         IAnnotatedFeatureInfo fi = method.getFeatureInfo();
-        fi.getAnnotations().forEach( e -> sb.append(" \n\n ").append( e.getName() ) );
+        method.getFunctionType().getMethodInfo().getAnnotations().forEach( e -> sb.append(" \n\n ").append( e.getName() ) );
       }
-      throw new RuntimeException( sb.toString() );
+     // throw new RuntimeException( sb.toString() );
     }
 
     if( (owner instanceof IGosuEnhancement || method.isManifoldExtension()) && !method.isStatic() )
