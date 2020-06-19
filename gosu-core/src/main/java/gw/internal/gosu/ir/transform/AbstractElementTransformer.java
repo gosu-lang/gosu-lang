@@ -248,7 +248,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
         IAnnotatedFeatureInfo fi = method.getFeatureInfo();
         method.getFunctionType().getMethodInfo().getAnnotations().forEach( e -> sb.append(" \n\n ").append( e.getName() ) );
       }
-     // throw new RuntimeException( sb.toString() );
+      throw new RuntimeException( sb.toString() );
     }
 
     if( (owner instanceof IGosuEnhancement || method.isManifoldExtension()) && !method.isStatic() )
