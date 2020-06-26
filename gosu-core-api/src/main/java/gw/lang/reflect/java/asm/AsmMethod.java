@@ -99,6 +99,11 @@ public class AsmMethod implements IGeneric {
     for( com.sun.tools.javac.code.Attribute.Compound annotationMirror: methodSymbol.getAnnotationMirrors() )
     {
       DeclaredType annotationType = annotationMirror.getAnnotationType();
+      if( annotationType.toString().equals( "jdk.internal.HotSpotIntrinsicCandidate" ) )
+      {
+        // Since java 10 we have to keep these out of stubbed java source
+        continue;
+      }
       Retention retention = annotationType.getAnnotation( Retention.class );
       boolean isRuntime = retention != null && retention.value() == RetentionPolicy.RUNTIME;
       AsmAnnotation annotation = new AsmAnnotation( (com.sun.tools.javac.code.Type)annotationType, isRuntime );

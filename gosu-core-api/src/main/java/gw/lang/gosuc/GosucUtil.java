@@ -147,7 +147,7 @@ public class GosucUtil {
   {
     return Arrays.asList(
       getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
-      getClassLocation("manifold.rt.BootstrapRt"), //get manifold-rt
+      getClassLocation("manifold.rt.api.IBootstrap"), //get manifold-rt
       getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
       getClassLocation("manifold.ext.rt.api.Extension"), //get manifold-ext-rt
       getClassLocation("manifold.json.rt.api.DataBindings"), //get manifold-json-rt

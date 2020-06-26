@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import com.sun.tools.javac.api.BasicJavacTask;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.tree.JCTree;
 import gw.config.ExecutionMode;
 import gw.fs.IDirectory;
@@ -48,10 +49,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import manifold.rt.api.util.Pair;
 import manifold.internal.javac.ClassSymbols;
 import manifold.internal.javac.JavacPlugin;
 import manifold.internal.runtime.Bootstrap;
+import manifold.util.JreUtil;
+import manifold.util.ReflectUtil;
 
 public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedTypeLoader, IDefaultTypeLoader {
   private ClassCache _classCache;
@@ -358,7 +362,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
   private IJavaClassInfo maybeLoadFromSource( String fqn )
   {
-    if( JavacPlugin.instance() == null )
+    JavacPlugin javacPlugin = JavacPlugin.instance();
+    if( javacPlugin == null )
     {
       // Not compiling with javac
 
@@ -375,7 +380,7 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
 
     // Next, try to load from the source from a ClassSymbol (source may be from Manifold)
     //
-    if( !GosuTypeManifold.isPostJava() )
+    if( !GosuTypeManifold.isPostJava() && isPostEnter( javacPlugin ) )
     {
       // javac is still compiling .java files, so we have to consider ClassSymbols incomplete,
       // thus we load/parse from source or use ASM on .class file.
@@ -416,6 +421,15 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
       return classInfo;
     }
     return null;
+  }
+
+  private boolean isPostEnter( JavacPlugin javacPlugin )
+  {
+    if( JreUtil.isJava9orLater() )
+    {
+      ReflectUtil.field( JavaCompiler.instance( javacPlugin.getContext() ), "enterDone" ).set( true );
+    }
+    return true;
   }
 
   private IJavaClassInfo maybeLoadDirectlyFromSourceFile( String fqn )

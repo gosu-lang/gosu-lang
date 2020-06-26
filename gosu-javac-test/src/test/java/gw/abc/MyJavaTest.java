@@ -62,9 +62,7 @@ public class MyJavaTest
   public void testExtension()
   {
     assertEquals( new BigDecimal("1.234"), "1.234".bd() );
-
-    // This does not work in circle ci tests. Since circle ci was designed by spoiled children using javascript and play-doh, debugging it is fucking insanity, so i am commenting this out for now
-    //assertEquals( new BigDecimal("1.234"), new UseManifoldExtensions().useStringExtension() );
+    assertEquals( new BigDecimal("1.234"), new UseManifoldExtensions().useStringExtension() );
   }
 
   @Test
@@ -72,7 +70,7 @@ public class MyJavaTest
   {
     MyGosuList<String> list = new MyGosuList<>( 5 );
     list.add( "a" );
-    String result = list.myGenFun( "hi" );
+    String result = list.myGenFun( "hey" );
   }
 
   @Test

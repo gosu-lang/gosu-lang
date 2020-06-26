@@ -46,6 +46,7 @@
             <arg>-Xplugin:Manifold</arg>
             <!-- Test static Gosu compilation with javac command line, apply a contrived regex to test -->
             <arg>-Amanifold.source.gs=^.*\.(GosuExtendsJavaBase|MyUnreferencedGosuClass|Dummy|InteropTest)$</arg>
+            <arg>-Amanifold.source.graphql=.*</arg>
           </compilerArgs>
         </configuration>
       </plugin>

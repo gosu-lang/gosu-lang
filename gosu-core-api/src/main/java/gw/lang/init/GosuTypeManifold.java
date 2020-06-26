@@ -60,7 +60,7 @@ import static javax.tools.StandardLocation.CLASS_OUTPUT;
 
 public class GosuTypeManifold implements ITypeManifold
 {
-  private static final LocklessLazyVar<GosuTypeManifold> JAVAC_INSTANCE = LocklessLazyVar.make( () -> {
+  public static final LocklessLazyVar<GosuTypeManifold> JAVAC_INSTANCE = LocklessLazyVar.make( () -> {
     if( JavacPlugin.instance() == null )
     {
       return null;
