@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -147,7 +148,45 @@ public class GosuTypeManifold implements ITypeManifold
   @Override
   public boolean isType( String fqn )
   {
-    return TypeSystem.getByFullNameIfValidNoJava( fqn ) instanceof IGosuClass;
+    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    if( type  instanceof IGosuClass )
+    {
+      if( JavacPlugin.instance() == null )
+      {
+        return true;
+      }
+
+      gw.fs.IFile[] files = type.getSourceFiles();
+      if( files == null )
+      {
+        return false;
+      }
+
+      Set<String> javaSourcePath = (Set<String>)manifold.util.ReflectUtil.method( JavacPlugin.instance(), "deriveSourcePath" ).invoke();
+      if( javaSourcePath == null )
+      {
+        return false;
+      }
+
+      for( gw.fs.IFile file: files )
+      {
+        String filePath = file.getPath().getFileSystemPathString();
+        if( filePath == null )
+        {
+          return false;
+        }
+
+        for( String path: javaSourcePath )
+        {
+          String absolutePath = new File( path ).getAbsolutePath();
+          if( filePath.startsWith( absolutePath ) )
+          {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Override
