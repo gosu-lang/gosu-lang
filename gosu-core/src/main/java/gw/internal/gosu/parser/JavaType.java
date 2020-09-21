@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+
 import manifold.ext.rt.api.Structural;
 
 /**
@@ -622,7 +624,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
     }
 
     return _bStructure = getBackingClass() != null && Arrays.stream( getBackingClass().getAnnotations() )
-      .anyMatch( anno -> anno.getClass() == Structural.class );
+      .anyMatch( anno -> anno.annotationType() == Structural.class );
   }
 
   public boolean isEnum()
