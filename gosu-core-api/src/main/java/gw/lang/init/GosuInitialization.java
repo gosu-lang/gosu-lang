@@ -47,9 +47,8 @@ public class GosuInitialization
   private static final LocklessLazyVar<Void> _initMessage = new LocklessLazyVar<Void>() {
     @Override
     protected Void init() {
-      if(_enableAlternateLockingStrategy) {
-        CommonServices.getEntityAccess().getLogger().info("Alternative classloader locking strategy enabled");
-      }
+      CommonServices.getEntityAccess().getLogger().info("Alternative classloader locking strategy: " +
+        (_enableAlternateLockingStrategy ? "Enabled" : "Disabled") );
       return null;
     }
   };

@@ -57,7 +57,7 @@ public class GosuTypeManifold implements ITypeManifold
   @Override
   public boolean isType( String fqn )
   {
-    return TypeSystem.getByFullNameIfValidNoJava( fqn ) instanceof IGosuClass;
+    return findGosuClass( fqn ) instanceof IGosuClass;
   }
 
   @Override
@@ -68,7 +68,7 @@ public class GosuTypeManifold implements ITypeManifold
       return false;
     }
 
-    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    IType type = findGosuClass( fqn );
     return type != null && type.getEnclosingType() == null;
   }
 
@@ -81,14 +81,14 @@ public class GosuTypeManifold implements ITypeManifold
   @Override
   public ClassType getClassType( String fqn )
   {
-    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    IType type = findGosuClass( fqn );
     return type == null ? null : ClassType.JavaClass;
   }
 
   @Override
   public String getPackage( String fqn )
   {
-    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    IType type = findGosuClass( fqn );
     return type == null ? null : type.getNamespace();
   }
 
@@ -200,6 +200,13 @@ public class GosuTypeManifold implements ITypeManifold
 
   private IType findGosuClass( String fqn )
   {
+    if( fqn != null && fqn.endsWith( "package-info" ) )
+    {
+      // do not search for package-info classes, it is unnecessary in this context and otherwise risks deadlock with
+      // other tooling e.g., JAXB
+      return null;
+    }
+
     return TypeSystem.getByFullNameIfValidNoJava( fqn );
   }
 }

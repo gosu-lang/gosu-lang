@@ -185,6 +185,13 @@ public class JavaTypeManifold implements ITypeManifold
 
   private IType findJavaClass( String fqn )
   {
+    if( fqn != null && fqn.endsWith( "package-info" ) )
+    {
+      // do not search for package-info classes, it is unnecessary in this context and otherwise risks deadlock with
+      // other tooling e.g., JAXB
+      return null;
+    }
+
     IType type = TypeSystem.getByFullNameIfValid( fqn );
     if( type instanceof IJavaType )
     {

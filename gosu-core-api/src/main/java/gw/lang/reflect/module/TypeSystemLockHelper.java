@@ -82,6 +82,7 @@ public class TypeSystemLockHelper {
       }
       if( objectToLock != null && isMonitorOwner( thread, objectToLock ) ) {
         b.append( "!!! OWNS MONITOR: " ).append( objectToLock ).append( "!!!\n" );
+        b.append( "!!! Alternate lock strategy: " ).append( GosuInitialization._enableAlternateLockingStrategy ? "Enabled" : "Disabled" ).append( " !!!\n" );
       }
       for( StackTraceElement stackTraceElement : entry.getValue() ) {
         b.append( stackTraceElement ).append( '\n' );
