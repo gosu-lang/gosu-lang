@@ -13,7 +13,7 @@
   <description>Gosu tasks for use with Ant</description>
 
   <properties>
-    <ant.version>1.9.3</ant.version>
+    <ant.version>1.10.9</ant.version>
   </properties>
   
   <dependencies>
