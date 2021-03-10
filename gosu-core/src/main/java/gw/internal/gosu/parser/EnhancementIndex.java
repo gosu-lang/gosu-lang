@@ -318,7 +318,11 @@ public class EnhancementIndex implements IEnhancementIndex
               enhancements.add( possibleEnhancement );
             }
           } else {
-            throw new RuntimeException("Theoretically, should not be able to get here....so much for theory ");
+            String typeName = typeToEnhance.getName();
+            String enhName = possibleEnhancement.getName();
+            throw new IllegalStateException( "Failed to process enhancement '" + enhName + "'" +
+              "\nwhile loading enhancements for '" + typeName + "'." +
+              "\nThe enhancement index is most likely stale." );
           }
         }
       }
