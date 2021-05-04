@@ -188,11 +188,6 @@ public abstract class AbstractOutOfProcessExecutor<T extends IRunConfig> impleme
       }
     }
 
-    if( JreUtil.isJava8() && bToolsJar )
-    {
-      classpath.append( PathUtil.findToolsJar() ).append( File.pathSeparator );
-    }
-
     cp = classpath.toString();
     if( cp.endsWith( File.pathSeparator ) )
     {

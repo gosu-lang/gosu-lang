@@ -1,11 +1,11 @@
 package gw.gosudoc.type
 
-uses com.sun.javadoc.*
+uses  gw.gosudoc.com.sun.javadoc.*
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-abstract class GSTypeImpl implements com.sun.javadoc.Type {
+abstract class GSTypeImpl implements  gw.gosudoc.com.sun.javadoc.Type {
 
   var _owner: GSProgramElementDocImpl as readonly Owner
   var _rootDoc: GSRootDocImpl as readonly RootDoc
@@ -26,7 +26,7 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
     return _shortName
   }
 
-  override property get ElementType(): com.sun.javadoc.Type{
+  override property get ElementType():  gw.gosudoc.com.sun.javadoc.Type{
     return null
   }
 
@@ -70,7 +70,7 @@ abstract class GSTypeImpl implements com.sun.javadoc.Type {
   }
 
   //==========PUBLIC METHODS==========//
-  function containingType(): com.sun.javadoc.Type{
+  function containingType():  gw.gosudoc.com.sun.javadoc.Type{
     return null
   }
 

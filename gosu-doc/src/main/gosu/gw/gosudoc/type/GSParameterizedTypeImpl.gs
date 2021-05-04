@@ -1,6 +1,6 @@
 package gw.gosudoc.type
 
-uses com.sun.javadoc.ParameterizedType
+uses  gw.gosudoc.com.sun.javadoc.ParameterizedType
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
@@ -9,7 +9,7 @@ class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedTy
 
   //==========PROTECTED FIELDS==========//
   var _superclassType: GSTypeImpl as readonly SuperClassType
-  var _typeArguments: com.sun.javadoc.Type[]
+  var _typeArguments:  gw.gosudoc.com.sun.javadoc.Type[]
 
   //==========PUBLIC CONSTRUCTORS==========//
   construct( type: IType, rootDoc: GSRootDocImpl, owner: GSProgramElementDocImpl ){
@@ -20,7 +20,7 @@ class GSParameterizedTypeImpl extends GSClassTypeImpl implements ParameterizedTy
     return this
   }
 
-  override function typeArguments() : com.sun.javadoc.Type[] {
+  override function typeArguments() :  gw.gosudoc.com.sun.javadoc.Type[] {
     return _typeArguments
   }
 

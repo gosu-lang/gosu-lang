@@ -10,8 +10,10 @@ import com.sun.source.tree.ErroneousTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.LiteralTree;
 //import com.sun.source.tree.ProvidesTree;
+import com.sun.source.tree.ProvidesTree;
 import com.sun.source.tree.ReturnTree;
 //import com.sun.source.tree.UsesTree;
+import com.sun.source.tree.UsesTree;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Flags;
@@ -949,6 +951,42 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     return out;
   }
 
+  @Override
+  public String visitModule( ModuleTree node, Object o )
+  {
+    return null;
+  }
+
+  @Override
+  public String visitExports( ExportsTree node, Object o )
+  {
+    return null;
+  }
+
+  @Override
+  public String visitOpens( OpensTree node, Object o )
+  {
+    return null;
+  }
+
+  @Override
+  public String visitProvides( ProvidesTree node, Object o )
+  {
+    return null;
+  }
+
+  @Override
+  public String visitRequires( RequiresTree node, Object o )
+  {
+    return null;
+  }
+
+  @Override
+  public String visitUses( UsesTree node, Object o )
+  {
+    return null;
+  }
+
 //  public String visitModule( ModuleTree node, Object o )
 //  {
 //    return "unhandled";
@@ -1726,6 +1764,12 @@ public class GosuVisitor implements TreeVisitor<String, Object>
       out.append( "}" );
     }
     return out.toString();
+  }
+
+  @Override
+  public String visitPackage( PackageTree node, Object o )
+  {
+    return null;
   }
 
 //  public String visitPackage( PackageTree node, Object o )

@@ -53,7 +53,7 @@ import gw.util.concurrent.LocklessLazyVar;
 import manifold.util.JreUtil;
 import manifold.util.NecessaryEvilUtil;
 import manifold.util.ReflectUtil;
-import sun.misc.URLClassPath;
+//import sun.misc.URLClassPath;
 
 public class Gosu
 {
@@ -395,42 +395,9 @@ public class Gosu
 
   public static List<IDirectory> deriveClasspathFrom( Class clazz )
   {
-    if( JreUtil.isJava8() )
-    {
-      return deriveClasspathFrom_Java8( clazz );
-    }
     return deriveClasspathFrom_Java9( clazz );
   }
 
-  public static List<IDirectory> deriveClasspathFrom_Java8( Class clazz )
-  {
-    List<IDirectory> ll = new LinkedList<>();
-    ClassLoader loader = clazz.getClassLoader();
-    while( loader != null )
-    {
-      if( loader instanceof URLClassLoader )
-      {
-        for( URL url : ((URLClassLoader)loader).getURLs() )
-        {
-          try
-          {
-            IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
-            if( file.exists() )
-            {
-              ll.add( file );
-            }
-          }
-          catch( Exception e )
-          {
-            //ignore
-          }
-        }
-      }
-      loader = loader.getParent();
-    }
-    addBootstrapClasses( ll );
-    return ll;
-  }
   public static List<IDirectory> deriveClasspathFrom_Java9( Class clazz )
   {
     List<IDirectory> ll = new ArrayList<>();
@@ -458,51 +425,6 @@ public class Gosu
       }
     }
     return ll;
-  }
-
-  private static void addBootstrapClasses( List<IDirectory> ll )
-  {
-    try
-    {
-      Method m;
-      try
-      {
-        m = ClassLoader.class.getDeclaredMethod( "getBootstrapClassPath" );
-      }
-      catch( NoSuchMethodException nsme )
-      {
-        // The VM that does not define getBootstrapClassPath() seems to be the IBM VM (v. 8).
-        getBootstrapForIbm( ll );
-        return;
-      }
-      m.setAccessible( true );
-      URLClassPath bootstrapClassPath = (URLClassPath)m.invoke( null );
-      for( URL url : bootstrapClassPath.getURLs() )
-      {
-        try
-        {
-          IDirectory file = CommonServices.getFileSystem().getIDirectory( Paths.get( url.toURI() ) );
-          if( file.exists() && !ll.contains( file ) )
-          {
-            ll.add( file );
-          }
-        }
-        catch( Exception e )
-        {
-          //ignore
-        }
-      }
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-  }
-
-  private static void getBootstrapForIbm( List<IDirectory> ll )
-  {
-    List<String> ibmClasspath = GosucUtil.getJreJars();
-    ibmClasspath.forEach( e -> ll.add( CommonServices.getFileSystem().getIDirectory( Paths.get( e ) ) ) );
   }
 
   public static GosuVersion getVersion()

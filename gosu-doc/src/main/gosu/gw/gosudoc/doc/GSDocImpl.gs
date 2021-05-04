@@ -1,10 +1,10 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.Doc
-uses com.sun.javadoc.SeeTag
-uses com.sun.javadoc.SourcePosition
-uses com.sun.javadoc.Tag
-uses gw.gosudoc.tags.TextTag
+uses  gw.gosudoc.com.sun.javadoc.Doc
+uses  gw.gosudoc.com.sun.javadoc.SeeTag
+uses  gw.gosudoc.com.sun.javadoc.SourcePosition
+uses  gw.gosudoc.com.sun.javadoc.Tag
+uses gw.gosudoc.com.sun.tools.doclets.internal.toolkit.util.TextTag
 uses gw.gosudoc.misc.GSSourcePositionImpl
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.TypeSystem

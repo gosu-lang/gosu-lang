@@ -1,6 +1,6 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.MemberDoc
+uses  gw.gosudoc.com.sun.javadoc.MemberDoc
 uses gw.lang.reflect.IType
 
 abstract class GSMemberDocImpl extends GSProgramElementDocImpl implements MemberDoc{

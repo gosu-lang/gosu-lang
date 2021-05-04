@@ -1,9 +1,9 @@
 package gw.gosudoc.type
 
-uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.ProgramElementDoc
-uses com.sun.javadoc.TypeVariable
+uses  gw.gosudoc.com.sun.javadoc.AnnotationDesc
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.ProgramElementDoc
+uses  gw.gosudoc.com.sun.javadoc.TypeVariable
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
@@ -20,11 +20,11 @@ class GSTypeVariableImpl extends GSTypeImpl implements TypeVariable{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  override function bounds(): com.sun.javadoc.Type[]{
+  override function bounds():  gw.gosudoc.com.sun.javadoc.Type[]{
     return {getBoundingType()}
   }
 
-  function getBoundingType(): com.sun.javadoc.Type{
+  function getBoundingType():  gw.gosudoc.com.sun.javadoc.Type{
     return RootDoc.getType( _boundingType, Owner )
   }
 

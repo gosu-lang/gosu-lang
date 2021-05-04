@@ -1,7 +1,7 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.MethodDoc
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.MethodDoc
 uses gw.gosudoc.misc.GSReturnValueTag
 uses gw.gosudoc.type.GSTypeImpl
 uses gw.lang.reflect.IAttributedFeatureInfo
@@ -33,7 +33,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     return false  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  override function returnType(): com.sun.javadoc.Type {
+  override function returnType():  gw.gosudoc.com.sun.javadoc.Type {
     return _returnType
   }
 
@@ -41,7 +41,7 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     return null
   }
 
-  override function overriddenType(): com.sun.javadoc.Type {
+  override function overriddenType():  gw.gosudoc.com.sun.javadoc.Type {
     return null
   }
 
@@ -53,11 +53,11 @@ class GSMethodDocImpl extends GSExecutableMemberDocImpl implements MethodDoc {
     return false
   }
 
-  override function thrownExceptionTypes(): com.sun.javadoc.Type[] {
+  override function thrownExceptionTypes():  gw.gosudoc.com.sun.javadoc.Type[] {
     return _iMethodInfo.getExceptions().map(\elt -> getRootDoc().getType(elt.getExceptionType(), this)).toTypedArray()
   }
 
-  override function receiverType(): com.sun.javadoc.Type {
+  override function receiverType():  gw.gosudoc.com.sun.javadoc.Type {
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 

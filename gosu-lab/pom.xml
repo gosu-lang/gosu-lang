@@ -48,23 +48,33 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>internal.tools-jar</id>
-      <activation>
-        <file>
-          <exists>${java.home}/../lib/tools.jar</exists>
-        </file>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>1.8.0</version>
-          <scope>system</scope>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+          <encoding>UTF-8</encoding>
+          <compilerArgs>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.base/sun.security.action=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.desktop/sun.font=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.desktop/sun.swing=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.desktop/sun.swing.icon=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.desktop/sun.awt=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.desktop/sun.awt.shell=ALL-UNNAMED</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
 </project>

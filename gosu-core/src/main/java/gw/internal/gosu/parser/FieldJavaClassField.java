@@ -85,7 +85,8 @@ public class FieldJavaClassField implements IJavaClassField {
   }
 
   public void setAccessible(boolean accessible) {
-    _field.setAccessible(accessible);
+    manifold.util.ReflectUtil.setAccessible( _field );
+//    _field.setAccessible(accessible);
   }
 
   public Object get(Object o) throws IllegalAccessException {

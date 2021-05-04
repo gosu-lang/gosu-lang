@@ -1,6 +1,6 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.ConstructorDoc
+uses  gw.gosudoc.com.sun.javadoc.ConstructorDoc
 uses gw.lang.reflect.IConstructorInfo
 uses gw.lang.reflect.IType
 
@@ -19,11 +19,11 @@ class GSConstructorDocImpl extends GSExecutableMemberDocImpl implements Construc
     return true
   }
 
-  override function thrownExceptionTypes(): com.sun.javadoc.Type[]{
+  override function thrownExceptionTypes():  gw.gosudoc.com.sun.javadoc.Type[]{
     return _iConstructorInfo.getExceptions().map( \elt -> getRootDoc().getType( elt.getExceptionType(), this ) ).toTypedArray()
   }
 
-  override function receiverType(): com.sun.javadoc.Type{
+  override function receiverType():  gw.gosudoc.com.sun.javadoc.Type{
     return null  //To change body of implemented methods use File | Settings | File Templates.
   }
 

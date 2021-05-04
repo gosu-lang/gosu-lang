@@ -1,9 +1,9 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.PackageDoc
-uses com.sun.javadoc.ProgramElementDoc
+uses  gw.gosudoc.com.sun.javadoc.AnnotationDesc
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.PackageDoc
+uses  gw.gosudoc.com.sun.javadoc.ProgramElementDoc
 uses gw.lang.reflect.IType
 
 uses java.lang.reflect.Modifier

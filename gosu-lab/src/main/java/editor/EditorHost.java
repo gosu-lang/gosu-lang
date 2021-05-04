@@ -36,10 +36,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -915,7 +912,12 @@ public abstract class EditorHost extends JPanel implements IEditorHost
     JTextComponent editor = getEditor();
     int caretPosition = editor.getCaretPosition();
     Highlighter.Highlight[] highlights = editor.getHighlighter().getHighlights();
-    Arrays.sort( highlights, ( o1, o2 ) -> o1.getStartOffset() - o2.getStartOffset() );
+    if( highlights.length == 0 )
+    {
+      return;
+    }
+
+    Arrays.sort( highlights, Comparator.comparingInt( Highlighter.Highlight::getStartOffset ) );
     int i = -1;
     do
     {
@@ -928,6 +930,7 @@ public abstract class EditorHost extends JPanel implements IEditorHost
 
     if( i == highlights.length )
     {
+      // cycle to top
       i = 0;
     }
     editor.setCaretPosition( highlights[i].getEndOffset() );

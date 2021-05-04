@@ -1,10 +1,10 @@
 package gw.gosudoc.misc
 
-uses com.sun.javadoc.Doc
-uses com.sun.javadoc.ParamTag
-uses com.sun.javadoc.SourcePosition
-uses com.sun.javadoc.Tag
-uses gw.gosudoc.tags.TextTag
+uses  gw.gosudoc.com.sun.javadoc.Doc
+uses  gw.gosudoc.com.sun.javadoc.ParamTag
+uses  gw.gosudoc.com.sun.javadoc.SourcePosition
+uses  gw.gosudoc.com.sun.javadoc.Tag
+uses gw.gosudoc.com.sun.tools.doclets.internal.toolkit.util.TextTag
 
 class GSParamTagImpl implements ParamTag{
 

@@ -1,11 +1,11 @@
 package gw.gosudoc.type
 
-uses com.sun.javadoc.*
+uses  gw.gosudoc.com.sun.javadoc.*
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType
 
-class GSClassTypeImpl extends GSTypeImpl implements com.sun.javadoc.Type, ClassDoc {
+class GSClassTypeImpl extends GSTypeImpl implements  gw.gosudoc.com.sun.javadoc.Type, ClassDoc {
 
   var _baseType : GSTypeImpl
   delegate _classDoc represents ClassDoc

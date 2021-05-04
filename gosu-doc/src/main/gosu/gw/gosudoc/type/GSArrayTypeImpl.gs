@@ -1,7 +1,7 @@
 package gw.gosudoc.type
 
-uses com.sun.javadoc.AnnotatedType
-uses com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.AnnotatedType
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
 uses gw.gosudoc.doc.GSProgramElementDocImpl
 uses gw.gosudoc.doc.GSRootDocImpl
 uses gw.lang.reflect.IType

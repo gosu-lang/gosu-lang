@@ -122,6 +122,7 @@ public class GosucUtil {
     return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
         getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
+        getClassLocation("manifold.rt.api.Bindings"), //get manifold-rt
 //        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
         getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
         //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine
@@ -134,6 +135,7 @@ public class GosucUtil {
     return Arrays.asList(getClassLocation("gw.internal.gosu.parser.MetaType"), //get gosu-core
         getClassLocation("gw.lang.Gosu"), //get gosu-core-api
         getClassLocation("manifold.api.host.IManifoldHost"), //get manifold core
+        getClassLocation("manifold.rt.api.Bindings"), //get manifold-rt
 //        getClassLocation("manifold.ext.ExtensionMethod"), //get manifold-ext
         getClassLocation("manifold.util.ReflectUtil"), //get manifold-util
         //getClassLocation("com.github.benmanes.caffeine.cache.Caffeine"), //get caffeine

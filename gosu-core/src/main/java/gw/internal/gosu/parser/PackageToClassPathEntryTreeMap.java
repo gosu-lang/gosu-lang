@@ -130,6 +130,10 @@ class PackageToClassPathEntryTreeMap
       try
       {
         outerMostClass = TypeLoaderAccess.instance().getIntrinsicTypeByFullName( _strFullPackageName + "." + fileName );
+        if( ((IFileRepositoryBasedType)outerMostClass).getSourceFileHandle() == null )
+        {
+          return null;
+        }
       }
       catch( ClassNotFoundException e )
       {

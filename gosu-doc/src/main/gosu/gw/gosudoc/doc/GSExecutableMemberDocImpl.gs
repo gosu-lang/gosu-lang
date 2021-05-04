@@ -1,12 +1,12 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.ExecutableMemberDoc
-uses com.sun.javadoc.ParamTag
-uses com.sun.javadoc.Parameter
-uses com.sun.javadoc.ThrowsTag
-uses com.sun.javadoc.TypeVariable
+uses  gw.gosudoc.com.sun.javadoc.AnnotationDesc
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.ExecutableMemberDoc
+uses  gw.gosudoc.com.sun.javadoc.ParamTag
+uses  gw.gosudoc.com.sun.javadoc.Parameter
+uses  gw.gosudoc.com.sun.javadoc.ThrowsTag
+uses  gw.gosudoc.com.sun.javadoc.TypeVariable
 uses gw.gosudoc.misc.GSParamTagImpl
 uses gw.gosudoc.misc.GSParameterImpl
 uses gw.gosudoc.tags.TagsTokenizer
@@ -31,8 +31,8 @@ abstract class GSExecutableMemberDocImpl extends GSMemberDocImpl implements Exec
     return new ClassDoc[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  override function thrownExceptionTypes(): com.sun.javadoc.Type[]{
-    return new com.sun.javadoc.Type[0]  //To change body of implemented methods use File | Settings | File Templates.
+  override function thrownExceptionTypes():  gw.gosudoc.com.sun.javadoc.Type[]{
+    return new  gw.gosudoc.com.sun.javadoc.Type[0]  //To change body of implemented methods use File | Settings | File Templates.
   }
 
   override property get Native(): boolean{

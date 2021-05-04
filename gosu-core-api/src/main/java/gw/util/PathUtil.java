@@ -1,7 +1,5 @@
 package gw.util;
 
-//import com.sun.tools.javac.api.JavacTool;
-import com.sun.tools.javac.api.JavacTool;
 import gw.fs.FileFactory;
 import gw.fs.IFile;
 import java.io.BufferedReader;
@@ -121,30 +119,6 @@ public class PathUtil
         throw new RuntimeException( e );
       }
     }
-  }
-
-  public static String findToolsJar()
-  {
-    String javaHome = System.getProperty( "java.home" );
-    String toolsJar = javaHome + File.separator + "lib" + File.separator + "tools.jar";
-    if( !PathUtil.isFile( PathUtil.create( toolsJar ) ) )
-    {
-      try
-      {
-        URI toolsJarUri = JavacTool.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-        toolsJar = new File( toolsJarUri ).getAbsolutePath();
-      }
-      catch( URISyntaxException e )
-      {
-        System.out.println( "Could not find tools.jar" );
-      }
-    }
-    return toolsJar;
-  }
-
-  interface IOConsumer<T>
-  {
-    void accept( T t ) throws IOException;
   }
 
   private static Path resolveRelativePath( String first, String... more )

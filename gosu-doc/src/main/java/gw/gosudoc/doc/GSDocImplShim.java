@@ -1,6 +1,6 @@
 package gw.gosudoc.doc;
 
-import com.sun.javadoc.Doc;
+import gw.gosudoc.com.sun.javadoc.Doc;
 
 abstract public class GSDocImplShim implements Doc
 {

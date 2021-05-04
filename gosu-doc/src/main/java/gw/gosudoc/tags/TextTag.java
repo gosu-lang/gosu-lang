@@ -1,8 +1,8 @@
 package gw.gosudoc.tags;
 
-import com.sun.javadoc.Doc;
-import com.sun.javadoc.SourcePosition;
-import com.sun.javadoc.Tag;
+import gw.gosudoc.com.sun.javadoc.Doc;
+import gw.gosudoc.com.sun.javadoc.SourcePosition;
+import gw.gosudoc.com.sun.javadoc.Tag;
 
 public class TextTag implements Tag
 {

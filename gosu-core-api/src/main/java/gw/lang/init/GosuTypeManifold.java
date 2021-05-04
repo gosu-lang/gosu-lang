@@ -93,7 +93,7 @@ public class GosuTypeManifold implements ITypeManifold
   }
 
   @Override
-  public String contribute( JavaFileManager.Location location, String fqn, String existing, DiagnosticListener<JavaFileObject> errorHandler )
+  public String contribute( JavaFileManager.Location location, String fqn, boolean b, String s1, DiagnosticListener<JavaFileObject> diagnosticListener )
   {
 //    DebugLogUtil.log( "c:\\temp\\gosu_type_man_log.log", "GOSU: " + fqn, true );
     IGosuClass gsClass = (IGosuClass)findGosuClass( fqn );

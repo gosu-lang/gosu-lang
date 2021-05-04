@@ -1,10 +1,10 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.RootDoc
+uses  gw.gosudoc.com.sun.javadoc.RootDoc
 
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.PackageDoc
-uses com.sun.javadoc.SourcePosition
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.PackageDoc
+uses  gw.gosudoc.com.sun.javadoc.SourcePosition
 uses gw.gosudoc.filter.*
 uses gw.gosudoc.type.GSArrayTypeImpl
 uses gw.gosudoc.type.GSClassTypeImpl

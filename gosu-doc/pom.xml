@@ -41,10 +41,7 @@
   <build>
     <!-- reset source/test roots to defaults, before adding src/main/gosu and src/test/gosu using build-helper-maven-plugin -->
     <sourceDirectory>src/main/java</sourceDirectory>
-    
-    <!-- Disable gosudoc until it is redesigned for Java 9 Doclet API -->
-    <!--<testSourceDirectory>src/test/gosu</testSourceDirectory>-->
-    
+    <testSourceDirectory>src/test/gosu</testSourceDirectory>
     <!-- the parent pom sets src/test/gosu as a resource root; if we don't undo this as below, all the tests will be copied to target/classes and packaged into the jar -->
     <resources>
       <resource>
@@ -52,6 +49,9 @@
         <excludes>
           <exclude>**/*</exclude>
         </excludes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
       </resource>
     </resources>
     <plugins>
@@ -71,21 +71,18 @@
               </sources>
             </configuration>
           </execution>
-
-          <!-- Disable gosudoc until it is redesigned for Java 9 Doclet API -->
-          <!--<execution>-->
-            <!--<id>add-test-source</id>-->
-            <!--<phase>generate-test-sources</phase>-->
-            <!--<goals>-->
-              <!--<goal>add-test-source</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<sources>-->
-                <!--<source>src/test/gosu</source>-->
-              <!--</sources>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-          
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/test/gosu</source>
+              </sources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -100,6 +97,13 @@
             </goals>
             <configuration>
               <compilerId>gosuc</compilerId>
+              <compilerArgs>
+                <arg>--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED</arg>
+                <arg>--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.toolkit=ALL-UNNAMED</arg>
+                <arg>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                <arg>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                <arg>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+              </compilerArgs>
             </configuration>
           </execution>
           <execution>
@@ -120,6 +124,26 @@
             <version>${project.version}</version>
           </dependency>
         </dependencies>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+          <encoding>UTF-8</encoding>
+          <compilerArgs>
+            <arg>--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.javac.platform=ALL-UNNAMED</arg>
+            <arg>--add-exports=jdk.compiler/com.sun.tools.doclint=ALL-UNNAMED</arg>
+            <arg>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</arg>
+          </compilerArgs>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

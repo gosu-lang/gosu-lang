@@ -14,10 +14,10 @@ public class VerticalLabelUI extends BasicLabelUI
   private static Rectangle g_paintViewR = new Rectangle();
   private static Insets g_paintViewInsets = new Insets( 0, 0, 0, 0 );
 
-  static
-  {
-    labelUI = new VerticalLabelUI( true );
-  }
+//  static
+//  {
+//    labelUI = new VerticalLabelUI( true );
+//  }
 
   protected boolean _bClockwise;
 

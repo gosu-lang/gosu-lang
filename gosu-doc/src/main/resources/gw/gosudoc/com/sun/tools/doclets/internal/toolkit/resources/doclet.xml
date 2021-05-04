@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!--
+ Copyright (c) 2003, 2016, Oracle and/or its affiliates. All rights reserved.
+ ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->
+
+
+<Doclet>
+
+    <PackageDoc>
+        <Content>
+            <Summary>
+                <InterfaceSummary/>
+                <ClassSummary/>
+                <EnumSummary/>
+                <ExceptionSummary/>
+                <ErrorSummary/>
+                <AnnotationTypeSummary/>
+            </Summary>
+            <PackageDescription/>
+            <PackageTags/>
+        </Content>
+    </PackageDoc>
+
+    <AnnotationTypeDoc>
+        <AnnotationTypeInfo>
+            <DeprecationInfo/>
+            <AnnotationTypeSignature/>
+            <AnnotationTypeDescription/>
+            <AnnotationTypeTagInfo/>
+        </AnnotationTypeInfo>
+        <MemberSummary>
+            <AnnotationTypeFieldsSummary/>
+            <AnnotationTypeRequiredMemberSummary/>
+            <AnnotationTypeOptionalMemberSummary/>
+        </MemberSummary>
+        <AnnotationTypeMemberDetails>
+            <AnnotationTypeFieldDetails>
+                <AnnotationTypeField>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <MemberComments/>
+                    <TagInfo/>
+                </AnnotationTypeField>
+            </AnnotationTypeFieldDetails>
+            <AnnotationTypeRequiredMemberDetails>
+                <AnnotationTypeRequiredMember>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <MemberComments/>
+                    <TagInfo/>
+                </AnnotationTypeRequiredMember>
+            </AnnotationTypeRequiredMemberDetails>
+            <AnnotationTypeOptionalMemberDetails>
+                <AnnotationTypeOptionalMember>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <MemberComments/>
+                    <TagInfo/>
+                    <DefaultValueInfo/>
+                </AnnotationTypeOptionalMember>
+            </AnnotationTypeOptionalMemberDetails>
+        </AnnotationTypeMemberDetails>
+    </AnnotationTypeDoc>
+
+    <ClassDoc>
+        <ClassTree/>
+        <ClassInfo>
+            <TypeParamInfo/>
+            <SuperInterfacesInfo/>
+            <ImplementedInterfacesInfo/>
+            <SubClassInfo/>
+            <SubInterfacesInfo/>
+            <InterfaceUsageInfo/>
+            <NestedClassInfo/>
+            <FunctionalInterfaceInfo/>
+            <DeprecationInfo/>
+            <ClassSignature/>
+            <ClassDescription/>
+            <ClassTagInfo/>
+        </ClassInfo>
+        <MemberSummary>
+            <PropertiesSummary/>
+            <NestedClassesSummary/>
+            <EnumConstantsSummary/>
+            <FieldsSummary/>
+            <ConstructorsSummary/>
+            <MethodsSummary/>
+        </MemberSummary>
+        <MemberDetails>
+            <EnumConstantsDetails>
+                <EnumConstant>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <EnumConstantComments/>
+                    <TagInfo/>
+                </EnumConstant>
+            </EnumConstantsDetails>
+            <PropertyDetails>
+                <PropertyDoc>
+                    <Signature/>
+                    <PropertyComments/>
+                    <TagInfo/>
+                </PropertyDoc>
+            </PropertyDetails>
+            <FieldDetails>
+                <FieldDoc>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <FieldComments/>
+                    <TagInfo/>
+                </FieldDoc>
+            </FieldDetails>
+            <ConstructorDetails>
+                <ConstructorDoc>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <ConstructorComments/>
+                    <TagInfo/>
+                </ConstructorDoc>
+            </ConstructorDetails>
+            <MethodDetails>
+                <MethodDoc>
+                    <Signature/>
+                    <DeprecationInfo/>
+                    <MethodComments/>
+                    <TagInfo/>
+                </MethodDoc>
+            </MethodDetails>
+        </MemberDetails>
+    </ClassDoc>
+
+    <ConstantSummary>
+        <Contents/>
+        <ConstantSummaries>
+            <PackageHeader/>
+            <ClassConstantSummary>
+                <ConstantMembers/>
+            </ClassConstantSummary>
+        </ConstantSummaries>
+    </ConstantSummary>
+
+    <SerializedForm>
+        <SerializedFormSummaries>
+            <PackageSerializedForm>
+                <PackageHeader/>
+                <ClassSerializedForm>
+                    <SerialUIDInfo/>
+                    <ClassContent>
+                        <SerializableMethods>
+                            <MethodSubHeader/>
+                            <DeprecatedMethodInfo/>
+                            <MethodInfo>
+                                <MethodDescription/>
+                                <MethodTags/>
+                            </MethodInfo>
+                        </SerializableMethods>
+                        <FieldHeader/>
+                        <SerializableFields>
+                            <FieldSubHeader/>
+                            <FieldDeprecationInfo/>
+                            <FieldInfo/>
+                        </SerializableFields>
+                    </ClassContent>
+                </ClassSerializedForm>
+            </PackageSerializedForm>
+        </SerializedFormSummaries>
+    </SerializedForm>
+</Doclet>

@@ -1,17 +1,17 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.AnnotatedType
-uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.AnnotationTypeDoc
-uses com.sun.javadoc.ClassDoc
-uses com.sun.javadoc.ConstructorDoc
-uses com.sun.javadoc.FieldDoc
-uses com.sun.javadoc.MethodDoc
-uses com.sun.javadoc.PackageDoc
-uses com.sun.javadoc.ParamTag
-uses com.sun.javadoc.ParameterizedType
-uses com.sun.javadoc.TypeVariable
-uses com.sun.javadoc.WildcardType
+uses  gw.gosudoc.com.sun.javadoc.AnnotatedType
+uses  gw.gosudoc.com.sun.javadoc.AnnotationDesc
+uses  gw.gosudoc.com.sun.javadoc.AnnotationTypeDoc
+uses  gw.gosudoc.com.sun.javadoc.ClassDoc
+uses  gw.gosudoc.com.sun.javadoc.ConstructorDoc
+uses  gw.gosudoc.com.sun.javadoc.FieldDoc
+uses  gw.gosudoc.com.sun.javadoc.MethodDoc
+uses  gw.gosudoc.com.sun.javadoc.PackageDoc
+uses  gw.gosudoc.com.sun.javadoc.ParamTag
+uses  gw.gosudoc.com.sun.javadoc.ParameterizedType
+uses  gw.gosudoc.com.sun.javadoc.TypeVariable
+uses  gw.gosudoc.com.sun.javadoc.WildcardType
 uses gw.gosudoc.type.GSTypeVariableImpl
 uses gw.lang.reflect.IType
 uses gw.lang.reflect.ITypeInfo
@@ -29,7 +29,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
   var _fields: List<GSFieldDocImpl> = {}
   var _methods: List<GSMethodDocImpl> = {}
   var _typeVariables: TypeVariable[] = {}
-  var _typeImpl: com.sun.javadoc.Type
+  var _typeImpl:  gw.gosudoc.com.sun.javadoc.Type
 
   //==========PUBLIC CONSTRUCTORS==========//
   construct( type: IType, rootDoc: GSRootDocImpl ){
@@ -107,8 +107,8 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return _superclass
   }
 
-  override function superclassType(): com.sun.javadoc.Type{
-    var retVal: com.sun.javadoc.Type = null
+  override function superclassType():  gw.gosudoc.com.sun.javadoc.Type{
+    var retVal:  gw.gosudoc.com.sun.javadoc.Type = null
     if( _superclass != null ){
       retVal = _superclass.type()
     }
@@ -129,7 +129,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     return _interfaces.toTypedArray()
   }
 
-  override function interfaceTypes(): com.sun.javadoc.Type[]{
+  override function interfaceTypes():  gw.gosudoc.com.sun.javadoc.Type[]{
     return interfaces().map( \elt -> (elt as GSClassDocImpl).type() )
   }
 
@@ -283,7 +283,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     _superclass = superclass
   }
 
-  function type(): com.sun.javadoc.Type{
+  function type():  gw.gosudoc.com.sun.javadoc.Type{
     return _typeImpl
   }
 
@@ -321,7 +321,7 @@ class GSClassDocImpl extends GSProgramElementDocImpl implements ClassDoc{
     }
   }
 
-  override property get ElementType(): com.sun.javadoc.Type{
+  override property get ElementType():  gw.gosudoc.com.sun.javadoc.Type{
     return null
   }
 

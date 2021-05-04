@@ -1,6 +1,6 @@
 package gw.gosudoc.misc
 
-uses com.sun.javadoc.SourcePosition
+uses  gw.gosudoc.com.sun.javadoc.SourcePosition
 
 uses java.io.File
 

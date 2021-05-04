@@ -1,8 +1,8 @@
 package gw.gosudoc.doc
 
-uses com.sun.javadoc.AnnotationDesc
-uses com.sun.javadoc.FieldDoc
-uses com.sun.javadoc.SerialFieldTag
+uses  gw.gosudoc.com.sun.javadoc.AnnotationDesc
+uses  gw.gosudoc.com.sun.javadoc.FieldDoc
+uses  gw.gosudoc.com.sun.javadoc.SerialFieldTag
 uses gw.gosudoc.tags.TagsTokenizer
 uses gw.lang.reflect.IPropertyInfo
 uses gw.lang.reflect.IPropertyInfoDelegate
@@ -12,7 +12,7 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
 
   //==========PRIVATE FIELDS==========//
   var _propertyInfo: IPropertyInfo
-  var _type: com.sun.javadoc.Type
+  var _type:  gw.gosudoc.com.sun.javadoc.Type
 
   //==========PUBLIC CONSTRUCTORS==========//
   construct( ownersIntrinsicType: IType, propertyInfo: IPropertyInfo, rootDoc: GSRootDocImpl, clazz: GSClassDocImpl ){
@@ -22,7 +22,7 @@ class GSFieldDocImpl extends GSMemberDocImpl implements FieldDoc{
   }
 
   //==========PUBLIC METHODS IMPLEMENTING INTERFACES==========//
-  override function type(): com.sun.javadoc.Type{
+  override function type():  gw.gosudoc.com.sun.javadoc.Type{
     return _type
   }
 
