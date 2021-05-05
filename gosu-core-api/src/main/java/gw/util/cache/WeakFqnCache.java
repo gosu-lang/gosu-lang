@@ -6,19 +6,22 @@ package gw.util.cache;
 
 import gw.util.Predicate;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 /**
  */
 public class WeakFqnCache<T> implements IFqnCache<T> {
-  private FqnCache<Reference<T>> _cache;
+  private FqnCache<WeakReference<T>> _cache;
+  private ReferenceQueue<T> _queue;
 
   public WeakFqnCache() {
     _cache = new FqnCache<>();
+    _queue = new ReferenceQueue<T>();
   }
 
   @Override
@@ -28,12 +31,14 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
 
   @Override
   public void add( String fqn, T userData ) {
-    Reference<T> ref = new SoftReference<>( userData );
+    removeReleasedEntries();
+    KeyedReference<T> ref = new KeyedReference<T>( fqn, userData, _queue );
     _cache.add( fqn, ref );
   }
 
   @Override
   public boolean remove( String fqn ) {
+    removeReleasedEntries();
     return _remove( fqn );
   }
   private boolean _remove( String fqn ) {
@@ -42,12 +47,12 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
 
   @Override
   public T get( String fqn ) {
-    Reference<T> ref = _cache.get( fqn );
+    WeakReference<T> ref = _cache.get( fqn );
     return ref == null ? null : ref.get();
   }
 
   @Override
-  public FqnCacheNode<Reference<T>> getNode( String fqn ) {
+  public FqnCacheNode<WeakReference<T>> getNode( String fqn ) {
     return _cache.getNode( fqn );
   }
 
@@ -58,7 +63,7 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
 
   @Override
   public void remove( String[] fqns ) {
-//    removeReleasedEntries();
+    removeReleasedEntries();
     _cache.remove( fqns );
   }
 
@@ -74,12 +79,15 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
 
   @Override
   public void visitDepthFirst( final Predicate<T> visitor ) {
-    Predicate<Reference<T>> delegate = node -> {
-      T userData = node == null ? null : node.get();
-      return visitor.evaluate( userData );
+    Predicate<WeakReference<T>> delegate = new Predicate<WeakReference<T>>() {
+      @Override
+      public boolean evaluate( WeakReference<T> node ) {
+        T userData = node == null ? null : node.get();
+        return visitor.evaluate( userData );
+      }
     };
-    List<FqnCacheNode<Reference<T>>> copy = new ArrayList<>( _cache.getRoot().getChildren() );
-    for( FqnCacheNode<Reference<T>> child: copy ) {
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+    for( FqnCacheNode<WeakReference<T>> child: copy ) {
       if( !child.visitDepthFirst( delegate ) ) {
         return;
       }
@@ -87,8 +95,8 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
   }
 
   public void visitNodeDepthFirst( final Predicate<FqnCacheNode> visitor ) {
-    List<FqnCacheNode<Reference<T>>> copy = new ArrayList<>( _cache.getRoot().getChildren() );
-    for( FqnCacheNode<Reference<T>> child: copy ) {
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+    for( FqnCacheNode<WeakReference<T>> child: copy ) {
       if( !child.visitNodeDepthFirst( visitor ) ) {
         return;
       }
@@ -97,13 +105,69 @@ public class WeakFqnCache<T> implements IFqnCache<T> {
 
   @Override
   public void visitBreadthFirst( final Predicate<T> visitor ) {
-    Predicate<Reference<T>> delegate = node -> {
-      T userData = node == null ? null : node.get();
-      return visitor.evaluate( userData );
+    Predicate<WeakReference<T>> delegate = new Predicate<WeakReference<T>>() {
+      @Override
+      public boolean evaluate( WeakReference<T> node ) {
+        T userData = node == null ? null : node.get();
+        return visitor.evaluate( userData );
+      }
     };
-    List<FqnCacheNode<Reference<T>>> copy = new ArrayList<>( _cache.getRoot().getChildren() );
-    for( FqnCacheNode<Reference<T>> child: copy ) {
+    List<FqnCacheNode<WeakReference<T>>> copy = new ArrayList<FqnCacheNode<WeakReference<T>>>( _cache.getRoot().getChildren() );
+    for( FqnCacheNode<WeakReference<T>> child: copy ) {
       child.visitBreadthFirst( delegate );
+    }
+  }
+
+  private static class KeyedReference<T> extends WeakReference<T> {
+    private String _fqn;
+
+    public KeyedReference( String fqn, T referent, ReferenceQueue<? super T> queue ) {
+      super( referent, queue );
+      _fqn = fqn;
+    }
+
+    public boolean equals( final Object o ) {
+      if( this == o ) {
+        return true;
+      }
+      if( o == null || getClass() != o.getClass() ) {
+        return false;
+      }
+
+      final KeyedReference that = (KeyedReference)o;
+
+      return _fqn.equals( that._fqn ) && equal( get(), that.get() );
+    }
+
+    private <T> boolean equal( T p1, T p2 ) {
+      if( p1 == null || p2 == null ) {
+        return p1 == p2;
+      }
+      else if( p1 instanceof Object[] && p2 instanceof Object[] ) {
+        Object[] arr1 = (Object[])p1;
+        Object[] arr2 = (Object[])p2;
+        return Arrays.equals( arr1, arr2 );
+      }
+      else {
+        return p1.equals( p2 );
+      }
+    }
+
+    public int hashCode() {
+      return _fqn.hashCode();
+    }
+  }
+
+  private void removeReleasedEntries() {
+    while( true ) {
+      KeyedReference<T> ref = (KeyedReference<T>)_queue.poll();
+      if( ref == null ) {
+        break;
+      }
+      FqnCacheNode<WeakReference<T>> node = getNode( ref._fqn );
+      if( node != null && node.isLeaf() && node.getUserData() == ref ) {
+        _remove( ref._fqn );
+      }
     }
   }
 }

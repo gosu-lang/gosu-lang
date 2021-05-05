@@ -32,6 +32,7 @@ import gw.util.cache.WeakFqnCache;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -960,7 +961,7 @@ public class TypeRefFactory implements ITypeRefFactory
 
   @Override
   public List<ITypeRef> getSubordinateRefs(String topLevelTypeName) {
-    FqnCacheNode<Reference<AbstractTypeRef>> node = _refByName.getNode( topLevelTypeName );
+    FqnCacheNode<WeakReference<AbstractTypeRef>> node = _refByName.getNode( topLevelTypeName );
     final List<ITypeRef> types = new ArrayList<ITypeRef>();
     if( node != null ) {
       node.visitNodeDepthFirst(
@@ -982,7 +983,7 @@ public class TypeRefFactory implements ITypeRefFactory
   }
 
   public List<String> getTypesWithPrefix(String namespace, final String prefix) {
-    FqnCacheNode<Reference<AbstractTypeRef>> node = _refByName.getNode( namespace );
+    FqnCacheNode<WeakReference<AbstractTypeRef>> node = _refByName.getNode( namespace );
     final List<String> types = new ArrayList<String>();
     if( node != null ) {
       node.visitNodeDepthFirst(
