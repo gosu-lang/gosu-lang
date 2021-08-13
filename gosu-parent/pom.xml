@@ -106,9 +106,28 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.9</version>
+          <version>3.1.1</version>
           <configuration>
             <encoding>UTF-8</encoding>
+            <doclint>none</doclint>
+            <additionalOptions>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.doclint=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.platform=ALL-UNNAMED</option>
+              <option>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</option>
+              <option>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</option>
+              <option>--add-exports=java.base/sun.security.action=ALL-UNNAMED</option>
+              <option>--add-exports=java.desktop/sun.font=ALL-UNNAMED</option>
+              <option>--add-exports=java.desktop/sun.swing=ALL-UNNAMED</option>
+              <option>--add-exports=java.desktop/sun.swing.icon=ALL-UNNAMED</option>
+              <option>--add-exports=java.desktop/sun.awt=ALL-UNNAMED</option>
+              <option>--add-exports=java.desktop/sun.awt.shell=ALL-UNNAMED</option>
+            </additionalOptions>
           </configuration>
         </plugin>
         <plugin>
@@ -199,9 +218,28 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
+            <version>3.1.1</version>
             <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
+              <encoding>UTF-8</encoding>
+              <doclint>none</doclint>
+              <additionalOptions>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.doclint=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.platform=ALL-UNNAMED</option>
+                <option>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</option>
+                <option>--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED</option>
+                <option>--add-exports=java.base/sun.security.action=ALL-UNNAMED</option>
+                <option>--add-exports=java.desktop/sun.font=ALL-UNNAMED</option>
+                <option>--add-exports=java.desktop/sun.swing=ALL-UNNAMED</option>
+                <option>--add-exports=java.desktop/sun.swing.icon=ALL-UNNAMED</option>
+                <option>--add-exports=java.desktop/sun.awt=ALL-UNNAMED</option>
+                <option>--add-exports=java.desktop/sun.awt.shell=ALL-UNNAMED</option>
+              </additionalOptions>
             </configuration>
             <executions>
               <execution>
