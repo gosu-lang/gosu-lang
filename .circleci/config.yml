@@ -56,7 +56,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - compile:
+      - compile
       - test-java11:
           requires:
             - compile
