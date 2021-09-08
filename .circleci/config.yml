@@ -6,7 +6,7 @@ jobs:
       TERM: dumb
       MAVEN_OPTS: "-Xmx1024m"
     docker:
-      - image: circleci/java:8
+      - image: circleci/openjdk:11-jdk
     steps:
       - checkout
       - restore_cache:
@@ -22,39 +22,6 @@ jobs:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
           paths:
             - ~/project
-  test-java8:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/java:8
-    steps:
-      - restore_cache:
-          key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-      - restore_cache:
-          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-      - run:
-          name: Run tests
-          command: mvn test -B
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-            find . -type f -regex ".*/target/surefire-reports/.*-output.txt" -exec cp {} ~/junit/ \;
-          when: always
-      - deploy:
-          name: Deploy artifacts
-          command: ./.circleci/deploy_snapshot.sh
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-      - save_cache:
-          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-          paths:
-            - ~/.m2
   test-java11:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -90,13 +57,6 @@ workflows:
   build_and_test:
     jobs:
       - compile:
-          filters:
-            branches:
-              ignore:
-                - /rel\/.*/
-      - test-java8:
-          requires:
-             - compile
       - test-java11:
           requires:
             - compile
