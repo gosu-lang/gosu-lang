@@ -85,6 +85,7 @@ workflows:
       - hold:
           type: approval
           requires:
+            - compile
             - test-java11
       - deploy:
           requires:
