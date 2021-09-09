@@ -90,5 +90,5 @@ workflows:
             - hold
               filters:
                 branches:
-                  ignore:
+                  only:
                     - /rel/.*/
