@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  compile:
+  build:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -76,18 +76,14 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - compile
+      - build
       - test-java11:
           requires:
-            - compile
-  build_and_deploy:
-    jobs:
-      - compile
-      - test-java11
+            - build
       - hold:
           type: approval
           requires:
-            - compile
+            - build
             - test-java11
       - deploy:
           requires:
