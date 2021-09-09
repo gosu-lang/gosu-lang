@@ -82,6 +82,8 @@ workflows:
             - compile
   build_and_deploy:
     jobs:
+      - compile
+      - test-java11
       - hold:
           type: approval
           requires:
