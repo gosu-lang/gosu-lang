@@ -85,10 +85,14 @@ workflows:
           requires:
             - build
             - test-java11
-      - deploy:
-          requires:
-            - hold
           filters:
             branches:
               only:
                 - /rel/.*/
+      - deploy:
+          requires:
+            - hold
+   #       filters:
+   #         branches:
+   #           only:
+   #             - /rel/.*/
