@@ -107,10 +107,10 @@ workflows:
           requires:
             - build
             - test-java11
-          filters:
-            branches:
-              only:
-                - /rel/.*/
+     #     filters:
+     #       branches:
+     #         only:
+     #           - /rel/.*/
       - deploy-snapshot:
           requires:
             - hold
