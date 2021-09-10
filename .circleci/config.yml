@@ -52,7 +52,7 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
             - ~/.m2
-  deploy:
+  deploy-snapshot:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -65,8 +65,30 @@ jobs:
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
-          name: Deploy artifacts
+          name: Prepare release
+          command: ./.circleci/prepare_release.sh
+      - run:
+          name: Deploy snapshot artifacts
           command: ./.circleci/deploy_snapshot.sh
+      - save_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+          paths:
+            - ~/.m2
+  release:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      TERM: dumb
+      MAVEN_OPTS: "-Xmx1024m"
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - restore_cache:
+          key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+      - restore_cache:
+          key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+      - run:
+          name: Deploy snapshot artifacts
+          command: ./.circleci/release_gosu.sh
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
@@ -89,10 +111,9 @@ workflows:
             branches:
               only:
                 - /rel/.*/
-      - deploy:
+      - deploy-snapshot:
           requires:
             - hold
-   #       filters:
-   #         branches:
-   #           only:
-   #             - /rel/.*/
+      - release:
+          requires:
+            - hold
