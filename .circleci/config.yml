@@ -100,37 +100,7 @@ jobs:
 
 workflows:
   version: 2
-  #build_alone:
+  build_alone:
   #  when: << pipeline.parameters.run_workflow_build >>
-  #  jobs:
-  #    - build
-  build_and_test:
     jobs:
       - build
-      - test-java11:
-          requires:
-            - build
-      - hold:
-          type: approval
-          requires:
-            - build
-            - test-java11
-     #     filters:
-     #       branches:
-     #         only:
-     #           - /rel/.*/
-      - hold_release:
-          type: approval
-          requires:
-            - build
-            - test-java11
-      #     filters:
-      #       branches:
-      #         only:
-      #           - /rel/.*/
-      - deploy-snapshot:
-          requires:
-            - hold
-      - release:
-          requires:
-            - hold_release
