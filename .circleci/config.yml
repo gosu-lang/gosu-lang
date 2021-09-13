@@ -1,4 +1,8 @@
 version: 2
+parameters:
+  run_workflow_build:
+    default: true
+    type: boolean
 jobs:
   build:
     environment:
@@ -96,6 +100,10 @@ jobs:
 
 workflows:
   version: 2
+  build_alone:
+    when: << pipeline.parameters.run_workflow_build >>
+    jobs:
+      - build
   build_and_test:
     jobs:
       - build
