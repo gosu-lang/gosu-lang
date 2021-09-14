@@ -3,6 +3,9 @@ parameters:
   run_workflow_build:
     default: true
     type: boolean
+  run_workflow_test:
+    default: true
+    type: boolean
 jobs:
   build:
     environment:
@@ -103,4 +106,16 @@ workflows:
   build_alone:
     when: << pipeline.parameters.run_workflow_build >>
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - /sv\/.*/
+  build_test:
+    when: << pipeline.parameters.run_workflow_test >>
+    jobs:
+      - test-java11:
+          filters:
+            branches:
+              only:
+                - /sv\/.*/
