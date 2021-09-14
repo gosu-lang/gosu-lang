@@ -110,7 +110,7 @@ workflows:
           filters:
             branches:
               only:
-                - /sv\/.*/
+                - /user\/sv\/.*/
   build_test:
     when: << pipeline.parameters.run_workflow_test >>
     jobs:
@@ -118,4 +118,4 @@ workflows:
           filters:
             branches:
               only:
-                - /sv\/.*/
+                - /user\/sv\/.*/
