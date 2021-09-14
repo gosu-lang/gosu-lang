@@ -107,10 +107,10 @@ workflows:
     when: << pipeline.parameters.run_workflow_build >>
     jobs:
       - build:
-          filters:
-            branches:
-              ignore:
-                - /user\/sv\/.*/
+      #    filters:
+      #      branches:
+      #        ignore:
+      #          - /user\/sv\/.*/
   build_test:
     when: << pipeline.parameters.run_workflow_test >>
     jobs:
