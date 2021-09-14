@@ -122,3 +122,5 @@ workflows:
             branches:
               only:
                 - /user\/sv\/.*/
+              ignore:
+                - master
