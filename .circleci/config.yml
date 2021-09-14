@@ -109,11 +109,12 @@ workflows:
       - build:
           filters:
             branches:
-              only:
+              ignore:
                 - /user\/sv\/.*/
   build_test:
     when: << pipeline.parameters.run_workflow_test >>
     jobs:
+      - build
       - test-java11:
           requires:
             - build
