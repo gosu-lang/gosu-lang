@@ -106,7 +106,7 @@ workflows:
   build_alone:
     when: << pipeline.parameters.run_workflow_build >>
     jobs:
-      - build:
+      - build
       #    filters:
       #      branches:
       #        ignore:
