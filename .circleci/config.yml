@@ -121,7 +121,7 @@ workflows:
       - test-java11:
           requires:
             - build
-      - deploy-snapshot
+      - deploy-snapshot:
           requires:
             - build
             - test-java11
