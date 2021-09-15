@@ -103,16 +103,7 @@ jobs:
 
 workflows:
   version: 2
-  build_alone:
-    when: << pipeline.parameters.run_workflow_build >>
-    jobs:
-      - build
-      #    filters:
-      #      branches:
-      #        ignore:
-      #          - /user\/sv\/.*/
-  build_test:
-    when: << pipeline.parameters.run_workflow_test >>
+  build_and_test_all_branches:
     jobs:
       - build
       - test-java11:
@@ -120,7 +111,22 @@ workflows:
             - build
           filters:
             branches:
-              only:
-                - /user\/sv\/.*/
               ignore:
-                - master
+                - /rel\/.*/
+                - /user\/sv\/.*/
+  build_test_deploy_snapshot:
+    when: << pipeline.parameters.run_workflow_deploy_snapshot >>
+    jobs:
+      - build
+      - test-java11:
+          requires:
+            - build
+      - deploy-snapshot
+          requires:
+            - build
+            - test-java11
+          filters:
+            branches:
+              only:
+                - /rel\/.*/
+                - /user\/sv\/.*/
