@@ -6,7 +6,10 @@ parameters:
   run_workflow_test:
     default: true
     type: boolean
-  run_workflow_deploy_snapshot:
+  run_workflow_deploy-snapshot:
+    default: false
+    type: boolean
+  run_workflow_release:
     default: false
     type: boolean
 jobs:
@@ -117,14 +120,30 @@ workflows:
       - test-java11:
           requires:
             - build
-  build_test_deploy_snapshot:
-    when: << pipeline.parameters.run_workflow_deploy_snapshot >>
+  build_test_deploy-snapshot:
+    when: << pipeline.parameters.run_workflow_deploy-snapshot >>
     jobs:
       - build
       - test-java11:
           requires:
             - build
       - deploy-snapshot:
+          requires:
+            - build
+            - test-java11
+          filters:
+            branches:
+              only:
+                - /rel\/.*/
+                - /user\/sv\/.*/
+  build_test_release:
+    when: << pipeline.parameters.run_workflow_release >>
+    jobs:
+      - build
+      - test-java11:
+          requires:
+            - build
+      - release:
           requires:
             - build
             - test-java11
