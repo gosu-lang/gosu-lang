@@ -143,7 +143,8 @@ workflows:
       - test-java11:
           requires:
             - build
-      - release:
+      - hold_release:
+          type: approval
           requires:
             - build
             - test-java11
@@ -152,3 +153,6 @@ workflows:
               only:
                 - /rel\/.*/
                 - /user\/sv\/.*/
+      - release:
+          requires:
+            - hold_release
