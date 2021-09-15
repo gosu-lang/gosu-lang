@@ -6,6 +6,9 @@ parameters:
   run_workflow_test:
     default: true
     type: boolean
+  run_workflow_deploy_snapshot:
+    default: true
+    type: boolean
 jobs:
   build:
     environment:
