@@ -7,7 +7,7 @@ parameters:
     default: true
     type: boolean
   run_workflow_deploy_snapshot:
-    default: true
+    default: false
     type: boolean
 jobs:
   build:
