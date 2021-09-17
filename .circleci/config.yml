@@ -1,11 +1,5 @@
 version: 2.1
 parameters:
-  run_workflow_build:
-    default: true
-    type: boolean
-  run_workflow_test:
-    default: true
-    type: boolean
   run_workflow_deploy-snapshot:
     default: false
     type: boolean
@@ -79,7 +73,7 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Prepare release
-          command: ./.circleci/prepare_release.sh
+          command: ./.circleci/update_version.sh
       - run:
           name: Deploy snapshot artifacts
           command: ./.circleci/deploy_snapshot.sh
@@ -99,6 +93,9 @@ jobs:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
+      - run:
+          name: Prepare release
+          command: ./.circleci/prepare_release.sh
       - run:
           name: Deploy snapshot artifacts
           command: ./.circleci/release_gosu.sh
