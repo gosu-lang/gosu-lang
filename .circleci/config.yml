@@ -136,7 +136,12 @@ workflows:
   build_test_release:
     when: << pipeline.parameters.run_workflow_release >>
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - /rel\/.*/
+                - /user\/sv\/.*/
       - test-java11:
           requires:
             - build
@@ -145,11 +150,11 @@ workflows:
           requires:
             - build
             - test-java11
-          filters:
-            branches:
-              only:
-                - /rel\/.*/
-                - /user\/sv\/.*/
+#          filters:
+#            branches:
+#              only:
+#                - /rel\/.*/
+#                - /user\/sv\/.*/
       - release:
           requires:
             - hold_release
