@@ -79,7 +79,8 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Update version
-          command: mvn -B release:update-versions -DdevelopmentVersion=<< pipeline.parameters.snapshot-version >>
+          #command: mvn -B release:update-versions -DdevelopmentVersion=<< pipeline.parameters.snapshot-version >>
+          command: ./.circleci/update_version.sh << pipeline.parameters.snapshot-version >>
       - run:
           name: Deploy snapshot artifacts
           command: ./.circleci/deploy_snapshot.sh
