@@ -6,6 +6,12 @@ parameters:
   run_workflow_release:
     default: false
     type: boolean
+  snapshot-version:
+    default: "1-X-SNAPSHOT"
+    type: string
+  release-version:
+    default: "99.99.99"
+    type: string
 jobs:
   build:
     environment:
@@ -72,8 +78,8 @@ jobs:
       - restore_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
-          name: Prepare release
-          command: ./.circleci/update_version.sh
+          name: Update version
+          command: mvn -B release:update-versions -DdevelopmentVersion=<< pipeline.parameters.snapshot-version >>
       - run:
           name: Deploy snapshot artifacts
           command: ./.circleci/deploy_snapshot.sh
@@ -95,7 +101,7 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
       - run:
           name: Prepare release
-          command: ./.circleci/prepare_release.sh
+          command: mvn release:prepare -B -DreleaseVersion=<< pipeline.parameters.release-version >>
       - run:
           name: Deploy snapshot artifacts
           command: ./.circleci/release_gosu.sh
@@ -150,11 +156,6 @@ workflows:
           requires:
             - build
             - test-java11
-#          filters:
-#            branches:
-#              only:
-#                - /rel\/.*/
-#                - /user\/sv\/.*/
       - release:
           requires:
             - hold_release
