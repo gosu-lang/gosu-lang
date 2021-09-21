@@ -11,6 +11,8 @@ if [[ $1 == *-SNAPSHOT ]] ; then
        exit 1
 fi
 echo "git operation started"
-git add -u
-git commit -m "Change version $1 for testing"
-git push
+git config user.email "reach.sadheesh@gmail.com"
+git config user.name "circleCi-bot"
+git add .
+git commit -m "Change version $1 for testing - [Skip ci]"
+git push --set-upstream origin ${CIRCLE_BRANCH}
