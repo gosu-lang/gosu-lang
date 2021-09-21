@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-echo "Updating version job"
+echo "Update version job"
 echo "snaphsot version passed: $1"
 if [[ $1 == *-SNAPSHOT ]] ; then
-    echo "snaphsot version passed: $1"
-    snapshotversion=$1
-    echo ${snapshotversion}
-    mvn -B release:update-versions -DdevelopmentVersion=${snapshotversion}
+    snapshotVersion=$1
+    mvn -B release:update-versions -DdevelopmentVersion=${snapshotVersion}
     else
        echo " Version number should end with -SNAPSHOT"
        exit 1
