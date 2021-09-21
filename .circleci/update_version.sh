@@ -11,6 +11,7 @@ if [[ $1 == *-SNAPSHOT ]] ; then
        exit 1
 fi
 echo "git operation started"
+mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 git config user.email "reach.sadheesh@gmail.com"
 git config user.name "circleCi-bot"
 git add .
