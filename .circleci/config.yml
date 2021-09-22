@@ -22,12 +22,6 @@ parameters:
 jobs:
   build:
     <<: *defaults
-  #  environment:
-  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-  #    TERM: dumb
-  #    MAVEN_OPTS: "-Xmx1024m"
-  #  docker:
-  #    - image: circleci/openjdk:11-jdk
     steps:
       - checkout
       - restore_cache:
@@ -45,12 +39,6 @@ jobs:
             - ~/project
   test-java11:
     <<: *defaults
-  #  environment:
-  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-  #    TERM: dumb
-  #    MAVEN_OPTS: "-Xmx1024m"
-  #  docker:
-  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -76,12 +64,6 @@ jobs:
             - ~/.m2
   deploy-snapshot:
     <<: *defaults
-  #  environment:
-  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-  #    TERM: dumb
-  #    MAVEN_OPTS: "-Xmx1024m"
-  #  docker:
-  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -99,12 +81,6 @@ jobs:
             - ~/.m2
   release:
     <<: *defaults
-  #  environment:
-  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-  #    TERM: dumb
-  #    MAVEN_OPTS: "-Xmx1024m"
-  #  docker:
-  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -133,7 +109,6 @@ workflows:
             branches:
               ignore:
                 - /rel\/.*/
-                - /user\/sv\/.*/
       - test-java11:
           requires:
             - build
@@ -152,7 +127,7 @@ workflows:
             branches:
               only:
                 - /rel\/.*/
-                - /user\/sv\/.*/
+                - /feature\/.*/
   build_test_release:
     when: << pipeline.parameters.run_workflow_release >>
     jobs:
@@ -161,7 +136,6 @@ workflows:
             branches:
               only:
                 - /rel\/.*/
-                - /user\/sv\/.*/
       - test-java11:
           requires:
             - build
