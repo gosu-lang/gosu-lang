@@ -87,28 +87,6 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
             - ~/.m2
-  setup-rel:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-      docker:
-        - image: circleci/openjdk:11-jdk
-      steps:
-        - restore_cache:
-            key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        - restore_cache:
-            key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-        - run:
-            name: import GPG key
-            command: cho -e "$GPG_KEY" | gpg --import
-        - run:
-            name: Prepare and release
-            command: ./.circleci/prepare_release.sh << pipeline.parameters.release-version >>
-        - save_cache:
-            key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
-            paths:
-              - ~/.m2
   release:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -185,15 +163,3 @@ workflows:
       - release:
           requires:
             - hold_release
-  build_setup-release-env:
-    when: << pipeline.parameters.run_workflow_release >>
-    jobs:
-      - build:
-          filters:
-            branches:
-              only:
-                - /rel\/.*/
-                - /user\/sv\/.*/
-      - setup-rel:
-          requires:
-            - build
