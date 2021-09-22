@@ -74,7 +74,8 @@ jobs:
           command: ./.circleci/update_version.sh << pipeline.parameters.snapshot-version >>
       - run:
           name: Deploy snapshot artifacts
-          command: ./.circleci/deploy_snapshot.sh
+      #    command: ./.circleci/deploy_snapshot.sh
+          command: mvn deploy -Dmaven.main.skip=true -Dmaven.resources.skip=true -Dmaven.test.skip=true -s settings.xml -B
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
