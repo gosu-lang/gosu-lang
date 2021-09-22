@@ -87,7 +87,7 @@ jobs:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
             - ~/.m2
-  setup-rel-evn:
+  setup-rel:
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       TERM: dumb
@@ -101,14 +101,10 @@ jobs:
             key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
         - run:
             name: import GPG key
-            command: echo -e "$GPG_KEY" | gpg --import
+            command: cho -e "$GPG_KEY" | gpg --import
         - run:
             name: Prepare and release
             command: ./.circleci/prepare_release.sh << pipeline.parameters.release-version >>
-            # command: mvn release:prepare -B -DreleaseVersion=<< pipeline.parameters.release-version >>
-        #- run:
-        #    name: Deploy snapshot artifacts
-        #    command: ./.circleci/release_gosu.sh
         - save_cache:
             key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
             paths:
@@ -198,6 +194,6 @@ workflows:
               only:
                 - /rel\/.*/
                 - /user\/sv\/.*/
-      - setup-rel-evn:
+      - setup-rel:
           requires:
             - build
