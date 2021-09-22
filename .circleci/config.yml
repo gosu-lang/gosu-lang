@@ -105,10 +105,9 @@ jobs:
       - run:
           name: Prepare and release
           command: ./.circleci/prepare_release.sh << pipeline.parameters.release-version >>
-         # command: mvn release:prepare -B -DreleaseVersion=<< pipeline.parameters.release-version >>
-      #- run:
-      #    name: Deploy snapshot artifacts
-      #    command: ./.circleci/release_gosu.sh
+      - run:
+          name: Deploy snapshot artifacts
+          command: ./.circleci/release_gosu.sh
       - save_cache:
           key: v1-test-{{ checksum "gosu-parent/pom.xml" }}
           paths:
