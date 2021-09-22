@@ -1,3 +1,10 @@
+defaults: &defaults
+  environment:
+    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+    TERM: dumb
+    MAVEN_OPTS: "-Xmx1024m"
+    docker:
+      - image: circleci/openjdk:11-jdk
 version: 2.1
 parameters:
   run_workflow_deploy-snapshot:
@@ -14,12 +21,13 @@ parameters:
     type: string
 jobs:
   build:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:11-jdk
+    <<: *defaults
+  #  environment:
+  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  #    TERM: dumb
+  #    MAVEN_OPTS: "-Xmx1024m"
+  #  docker:
+  #    - image: circleci/openjdk:11-jdk
     steps:
       - checkout
       - restore_cache:
@@ -36,12 +44,13 @@ jobs:
           paths:
             - ~/project
   test-java11:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:11-jdk
+    <<: *defaults
+  #  environment:
+  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  #    TERM: dumb
+  #    MAVEN_OPTS: "-Xmx1024m"
+  #  docker:
+  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -66,12 +75,13 @@ jobs:
           paths:
             - ~/.m2
   deploy-snapshot:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:11-jdk
+    <<: *defaults
+  #  environment:
+  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  #    TERM: dumb
+  #    MAVEN_OPTS: "-Xmx1024m"
+  #  docker:
+  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -88,12 +98,13 @@ jobs:
           paths:
             - ~/.m2
   release:
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      TERM: dumb
-      MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:11-jdk
+    <<: *defaults
+  #  environment:
+  #    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+  #    TERM: dumb
+  #    MAVEN_OPTS: "-Xmx1024m"
+  #  docker:
+  #    - image: circleci/openjdk:11-jdk
     steps:
       - restore_cache:
           key: v1-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
