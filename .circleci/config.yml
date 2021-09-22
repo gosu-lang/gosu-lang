@@ -110,13 +110,20 @@ workflows:
             branches:
               ignore:
                 - /rel\/.*/
+                - /feature\/.*/
       - test-java11:
           requires:
             - build
   build_test_deploy-snapshot:
     when: << pipeline.parameters.run_workflow_deploy-snapshot >>
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - /rel\/.*/
+                - /feature\/.*/
+                - /user\/sv\/.*/
       - test-java11:
           requires:
             - build
@@ -129,6 +136,7 @@ workflows:
               only:
                 - /rel\/.*/
                 - /feature\/.*/
+                - /user\/sv\/.*/
   build_test_release:
     when: << pipeline.parameters.run_workflow_release >>
     jobs:
