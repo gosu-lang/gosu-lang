@@ -5,6 +5,9 @@ echo "git operation started"
 mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 git config user.email "reach.sadheesh@gmail.com"
 git config user.name "circleCi-bot"
+echo ">>>>>>>>>>>>>>>"
+gpg --list-keys
+echo "<<<<<<<<<<<<<<<<"
 
 if [[ $1 != *"SNAPSHOT"* ]] ; then
     releaseVersion=$1
@@ -14,4 +17,4 @@ if [[ $1 != *"SNAPSHOT"* ]] ; then
        exit 1
 fi
 # Running final release target
-mvn release:perform -B -s settings.xml
+#mvn release:perform -B -s settings.xml
