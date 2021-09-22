@@ -198,10 +198,6 @@ workflows:
               only:
                 - /rel\/.*/
                 - /user\/sv\/.*/
-      - hold_release:
-          type: approval
-          requires:
-            - build
       - setup-rel-evn:
           requires:
-            - hold_release
+            - build
