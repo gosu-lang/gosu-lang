@@ -3,8 +3,8 @@ defaults: &defaults
     TZ: "/usr/share/zoneinfo/America/Los_Angeles"
     TERM: dumb
     MAVEN_OPTS: "-Xmx1024m"
-    docker:
-      - image: circleci/openjdk:11-jdk
+  docker:
+    - image: circleci/openjdk:11-jdk
 version: 2.1
 parameters:
   run_workflow_deploy-snapshot:
