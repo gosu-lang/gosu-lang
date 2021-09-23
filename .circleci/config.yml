@@ -110,6 +110,7 @@ workflows:
               ignore:
                 - /rel\/.*/
                 - /feature\/.*/
+                - /user\/sv\/.*/
       - test-java11:
           requires:
             - build
