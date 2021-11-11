@@ -4,6 +4,7 @@
 
 package gw.internal.gosu.parser.generics;
 
+import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.GosuParserTypes;
@@ -276,5 +277,13 @@ public class JavaGenericsTest extends TestClass
       return;
     }
     fail();
+  }
+
+  public void testWrongRecursiveType()
+  {
+    IType type = TypeSystem.getByFullName( "gw.internal.gosu.parser.generics.gwtest.java.WrongRecursiveType" );
+    assertNotNull( type );
+    assertTrue( type.isGenericType() );
+    assertTrue( TypeLord.isRecursiveType( type ) );
   }
 }

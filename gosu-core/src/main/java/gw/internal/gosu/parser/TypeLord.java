@@ -259,6 +259,11 @@ public class TypeLord
                   Type boundingType = boundingTypes.length == 0 ? null : boundingTypes[0];
                   if( boundingType != null )
                   {
+                    if( boundingType == type && boundingType instanceof ParameterizedType )
+                    {
+                      // short-circuit retarded types like:  class Foo<T extends Foo<?>> {...}
+                      boundingType = ((ParameterizedType)boundingType).getRawType();
+                    }
                     typeArg = boundingType;
                   }
                 }
