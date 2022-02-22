@@ -11,11 +11,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import manifold.internal.host.RuntimeManifoldHost;
 import manifold.internal.javac.JavaParser;
+import manifold.util.NecessaryEvilUtil;
 
 public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 {
   // override RuntimeManifoldHost to use a single instance since it is always used in the context of the type sys lock
   private JavaParser _javaParser;
+
+  static
+  {
+    NecessaryEvilUtil.bypassJava9Security();
+  }
 
   public static GosuRuntimeManifoldHost get()
   {

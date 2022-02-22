@@ -60,6 +60,8 @@ import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
 import gw.util.Array;
+import manifold.util.ReflectUtil;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -354,22 +356,14 @@ public class GosuShop
   }
 
   private static void clearThreadLocal(ThreadLocal tl, Thread thread) {
-    try {
-      Object map = getMap(thread);
-      if (map != null) {
-        Method method = map.getClass().getDeclaredMethod("set", ThreadLocal.class, Object.class);
-        method.setAccessible(true);
-        method.invoke(map, tl, null);
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    Object map = getMap(thread);
+    if (map != null) {
+      ReflectUtil.method( map.getClass(), "set", ThreadLocal.class, Object.class ).invoke(map, tl, null);
     }
   }
 
-  private static Object getMap(Thread thread) throws Exception {
-    Field field = Thread.class.getDeclaredField("threadLocals");
-    field.setAccessible(true);
-    return field.get(thread);
+  private static Object getMap(Thread thread) {
+    return ReflectUtil.field( Thread.class, "threadLocals" ).get(thread);
   }
 
   public static boolean isGosuFile(String fileName) {

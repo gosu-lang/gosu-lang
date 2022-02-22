@@ -251,7 +251,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
   private class AsmClassVisitor extends ClassVisitor {
     public AsmClassVisitor() {
-      super( Opcodes.ASM7 );
+      super( Opcodes.ASM9 );
     }
 
     @Override

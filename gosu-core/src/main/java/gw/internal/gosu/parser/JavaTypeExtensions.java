@@ -16,6 +16,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IJavaClassMethod;
 import gw.lang.reflect.java.IJavaPropertyInfo;
 import gw.lang.reflect.java.IJavaType;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -232,13 +233,8 @@ class JavaTypeExtensions {
     if(classLoader instanceof IInjectableClassLoader) {
       return ((IInjectableClassLoader) classLoader).defineClass(className, bytes);
     }
-    try {
-      Method method = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-      method.setAccessible(true);
-      return (Class<?>) method.invoke(classLoader, className, bytes, 0, bytes.length);
-    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
+    return (Class<?>)ReflectUtil.method( ClassLoader.class, "defineClass", String.class, byte[].class, int.class, int.class)
+     .invoke(classLoader, className, bytes, 0, bytes.length);
   }
 
   private static void implementMethodViaDelegation(ClassWriter classWriter, String fieldOwnerInternalName, Method method, String fieldName, Class<?> fieldType, Set<String> signatures) {

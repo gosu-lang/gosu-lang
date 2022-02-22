@@ -1,3 +1,5 @@
+import manifold.util.ReflectUtil;
+
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -114,7 +116,7 @@ public class Launcher
       if( !gosuJars.isEmpty() )
       {
         URLClassLoader loader = (URLClassLoader)Launcher.class.getClassLoader();
-        Method addUrl = getAddUrlMethod();
+        ReflectUtil.MethodRef addUrl = ReflectUtil.method( URLClassLoader.class, "addURL", URL.class );
         for( File csr : gosuJars )
         {
           addUrl.invoke( loader, csr.toURI().toURL() );
@@ -276,7 +278,7 @@ public class Launcher
   private static void addRepoJarPaths( File appRepo ) throws Exception
   {
     URLClassLoader loader = (URLClassLoader)Launcher.class.getClassLoader();
-    Method addUrl = getAddUrlMethod();
+    ReflectUtil.MethodRef addUrl = ReflectUtil.method( URLClassLoader.class, "addURL", URL.class );
     for( File csr : appRepo.listFiles() )
     {
       String lowerName = csr.getName().toLowerCase();
@@ -285,13 +287,6 @@ public class Launcher
         addUrl.invoke( loader, csr.toURI().toURL() );
       }
     }
-  }
-
-  private static Method getAddUrlMethod() throws NoSuchMethodException
-  {
-    Method addUrl = URLClassLoader.class.getDeclaredMethod( "addURL", URL.class );
-    addUrl.setAccessible( true );
-    return addUrl;
   }
 
   private static File cacheJars( String jarLoc ) throws IOException

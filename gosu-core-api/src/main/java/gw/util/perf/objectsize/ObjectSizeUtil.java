@@ -7,6 +7,8 @@ package gw.util.perf.objectsize;
 import gw.util.perf.InvocationCounter;
 
 import gw.util.Array;
+import manifold.util.ReflectUtil;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -144,7 +146,7 @@ public class ObjectSizeUtil {
             Field field = fields[i];
             result += getFieldSize(field.getType());
             if (!field.getType().isPrimitive() && !skipField(field, filter)) {
-              field.setAccessible(true);
+              ReflectUtil.setAccessible( field );
               try {
                 // objects to be estimated are put to stack
                 Object objectToAdd = field.get(obj);
@@ -166,9 +168,7 @@ public class ObjectSizeUtil {
       String extra = "";
       if (obj instanceof HashMap) {
         try {
-          Method m = obj.getClass().getDeclaredMethod("capacity");
-          m.setAccessible(true);
-          int capacity = (Integer) m.invoke(obj);
+          int capacity = (Integer) ReflectUtil.method( obj, "capacity" ).invoke();
           extra = " (" + decimalFormat.format(100.0 * ((HashMap)obj).size()/capacity) + "%) ";
         } catch (Exception e) {
           throw new RuntimeException(e);
@@ -176,9 +176,7 @@ public class ObjectSizeUtil {
       }
       if (obj instanceof ArrayList) {
         try {
-          Field f = obj.getClass().getDeclaredField("elementData");
-          f.setAccessible(true);
-          int capacity = Array.getLength(f.get(obj));
+          int capacity = Array.getLength( ReflectUtil.field( obj, "elementData" ).get() );
           if (capacity == 0) {
             extra = " (empty) ";
           } else {

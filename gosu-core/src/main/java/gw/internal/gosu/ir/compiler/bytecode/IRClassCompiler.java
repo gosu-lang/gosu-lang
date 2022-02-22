@@ -39,6 +39,8 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import gw.util.Array;
+import manifold.util.ReflectUtil;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
@@ -124,10 +126,10 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
     {
       Class<Attribute> aClass = Attribute.class;
       Constructor[] constr = aClass.getDeclaredConstructors();
-      constr[0].setAccessible( true );
+      ReflectUtil.setAccessible( constr[0] );
       Object instance = constr[0].newInstance( "GosuVersion" );
       Field[] fields = aClass.getDeclaredFields();
-      fields[1].setAccessible( true );
+      ReflectUtil.setAccessible( fields[1] );
       fields[1].set( instance, _gosuVersion );
       _cv.visitAttribute( (Attribute) instance );
     }

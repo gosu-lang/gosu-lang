@@ -15,6 +15,7 @@ import gw.lang.GosuShop;
 import gw.lang.UnstableAPI;
 import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.IJavaClassInfo;
+import manifold.util.ReflectUtil;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -142,16 +143,7 @@ public class IRClassBuilder extends IRFeatureBuilder<IRClassBuilder> {
   }
 
   private Class defineClassInLoader( ClassLoader classLoader, String name, byte[] bytes ) {
-    try {
-      Method method = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-      method.setAccessible(true);
-      return (Class) method.invoke(classLoader, name, bytes, 0, bytes.length);
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
+    return (Class<?>)ReflectUtil.method( ClassLoader.class, "defineClass", String.class, byte[].class, int.class, int.class )
+     .invoke(classLoader, name, bytes, 0, bytes.length);
   }
 }

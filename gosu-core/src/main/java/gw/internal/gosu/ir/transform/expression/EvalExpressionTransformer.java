@@ -27,6 +27,7 @@ import gw.lang.reflect.gs.IProgramInstance;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuStringUtil;
 import gw.util.concurrent.LocklessLazyVar;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -54,22 +55,14 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
     @Override
     protected DeclaredConstructorsAccessor init()
     {
-      Method result = (Method)AccessController.doPrivileged( new PrivilegedAction()
+      Method result = null;
+      try
       {
-        public Method run()
-        {
-          try
-          {
-            Method m = Class.class.getDeclaredMethod( "privateGetDeclaredConstructors", boolean.class );
-            m.setAccessible( true );
-            return m;
-          }
-          catch( Exception e )
-          {
-            return null;
-          }
-        }
-      } );
+        result = ReflectUtil.method( Class.class, "privateGetDeclaredConstructors", boolean.class ).getMethod();
+      }
+      catch( Exception ignore )
+      {
+      }
       if( result != null )
       {
         return new PrivateGetDeclaredConstructorsAccessor( result );
@@ -92,22 +85,16 @@ public class EvalExpressionTransformer extends EvalBasedTransformer<EvalExpressi
     @Override
     public Constructor getConstructor( final Class clz )
     {
-      return (Constructor)AccessController.doPrivileged( new PrivilegedAction()
-        {
-          public Object run()
-          {
-            try
-            {
-              return ((Constructor[])_getDeclaredConstructors.invoke( clz, false ))[0];
-            }
-            catch( Exception e )
-            {
-              System.err.println( "WARNING Cannot load constructors of " + clz.getName() + ": " + e.toString() );
-              e.printStackTrace();
-              return null;
-            }
-          }
-        } );
+      try
+      {
+        return ((Constructor[])_getDeclaredConstructors.invoke( clz, false ))[0];
+      }
+      catch( Exception e )
+      {
+        System.err.println( "WARNING Cannot load constructors of " + clz.getName() + ": " + e.toString() );
+        e.printStackTrace();
+        return null;
+      }
     }
   }
   private static class PublicGetDeclaredConstructorsAccessor implements DeclaredConstructorsAccessor {

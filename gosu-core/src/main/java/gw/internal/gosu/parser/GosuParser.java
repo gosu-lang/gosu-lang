@@ -15303,7 +15303,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                           : defs.get( i++ );
       parseTypeVariableDefinition( parsedElem, typeVarDef, defs.isEmpty() );
       typeVarDef = (TypeVariableDefinition)popExpression();
-      for( ITypeVariableDefinition csr : _typeVarsByName.values() )
+      for( ITypeVariableDefinition csr : getEnclosingTypeVars().values() )
       {
         if( !verify( typeVarDef, !csr.getName().equals( typeVarDef.getName() ) ||
                 ((TypeVariableDefinition)csr).getLocation().getExtent() == typeVarDef.getLocation().getExtent(),

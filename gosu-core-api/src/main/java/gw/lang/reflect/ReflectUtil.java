@@ -242,7 +242,7 @@ public class ReflectUtil
       try
       {
         Method m = cls.getDeclaredMethod( "access$0", obj.getClass() );
-        m.setAccessible( true );
+        manifold.util.ReflectUtil.setAccessible( m );
         obj = outer = (IGosuObject)m.invoke( null, obj );
       }
       catch( Exception e )
