@@ -58,53 +58,7 @@ import gw.lang.annotation.UsageTarget;
 import gw.lang.function.IBlock;
 import gw.lang.ir.IRElement;
 import gw.lang.ir.IRType;
-import gw.lang.parser.AnnotationUseSiteTarget;
-import gw.lang.parser.ExternalSymbolMapForMap;
-import gw.lang.parser.GosuParserFactory;
-import gw.lang.parser.GosuParserTypes;
-import gw.lang.parser.IBlockClass;
-import gw.lang.parser.ICapturedSymbol;
-import gw.lang.parser.ICoercer;
-import gw.lang.parser.ICoercionManager;
-import gw.lang.parser.IDynamicFunctionSymbol;
-import gw.lang.parser.IDynamicPropertySymbol;
-import gw.lang.parser.IDynamicSymbol;
-import gw.lang.parser.IExpression;
-import gw.lang.parser.IFileContext;
-import gw.lang.parser.IFunctionSymbol;
-import gw.lang.parser.IGosuParser;
-import gw.lang.parser.IGosuValidator;
-import gw.lang.parser.IHasArguments;
-import gw.lang.parser.IHasInnerClass;
-import gw.lang.parser.IInjectedSymbol;
-import gw.lang.parser.ILanguageLevel;
-import gw.lang.parser.IParseIssue;
-import gw.lang.parser.IParseResult;
-import gw.lang.parser.IParseTree;
-import gw.lang.parser.IParsedElement;
-import gw.lang.parser.IParsedElementWithAtLeastOneDeclaration;
-import gw.lang.parser.IParserState;
-import gw.lang.parser.IReducedDynamicPropertySymbol;
-import gw.lang.parser.IResolvingCoercer;
-import gw.lang.parser.IScriptPartId;
-import gw.lang.parser.ISource;
-import gw.lang.parser.ISourceCodeTokenizer;
-import gw.lang.parser.ISymbol;
-import gw.lang.parser.ISymbolTable;
-import gw.lang.parser.ITokenizerInstructor;
-import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.Keyword;
-import gw.lang.parser.MemberAccessKind;
-import gw.lang.parser.ParserOptions;
-import gw.lang.parser.PostCompilationAnalysis;
-import gw.lang.parser.ScriptabilityModifiers;
-import gw.lang.parser.SourceCodeReader;
-import gw.lang.parser.StandardCoercionManager;
-import gw.lang.parser.StandardScope;
-import gw.lang.parser.SymbolType;
-import gw.lang.parser.ThreadSafeSymbolTable;
-import gw.lang.parser.TypeSystemAwareCache;
-import gw.lang.parser.TypeVarToTypeMap;
+import gw.lang.parser.*;
 import gw.lang.parser.coercers.IdentityCoercer;
 import gw.lang.parser.exceptions.DoesNotOverrideFunctionException;
 import gw.lang.parser.exceptions.ErrantGosuClassException;
@@ -5874,7 +5828,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         }
       }
       verify( peekExpression(), !GosuObjectUtil.equals( strFunction, Keyword.KW_this.toString() ) ||
-              !isParsingStaticFeature() ||
+              !isParsingStaticFeature() || isCompilingOrReparsingHeader() ||
               isParsingConstructor(), Res.MSG_CANNOT_REFERENCE_THIS_IN_STATIC_CONTEXT );
       return true;
     }
@@ -15303,10 +15257,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
                                           : defs.get( i++ );
       parseTypeVariableDefinition( parsedElem, typeVarDef, defs.isEmpty() );
       typeVarDef = (TypeVariableDefinition)popExpression();
-      for( ITypeVariableDefinition csr : getEnclosingTypeVars().values() )
+      for( ITypeVariableDefinition csr : _typeVarsByName.values() )
       {
         if( !verify( typeVarDef, !csr.getName().equals( typeVarDef.getName() ) ||
-                ((TypeVariableDefinition)csr).getLocation().getExtent() == typeVarDef.getLocation().getExtent(),
+                ((TypeVariableDefinition)csr).getLocation().getExtent() == typeVarDef.getLocation().getExtent() ||
+                isCompilingOrReparsingHeader() && getGosuClass().isStatic() && !csr.getEnclosingType().equals( getGosuClass().getEnclosingType() ),
                 Res.MSG_VARIABLE_ALREADY_DEFINED, typeVarDef.getName() ) )
         {
           break;
@@ -15318,7 +15273,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
     return typeVarDefList;
   }
 
-  private boolean typeVarExists( Map<String, ITypeVariableDefinition> typeVarMap, TypeVariableDefinition typeVarDef )
+  public boolean typeVarExists( Map<String, ITypeVariableDefinition> typeVarMap, TypeVariableDefinition typeVarDef )
   {
     if( !typeVarMap.containsKey( typeVarDef.getName() ) )
     {
@@ -15484,11 +15439,23 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       return peekParsingFunction();
     }
-    else if( isParsingStaticFeature() )
+    else if( isParsingStaticFeature() && !isCompilingOrReparsingHeader() )
     {
       return ErrorType.getInstance( "decl_Static_Function" );
     }
     return getScriptPart() == null ? null : getScriptPart().getContainingType();
+  }
+
+  private boolean isCompilingOrReparsingHeader()
+  {
+    ICompilableTypeInternal gosuClass = getGosuClass();
+    if( !(gosuClass instanceof IGosuClass) )
+    {
+      return false;
+    }
+
+    CompilationState compilationState = (CompilationState)((IGosuClass)gosuClass).getCompilationState();
+    return compilationState.isCompilingHeader() || compilationState.isReparsingHeader();
   }
 
   //------------------------------------------------------------------------------
@@ -15814,7 +15781,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
             ? new InterfaceTypeLiteral( MetaType.getLiteral( finalType ), _ignoreTypeDeprecation > 0 )
             : new TypeLiteral( MetaType.getLiteral( finalType ), _ignoreTypeDeprecation > 0 );
 
-    verify( typeLiteral, !bClassTypeVar || !isParsingStaticFeature() || isParsingConstructor(), Res.MSG_CANNOT_REFERENCE_CLASS_TYPE_VAR_IN_STATIC_CONTEXT );
+    verify( typeLiteral, !bClassTypeVar || !isParsingStaticFeature() || isCompilingOrReparsingHeader() || isParsingConstructor(),
+      Res.MSG_CANNOT_REFERENCE_CLASS_TYPE_VAR_IN_STATIC_CONTEXT );
     if( verify( typeLiteral, !(intrType instanceof ErrorType) || IErrorType.NAME.equals( strTypeName ), Res.MSG_INVALID_TYPE, strTypeName ) )
     {
       verifyCase( typeLiteral, strTypeName, intrType.getName(), Res.MSG_TYPE_CASE_MISMATCH, true );
