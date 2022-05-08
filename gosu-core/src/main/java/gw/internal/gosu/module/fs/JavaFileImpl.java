@@ -7,17 +7,27 @@ package gw.internal.gosu.module.fs;
 import gw.fs.IFile;
 import gw.fs.IFileUtil;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 
 public class JavaFileImpl extends JavaResourceImpl implements IFile {
 
   public JavaFileImpl(File file) {
     super(file);
+  }
+
+  @Override
+  public String getContent() throws IOException {
+    try (FileChannel channel = new RandomAccessFile(toJavaFile(), "r").getChannel()) {
+      return StandardCharsets.UTF_8.decode(channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())).toString();
+    }
   }
 
   @Override

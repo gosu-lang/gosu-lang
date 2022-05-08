@@ -4,15 +4,18 @@
 
 package gw.fs.physical;
 
+import gw.fs.IFile;
 import gw.fs.ResourcePath;
 import gw.lang.UnstableAPI;
-import gw.fs.IFile;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 
 @UnstableAPI
 public class PhysicalFileImpl extends PhysicalResourceImpl implements IFile {
@@ -22,13 +25,20 @@ public class PhysicalFileImpl extends PhysicalResourceImpl implements IFile {
   }
 
   @Override
+  public String getContent() throws IOException {
+    try (FileChannel channel = new RandomAccessFile(toJavaFile(), "r").getChannel()) {
+      return StandardCharsets.UTF_8.decode(channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())).toString();
+    }
+  }
+
+  @Override
   public InputStream openInputStream() throws IOException {
-    return new FileInputStream(toJavaFile());
+    return Channels.newInputStream(new RandomAccessFile(toJavaFile(), "r").getChannel());
   }
 
   @Override
   public OutputStream openOutputStream() throws IOException {
-    return new FileOutputStream(toJavaFile());
+    return Channels.newOutputStream(new RandomAccessFile(toJavaFile(), "w").getChannel());
   }
 
   @Override
