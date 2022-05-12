@@ -175,6 +175,8 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
 
   void setDefinitionsCompiled();
 
+  void warmUp();
+
   VarStatement getMemberField( String charSequence );
 
   IGosuClassInternal getSuperClass();

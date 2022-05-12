@@ -81,6 +81,9 @@ import java.io.InvalidClassException;
 import java.io.ObjectStreamException;
 import java.lang.ref.SoftReference;
 import gw.util.Array;
+import manifold.api.util.DebugLogUtil;
+import manifold.util.ReflectUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1879,6 +1882,24 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
   }
 
+  public void warmUp()
+  {
+    if( _parseInfo != null )
+    {
+//      DebugLogUtil.log( "c:\\temp\\parser_perf.txt", "no", true );
+      return;
+    }
+
+    synchronized( this )
+    {
+      if( _parseInfo == null )
+      {
+//        DebugLogUtil.log( "c:\\temp\\parser_perf.txt", "yes", true );
+        makeParserForPhase();
+      }
+    }
+  }
+
   private boolean shouldCompileDeclarations()
   {
     return !isDeclarationsCompiled() || !_compilationState.isInnerDeclarationsCompiled();
@@ -2604,20 +2625,28 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   private GosuParser makeParserForPhase()
   {
-    createNewParseInfo();
-    CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
-    GosuParser parser = getOrCreateParser( symbolTable );
-    ISource source = _sourceFileHandle.getSource();
-    parser.setScript( source );
-    _parseInfo.updateSource( source.getSource() );
-    if( ExecutionMode.isIDE() ) {
-      parser.setThrowParseExceptionForWarnings(true);
-      parser.setDontOptimizeStatementLists(true);
-      parser.setWarnOnCaseIssue(true);
-      parser.setEditorParser(true);
+    synchronized( this )
+    {
+      createNewParseInfo();
+      CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
+      GosuParser parser = getOrCreateParser( symbolTable );
+      ISource source = _sourceFileHandle.getSource();
+      parser.setScript( source );
+      if( _sourceFileHandle instanceof FileSystemGosuClassRepository.FileSystemSourceFileHandle )
+      {
+        // pre-tokenize (facilitates parallelized, AOT tokenization)
+        ReflectUtil.method( ReflectUtil.field( source.getTokenizer(), "_internal" ).get(), "rip" ).invoke();
+      }
+      _parseInfo.updateSource( source.getSource() );
+      if( ExecutionMode.isIDE() ) {
+        parser.setThrowParseExceptionForWarnings( true );
+        parser.setDontOptimizeStatementLists( true );
+        parser.setWarnOnCaseIssue( true );
+        parser.setEditorParser( true );
+      }
+      assignTypeUsesMap( parser );
+      return parser;
     }
-    assignTypeUsesMap( parser );
-    return parser;
   }
 
   public ITypeUsesMap getTypeUsesMap() {
