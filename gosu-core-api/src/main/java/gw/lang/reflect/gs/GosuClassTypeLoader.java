@@ -34,12 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GosuClassTypeLoader extends SimpleTypeLoader
 {
-  /**
-   * EXPERIMENTAL: If true, read source file and tokenize asynchronously via ThreadPoolExecutor.
-   * This is a CPU perf optimization.
-   */
-  public static boolean ASYNC_TOKENIZATION = true;
-
   public static final String GOSU_CLASS_FILE_EXT = ".gs";
   public static final String GOSU_ENHANCEMENT_FILE_EXT = ".gsx";
   public static final String GOSU_PROGRAM_FILE_EXT = ".gsp";
@@ -59,7 +53,6 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
 
   private IGosuClassRepository _repository;
   private LockingLazyVar<IEnhancementIndex> _enhancementIndex;
-  private final ThreadPoolExecutor _taskQueue;
   protected Set<String> _namespaces;
 
   public static GosuClassTypeLoader getDefaultClassLoader()
@@ -81,44 +74,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   {
     super( module );
     _repository = repository;
-    _taskQueue = makeTaskQueue();
     makeEnhancementIndex();
-  }
-
-  private ThreadPoolExecutor makeTaskQueue()
-  {
-    int cores = Runtime.getRuntime().availableProcessors() - 1;
-    int threads = Math.max( cores, 1 );
-//    DebugLogUtil.log( "c:\\temp\\parser_perf.txt", "######################################### " + threads, true );
-    return (ThreadPoolExecutor)Executors.newFixedThreadPool( threads, new TokenizerThreadFactory() );
-  }
-
-  private static class TokenizerThreadFactory implements ThreadFactory
-  {
-    private static final AtomicInteger QUEUE = new AtomicInteger( 1 );
-    private final AtomicInteger _threadNumber;
-
-    private TokenizerThreadFactory()
-    {
-      _threadNumber = new AtomicInteger( 1 );
-    }
-
-    @Override
-    public Thread newThread( Runnable workRunner )
-    {
-      Thread thread = new Thread( Thread.currentThread().getThreadGroup(), workRunner,
-        "Gosu parallel source reader-tokenizer " +
-          "(queue: " + QUEUE.getAndIncrement() + " thread:" + _threadNumber.getAndIncrement(), 0 );
-      if( thread.isDaemon() )
-      {
-        thread.setDaemon( false );
-      }
-      if( thread.getPriority() != Thread.NORM_PRIORITY )
-      {
-        thread.setPriority( Thread.NORM_PRIORITY );
-      }
-      return thread;
-    }
   }
 
   private void makeEnhancementIndex()
@@ -403,11 +359,6 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
     {
       // It's a top-level class
       gsClass = makeNewClass( sourceFile );
-
-      if( ASYNC_TOKENIZATION )
-      {
-        _taskQueue.submit( () -> ReflectUtil.method( gsClass, "warmUp" ).invoke() );
-      }
     }
 
     return gsClass;

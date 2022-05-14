@@ -47,12 +47,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 import manifold.internal.javac.IJavaParser;
 import manifold.internal.javac.InMemoryClassJavaFileObject;
 import manifold.util.NecessaryEvilUtil;
+import manifold.util.ReflectUtil;
 
 
 import static gw.lang.gosuc.simple.ICompilerDriver.ERROR;
@@ -60,14 +66,23 @@ import static gw.lang.gosuc.simple.ICompilerDriver.WARNING;
 
 public class GosuCompiler implements IGosuCompiler
 {
+  /**
+   * EXPERIMENTAL: If true, read source files and tokenize asynchronously ahead of compilation via ThreadPoolExecutor.
+   * This is a CPU perf optimization.
+   */
+  public static boolean ASYNC_TOKENIZATION = true;
+
   private static final String[] SOURCE_EXTS = { ".gs", ".gsx", ".gst", ".java" };
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
+  private ThreadPoolExecutor _taskQueue;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
+    _taskQueue = makeTaskQueue();
+
     List<String> gosuFiles = new ArrayList<>();
     List<String> javaFiles = new ArrayList<>();
     for( String fileName : getSourceFiles( options ) )
@@ -98,6 +113,39 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
     return false;
+  }
+
+  private ThreadPoolExecutor makeTaskQueue()
+  {
+    int cores = Runtime.getRuntime().availableProcessors() - 1;
+    int threads = Math.max( cores, 1 );
+    return (ThreadPoolExecutor)Executors.newFixedThreadPool( threads, new TokenizerThreadFactory() );
+  }
+
+  private static class TokenizerThreadFactory implements ThreadFactory
+  {
+    private final AtomicInteger _threadNumber;
+
+    private TokenizerThreadFactory()
+    {
+      _threadNumber = new AtomicInteger( 1 );
+    }
+
+    @Override
+    public Thread newThread( Runnable workRunner )
+    {
+      Thread thread = new Thread( Thread.currentThread().getThreadGroup(), workRunner,
+        "Gosu Tokenizer " + "(thread: " + _threadNumber.getAndIncrement(), 0 );
+      if( !thread.isDaemon() )
+      {
+        thread.setDaemon( true );
+      }
+      if( thread.getPriority() != Thread.NORM_PRIORITY )
+      {
+        thread.setPriority( Thread.NORM_PRIORITY );
+      }
+      return thread;
+    }
   }
 
   private List<String> getSourceFiles( CommandLineOptions options )
@@ -156,32 +204,83 @@ public class GosuCompiler implements IGosuCompiler
 
   private boolean compileGosuSources( CommandLineOptions options, ICompilerDriver driver, List<String> gosuFiles )
   {
-    boolean thresholdExceeded = false;
-    for( String fileName : gosuFiles )
+    if( ASYNC_TOKENIZATION )
     {
-      File file = new File( fileName );
-
-      if( options.isVerbose() )
+      for( String fileName : gosuFiles )
       {
-        System.out.println( "gosuc: about to compile file: " + file );
-      }
+        File file = new File( fileName );
+        IType type = getType( file );
+        if( type == null )
+        {
+          driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, "Cannot find type in the Gosu Type System." );
+          shutdownTaskQueue( driver );
+          return false;
+        }
 
-      compile( file, driver );
+        if( type instanceof IGosuClass )
+        {
+          // preload to avoid deadlock on the lazyvar, it's the only place during warmUp() that acquires the type sys lock
+          TypeSystem.getCompiledGosuClassSymbolTable();
 
-      if( driver.getErrors().size() > options.getMaxErrs() )
-      {
-        System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
-        thresholdExceeded = true;
-        break;
-      }
-      if( !options.isNoWarn() && driver.getWarnings().size() > options.getMaxWarns() )
-      {
-        System.out.printf( "\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns() );
-        thresholdExceeded = true;
-        break;
+          _taskQueue.submit( () -> ReflectUtil.method( type, "warmUp" ).invoke() );
+        }
       }
     }
-    return thresholdExceeded;
+
+    try
+    {
+      boolean thresholdExceeded = false;
+      for( String fileName : gosuFiles )
+      {
+        File file = new File( fileName );
+
+        if( options.isVerbose() )
+        {
+          System.out.println( "gosuc: about to compile file: " + file );
+        }
+
+        compile( file, driver );
+
+        if( driver.getErrors().size() > options.getMaxErrs() )
+        {
+          System.out.printf( "\nError threshold of %d exceeded; aborting compilation.", options.getMaxErrs() );
+          thresholdExceeded = true;
+          break;
+        }
+        if( !options.isNoWarn() && driver.getWarnings().size() > options.getMaxWarns() )
+        {
+          System.out.printf( "\nWarning threshold of %d exceeded; aborting compilation.", options.getMaxWarns() );
+          thresholdExceeded = true;
+          break;
+        }
+      }
+      return thresholdExceeded;
+    }
+    finally
+    {
+      if( ASYNC_TOKENIZATION )
+      {
+        shutdownTaskQueue( driver );
+      }
+    }
+  }
+
+  private void shutdownTaskQueue( ICompilerDriver driver )
+  {
+    _taskQueue.shutdownNow();
+    boolean terminated = false;
+    try
+    {
+      terminated = _taskQueue.awaitTermination( 60, TimeUnit.SECONDS );
+    }
+    catch( InterruptedException e )
+    {
+      driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, e.getMessage() );
+    }
+    if( !terminated )
+    {
+      driver.sendCompileIssue( _compilingSourceFile, ERROR, 0, 0, 0, "Failed to properly terminate tokenization queue." );
+    }
   }
 
   private boolean compileJavaSources( CommandLineOptions options, ICompilerDriver driver, List<String> javaFiles )
