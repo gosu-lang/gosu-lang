@@ -4,6 +4,7 @@
 
 package gw.lang.reflect.java.asm;
 
+import gw.fs.IFile;
 import gw.internal.ext.org.objectweb.asm.AnnotationVisitor;
 import gw.internal.ext.org.objectweb.asm.Attribute;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
@@ -18,6 +19,10 @@ import gw.lang.reflect.java.IAsmJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.module.IModule;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
@@ -38,7 +43,7 @@ public class AsmClass implements IAsmType, IGeneric {
   public static final AsmClass DOUBLE;
   public static final AsmClass BOOLEAN;
   public static final AsmClass VOID;
-  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<String, AsmClass>();
+  private static final Map<String, AsmClass> PRIMITIVES = new HashMap<>();
   static {
     PRIMITIVES.put( "byte", BYTE = new AsmClass( AsmPrimitiveType.findPrimitive( "byte" ) ) );
     PRIMITIVES.put( "short", SHORT = new AsmClass( AsmPrimitiveType.findPrimitive( "short" ) ) );
@@ -55,6 +60,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   private Object _module;
+  private Object _file;
   private URI _uri;
   private int _version;
   private int _modifiers;
@@ -67,15 +73,19 @@ public class AsmClass implements IAsmType, IGeneric {
   private List<AsmField> _fields;
   private List<AsmMethod> _methodsAndCtors;
   private List<AsmAnnotation> _annotations;
+  private volatile boolean _inited;
+  private volatile boolean _initing;
 
-
-  AsmClass( Object module, URI uri ) {
+  AsmClass( String fqn, Object module, URI uri, Object file ) {
+    _type = AsmUtil.makeNonPrimitiveType( fqn );
     _module = module;
     _uri = uri;
+    _file = file;
   }
 
   private AsmClass( AsmPrimitiveType ptype ) {
     _type = ptype;
+    _inited = true;
     _modifiers = Modifier.PUBLIC | Modifier.STATIC;
     _superClass = null;
     _innerClasses = Collections.emptyMap();
@@ -85,9 +95,21 @@ public class AsmClass implements IAsmType, IGeneric {
     _annotations = Collections.emptyList();
   }
 
-  public void init( byte[] classBytes ) {
-    ClassReader cr = new ClassReader( classBytes );
-    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+  private void init() {
+    if( _inited ) {
+      return;
+    }
+    synchronized( this ) {
+      if( _inited || _initing ) {
+        return;
+      }
+      _initing = true;
+      byte[] classBytes = getContent();
+      ClassReader cr = new ClassReader( classBytes );
+      cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+      _initing = false;
+      _inited = true;
+    }
   }
 
   public URI getUri() {
@@ -95,6 +117,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public AsmType getType() {
+    init();
     return _type;
   }
 
@@ -103,6 +126,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public AsmType getEnclosingType() {
+    init();
     return _enclosingType;
   }
 
@@ -111,6 +135,7 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public AsmType getSuperClass() {
+    init();
     return _superClass;
   }
   public void setSuperClass( AsmType type ) {
@@ -118,44 +143,50 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public Map<String, AsmInnerClassType> getInnerClasses() {
+    init();
     return _innerClasses;
   }
 
   public List<AsmType> getInterfaces() {
+    init();
     return _interfaces;
   }
 
   public List<AsmField> getDeclaredFields() {
+    init();
     return _fields;
   }
   private void addField( AsmField field ) {
     if( _fields.isEmpty() ) {
-      _fields = new ArrayList<AsmField>();
+      _fields = new ArrayList<>();
     }
     _fields.add( field );
   }
 
   public List<AsmMethod> getDeclaredMethodsAndConstructors() {
+    init();
     return _methodsAndCtors;
   }
   private void addMethod( AsmMethod method ) {
     if( _methodsAndCtors.isEmpty() ) {
-      _methodsAndCtors = new ArrayList<AsmMethod>();
+      _methodsAndCtors = new ArrayList<>();
     }
     _methodsAndCtors.add( method );
   }
 
   public List<AsmAnnotation> getDeclaredAnnotations() {
+    init();
     return _annotations;
   }
   private void addAnnotation( AsmAnnotation annotation ) {
     if( _annotations.isEmpty() ) {
-      _annotations = new ArrayList<AsmAnnotation>();
+      _annotations = new ArrayList<>();
     }
     _annotations.add( annotation );
   }
 
   public boolean isGeneric() {
+    init();
     return _bGeneric;
   }
   public void setGeneric() {
@@ -163,10 +194,12 @@ public class AsmClass implements IAsmType, IGeneric {
   }
 
   public int getModifiers() {
+    init();
     return _modifiers;
   }
 
   public int getVersion() {
+    init();
     return _version;
   }
 
@@ -184,6 +217,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
   @Override
   public String getSimpleName() {
+    init();
     String name = _type.getSimpleName();
     int iDollar = _enclosingType == null ? -1 : name.lastIndexOf( '$' );
     if( iDollar > 0 ) {
@@ -194,6 +228,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
   @Override
   public List<AsmType> getTypeParameters() {
+    init();
     // Only valid if type params are TYPE VARIABLES
     return _type.getTypeParameters();
   }
@@ -221,26 +256,32 @@ public class AsmClass implements IAsmType, IGeneric {
 
   @Override
   public String getFqn() {
+    init();
     return _type.getFqn();
   }
 
   public boolean isInterface() {
+    init();
     return Modifier.isInterface( getModifiers() );
   }
 
   public boolean isEnum() {
+    init();
     return Modifier.isEnum( getModifiers() );
   }
 
   public boolean isAnnotation() {
+    init();
     return (getModifiers() & 0x00002000) != 0;
   }
 
   public boolean isAnnotationPresent( Class<? extends Annotation> annotationClass ) {
+    init();
     return getAnnotation( annotationClass ) != null;
   }
 
-  public AsmAnnotation getAnnotation( Class annotationClass ) {
+  public AsmAnnotation getAnnotation( Class<?> annotationClass ) {
+    init();
     for( AsmAnnotation anno: getDeclaredAnnotations() ) {
       if( annotationClass.getName().equals( anno.getType().getName() ) ) {
         return anno;
@@ -331,7 +372,7 @@ public class AsmClass implements IAsmType, IGeneric {
       }
 
       if( _innerClasses.isEmpty() ) {
-        _innerClasses = new HashMap<String, AsmInnerClassType>( 2 );
+        _innerClasses = new HashMap<>( 2 );
       }
       String innerClass = AsmUtil.makeDotName( name );
       _innerClasses.put( innerClass, new AsmInnerClassType( innerClass, access ) );
@@ -378,7 +419,8 @@ public class AsmClass implements IAsmType, IGeneric {
 
     private void assignInterfaces( String[] interfaces ) {
       if( interfaces != null ) {
-        List<AsmType> ifaces = new ArrayList<AsmType>( interfaces.length );
+        List<AsmType> ifaces = new ArrayList<>( interfaces.length );
+        //noinspection ForLoopReplaceableByForEach
         for( int i = 0; i < interfaces.length; i++ ) {
           ifaces.add( AsmUtil.makeType( interfaces[i] ) );
         }
@@ -387,6 +429,39 @@ public class AsmClass implements IAsmType, IGeneric {
       else {
         _interfaces = Collections.emptyList();
       }
+    }
+  }
+
+  private byte[] getContent() {
+    InputStream is;
+    try {
+      is = _file instanceof File ? new FileInputStream( (File)_file ) : ((IFile)_file).openInputStream();
+    }
+    catch( IOException e ) {
+      throw new RuntimeException( e );
+    }
+    byte[] buf = new byte[1024];
+    AsmClassLoader.ExposedByteArrayOutputStream out = new AsmClassLoader.ExposedByteArrayOutputStream();
+    while( true ) {
+      int count;
+      try {
+        count = is.read( buf );
+      }
+      catch( IOException e ) {
+        throw new RuntimeException( e );
+      }
+      if( count < 0 ) {
+        break;
+      }
+      out.write( buf, 0, count );
+    }
+    try {
+      out.flush();
+      is.close();
+      return out.getByteArray();
+    }
+    catch( Exception e ) {
+      throw new RuntimeException( e );
     }
   }
 }

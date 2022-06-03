@@ -11,23 +11,15 @@ import gw.internal.gosu.annotations.AnnotationMap;
 import gw.lang.StrictGenerics;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
-import gw.lang.reflect.IErrorType;
-import gw.lang.reflect.IFunctionType;
-import gw.lang.reflect.IType;
-import gw.lang.reflect.ITypeInfo;
-import gw.lang.reflect.ITypeRef;
-import gw.lang.reflect.InnerClassCapableType;
-import gw.lang.reflect.TypeSystem;
-import gw.lang.reflect.gs.ClassType;
-import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuFragment;
-import gw.lang.reflect.gs.ISourceFileHandle;
+import gw.lang.reflect.*;
+import gw.lang.reflect.gs.*;
 import gw.lang.reflect.java.IJavaBackedTypeData;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassType;
 import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
+import gw.util.GosuObjectUtil;
 import gw.util.concurrent.LockingLazyVar;
 import gw.util.concurrent.LocklessLazyVar;
 import gw.util.perf.objectsize.IObjectSizeFilter;
@@ -71,6 +63,7 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   transient volatile private Set<IType> _allTypesInHierarchy; //!! Do NOT make this a lazy var, it's init needs to be re-entrant
   transient private boolean _bArray;
   transient private boolean _bPrimitive;
+  transient private List<IEnumValue> _enumVals;
   transient private LockingLazyVar<Boolean> _bHasSuperType = new LockingLazyVar<Boolean>() {
     @Override
     protected Boolean init() {
@@ -129,40 +122,20 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   private static IJavaTypeInternal define( Class cls, DefaultTypeLoader loader )
   {
-    IJavaTypeInternal type;
-    if( cls.isEnum() )
-    {
-      JavaType rawType = new JavaEnumType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
-      rawType._typeRef = type;
-    }
-    else
-    {
-      JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
-      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
-      rawType._typeRef = type;
-    }
+    JavaType rawType = new JavaType( new ClassJavaClassInfo(cls, loader.getModule()), loader );
+    IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+    IJavaTypeInternal type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
+    rawType._typeRef = type;
     TYPES_BY_CLASS.put( cls, type );
     return type;
   }
 
   public static IJavaTypeInternal create(IJavaClassInfo cls, DefaultTypeLoader loader)
   {
-    IJavaTypeInternal type;
-    if( cls.isEnum() )
-    {
-      JavaType rawType = new JavaEnumType( cls, loader );
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( rawType );
-      rawType._typeRef = type;
-    }
-    else
-    {
-      JavaType rawType = new JavaType( cls, loader );
-      IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
-      type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
-      rawType._typeRef = type;
-    }
+    JavaType rawType = new JavaType( cls, loader );
+    IJavaTypeInternal extendedType = JavaTypeExtensions.maybeExtendType(rawType);
+    IJavaTypeInternal type = (IJavaTypeInternal)TypeSystem.getOrCreateTypeReference( extendedType );
+    rawType._typeRef = type;
     return type;
   }
 
@@ -1495,5 +1468,87 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
   public byte[] compile()
   {
     return getBackingClassInfo().compile();
+  }
+
+  public List<String> getEnumConstants()
+  {
+    List<String> enumConstants = new ArrayList<>();
+    for( IEnumValue v : getEnumValues() )
+    {
+      enumConstants.add( v.getCode() );
+    }
+    return enumConstants;
+  }
+
+  public List<IEnumValue> getEnumValues()
+  {
+    if( _enumVals != null )
+    {
+      return _enumVals;
+    }
+
+    ArrayList<IEnumValue> values = new ArrayList<>();
+    Object[] enumConstants = getBackingClassInfo().getEnumConstants();
+    for( Object enumConstant : enumConstants )
+    {
+      if( enumConstant instanceof IEnumValue )
+      {
+        values.add( (IEnumValue)enumConstant );
+      }
+      else if( enumConstant instanceof Enum )
+      {
+        Enum e = (Enum)enumConstant;
+        values.add( new EnumAdapter( e ) );
+      }
+    }
+    return _enumVals = values;
+  }
+
+  public IEnumValue getEnumValue( String strName )
+  {
+    for( IEnumValue val : getEnumValues() )
+    {
+      if( GosuObjectUtil.equals( val.getCode(), strName ) )
+      {
+        return val;
+      }
+    }
+
+    return null;
+  }
+
+  private class EnumAdapter implements IEnumValue, IGosuObject
+  {
+    private Enum _enum;
+
+    public EnumAdapter( Enum e )
+    {
+      _enum = e;
+    }
+
+    public String getCode()
+    {
+      return _enum.name();
+    }
+
+    public Object getValue()
+    {
+      return _enum;
+    }
+
+    public int getOrdinal()
+    {
+      return _enum.ordinal();
+    }
+
+    public String getDisplayName()
+    {
+      return getCode();
+    }
+
+    public IType getIntrinsicType()
+    {
+      return TypeSystem.getOrCreateTypeReference( JavaType.this );
+    }
   }
 }

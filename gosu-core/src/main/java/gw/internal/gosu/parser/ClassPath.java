@@ -23,15 +23,11 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import gw.util.concurrent.LocklessLazyVar;
+import manifold.api.util.DebugLogUtil;
 import manifold.util.JreUtil;
 import manifold.util.ReflectUtil;
 
