@@ -160,10 +160,18 @@ public class FqnCache<T> implements IFqnCache<T> {
         part = theRest;
         theRest = null;
       }
-      parts.add( StringCache.get( part ) );
+      parts.add( isCacheableString(part) ? StringCache.get( part ) : part );
     }
 
     return parts.toArray(new String[parts.size()]);
+  }
+
+  private static boolean isCacheableString(String part) {
+    //Gosu fragment names that start with this pattern are created at runtime and
+    //can be too numerous to cache in the string pool
+    //We cannot reference GosuFragment.FRAGMENT_NAME_PREFIX because it would introduce a circular module dependency
+    //between gosu-core and gosu-core-api so we are inlining the constant value here.
+    return !part.startsWith("__Fragment__");
   }
 
   public static String[] getParts( String fqn ) {
