@@ -118,12 +118,6 @@ public class MethodScorer {
       iScore += Byte.MAX_VALUE;
     }
 
-    if( funcType != null && funcType.hasOptionalParams() ) {
-      // Disambiguate Java varargs methods,
-      // using param count to disambiguate between vararg overloads (https://guidewirejira.atlassian.net/browse/ISGOSU-436)
-      iScore += funcType.getParameterTypes().length;
-    }
-
     return iScore;
   }
 

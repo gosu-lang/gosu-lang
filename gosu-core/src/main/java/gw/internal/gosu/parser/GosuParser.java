@@ -7871,9 +7871,18 @@ public final class GosuParser extends ParserBase implements IGosuParser
         MethodScore score1 = scoredMethods.get( 1 );
         if( score0.getScore() == score1.getScore() && score0.matchesArgSize() )
         {
-          addError( element, Res.MSG_AMBIGUOUS_METHOD_INVOCATION );
-          score0.setValid( false );
-          return score0;
+          MethodScore leastParams = findLeastParams( scoredMethods );
+          if( leastParams != null )
+          {
+            scoredMethods.remove( leastParams );
+            scoredMethods.set( 0, leastParams );
+          }
+          else
+          {
+            addError( element, Res.MSG_AMBIGUOUS_METHOD_INVOCATION );
+            score0.setValid( false );
+            return score0;
+          }
         }
       }
     }
@@ -7944,6 +7953,39 @@ public final class GosuParser extends ParserBase implements IGosuParser
       errScore.setArguments( Collections.<IExpression>emptyList() );
       return errScore;
     }
+  }
+
+  /**
+   * Param count is the tiebreaker when vararg methods are involved. The only way there can be valid method calls
+   * differing by param count is when one or more vararg methods match. If a non-vararg method matches with fewer
+   * params, this indicates the vararg method matched because the vararg argument was not present in the call.
+   */
+  private MethodScore findLeastParams( List<MethodScore> scoredMethods )
+  {
+    int least = -1;
+    MethodScore best = null;
+    long score = scoredMethods.get( 0 ).getScore(); // scores sorted best to worst
+    for( MethodScore ms: scoredMethods )
+    {
+      if( ms.getScore() > score )
+      {
+        continue;
+      }
+
+      int params = ms.getRawFunctionType().getParameterTypes().length;
+      if( params == least )
+      {
+        // duplicate param count = ambiguous, maybe the next one will have fewer params
+        best = null;
+        continue;
+      }
+      if( least < 0 || params < least )
+      {
+        least = params;
+        best = ms;
+      }
+    }
+    return best;
   }
 
   private MethodScore reparseWithCorrectFunctionAndGtfo( MethodScore bestScore, boolean bShouldScoreMethods, List<Expression> argExpressions,
