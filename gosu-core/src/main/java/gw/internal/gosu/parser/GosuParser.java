@@ -7840,7 +7840,8 @@ public final class GosuParser extends ParserBase implements IGosuParser
       score.setParserStates( parserStates );
       scoredMethods.add( score );
 
-      if( score.getScore() == 0 && !hasContextSensitiveExpression( argExpressions ) )
+      if( score.getScore() == 0 && !hasContextSensitiveExpression( argExpressions ) &&
+        (funcType == null || !funcType.hasOptionalParams()) )
       {
         // perfect score, no need to continue
 
