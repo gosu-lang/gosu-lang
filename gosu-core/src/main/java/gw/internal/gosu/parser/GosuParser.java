@@ -7976,8 +7976,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
       int params = ms.getRawFunctionType().getParameterTypes().length;
       if( params == least )
       {
-        // duplicate param count = ambiguous, maybe the next one will have fewer params
-        best = null;
+        if( best != null && ms.getRawFunctionType() != best.getRawFunctionType() )
+        {
+          // duplicate param count = ambiguous, maybe the next one will have fewer params
+          best = null;
+        }
         continue;
       }
       if( least < 0 || params < least )
