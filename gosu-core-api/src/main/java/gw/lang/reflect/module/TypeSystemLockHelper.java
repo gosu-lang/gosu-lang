@@ -89,7 +89,7 @@ public class TypeSystemLockHelper {
       b.append( '\n' );
     }
     System.err.print( b );
-    throw new RuntimeException( "Deadlock detected while loading classes" );
+    throw new RuntimeException( "Deadlock detected while loading classes\n" + b );
   }
 
   private static boolean isTypeSystemLockOwner( Thread thread )
