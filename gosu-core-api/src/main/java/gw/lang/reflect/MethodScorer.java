@@ -257,8 +257,9 @@ public class MethodScorer {
       parameterType = getGenericType( parameterType );
     }
     for( IType type : types ) {
-      if( type.isParameterizedType() ) {
-        type = getGenericType( type );
+      IType componentType = type.isArray() ? type.getComponentType() : type;
+      if( componentType.isParameterizedType() ) {
+        type = getGenericType( componentType );
         if( types.contains( type ) ) {
           // don't double-count a generic type
           continue;
