@@ -4,6 +4,11 @@ class NonstaticGosuInnerClassExtentingNonstaticJavaInnerClass extends JavaClassW
   function makeInner() : GosuInner {
     return new GosuInner()
   }
+  function makeInner(i: int) : GosuInner {
+    return new GosuInner(i)
+  }
   class GosuInner extends JavaInner {
+    construct() {}
+    construct(i: int) { super(i) }
   }
 }

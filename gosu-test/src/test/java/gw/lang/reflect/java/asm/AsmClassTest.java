@@ -136,7 +136,7 @@ public class AsmClassTest extends TestClass {
     List<AsmMethod> methods = muhInner.getDeclaredMethodsAndConstructors();
     assertEquals( Asm_InnerClasses.Muh.Inner.class.getDeclaredMethods().length + Asm_InnerClasses.Muh.Inner.class.getDeclaredConstructors().length, methods.size() );
     int i = 0;
-    assertEquals( "public void <init>(gw.lang.reflect.java.asm.Asm_InnerClasses$Muh)", methods.get( i++ ).toString() );
+    assertEquals( "public void <init>()", methods.get( i++ ).toString() );
     assertEquals( "public int compareTo(gw.lang.reflect.java.asm.Asm_InnerClasses$Muh$Inner)", methods.get( i++ ).toString() );
   }
 

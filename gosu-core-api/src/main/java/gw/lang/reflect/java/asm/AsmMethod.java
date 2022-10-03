@@ -180,11 +180,17 @@ public class AsmMethod implements IGeneric {
     _returnType = AsmUtil.makeType( returnType );
 
     Type[] params = Type.getArgumentTypes( desc );
-    for( Type param : params ) {
-      if( _parameters.isEmpty() ) {
+    for( int i = 0; i < params.length; i++ )
+    {
+      if( _parameters.isEmpty() )
+      {
         _parameters = new ArrayList<>( params.length );
       }
-      _parameters.add( AsmUtil.makeType( param ) );
+      if( i == 0 &&
+        getDeclaringClass().getEnclosingType() != null && !Modifier.isStatic(getDeclaringClass().getModifiers()) ) {
+        continue;
+      }
+      _parameters.add( AsmUtil.makeType( params[i] ) );
     }
   }
 

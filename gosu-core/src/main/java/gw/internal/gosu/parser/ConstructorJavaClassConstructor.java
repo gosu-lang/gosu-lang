@@ -7,6 +7,7 @@ package gw.internal.gosu.parser;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.parser.TypeVarToTypeMap;
 import gw.lang.reflect.IAnnotationInfo;
+import gw.lang.reflect.Modifier;
 import gw.lang.reflect.java.*;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IFeatureInfo;
@@ -54,8 +55,14 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
     if( params != null )
     {
       List<Parameter> paramInfos = new ArrayList<>();
-      for( java.lang.reflect.Parameter p: params )
+      for( int i = 0; i < params.length; i++ )
       {
+        if( i == 0 && isNonstaticInnerClass() )
+        {
+          continue;
+        }
+
+        java.lang.reflect.Parameter p = params[i];
         paramInfos.add( new Parameter( p.isNamePresent() ? p.getName() : null, p.getModifiers() ) );
       }
       return paramInfos;
@@ -80,11 +87,20 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
 
   private IJavaClassType[] getGenericParameterTypes() {
     Type[] rawTypes = _ctor.getGenericParameterTypes();
-    IJavaClassType[] types = new IJavaClassType[rawTypes.length];
+    List<IJavaClassType> types = new ArrayList<>();
     for (int i = 0; i < rawTypes.length; i++) {
-      types[i] = TypeJavaClassType.createType(rawTypes[i], _module);
+      if( i == 0 && isNonstaticInnerClass() ) {
+        continue;
+      }
+      types.add( TypeJavaClassType.createType(rawTypes[i], _module) );
     }
-    return types;
+    return types.toArray( new IJavaClassType[0] );
+  }
+
+  private boolean isNonstaticInnerClass()
+  {
+    return _ctor.getDeclaringClass().getEnclosingClass() != null &&
+      !Modifier.isStatic( _ctor.getDeclaringClass().getModifiers() );
   }
 
   @Override
@@ -98,7 +114,14 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
   }
 
   public Class[] getJavaParameterTypes() {
-    return _ctor.getParameterTypes();
+    Class[] types = _ctor.getParameterTypes();
+    if( isNonstaticInnerClass() )
+    {
+      Class[] innerTypes = new Class[types.length - 1];
+      System.arraycopy( types, 1, innerTypes, 0, innerTypes.length );
+      types = innerTypes;
+    }
+    return types;
   }
 
   public Object newInstance(Object[] objects) throws InvocationTargetException, IllegalAccessException, InstantiationException {

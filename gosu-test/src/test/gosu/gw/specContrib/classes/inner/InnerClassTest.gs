@@ -7,6 +7,8 @@ class InnerClassTest extends BaseVerifyErrantTest {
     var outerInstance = new NonstaticGosuInnerClassExtentingNonstaticJavaInnerClass()
     var innerInstance = outerInstance.makeInner()
     assertEquals( NonstaticGosuInnerClassExtentingNonstaticJavaInnerClass.GosuInner, typeof innerInstance )
+    innerInstance = outerInstance.makeInner(0)
+    assertEquals( NonstaticGosuInnerClassExtentingNonstaticJavaInnerClass.GosuInner, typeof innerInstance )
   }
 
   function testFunctionalJavaFromJavaInnerClass() {
