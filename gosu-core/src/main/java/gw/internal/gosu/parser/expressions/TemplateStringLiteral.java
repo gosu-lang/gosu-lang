@@ -43,7 +43,8 @@ public class TemplateStringLiteral extends Expression implements ITemplateString
       }
       throw new RuntimeException( "String Template failed to parse: \n" +
                                   this + 
-                                  "\nOn class: " + getGosuClass().getName() + 
+                                  "\nOn class: " + getGosuClass().getName() +
+                                  "\nOn class: " + (getGosuClass() == null ? "(no parent)" : getGosuClass().getName()) +
                                   "\n Parse Errors:\n" +
                                   s );
     }
