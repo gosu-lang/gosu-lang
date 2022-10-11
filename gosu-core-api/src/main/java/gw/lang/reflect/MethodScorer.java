@@ -10,7 +10,6 @@ import gw.lang.parser.IExpression;
 import gw.lang.parser.StandardCoercionManager;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.lang.parser.coercers.BasePrimitiveCoercer;
-import gw.lang.parser.coercers.FunctionToInterfaceCoercer;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.Pair;
 
@@ -247,7 +246,60 @@ public class MethodScorer {
   }
 
   public int addDegreesOfSeparation( IType parameterType, IType exprType, List<IType> inferringTypes ) {
-    return addDegreesOfSeparation( parameterType, exprType instanceof IInvocableType ? Collections.singleton( exprType ) : exprType.getAllTypesInHierarchy(), inferringTypes );
+
+    // first calculate degrees on first-order type
+    int degrees = addDegreesOfSeparation( parameterType,
+      exprType instanceof IInvocableType
+      ? Collections.singleton( exprType )
+      : exprType.getAllTypesInHierarchy(), inferringTypes );
+
+    // now calculate degrees on type parameters
+    int paramDegrees = addDegreesOfSeparationFromParameterization( parameterType, exprType, inferringTypes );
+
+    degrees += paramDegrees;
+
+    return degrees;
+  }
+
+  private int addDegreesOfSeparationFromParameterization( IType parameterType, IType exprType, List<IType> inferringTypes )
+  {
+    int paramDegrees = 0;
+    if( parameterType.isParameterizedType() )
+    {
+      IType mappedExprType = TypeSystem.findParameterizedType( exprType, getGenericType( parameterType ) );
+      if( mappedExprType != null && mappedExprType.isParameterizedType() )
+      {
+        IType[] typeParameters = parameterType.getTypeParameters();
+        IType[] mappedParams = mappedExprType.getTypeParameters();
+        for( int i = 0; i < typeParameters.length; i++ )
+        {
+          IType paramType = typeParameters[i];
+          IType mappedParam = mappedParams[i];
+
+          paramDegrees += addDegreesOfSeparation( paramType,
+            mappedParam instanceof IInvocableType
+            ? Collections.singleton( mappedParam )
+            : mappedParam.getAllTypesInHierarchy(), inferringTypes );
+        }
+      }
+    }
+    else if( exprType.isParameterizedType() )
+    {
+      // make score worse if passing parameterized arg type to non-parameterized param type
+      // e.g.,
+      // void foo(Object) vs. void foo(List<Object>) where arg is List<String>
+
+      for( IType exprTypeParam: exprType.getTypeParameters() )
+      {
+        paramDegrees += addDegreesOfSeparation( JavaTypes.OBJECT(),
+          exprTypeParam instanceof IInvocableType
+            ? Collections.singleton( exprTypeParam )
+            : exprTypeParam.getAllTypesInHierarchy(), inferringTypes );
+      }
+    }
+
+    // weight of degrees decreases exponentially with depth of parameterization
+    return paramDegrees/2;
   }
 
   public int addDegreesOfSeparation( IType parameterType, Set<? extends IType> types, List<IType> inferringTypes ) {

@@ -16,4 +16,14 @@ public class JavaClass
   public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
     return new HashSet<E>();
   }
+
+  public static <E> Set<E> copyOf(Collection<E> elements) {
+    return null;
+  }
+  public static <E> Set<E> copyOf(Iterable<? extends E> elements) {
+    return null;
+  }
+  public static <E> Set<E> copyOf(E... elements) {
+    return null;
+  }
 }
