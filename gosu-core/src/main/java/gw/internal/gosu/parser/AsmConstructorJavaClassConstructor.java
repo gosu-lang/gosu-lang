@@ -9,10 +9,7 @@ import gw.internal.gosu.parser.java.classinfo.AsmClassAnnotationInfo;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceType;
 import gw.internal.gosu.parser.java.classinfo.JavaSourceUtil;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.lang.reflect.IAnnotationInfo;
-import gw.lang.reflect.IFeatureInfo;
-import gw.lang.reflect.IParameterInfo;
-import gw.lang.reflect.IType;
+import gw.lang.reflect.*;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.java.IJavaClassBytecodeConstructor;
 import gw.lang.reflect.java.IJavaClassConstructor;
@@ -27,6 +24,7 @@ import gw.lang.reflect.module.IModule;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AsmConstructorJavaClassConstructor extends JavaSourceElement implements IJavaClassConstructor, IJavaClassBytecodeConstructor {
@@ -49,9 +47,22 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
   }
 
   @Override
-  public List<Parameter> getParameterInfos()
-  {
-    return _ctor.getParameterInfos();
+  public List<Parameter> getParameterInfos() {
+    List<Parameter> parameterInfos = _ctor.getParameterInfos();
+    if (parameterInfos == null || parameterInfos.isEmpty()) {
+      return parameterInfos;
+    }
+
+    if (isNonstaticInnerClass()) {
+      parameterInfos = new ArrayList<>(parameterInfos);
+      parameterInfos.remove(0); // remove implicit param for enclosing type
+    }
+    return parameterInfos;
+  }
+
+  private boolean isNonstaticInnerClass() {
+    return _ctor.getDeclaringClass().getEnclosingType() != null &&
+            !Modifier.isStatic(_ctor.getDeclaringClass().getModifiers());
   }
 
   @Override
@@ -71,21 +82,27 @@ public class AsmConstructorJavaClassConstructor extends JavaSourceElement implem
 
   private IJavaClassType[] getGenericParameterTypes() {
     List<AsmType> rawTypes = _ctor.getGenericParameters();
-    IJavaClassType[] types = new IJavaClassType[rawTypes.size()];
+    List<IJavaClassType> paramTypes = new ArrayList<>();
     for( int i = 0; i < rawTypes.size(); i++ ) {
-      types[i] = AsmTypeJavaClassType.createType( rawTypes.get( i ), _module );
+      if( i == 0 && isNonstaticInnerClass() ) {
+        continue;
+      }
+      paramTypes.add(AsmTypeJavaClassType.createType( rawTypes.get( i ), _module ));
     }
-    return types;
+    return paramTypes.toArray(new IJavaClassType[0]);
   }
 
   @Override
   public IJavaClassInfo[] getParameterTypes() {
     List<AsmType> rawParamTypes = _ctor.getParameters();
-    IJavaClassInfo[] paramTypes = new IJavaClassInfo[rawParamTypes.size()];
-    for( int i = 0; i < rawParamTypes.size(); i++ ) {
-      paramTypes[i] = JavaSourceUtil.getClassInfo( rawParamTypes.get( i ).getRawType().getNameWithArrayBrackets(), _module );
+    List<IJavaClassInfo> paramTypes = new ArrayList<>();
+    for (int i = 0; i < rawParamTypes.size(); i++) {
+      if (i == 0 && isNonstaticInnerClass()) {
+        continue;
+      }
+      paramTypes.add(JavaSourceUtil.getClassInfo(rawParamTypes.get(i).getRawType().getNameWithArrayBrackets(), _module));
     }
-    return paramTypes;
+    return paramTypes.toArray(new IJavaClassInfo[0]);
   }
 
   public Object newInstance( Object[] objects ) throws InvocationTargetException, IllegalAccessException, InstantiationException {
