@@ -25,7 +25,7 @@ public class MethodScorer {
   public static final int PRIMITIVE_COERCION_SCORE = 24;
   private static volatile MethodScorer INSTANCE = null;
 
-  private final TypeSystemAwareCache<Pair<IType, IType>, Integer> _typeScoreCache =
+  private final TypeSystemAwareCache<Pair<IType, IType>, Double> _typeScoreCache =
     TypeSystemAwareCache.make( "Type Score Cache", 1000,
                                key -> _addToScoreForTypes( Collections.<IType>emptyList(), key.getFirst(), key.getSecond() ) );
 
@@ -92,35 +92,35 @@ public class MethodScorer {
     return null;
   }
 
-  public int scoreMethod( IInvocableType funcType, List<IType> argTypes, List<IType> inferringTypes ) {
+  public double scoreMethod( IInvocableType funcType, List<IType> argTypes, List<IType> inferringTypes ) {
     IType[] paramTypes = funcType.getParameterTypes();
-    int iScore = 0;
+    double score = 0;
     for( int i = 0; i < argTypes.size(); i++ ) {
       if( paramTypes.length <= i ) {
         // Extra argument  +Max+1
-        iScore += Byte.MAX_VALUE + 1;
+        score += Byte.MAX_VALUE + 1;
         continue;
       }
       IType argType = argTypes.get( i );
       // Argument  +(0..Max)
       if( funcType instanceof IBlockType ) {
         // block params are contravariant wrt assignability between block types
-        iScore += addToScoreForTypes( inferringTypes, argType, paramTypes[i] );
+        score += addToScoreForTypes( inferringTypes, argType, paramTypes[i] );
       }
       else {
         // function params are covariant wrt assignability from a call site
-        iScore += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
+        score += addToScoreForTypes( inferringTypes, paramTypes[i], argType );
       }
     }
     for( int i = argTypes.size(); i < paramTypes.length; i++ ) {
       // Missing argument  +Max
-      iScore += Byte.MAX_VALUE;
+      score += Byte.MAX_VALUE;
     }
 
-    return iScore;
+    return score;
   }
 
-  public int addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
+  public double addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
     if( inferringTypes.isEmpty() || !(paramType instanceof IInvocableType) ) {
       paramType = inferringTypes.isEmpty() ? paramType : TypeSystem.boundTypes( paramType, inferringTypes );
       if( argType == paramType )
@@ -136,42 +136,42 @@ public class MethodScorer {
     return _addToScoreForTypes( inferringTypes, paramType, argType );
   }
 
-  public int _addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
-    int iScore;
+  public double _addToScoreForTypes( List<IType> inferringTypes, IType paramType, IType argType ) {
+    double score;
     IType primitiveArgType;
     IType primitiveParamType;
     paramType = TypeSystem.boundTypes( paramType, inferringTypes );
     if( paramType.equals( argType ) ) {
       // Same types  +0
-      iScore = 0;
+      score = 0;
     }
     else if( !paramType.isPrimitive() && argType == JavaTypes.pVOID() ) {
       // null  +1
-      iScore = 1;
+      score = 1;
     }
     else if( arePrimitiveTypesCompatible( paramType, argType ) ) {
       // Primitive coercion  +(2..9)
-      iScore = BasePrimitiveCoercer.getPriorityOf( paramType, argType );
+      score = BasePrimitiveCoercer.getPriorityOf( paramType, argType );
     }
     else if( TypeSystem.isBoxedTypeFor( paramType, argType ) ||
              TypeSystem.isBoxedTypeFor( argType, paramType ) ) {
       // Boxed coercion  +10
-      iScore = BOXED_COERCION_SCORE;
+      score = BOXED_COERCION_SCORE;
     }
     else if( argType.isPrimitive() && StandardCoercionManager.isBoxed( paramType ) &&
              arePrimitiveTypesCompatible( primitiveParamType = TypeSystem.getPrimitiveType( paramType ), argType ) ) {
       // primitive -> Boxed coercion  +10 + Primitive coercion  +(12..19)
-      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, argType );
+      score = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, argType );
     }
     else if( StandardCoercionManager.isBoxed( argType ) && paramType.isPrimitive() &&
              arePrimitiveTypesCompatible( paramType, primitiveArgType = TypeSystem.getPrimitiveType( argType ) ) ) {
       // Boxed -> primitive coercion  +10 + Primitive coercion  +(12..19)
-      iScore = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( paramType, primitiveArgType );
+      score = BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( paramType, primitiveArgType );
     }
     else if( StandardCoercionManager.isBoxed( argType ) && StandardCoercionManager.isBoxed( paramType ) &&
              arePrimitiveTypesCompatible( primitiveParamType = TypeSystem.getPrimitiveType( paramType ), primitiveArgType = TypeSystem.getPrimitiveType( argType ) ) ) {
       // Boxed -> Boxed coercion  +10 + 10 + Primitive coercion  +(22..29)
-      iScore = BOXED_COERCION_SCORE + BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
+      score = BOXED_COERCION_SCORE + BOXED_COERCION_SCORE + BasePrimitiveCoercer.getPriorityOf( primitiveParamType, primitiveArgType );
     }
     else {
       int iFunctionToInterfacePenalty = 0;
@@ -186,54 +186,54 @@ public class MethodScorer {
       }
       if( paramType instanceof IInvocableType && argType instanceof IInvocableType ) {
         // Assignable function types  0 + average-degrees-of-separation-of-sum-of-params-and-return-type
-        int iDegrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
+        double degrees = addDegreesOfSeparation( paramType, argType, inferringTypes );
         int paramCountPlusReturn = Math.max( ((IInvocableType)paramType).getParameterTypes().length,
                                    ((IInvocableType)argType).getParameterTypes().length ) + 1;
         // round up to prevent false perfect scores
-        iScore = Math.min( Byte.MAX_VALUE - 10, (iDegrees + paramCountPlusReturn - 1) / paramCountPlusReturn );
-        iScore += iFunctionToInterfacePenalty;
+        score = Math.min( Byte.MAX_VALUE - 10, ((int)degrees + paramCountPlusReturn - 1) / paramCountPlusReturn );
+        score += iFunctionToInterfacePenalty;
       }
       else {
         IType boxedArgType;
         if( argType.isPrimitive() && argType != JavaTypes.pVOID() && !paramType.isPrimitive() &&
             paramType.isAssignableFrom( boxedArgType = TypeSystem.getBoxType( argType ) ) ) {
           // Autobox type assignable  10 + Assignable degrees-of-separation
-          iScore = BOXED_COERCION_SCORE + addDegreesOfSeparation( paramType, boxedArgType, inferringTypes );
+          score = BOXED_COERCION_SCORE + addDegreesOfSeparation( paramType, boxedArgType, inferringTypes );
         }
         else if( paramType.isAssignableFrom( argType ) ) {
           if( !(argType instanceof IInvocableType) ) {
             // Assignable types  0 + degrees-of-separation
-            iScore = addDegreesOfSeparation( paramType, argType, inferringTypes );
+            score = addDegreesOfSeparation( paramType, argType, inferringTypes );
           }
           else {
             // Crooked assignable types involving function type and non-function type  +Max - 2
-            iScore = Byte.MAX_VALUE - 2;
+            score = Byte.MAX_VALUE - 2;
           }
         }
         else if( StandardCoercionManager.isStructurallyAssignable( paramType, argType ) ) {
           // Structurally assignable types  +Max - 2
-          iScore = Byte.MAX_VALUE - 2;
+          score = Byte.MAX_VALUE - 2;
         }
         else {
           ICoercer iCoercer = CommonServices.getCoercionManager().findCoercer( paramType, argType, false );
           if( iCoercer != null ) {
             if( iCoercer instanceof BasePrimitiveCoercer ) {
               // Coercible (non-standard primitive)  +24 + primitive-coercion-score  (0 is best score for primitive coercer)
-              iScore = PRIMITIVE_COERCION_SCORE + iCoercer.getPriority( paramType, argType );
+              score = PRIMITIVE_COERCION_SCORE + iCoercer.getPriority( paramType, argType );
             }
             else {
               // Coercible  +Max - priority - 1
-              iScore = Byte.MAX_VALUE - iCoercer.getPriority( paramType, argType ) - 1;
+              score = Byte.MAX_VALUE - iCoercer.getPriority( paramType, argType ) - 1;
             }
           }
           else {
             // Type not compatible  +Max-1
-            iScore = Byte.MAX_VALUE - 1;
+            score = Byte.MAX_VALUE - 1;
           }
         }
       }
     }
-    return iScore;
+    return score;
   }
 
   private boolean arePrimitiveTypesCompatible( IType paramType, IType argType ) {
@@ -245,25 +245,25 @@ public class MethodScorer {
             BasePrimitiveCoercer.losesInformation( argType, paramType ) <= 1);
   }
 
-  public int addDegreesOfSeparation( IType parameterType, IType exprType, List<IType> inferringTypes ) {
+  public double addDegreesOfSeparation( IType parameterType, IType exprType, List<IType> inferringTypes ) {
 
-    // first calculate degrees on first-order type
-    int degrees = addDegreesOfSeparation( parameterType,
+    // first, calculate degrees on first-order type
+    double degrees = addDegreesOfSeparation( parameterType,
       exprType instanceof IInvocableType
       ? Collections.singleton( exprType )
       : exprType.getAllTypesInHierarchy(), inferringTypes );
 
-    // now calculate degrees on type parameters
-    int paramDegrees = addDegreesOfSeparationFromParameterization( parameterType, exprType, inferringTypes );
+    // now, calculate degrees on type parameters, this is the fractional part of the score
+    double paramDegrees = addDegreesOfSeparationFromParameterization( parameterType, exprType, inferringTypes );
 
     degrees += paramDegrees;
 
     return degrees;
   }
 
-  private int addDegreesOfSeparationFromParameterization( IType parameterType, IType exprType, List<IType> inferringTypes )
+  private double addDegreesOfSeparationFromParameterization( IType parameterType, IType exprType, List<IType> inferringTypes )
   {
-    int paramDegrees = 0;
+    double paramDegrees = 0;
     if( parameterType.isParameterizedType() )
     {
       IType mappedExprType = TypeSystem.findParameterizedType( exprType, getGenericType( parameterType ) );
@@ -299,11 +299,11 @@ public class MethodScorer {
     }
 
     // weight of degrees decreases exponentially with depth of parameterization
-    return paramDegrees/2;
+    return paramDegrees/1000;
   }
 
-  public int addDegreesOfSeparation( IType parameterType, Set<? extends IType> types, List<IType> inferringTypes ) {
-    int iScore = 0;
+  public double addDegreesOfSeparation( IType parameterType, Set<? extends IType> types, List<IType> inferringTypes ) {
+    double degrees = 0;
 
     if( parameterType.isParameterizedType() ) {
       parameterType = getGenericType( parameterType );
@@ -324,16 +324,16 @@ public class MethodScorer {
       }
       if( parameterType instanceof IInvocableType && type instanceof IInvocableType ) {
         // Recursively apply over params and return type
-        iScore += scoreMethod( (IInvocableType)parameterType, Arrays.asList( ((IInvocableType)type).getParameterTypes() ), inferringTypes );
+        degrees += scoreMethod( (IInvocableType)parameterType, Arrays.asList( ((IInvocableType)type).getParameterTypes() ), inferringTypes );
         if( parameterType instanceof IFunctionType && type instanceof IFunctionType ) {
-          iScore += addToScoreForTypes( inferringTypes, ((IFunctionType)parameterType).getReturnType(), ((IFunctionType)type).getReturnType() );
+          degrees += addToScoreForTypes( inferringTypes, ((IFunctionType)parameterType).getReturnType(), ((IFunctionType)type).getReturnType() );
         }
       }
       else if( parameterType.isAssignableFrom( type ) ) {
-        iScore += 1;
+        degrees += 1;
       }
     }
-    return iScore;
+    return degrees;
   }
 
   public <E extends IType> E getGenericType( E type ) {

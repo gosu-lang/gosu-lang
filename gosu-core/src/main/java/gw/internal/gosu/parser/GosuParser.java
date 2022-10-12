@@ -7965,7 +7965,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     int least = -1;
     MethodScore best = null;
-    long score = scoredMethods.get( 0 ).getScore(); // scores sorted best to worst
+    double score = scoredMethods.get( 0 ).getScore(); // scores sorted best to worst
     for( MethodScore ms: scoredMethods )
     {
       if( ms.getScore() > score )
@@ -8090,7 +8090,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     backtrackArgParsing( mark, iLocationsCount, argExpressions );
     MethodScorer.MethodScoreKey key = null;
-    long score = bestScore.getScore();
+    double score = bestScore.getScore();
     if( !getContextType().isMethodScoring() )
     {
       // cache the score so other call sites can avoid scoring
@@ -8174,7 +8174,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
   {
     List<MethodScore> factored = new ArrayList<>( scoredMethods.size() );
     List<MethodScore> noErrors = new ArrayList<>( scoredMethods.size() );
-    long bestScore = -1;
+    double bestScore = -1;
     for( MethodScore score : scoredMethods )
     {
       boolean bErrors = false;

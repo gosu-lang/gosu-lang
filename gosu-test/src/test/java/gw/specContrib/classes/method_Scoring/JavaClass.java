@@ -26,4 +26,11 @@ public class JavaClass
   public static <E> Set<E> copyOf(E... elements) {
     return null;
   }
+
+  public static Object assertThat(Object foo) {
+    return null;
+  }
+  public static Map<Object, Object> assertThat(Map<Object, Object> foo) {
+    return null;
+  }
 }

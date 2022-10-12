@@ -11,7 +11,7 @@ import java.util.List;
 
 public final class MethodScore implements Comparable<MethodScore>
 {
-  private long _iScore;
+  private double _score;
   private boolean _bValid;
   private IInvocableType _rawFuncType;
   private IInvocableType _inferredFuncType;
@@ -54,17 +54,17 @@ public final class MethodScore implements Comparable<MethodScore>
     return _bValid;
   }
 
-  public long getScore()
+  public double getScore()
   {
-    return _iScore;
+    return _score;
   }
-  public void setScore( long iScore )
+  public void setScore( double score )
   {
-    _iScore = iScore;
+    _score = score;
   }
-  public void incScore( int amount )
+  public void incScore( double amount )
   {
-    _iScore += amount;
+    _score += amount;
   }
 
   public void setValid( boolean valid )
@@ -103,13 +103,13 @@ public final class MethodScore implements Comparable<MethodScore>
   public int compareTo( MethodScore o )
   {
     // if the scores are the same, compare their signatures for great stability justice
-    if( _iScore == o._iScore )
+    if( _score == o._score )
     {
       return o._rawFuncType.getParamSignature().toString().compareTo( _rawFuncType.getParamSignature().toString() );
     }
     else
     {
-      return _iScore > o._iScore ? 1 : -1;
+      return _score > o._score ? 1 : -1;
     }
   }
 
