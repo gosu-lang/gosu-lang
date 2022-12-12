@@ -5,16 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.ir.transform.util.IRTypeResolver;
-import gw.internal.gosu.parser.expressions.BlockExpression;
-import gw.internal.gosu.parser.expressions.ClassDeclaration;
-import gw.internal.gosu.parser.expressions.InterfacesClause;
-import gw.internal.gosu.parser.expressions.MethodCallExpression;
-import gw.internal.gosu.parser.expressions.NameInDeclaration;
-import gw.internal.gosu.parser.expressions.NullExpression;
-import gw.internal.gosu.parser.expressions.ParameterListClause;
-import gw.internal.gosu.parser.expressions.SuperTypeClause;
-import gw.internal.gosu.parser.expressions.TypeLiteral;
-import gw.internal.gosu.parser.expressions.TypeVariableDefinitionImpl;
+import gw.internal.gosu.parser.expressions.*;
 import gw.internal.gosu.parser.statements.ClassStatement;
 import gw.internal.gosu.parser.statements.ConstructorStatement;
 import gw.internal.gosu.parser.statements.DelegateStatement;
@@ -294,6 +285,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       // Don't need an isolated scope here because class members are all dynamic
       // and, therefore, don't have to be indexed wrt an isolated scope.
       getSymbolTable().pushScope();
+      HashMap<String, ITypeVariableDefinition> typeVariablesCopy = (HashMap<String, ITypeVariableDefinition>)getOwner().getTypeVariables().clone();
       try
       {
         //## todo: reparsing header with annotations this time, any chance we can do that the first time we parse the header, so we can avoid doing it twice?
@@ -321,6 +313,8 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           setLocation( 0, 1, _iClassColumn, true );
           popStatement();
         }
+
+        restoreTypeVars( typeVariablesCopy );
       }
       classStmt.compactParseTree();
     }
@@ -333,8 +327,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       getOwner().popScriptPart( scriptPartId );
       popScopeIfNeeded( bPushedScope, gsClass );
       getTokenizer().popOffsetMarker( this );
-
-      removeTypeVarsFromParserMap( gsClass );
     }
   }
 
@@ -392,6 +384,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           // Don't need an isolated scope here because class members are all dynamic
           // and, therefore, don't have to be indexed wrt an isolated scope.
           getSymbolTable().pushScope();
+          HashMap<String, ITypeVariableDefinition> typeVariablesCopy = (HashMap<String, ITypeVariableDefinition>)getOwner().getTypeVariables().clone();
           try
           {
             //
@@ -446,6 +439,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
             {
               consumeTrailingTokens();
             }
+            restoreTypeVars( typeVariablesCopy );
             gsClass.setDefinitionsCompiled();
           }
         }
@@ -494,7 +488,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       }
       popScopeIfNeeded( bPushedScope, gsClass );
       getTokenizer().popOffsetMarker( this );
-      removeTypeVarsFromParserMap( gsClass );
 
       getOwner()._iReturnOk--;
       pushStatement( _classStmt.getClassFileStatement() );
@@ -1582,6 +1575,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     ScriptPartId scriptPartId = new ScriptPartId( gsClass, null );
     getOwner().pushScriptPart( scriptPartId );
     GosuClassCompilingStack.pushCompilingType( gsClass );
+    HashMap<String, ITypeVariableDefinition> typeVariablesCopy = (HashMap<String, ITypeVariableDefinition>)getOwner().getTypeVariables().clone();
     try
     {
       setTokenizerToClassStart();
@@ -1764,7 +1758,22 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           gsClass.setEnum();
         }
-        return parseClassOrInterfaceHeaderSuffix( gsClass, classType, bResolveUsesTypes );
+        boolean isStatic = gsClass.isStatic();
+        if( isStatic )
+        {
+          getOwner().pushParsingStaticMember( true );
+        }
+        try
+        {
+          return parseClassOrInterfaceHeaderSuffix( gsClass, classType, bResolveUsesTypes );
+        }
+        finally
+        {
+          if( isStatic )
+          {
+            getOwner().pushParsingStaticMember( true );
+          }
+        }
       }
       else
       {
@@ -1794,22 +1803,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       getTokenizer().popOffsetMarker( this );
       if( !bHeaderCompiled )
       {
-        removeTypeVarsFromParserMap( gsClass );
+        restoreTypeVars( typeVariablesCopy );
       }
     }
   }
 
-  private void removeTypeVarsFromParserMap( IGosuClassInternal gsClass )
+  private void restoreTypeVars( HashMap<String, ITypeVariableDefinition> typeVariablesCopy )
   {
-    for( IGenericTypeVariable gtv : gsClass.getGenericTypeVariables() )
-    {
-      ITypeVariableDefinition typeVarDef = gtv.getTypeVariableDefinition();
-      Map<String, ITypeVariableDefinition> typeVarMap = getOwner().getTypeVariables();
-      if( typeVarMap.containsValue( typeVarDef ) )
-      {
-        typeVarMap.remove( typeVarDef.getName() );
-      }
-    }
+    getOwner().setTypeVariables( typeVariablesCopy );
   }
 
   private boolean pushScopeIfNeeded( final IGosuClassInternal gsClass )

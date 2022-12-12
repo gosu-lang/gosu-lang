@@ -23,6 +23,7 @@ import gw.lang.reflect.java.IJavaMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.fingerprint.FP64;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -64,9 +65,7 @@ public class FunctionToInterfaceClassGenerator {
       // class must already have been compiled
       try {
         Class<?> cls = GosuClassLoader.instance().getActualLoader().loadClass( ((IGosuClass)enclosingType).getBackingClass().getName() + "$" + PROXY_FOR + fp );
-        Field field = cls.getDeclaredField( "$REDRUM" );
-        field.setAccessible( true );
-        name = (String)field.get( null );
+        name = (String)ReflectUtil.field( cls, "$REDRUM" ).getStatic();
       }
       catch( Exception e ) {
         throw new RuntimeException( e );

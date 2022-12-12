@@ -38,6 +38,7 @@ import gw.lang.reflect.gs.IProgramInstance;
 import gw.lang.reflect.java.JavaTypes;
 import gw.util.ContextSymbolTableUtil;
 import gw.util.GosuExceptionUtil;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -86,9 +87,8 @@ public class ContextSensitiveCodeRunner
       {
         cls = ContextSensitiveCodeRunner.class;
       }
-      Method m = cls.getDeclaredMethod( "_runMeSomeCode", Object.class, Object[].class, String.class, String.class, String.class, int.class );
-      m.setAccessible( true );
-      return m.invoke( null, enclosingInstance, extSyms, strText, strClassContext, strContextElementClass, iSourcePosition );
+      return ReflectUtil.method( cls, "_runMeSomeCode", Object.class, Object[].class, String.class, String.class, String.class, int.class )
+        .invoke( null, enclosingInstance, extSyms, strText, strClassContext, strContextElementClass, iSourcePosition );
     }
     catch( Exception e ) {
       e.printStackTrace();
@@ -140,9 +140,7 @@ public class ContextSensitiveCodeRunner
       enclosingClass = enclosingClass.getEnclosingType();
       try
       {
-        Field f = outer.getClass().getDeclaredField( "this$0" );
-        f.setAccessible( true );
-        outer = f.get( outer );
+        outer = ReflectUtil.field( outer, "this$0" ).get();
       }
       catch( Exception e )
       {

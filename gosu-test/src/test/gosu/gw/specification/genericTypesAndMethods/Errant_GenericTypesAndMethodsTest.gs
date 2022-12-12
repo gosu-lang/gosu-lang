@@ -49,4 +49,8 @@ class Errant_GenericTypesAndMethodsTest {
     var v9 : S<dynamic.Dynamic>
   }
 
+  static class OuterClass<T> {
+    class NonstaticInnerClass<T> {}  //## issuekeys: MSG_VARIABLE_ALREADY_DEFINED
+    static class StaticInnerClass<T> {}
+  }
 }

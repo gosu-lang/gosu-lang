@@ -86,9 +86,9 @@ public class GosuVisitorTest extends TestCase {
     verify("TestAnnotation");
   }
 
-  public void testJava8() {
-    verify("TestJava8");
-  }
+//  public void testJava8() {
+//    verify("TestJava8");
+//  }
 
   public void testIllegalSyntax() {
     String out = null;

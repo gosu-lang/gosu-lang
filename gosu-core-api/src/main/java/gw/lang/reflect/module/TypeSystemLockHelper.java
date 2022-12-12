@@ -9,6 +9,7 @@ import gw.lang.UnstableAPI;
 import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
 import gw.util.ILogger;
+import manifold.util.ReflectUtil;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -97,9 +98,7 @@ public class TypeSystemLockHelper {
   {
     ReentrantLock lock = (ReentrantLock)TypeSystem.getGlobalLock();
     try {
-      Method getOwner = ReentrantLock.class.getDeclaredMethod( "getOwner" );
-      getOwner.setAccessible( true );
-      return getOwner.invoke( lock ) == thread;
+      return ReflectUtil.method( lock, "getOwner" ).invoke() == thread;
     }
     catch( Exception e ) {
       throw new RuntimeException( e );

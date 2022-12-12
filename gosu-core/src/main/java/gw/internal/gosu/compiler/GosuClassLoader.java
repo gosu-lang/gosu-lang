@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import manifold.internal.runtime.Bootstrap;
 import manifold.internal.runtime.UrlClassLoaderWrapper;
+import manifold.util.ReflectUtil;
 
 public class GosuClassLoader implements IGosuClassLoader
 {
@@ -385,9 +386,8 @@ public class GosuClassLoader implements IGosuClassLoader
     TypeSystem.lock();
     try
     {
-      Method defineClass = ClassLoader.class.getDeclaredMethod( "defineClass", String.class, byte[].class, int.class, int.class );
-      defineClass.setAccessible( true );
-      return (Class)defineClass.invoke( _loader, name, bytes, 0, bytes.length );
+      return (Class)ReflectUtil.method( ClassLoader.class, "defineClass", String.class, byte[].class, int.class, int.class )
+       .invoke( _loader, name, bytes, 0, bytes.length );
     }
     catch( Exception e )
     {

@@ -17,6 +17,8 @@ import gw.lang.reflect.java.IJavaType;
 import gw.lang.reflect.java.JavaTypes;
 import java.nio.file.Path;
 import gw.util.PathUtil;
+import manifold.util.ReflectUtil;
+
 import java.awt.AWTEvent;
 import java.awt.ActiveEvent;
 import java.awt.Color;
@@ -646,18 +648,8 @@ public class EditorUtilities
 
   public static void hideToolTip( JComponent c )
   {
-    try
-    {
-      Method hideMethod = ToolTipManager.class.getDeclaredMethod( "hide", JComponent.class );
-      hideMethod.setAccessible( true );
-      hideMethod.invoke( ToolTipManager.sharedInstance(), c );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
+    ReflectUtil.method( ToolTipManager.sharedInstance(), "hide", JComponent.class ).invoke( c );
   }
-
 
   public static JRootPane rootPaneForComponent( Component comp )
   {

@@ -9,10 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -262,7 +259,7 @@ public class Start extends gw.gosudoc.com.sun.tools.javadoc.main.ToolOption.Help
 
         // Preprocess @file arguments
         try {
-            argv = CommandLine.parse(argv);
+            argv = CommandLine.parse( Arrays.asList(argv) ).toArray(new String[0]);
         } catch (FileNotFoundException e) {
             messager.error( Messager.NOPOS, "main.cant.read", e.getMessage());
             exit();

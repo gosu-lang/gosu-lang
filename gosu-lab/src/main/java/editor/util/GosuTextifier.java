@@ -2,8 +2,9 @@ package editor.util;
 
 import gw.internal.ext.org.objectweb.asm.Attribute;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
-import gw.internal.ext.org.objectweb.asm.util.Textifiable;
+//import gw.internal.ext.org.objectweb.asm.util.Textifiable;
 import gw.internal.ext.org.objectweb.asm.util.Textifier;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -22,19 +23,19 @@ public class GosuTextifier extends Textifier
     stringBuilder.append( tab ).append( "ATTRIBUTE " );
     appendDescriptor( -1, attr.type );
 
-    if( attr instanceof Textifiable )
-    {
-      ((Textifiable)attr).textify( new StringBuffer( stringBuilder ), null );
-    }
-    else
-    {
+//    if( attr instanceof Textifiable )
+//    {
+//      ((Textifiable)attr).textify( new StringBuffer( stringBuilder ), null );
+//    }
+//    else
+//    {
       byte[] data;
       try
       {
         Class<Attribute> aClass = Attribute.class;
 
         Field[] fields = aClass.getDeclaredFields();
-        fields[1].setAccessible( true );
+        ReflectUtil.setAccessible( fields[1] );
         data = (byte[])fields[1].get( attr );
       }
       catch( Exception e )
@@ -47,7 +48,7 @@ public class GosuTextifier extends Textifier
         stringBuilder.append( new String( data, StandardCharsets.US_ASCII ) );
       }
       stringBuilder.append( '\n' );
-    }
+//    }
     text.add( stringBuilder.toString() );
   }
 

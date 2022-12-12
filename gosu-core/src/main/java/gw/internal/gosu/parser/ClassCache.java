@@ -15,9 +15,8 @@ import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IClassPath;
 import gw.lang.reflect.module.IModule;
 import gw.util.concurrent.LockingLazyVar;
+import manifold.util.ReflectUtil;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -205,7 +204,7 @@ public class ClassCache {
 
   /**
    * Short-circuit the case where com.foo.Fred is not a class name, but
-   * com.foo is a package.  Avoid the expensive test for com.foo$Fred as a an
+   * com.foo is a package.  Avoid the expensive test for com.foo$Fred as an
    * inner class (and then com$foo$Fred).
    * <p>
    * Yes, java supports a package and a class having the same name, but in this case
@@ -219,7 +218,8 @@ public class ClassCache {
   private boolean isPackage( StringBuilder s, int i ) {
     try {
       String maybePackage = s.substring( 0, i );
-      if( getPackageMethod().invoke( _module.getModuleClassLoader(), maybePackage ) != null ) {
+      if( ReflectUtil.method( ClassLoader.class, "getPackage", String.class )
+        .invoke( _module.getModuleClassLoader(), maybePackage ) != null ) {
         return true;
       }
     }
@@ -227,20 +227,6 @@ public class ClassCache {
       throw new RuntimeException( e );
     }
     return false;
-  }
-
-  private static Method _getPackageMethod = null;
-  private Method getPackageMethod() {
-    if( _getPackageMethod == null ) {
-      try {
-        _getPackageMethod = ClassLoader.class.getDeclaredMethod("getPackage", String.class);
-        _getPackageMethod.setAccessible( true );
-      }
-      catch (NoSuchMethodException e) {
-        throw new RuntimeException( e );
-      }
-    }
-    return _getPackageMethod;
   }
 
   private Class loadClassImplImpl(String type) {

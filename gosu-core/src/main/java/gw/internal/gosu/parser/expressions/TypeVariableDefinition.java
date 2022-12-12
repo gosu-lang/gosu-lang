@@ -58,7 +58,7 @@ public class TypeVariableDefinition extends Expression implements ITypeVariableD
   }
 
   // Copy constructor used for cloning
-  private TypeVariableDefinition(TypeVariableDefinitionImpl typeVarDef, boolean isFunctionStatement) {
+  public TypeVariableDefinition(TypeVariableDefinitionImpl typeVarDef, boolean isFunctionStatement) {
     _typeVarDef = typeVarDef;
     _type = new TypeVariableType( _typeVarDef, isFunctionStatement );
   }
