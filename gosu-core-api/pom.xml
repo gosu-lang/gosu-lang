@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
       <artifactId>gw-asm-all</artifactId>
-      <version>7.8</version>
+      <version>9.2</version>
     </dependency>
     <dependency>
       <groupId>org.gosu-lang.gosu.managed</groupId>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>systems.manifold</groupId>
       <artifactId>manifold</artifactId>
-      <version>2021.1.12</version>
+      <version>2022.1.33</version>
     </dependency>
   </dependencies>
 

@@ -12,6 +12,7 @@ import gw.lang.reflect.*;
 import gw.lang.reflect.gs.IGosuVarPropertyInfo;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.JavaTypes;
+import manifold.util.ReflectUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -316,9 +317,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
       IGosuClass gsClass = (IGosuClass)getContainer().getOwnersType();
       try
       {
-        Field field = gsClass.getBackingClass().getDeclaredField( _strIdentifer );
-        field.setAccessible( true );
-        return field.get( ctx );
+        return ReflectUtil.field( gsClass.getBackingClass(), _strIdentifer ).get( ctx );
       }
       catch( Exception e )
       {
@@ -331,9 +330,7 @@ public class GosuVarPropertyInfo extends GosuBaseAttributedFeatureInfo implement
       IGosuClass gsClass = _gosuClass;
       try
       {
-        Field field = gsClass.getBackingClass().getDeclaredField( _strIdentifer );
-        field.setAccessible( true );
-        field.set( ctx, value );
+        ReflectUtil.field( gsClass.getBackingClass(), _strIdentifer ).set( ctx, value );
       }
       catch( Exception e )
       {

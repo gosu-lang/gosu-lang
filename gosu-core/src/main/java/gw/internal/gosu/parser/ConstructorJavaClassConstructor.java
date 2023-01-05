@@ -12,6 +12,7 @@ import gw.lang.reflect.java.*;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.module.IModule;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -31,7 +32,7 @@ public class ConstructorJavaClassConstructor implements IJavaClassConstructor, I
   }
 
   public void setAccessible(boolean accessible) {
-    _ctor.setAccessible(accessible);
+    ReflectUtil.setAccessible( _ctor );
   }
 
   public Class getDeclaringJavaClass() {

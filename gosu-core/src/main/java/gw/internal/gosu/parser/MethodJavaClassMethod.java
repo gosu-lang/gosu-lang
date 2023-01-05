@@ -13,6 +13,7 @@ import gw.lang.reflect.FunctionType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.Parameter;
 import gw.lang.reflect.module.IModule;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.*;
 import java.lang.annotation.Annotation;
@@ -133,7 +134,7 @@ public class MethodJavaClassMethod implements IJavaClassMethod, IJavaClassByteco
   }
 
   public void setAccessible(boolean accessible) {
-    _method.setAccessible(accessible);
+    ReflectUtil.setAccessible( _method );
   }
 
   @Override

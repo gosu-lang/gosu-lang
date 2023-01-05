@@ -9,10 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -35,6 +32,8 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 import gw.gosudoc.com.sun.javadoc.LanguageVersion;
+import manifold.util.JreUtil;
+import manifold.util.ReflectUtil;
 
 import static com.sun.tools.javac.code.Flags.*;
 
@@ -262,7 +261,14 @@ public class Start extends gw.gosudoc.com.sun.tools.javadoc.main.ToolOption.Help
 
         // Preprocess @file arguments
         try {
-            argv = CommandLine.parse(argv);
+            if( JreUtil.isJava17orLater() ) {
+                List<String> args = (List<String>)ReflectUtil.method( CommandLine.class, "parse", List.class )
+                  .invokeStatic( Arrays.asList(argv) );
+                argv = args.toArray(new String[0]);
+            }
+            else { // Java 11
+                argv = CommandLine.parse(argv);
+            }
         } catch (FileNotFoundException e) {
             messager.error( Messager.NOPOS, "main.cant.read", e.getMessage());
             exit();

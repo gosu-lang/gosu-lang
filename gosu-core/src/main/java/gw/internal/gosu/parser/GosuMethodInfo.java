@@ -190,7 +190,7 @@ public class GosuMethodInfo extends AbstractGenericMethodInfo implements IGosuMe
     {
       throw new IllegalStateException( "Could not find method " + strName + "(" + GosuStringUtil.join( ",", argClasses ) + ") on " + clazz );
     }
-    method.setAccessible( true );
+    manifold.util.ReflectUtil.setAccessible( method );
     return method;
   }
 

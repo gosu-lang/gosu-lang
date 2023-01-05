@@ -508,17 +508,17 @@ public class ConfigurationImpl extends Configuration
                     reporter.printError(getText("doclet.Option_doclint_no_qualifiers"));
                     return false;
                 }
-                if (!DocLint.isValidOption(
-                        opt.replace("-xdoclint:", DocLint.XMSGS_CUSTOM_PREFIX))) {
-                    reporter.printError(getText("doclet.Option_doclint_invalid_arg"));
-                    return false;
-                }
+//                if (!DocLint.isValidOption(
+//                        opt.replace("-xdoclint:", DocLint.XMSGS_CUSTOM_PREFIX))) {
+//                    reporter.printError(getText("doclet.Option_doclint_invalid_arg"));
+//                    return false;
+//                }
             } else if (opt.startsWith("-xdoclint/package:")) {
-                if (!DocLint.isValidOption(
-                        opt.replace("-xdoclint/package:", DocLint.XCHECK_PACKAGE))) {
-                    reporter.printError(getText("doclet.Option_doclint_package_invalid_arg"));
-                    return false;
-                }
+//                if (!DocLint.isValidOption(
+//                        opt.replace("-xdoclint/package:", DocLint.XCHECK_PACKAGE))) {
+//                    reporter.printError(getText("doclet.Option_doclint_package_invalid_arg"));
+//                    return false;
+//                }
             }
         }
         return true;

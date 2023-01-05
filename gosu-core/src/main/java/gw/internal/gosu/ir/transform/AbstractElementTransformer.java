@@ -133,6 +133,7 @@ import gw.lang.reflect.java.JavaTypes;
 import gw.lang.reflect.module.IModule;
 import gw.util.Rational;
 import gw.util.concurrent.LocklessLazyVar;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -2362,7 +2363,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     {
       if( f.getName().equals( strName ) )
       {
-        f.setAccessible( true );
+        ReflectUtil.setAccessible( f );
         return f;
       }
     }
@@ -2426,7 +2427,7 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
           }
           if( bFound )
           {
-            m.setAccessible( true );
+            ReflectUtil.setAccessible( m );
             return m;
           }
         }

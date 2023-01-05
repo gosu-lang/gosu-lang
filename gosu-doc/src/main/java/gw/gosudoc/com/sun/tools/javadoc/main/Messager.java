@@ -98,7 +98,7 @@ public class Messager extends Log implements gw.gosudoc.com.sun.javadoc.DocError
                        PrintWriter errWriter,
                        PrintWriter warnWriter,
                        PrintWriter noticeWriter) {
-        super(context, errWriter, warnWriter, noticeWriter);
+        super(context, noticeWriter, errWriter);
         messages = JavacMessages.instance(context);
         messages.add(locale -> ResourceBundle.getBundle("gw.gosudoc.com.sun.tools.javadoc.resources.javadoc",
                                                          locale));
