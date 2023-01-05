@@ -6,8 +6,8 @@ import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.plaf.basic.BasicGraphicsUtils;
 
+import manifold.util.ReflectUtil;
 import sun.awt.AppContext;
-import sun.swing.SwingUtilities2;
 
 /**
  * Needed to properly handle painting of disabled text
@@ -30,7 +30,9 @@ public class LabButtonUI extends WindowsButtonUI
   protected void paintText( Graphics g, AbstractButton b, Rectangle textRect, String text )
   {
     ButtonModel model = b.getModel();
-    FontMetrics fm = SwingUtilities2.getFontMetrics( b, g );
+
+    FontMetrics fm = (FontMetrics)ReflectUtil.method( "sun.swing.SwingUtilities2", "getFontMetrics", JComponent.class, Graphics.class )
+      .invokeStatic( b, g );
     int mnemIndex = b.getDisplayedMnemonicIndex();
 
     if( model.isEnabled() )
@@ -41,7 +43,9 @@ public class LabButtonUI extends WindowsButtonUI
     {
       g.setColor( UIManager.getColor( "Button.disabledForeground" ) );
     }
-    SwingUtilities2.drawStringUnderlineCharAt( b, g, text, mnemIndex, textRect.x, textRect.y + fm.getAscent() );
+    ReflectUtil.method( "sun.swing.SwingUtilities2", "drawStringUnderlineCharAt",
+      JComponent.class, Graphics.class, String.class, int.class, int.class, int.class )
+      .invokeStatic( b, g, text, mnemIndex, textRect.x, textRect.y + fm.getAscent() );
   }
 }
 

@@ -20,6 +20,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuConstructorInfo;
 import gw.lang.reflect.java.GosuTypes;
 import gw.util.GosuExceptionUtil;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -146,10 +147,7 @@ public class GosuConstructorInfo extends AbstractGenericMethodInfo implements IG
           paramClasses[i] = IRElement.maybeEraseStructuralType( explicitParameterTypes.get( i ) ).getJavaClass();
         }
         Constructor<?> constructor = aClass.getDeclaredConstructor( paramClasses );
-        if( !constructor.isAccessible() )
-        {
-          constructor.setAccessible( true );
-        }
+        ReflectUtil.setAccessible( constructor );
         return constructor.newInstance( args.toArray() );
       }
       catch( InvocationTargetException e )

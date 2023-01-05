@@ -15,6 +15,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.parser.EvaluationException;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuClassUtil;
+import manifold.util.ReflectUtil;
 
 /**
  * Handles Gosu->Java method call adaptation
@@ -28,7 +29,7 @@ public class MethodCallAdapter implements IMethodCallHandler
   {
     _method = method;
     _argTypes = method.getParameterTypes(); // Cache this so we don't have to create a copy every time
-    _method.setAccessible( true );
+    ReflectUtil.setAccessible( _method );
   }
 
   public Object handleCall( Object ctx, Object... argValues )

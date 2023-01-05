@@ -7,6 +7,7 @@ package gw.config;
 
 import gw.lang.parser.ILanguageLevel;
 import gw.util.Stack;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -109,9 +110,7 @@ public abstract class ServiceKernel
 
   protected <T extends IService> void defineService(Class<? extends T> serviceClass, Class<? extends T> implClass ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException
   {
-    Constructor ctor = implClass.getDeclaredConstructor();
-    ctor.setAccessible( true );
-    T serviceImpl = (T)ctor.newInstance();
+    T serviceImpl = (T)ReflectUtil.constructor( implClass ).newInstance();
     defineService( serviceClass, serviceImpl );
   }
   /**

@@ -19,6 +19,7 @@ import gw.gosudoc.com.sun.tools.doclets.internal.toolkit.util.FatalError;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Position;
+import manifold.util.ReflectUtil;
 
 /**
  * abstract base class of all Doc classes.  Doc item's are representations
@@ -121,7 +122,7 @@ public abstract class DocImpl implements gw.gosudoc.com.sun.javadoc.Doc, Compara
                     && treePath != null
                     && env.shouldCheck(treePath.getCompilationUnit())
                     && d.equals(getCommentText(treePath))) {
-                env.doclint.scan(treePath);
+                ReflectUtil.method( env.doclint, "scan", TreePath.class ).invoke(treePath);
             }
             comment = new gw.gosudoc.com.sun.tools.javadoc.main.Comment(this, d);
         }

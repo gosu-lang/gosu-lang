@@ -10,6 +10,7 @@ import gw.lang.parser.IParseIssue;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.gs.IGosuClass;
+import manifold.util.ReflectUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -440,8 +441,6 @@ public class InnerClassTest extends ByteCodeTestBase
 
   private IGosuObject getEnclosingClassInstance( IGosuObject obj ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
   {
-    Method m = obj.getClass().getDeclaredMethod( "access$0", obj.getClass() );
-    m.setAccessible( true );
-    return (IGosuObject)m.invoke( null, obj );
+    return (IGosuObject)ReflectUtil.method( obj.getClass(), "access$0", obj.getClass() ).invokeStatic( obj );
   }
 }

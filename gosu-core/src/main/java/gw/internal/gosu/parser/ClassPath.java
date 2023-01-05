@@ -146,7 +146,7 @@ public class ClassPath implements IClassPath
   }
 
   private void addJreJars( List<IDirectory> javaClassPath )
-  {
+  {                         
     if( _module == TypeSystem.getGlobalModule() )
     {
       List<String> jreJars = getJreJars();
@@ -262,7 +262,11 @@ public class ClassPath implements IClassPath
   private static List<String> getJreJars() {
     List<String> paths = new ArrayList<>();
     ClassLoader cl = Gosuc.class.getClassLoader();
-    Path modulesPath = Paths.get( URI.create( "jrt:/modules" ) );
+    final Path[] modulesPath = {null};
+    if( !JreUtil.isJava17orLater() )
+    {
+      modulesPath[0] = Paths.get( URI.create( "jrt:/modules" ) );
+    }
     while( cl == null || !BUILTIN_CLASSLOADER.get().isAssignableFrom( cl.getClass() ) )
     {
       ClassLoader parent = cl.getParent();
@@ -291,9 +295,17 @@ public class ClassPath implements IClassPath
         (Map<String, Object>)ReflectUtil.field( cl, "nameToModule" ).get();
       nameToModule.values().stream()
         .filter( mr -> (boolean)ReflectUtil.method( ReflectUtil.method( mr, "location" ).invoke(), "isPresent" ).invoke() )
-        .forEach( mr ->
-          paths.add( modulesPath.resolve(
-            Paths.get( (URI)ReflectUtil.method( ReflectUtil.method( mr, "location" ).invoke(), "get" ).invoke() ).toString().substring( 1 ) ).toUri().toString() ) );
+        .forEach( mr -> {
+          if( modulesPath[0] == null )
+          {
+            paths.add( Paths.get( (URI)ReflectUtil.method( ReflectUtil.method( mr, "location" ).invoke(), "get" ).invoke() ).toUri().toString() );
+          }
+          else
+          {
+            paths.add( modulesPath[0].resolve(
+              Paths.get( (URI)ReflectUtil.method( ReflectUtil.method( mr, "location" ).invoke(), "get" ).invoke() ).toString().substring( 1 ) ).toUri().toString() );
+          }
+        } );
       cl = (ClassLoader)ReflectUtil.field( cl, "parent" ).get();
     }
     return paths;

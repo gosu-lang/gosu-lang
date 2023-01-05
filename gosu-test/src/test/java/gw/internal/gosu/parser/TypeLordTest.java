@@ -20,6 +20,8 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.java.JavaTypes;
 import gw.test.TestClass;
 import gw.util.GosuTestUtil;
+import manifold.util.JreUtil;
+import manifold.util.ReflectUtil;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -256,8 +258,19 @@ public class TypeLordTest extends TestClass
   {
     IType d = TypeSystem.get( ParamD.class );
     IType e = TypeSystem.get( ParamE.class );
-    IType serializableAndComparable = CompoundType.get( TypeSystem.get( Serializable.class ),
-                                                  TypeSystem.get( Comparable.class ).getParameterizedType( JavaTypes.OBJECT() ) );
+    IType serializableAndComparable;
+    if( JreUtil.isJava17orLater() )
+    {
+      serializableAndComparable = CompoundType.get( TypeSystem.get( Serializable.class ),
+        TypeSystem.get( Comparable.class ).getParameterizedType( JavaTypes.OBJECT() ),
+        TypeSystem.get( ReflectUtil.type( "java.lang.constant.Constable" ) ),
+        TypeSystem.get( ReflectUtil.type( "java.lang.constant.ConstantDesc") ) );
+    }
+    else
+    {
+      serializableAndComparable = CompoundType.get( TypeSystem.get( Serializable.class ),
+        TypeSystem.get( Comparable.class ).getParameterizedType( JavaTypes.OBJECT() ) );
+    }
     IType aParameterizedOnSerializableAndComparable = TypeSystem.get( GenA.class ).getParameterizedType( serializableAndComparable );
     IType leastUpperBound = TypeLord.findLeastUpperBound( Arrays.asList( d, e ) );
     assertEquals( aParameterizedOnSerializableAndComparable, leastUpperBound );
@@ -438,10 +451,7 @@ public class TypeLordTest extends TestClass
     int size = 0;
     TypeLord typeLord = new TypeLord();
     try {
-      Method method = typeLord.getClass().getDeclaredMethod("getAssignabilityCacheSize");
-      method.setAccessible(true);
-      size = (int) method.invoke(typeLord);
-
+      size = (int) ReflectUtil.method( typeLord, "getAssignabilityCacheSize" ).invoke();
     } catch (Exception e) {
       fail("Exception: " + e.getMessage());
     }

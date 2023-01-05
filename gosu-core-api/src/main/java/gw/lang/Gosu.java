@@ -290,12 +290,12 @@ public class Gosu
                          : TypeSystem.getGosuClassLoader().getActualLoader();
     if( loader instanceof URLClassLoader )
     {
-      Method addURL = getAddUrlMethod();
       for( IDirectory entry : classpath )
       {
         try
         {
-          addURL.invoke( loader, entry.toURI().toURL() );
+          ReflectUtil.method( URLClassLoader.class, "addURL", URL.class )
+           .invoke( loader, entry.toURI().toURL() );
         }
         catch( Exception e )
         {
@@ -306,21 +306,6 @@ public class Gosu
 
     reinitGosu( classpath );
     TypeSystem.refresh( true );
-  }
-
-  private static Method getAddUrlMethod()
-  {
-    Method addURL;
-    try
-    {
-      addURL = URLClassLoader.class.getDeclaredMethod( "addURL", URL.class );
-      addURL.setAccessible( true );
-    }
-    catch( Exception e )
-    {
-      throw new RuntimeException( e );
-    }
-    return addURL;
   }
 
   public static List<IDirectory> getClasspath()

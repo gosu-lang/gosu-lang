@@ -2,6 +2,7 @@ package gw.lang.reflect.json;
 
 import gw.lang.reflect.Expando;
 import gw.lang.reflect.Modifier;
+import manifold.util.ReflectUtil;
 
 import javax.script.Bindings;
 import java.lang.reflect.Field;
@@ -163,7 +164,7 @@ public interface IJsonIO
       {
         continue;
       }
-      f.setAccessible( true );
+      ReflectUtil.setAccessible( f );
       try
       {
         Object value = bindings.get( f.getName() );
@@ -216,7 +217,7 @@ public interface IJsonIO
       {
         continue;
       }
-      f.setAccessible( true );
+      ReflectUtil.setAccessible( f );
       try
       {
         Object value = f.get( obj );

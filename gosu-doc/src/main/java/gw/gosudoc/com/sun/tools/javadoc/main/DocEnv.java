@@ -33,6 +33,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import manifold.util.ReflectUtil;
 
 /**
  * Holds the environment for a run of javadoc.
@@ -52,6 +53,13 @@ import com.sun.tools.javac.util.Names;
  */
 @Deprecated
 public class DocEnv {
+    public static final String XMSGS_OPTION = "-Xmsgs";
+    public static final String XMSGS_CUSTOM_PREFIX = "-Xmsgs:";
+    private static final String STATS = "-stats";
+    public static final String XCUSTOM_TAGS_PREFIX = "-XcustomTags:";
+    public static final String XCHECK_PACKAGE = "-XcheckPackage:";
+    public static final String SEPARATOR = ",";
+
     protected static final Context.Key<DocEnv> docEnvKey = new Context.Key<>();
 
     public static DocEnv instance(Context context) {
@@ -825,16 +833,16 @@ public class DocEnv {
         for (String customTag : customTagNames) {
             customTags.append(sep);
             customTags.append(customTag);
-            sep = DocLint.SEPARATOR;
+            sep = SEPARATOR;
         }
-        doclintOpts.add(DocLint.XCUSTOM_TAGS_PREFIX + customTags.toString());
-        doclintOpts.add(DocLint.XHTML_VERSION_PREFIX + htmlVersion);
+        doclintOpts.add(XCUSTOM_TAGS_PREFIX + customTags.toString());
+//        doclintOpts.add(XHTML_VERSION_PREFIX + htmlVersion);
 
         JavacTask t = BasicJavacTask.instance(context);
-        doclint = new DocLint();
+        doclint = (DocLint)ReflectUtil.constructor( "jdk.javadoc.internal.doclint.DocLint" ).newInstance();
         // standard doclet normally generates H1, H2
-        doclintOpts.add(DocLint.XIMPLICIT_HEADERS + "2");
-        doclint.init(t, doclintOpts.toArray(new String[doclintOpts.size()]), false);
+//        doclintOpts.add(XIMPLICIT_HEADERS + "2");
+        doclint.init(t, doclintOpts.toArray(new String[0]));
     }
 
     JavaScriptScanner initJavaScriptScanner( boolean allowScriptInComments) {
@@ -853,6 +861,7 @@ public class DocEnv {
     Map<CompilationUnitTree, Boolean> shouldCheck = new HashMap<>();
 
     boolean shouldCheck(CompilationUnitTree unit) {
-        return shouldCheck.computeIfAbsent(unit, doclint :: shouldCheck);
+        return shouldCheck.computeIfAbsent(unit,
+          u -> (Boolean)ReflectUtil.method( doclint, "shouldCheck", CompilationUnitTree.class ).invoke( u ) );
     }
 }

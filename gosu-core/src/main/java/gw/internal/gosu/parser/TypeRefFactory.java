@@ -28,12 +28,12 @@ import gw.lang.reflect.java.IJavaBackedType;
 import gw.util.cache.FqnCacheNode;
 import gw.util.Predicate;
 import gw.util.cache.WeakFqnCache;
+import manifold.util.ReflectUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -208,17 +208,9 @@ public class TypeRefFactory implements ITypeRefFactory
     if(classLoader instanceof IInjectableClassLoader) {
         return ((IInjectableClassLoader) classLoader).defineClass(strProxyClassName, bytes);
     } else {
-      try {
-          Method method = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-          method.setAccessible(true);
-          return (Class<? extends AbstractTypeRef>) method.invoke(classLoader, strProxyClassName, bytes, 0, bytes.length);
-      } catch (NoSuchMethodException e) {
-          throw new RuntimeException(e);
-      } catch (InvocationTargetException e) {
-          throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
-          throw new RuntimeException(e);
-      }
+        return (Class<? extends AbstractTypeRef>)ReflectUtil.method(
+          ClassLoader.class, "defineClass", String.class, byte[].class, int.class, int.class)
+          .invoke(classLoader, strProxyClassName, bytes, 0, bytes.length);
     }
   }
 

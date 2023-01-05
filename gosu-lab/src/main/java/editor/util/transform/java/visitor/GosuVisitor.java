@@ -2208,6 +2208,38 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     return out.toString();
   }
 
+  // Overrides for visitors new in Java 17...
+
+//  public String visitBindingPattern( BindingPatternTree node, Object o )
+//  {
+//    return null;
+//  }
+//
+//  public String visitDefaultCaseLabel( DefaultCaseLabelTree node, Object o )
+//  {
+//    return null;
+//  }
+//
+//  public String visitGuardedPattern( GuardedPatternTree node, Object o )
+//  {
+//    return null;
+//  }
+//
+//  public String visitParenthesizedPattern( ParenthesizedPatternTree node, Object o )
+//  {
+//    return null;
+//  }
+//
+//  public String visitSwitchExpression( SwitchExpressionTree node, Object o )
+//  {
+//    return null;
+//  }
+//
+//  public String visitYield( YieldTree node, Object o )
+//  {
+//    return null;
+//  }
+
   private void pushIndent()
   {
     _ident += _tabSize;

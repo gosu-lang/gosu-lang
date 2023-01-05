@@ -17,6 +17,7 @@ import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.IAsmJavaClassInfo;
 import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.reflect.module.IModule;
+import manifold.util.JreUtil;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;
@@ -251,7 +252,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
   private class AsmClassVisitor extends ClassVisitor {
     public AsmClassVisitor() {
-      super( Opcodes.ASM7 );
+      super( JreUtil.isJava17orLater() ? Opcodes.ASM9 : Opcodes.ASM7 );
     }
 
     @Override

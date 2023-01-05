@@ -6,6 +6,8 @@ package gw.internal.gosu.parser;
 
 import gw.util.concurrent.ConcurrentWeakHashMap;
 import gw.util.concurrent.LockingLazyVar;
+import manifold.util.ReflectUtil;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -84,7 +86,7 @@ public class JavaMethodCache
     public PrivateGetDeclaredMethodsAccessor( Method method )
     {
       _method = method;
-      _method.setAccessible( true );
+      ReflectUtil.setAccessible( _method );
     }
 
     @Override

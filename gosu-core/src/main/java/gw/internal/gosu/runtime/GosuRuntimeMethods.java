@@ -215,9 +215,7 @@ public class GosuRuntimeMethods {
     while( outerType != enclosingType )
     {
       try {
-        Field outerThis = ctx.getClass().getDeclaredField( "this$0" );
-        outerThis.setAccessible( true );
-        ctx = outerThis.get( ctx );
+        ctx = manifold.util.ReflectUtil.field( ctx, "this$0" ).get();
       }
       catch( Exception e ) {
         return args;
