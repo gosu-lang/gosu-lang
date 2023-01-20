@@ -287,7 +287,7 @@ public class Gosuc extends GosuMatchingTask {
     List<String> classpath = new ArrayList<>( Arrays.asList( _compileClasspath.list() ) );
     classpath.add( GosucUtil.getClassLocation( "manifold.api.host.IManifoldHost" ) ); // manifold
     classpath.add( GosucUtil.getClassLocation( "manifold.rt.api.IBootstrap" ) ); // manifold-rt
-    classpath.add( GosucUtil.getClassLocation( "manifold.ext.ExtensionMethod" ) ); // manifold-ext
+    classpath.add( GosucUtil.getClassLocation( "manifold.ext.ExtensionManifold" ) ); // manifold-ext
     classpath.add( GosucUtil.getClassLocation( "manifold.ext.rt.api.Extension" ) ); // manifold-ext-rt
     classpath.add( GosucUtil.getClassLocation( "manifold.json.rt.api.DataBindings" ) ); // manifold-json-rt
     classpath.add( GosucUtil.getClassLocation( "manifold.util.ReflectUtil" ) ); // manifold-util

@@ -67,7 +67,7 @@ import java.util.TimeZone;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import manifold.ext.ExtensionMethod;
+import manifold.ext.rt.ExtensionMethod;
 
 public class JavaTypes {
   private static final Map<IProject, Map<Class, IJavaType>> CACHE = new WeakHashMap<>();
