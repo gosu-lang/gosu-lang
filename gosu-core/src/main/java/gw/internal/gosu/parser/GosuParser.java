@@ -6695,6 +6695,11 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
   private void verifyArgCount( ParsedElement element, int iArgs, IFunctionType funcType )
   {
+    if( getContextType().isMethodScoring() )
+    {
+      return;
+    }
+
     int expectedArgs = funcType.getParameterTypes().length;
     if( iArgs != expectedArgs )
     {
