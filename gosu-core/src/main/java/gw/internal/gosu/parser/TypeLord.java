@@ -460,7 +460,7 @@ public class TypeLord
                   AsmType boundingType = boundingTypes.isEmpty() ? null : boundingTypes.get( 0 );
                   if( boundingType != null )
                   {
-                    if( boundingType == type && boundingType instanceof ParameterizedType )
+                    if( boundingType == type && type.isParameterized() )
                     {
                       // short-circuit retarded types like:  class Foo<T extends Foo<?>> {...}
                       boundingType = boundingType.getRawType();
