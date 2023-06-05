@@ -4,17 +4,17 @@
 
 package gw.internal.gosu.parser;
 
-import gw.util.concurrent.ConcurrentWeakHashMap;
 import gw.util.concurrent.LockingLazyVar;
 import manifold.util.ReflectUtil;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JavaMethodCache
 {
-  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentWeakHashMap<>( 100 );
+  private static final Map<Class, Method[]> DECLARED_METHOD_CACHE = new ConcurrentHashMap<>( 100 );
 
   private static LockingLazyVar<DeclaredMethodsAccessor> _declaredMethodsAccessor =
     new LockingLazyVar<DeclaredMethodsAccessor>()
