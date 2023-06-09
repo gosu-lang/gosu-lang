@@ -88,7 +88,7 @@ public class AsmClass implements IAsmType, IGeneric {
 
   public void init( byte[] classBytes ) {
     ClassReader cr = new ClassReader( classBytes );
-    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES );
+    cr.accept( new AsmClassVisitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES );
   }
 
   public URI getUri() {
