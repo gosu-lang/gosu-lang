@@ -176,6 +176,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"ThrowableInstanceNeverThrown"})
 public final class GosuParser extends ParserBase implements IGosuParser
 {
+  public static final boolean SUPPORT_BINDING_EXPR = Boolean.parseBoolean( System.getProperty( "SUPPORT_BINDING_EXPR", "false" ) );
   public static final IType PENDING_BOUNDING_TYPE = ErrorType.getInstance( "Pending Bounding Type");
   public static ErrorType notfound = ErrorType.getInstance( "_notfound_" );
 
@@ -3064,7 +3065,10 @@ public final class GosuParser extends ParserBase implements IGosuParser
     // and t is assignable from the Rhs expression type, Or the Rhs expression implements
     // IPostfixBinder#postfixBind( t ) and t is assignable from the Lhs expression type.
     //
-    parseBindingExpression( token, bPostfix );
+    if( SUPPORT_BINDING_EXPR)
+    {
+      parseBindingExpression(token, bPostfix);
+    }
   }
 
   private void parseBindingExpression( Token token )
