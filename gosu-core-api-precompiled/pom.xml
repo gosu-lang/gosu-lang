@@ -56,6 +56,12 @@
             </goals>
             <configuration>
               <compilerId>gosuc</compilerId>
+              <fork>true</fork>
+              <meminitial>1024m</meminitial>
+              <maxmem>2048m</maxmem>
+              <compilerArgs>
+                <arg>-DSUPPORT_BINDING_EXPR=true</arg>
+              </compilerArgs>
             </configuration>
           </execution>
         </executions>
