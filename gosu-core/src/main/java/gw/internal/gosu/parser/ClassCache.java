@@ -52,7 +52,7 @@ public class ClassCache {
             new ClassPath( _module,
                     ExecutionMode.isRuntime() ?
                         IClassPath.ONLY_API_CLASSES : // FIXME-isd: for performance reasons, only select API classes
-                        IClassPath.ALLOW_ALL_WITH_SUN_FILTER);
+                        IClassPath.ALLOW_ALL_FILTER);
         }
       };
     _asmClassLoader = new AsmClassLoader(_module);

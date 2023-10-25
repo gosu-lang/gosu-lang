@@ -28,11 +28,7 @@ public interface IClassPath
     {
       public boolean acceptClass( String className )
       {
-        // Do not expose Sun's classes. We shouldn't encourage their use and some
-        // of them behave badly during static initialization, which interferes
-        // with the typeinfo database.
-        return !className.startsWith( SUN_CLASS_PREFIX ) &&
-               !className.startsWith( COM_SUN_CLASS_PREFIX );
+        return true;
       }
 
       @Override
