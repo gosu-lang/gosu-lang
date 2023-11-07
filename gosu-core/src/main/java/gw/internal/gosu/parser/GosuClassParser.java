@@ -5190,6 +5190,14 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       return true;
     }
 
+    if( gsExtendee.isProxy() && !gsExtendee.isHeaderCompiled() )
+    {
+      // short-circuit proxy source generation, which performs _declaration_ parsing on the proxied type[s] in order to
+      // generate source, which ironically may cause a cycle while compiling types e.g., while gathering enhancements
+      // for a type
+      return false;
+    }
+
     IType[] interfaces = gsExtendee.getInterfaces();
     for( int i = 0; i < interfaces.length; i++ )
     {
