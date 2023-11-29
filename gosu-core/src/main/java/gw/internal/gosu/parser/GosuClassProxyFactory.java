@@ -166,10 +166,10 @@ public class GosuClassProxyFactory
     GosuClassTypeLoader loader = GosuClassTypeLoader.getDefaultClassLoader( module );
     String fqn = getProxyName( type );
     return loader.makeNewClass(
-        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
+        new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, headerOnly -> {
           TypeSystem.pushModule( module );
           try {
-            return genJavaInterfaceProxy( type ).toString();
+            return genJavaInterfaceProxy( type, headerOnly ).toString();
           }
           finally {
             TypeSystem.popModule( module );
@@ -189,10 +189,10 @@ public class GosuClassProxyFactory
     final IModule module = type.getTypeLoader().getModule();
     String fqn = getProxyName( type );
     return GosuClassTypeLoader.getDefaultClassLoader( module ).makeNewClass(
-      new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, () -> {
+      new LazyStringSourceFileHandle( GosuClassUtil.getPackage( fqn ), fqn, headerOnly -> {
         TypeSystem.pushModule( module );
         try {
-          return genJavaClassProxy( type ).toString();
+          return genJavaClassProxy( type, headerOnly ).toString();
         }
         finally
         {
@@ -210,7 +210,7 @@ public class GosuClassProxyFactory
     return IGosuClass.PROXY_PREFIX + '.' + type.getName();
   }
 
-  private StringBuilder genJavaClassProxy( IJavaType type )
+  private StringBuilder genJavaClassProxy( IJavaType type, boolean headerOnly )
   {
     if( type.isParameterizedType() )
     {
@@ -218,11 +218,11 @@ public class GosuClassProxyFactory
     }
     StringBuilder sb = new StringBuilder();
     sb.append( "package " ).append( IGosuClass.PROXY_PREFIX ).append('.').append( type.getNamespace() ).append( '\n' );
-    genClassImpl(type, sb);
+    genClassImpl(type, headerOnly, sb);
     return sb;
   }
 
-  private void genClassImpl( IJavaType type, StringBuilder sb )
+  private void genClassImpl( IJavaType type, boolean headerOnly, StringBuilder sb )
   {
     addAnnotations( type.getTypeInfo(), sb );
 
@@ -230,36 +230,39 @@ public class GosuClassProxyFactory
 
     sb.append( "class " ).append( getRelativeName( type ) ).append( '\n' );
     sb.append( "{\n" );
+    if( !headerOnly )
+    {
+      JavaTypeInfo ti;
+      if( type.getTypeInfo() instanceof JavaTypeInfo )
+      {
+        ti = (JavaTypeInfo)type.getTypeInfo();
+      }
+      else
+      {
+        throw new IllegalArgumentException( type + " is not a recognized Java type" );
+      }
 
-    JavaTypeInfo ti;
-    if( type.getTypeInfo() instanceof JavaTypeInfo )
-    {
-      ti = (JavaTypeInfo)type.getTypeInfo();
-    }
-    else
-    {
-      throw new IllegalArgumentException( type + " is not a recognized Java type" );
-    }
+      // Constructors
+      for( Object o : ti.getConstructors( type ) )
+      {
+        IConstructorInfo ci = (IConstructorInfo)o;
+        genConstructor( sb, ci );
+      }
 
-    // Constructors
-    for( Object o : ti.getConstructors( type ) )
-    {
-      IConstructorInfo ci = (IConstructorInfo)o;
-      genConstructor( sb, ci );
-    }
+      // Properties
+      for( Object o : ti.getProperties( type ) )
+      {
+        IPropertyInfo pi = (IPropertyInfo)o;
+        genProperty( pi, sb, type );
+      }
 
-    // Properties
-    for( Object o : ti.getProperties( type ) )
-    {
-      IPropertyInfo pi = (IPropertyInfo)o;
-      genProperty( pi, sb, type );
-    }
+      // Methods
+      for( Object o : ti.getMethods( type ) )
+      {
+        IMethodInfo mi = (IMethodInfo)o;
+        genMethodImpl( sb, mi );
+      }
 
-    // Methods
-    for( Object o : ti.getMethods( type ) )
-    {
-      IMethodInfo mi = (IMethodInfo)o;
-      genMethodImpl( sb, mi );
     }
     // Inner classes/interfaces
     for( IJavaType innerClass : type.getInnerClasses() )
@@ -270,11 +273,11 @@ public class GosuClassProxyFactory
       {
         if( innerClass.isInterface() )
         {
-          genInterfaceImpl( innerClass, sb );
+          genInterfaceImpl( innerClass, headerOnly, sb );
         }
         else
         {
-          genClassImpl( innerClass, sb );
+          genClassImpl( innerClass, headerOnly, sb );
         }
       }
     }
@@ -434,7 +437,7 @@ public class GosuClassProxyFactory
     return strName;
   }
 
-  private StringBuilder genJavaInterfaceProxy( IJavaType type )
+  private StringBuilder genJavaInterfaceProxy( IJavaType type, boolean headerOnly )
   {
     if( type.isParameterizedType() )
     {
@@ -442,36 +445,37 @@ public class GosuClassProxyFactory
     }
     StringBuilder sb = new StringBuilder();
     sb.append( "package " ).append( IGosuClass.PROXY_PREFIX ).append( '.' ).append( type.getNamespace() ).append('\n');
-    genInterfaceImpl( type, sb );
+    genInterfaceImpl( type, headerOnly, sb );
     return sb;
   }
 
-  private void genInterfaceImpl( IJavaType type, StringBuilder sb )
+  private void genInterfaceImpl( IJavaType type, boolean headerOnly, StringBuilder sb )
   {
     sb.append( Modifier.toModifierString( type.getModifiers() ) ).append( " interface " ).append( getRelativeName( type ) ).append('\n');
     sb.append( "{\n" );
-
-    ITypeInfo ti = type.getTypeInfo();
-
-    // Interface properties
-    for( Object o : ti.getProperties() )
+    if( !headerOnly )
     {
-      IPropertyInfo pi = (IPropertyInfo)o;
-      genInterfacePropertyDecl( sb, pi, type );
-    }
+      ITypeInfo ti = type.getTypeInfo();
 
-    // Interface methods
-    for( Object o : ti.getMethods() )
-    {
-      IMethodInfo mi = (IMethodInfo)o;
-      if( mi.isDefaultImpl() || mi.isStatic() ) {
-        genMethodImpl( sb, mi );
+      // Interface properties
+      for( Object o : ti.getProperties() )
+      {
+        IPropertyInfo pi = (IPropertyInfo)o;
+        genInterfacePropertyDecl( sb, pi, type );
       }
-      else {
-        genInterfaceMethodDecl( sb, mi );
+
+      // Interface methods
+      for( Object o : ti.getMethods() )
+      {
+        IMethodInfo mi = (IMethodInfo)o;
+        if( mi.isDefaultImpl() || mi.isStatic() ) {
+          genMethodImpl( sb, mi );
+        }
+        else {
+          genInterfaceMethodDecl( sb, mi );
+        }
       }
     }
-
     // Inner interfaces
     for( IJavaType iface : type.getInnerClasses() )
     {
@@ -481,7 +485,7 @@ public class GosuClassProxyFactory
            !Modifier.isPrivate( iface.getModifiers() )) &&
           !Modifier.isFinal( iface.getModifiers() ) )
       {
-        genInterfaceImpl( iface, sb );
+        genInterfaceImpl( iface, headerOnly, sb );
       }
     }
     sb.append( "}\n" );

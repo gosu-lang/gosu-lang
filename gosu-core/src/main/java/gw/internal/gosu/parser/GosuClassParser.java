@@ -2130,7 +2130,9 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
          gsClass instanceof IGosuProgram ||
          // Anonymous classes can have inner classes
          gsClass.isAnonymous()) &&
-        !gsClass.isHeaderCompiled() )
+         (!gsClass.isHeaderCompiled() ||
+          // proxies need to reset offsets on inner classes because the full source is available in decl phase
+          (((IGosuClassInternal)TypeLord.getTopLevelType( gsClass )).isProxy() && !gsClass.isDeclarationsCompiled())) )
     {
       // Recursively *load* (no parsing) all nested inner types from the top-level class file
 
@@ -2457,19 +2459,21 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       IGosuClassInternal innerGsClass;
 
       innerGsClass = (IGosuClassInternal)enclosingGsClass.getKnownInnerClassesWithoutCompiling().get( strInnerClass );
-      if( innerGsClass != null )
+      if( innerGsClass != null && !enclosingGsClass.isHeaderCompiled() )
       {
         // Duplicate inner class name
         getClassStatement().addParseException( new ParseException( makeFullParserState(), Res.MSG_DUPLICATE_CLASS_FOUND, strInnerClass ) );
         strInnerClass = strInnerClass + "_duplicate_" + nextIndexOfErrantDuplicateInnerClass( enclosingGsClass, innerGsClass );
       }
 
-      innerGsClass = (IGosuClassInternal)gsClass.getTypeLoader().makeNewClass(
-        new InnerClassFileSystemSourceFileHandle( classType, enclosingGsClass.getName(), strInnerClass, gsClass.isTestClass() ) );
-      innerGsClass.setEnclosingType( enclosingGsClass );
-      innerGsClass.setNamespace( enclosingGsClass.getNamespace() );
-      enclosingGsClass.addInnerClass( innerGsClass );
-
+      if( !enclosingGsClass.isHeaderCompiled() )
+      {
+        innerGsClass = (IGosuClassInternal) gsClass.getTypeLoader().makeNewClass(
+                new InnerClassFileSystemSourceFileHandle(classType, enclosingGsClass.getName(), strInnerClass, gsClass.isTestClass()));
+        innerGsClass.setEnclosingType(enclosingGsClass);
+        innerGsClass.setNamespace(enclosingGsClass.getNamespace());
+        enclosingGsClass.addInnerClass(innerGsClass);
+      }
       advanceToClassBodyStart();
 
       return innerGsClass;

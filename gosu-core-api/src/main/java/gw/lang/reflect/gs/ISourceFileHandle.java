@@ -10,6 +10,10 @@ import gw.lang.parser.ISource;
 public interface ISourceFileHandle
 {
   public ISource getSource();
+  default ISource getSource( boolean header )
+  {
+    return getSource();
+  }
 
   public String getParentType();
 

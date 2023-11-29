@@ -1862,7 +1862,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
           if( !isHeaderCompiled() )
           {
             IGosuClassInternal gosuClass = (IGosuClassInternal) getOrCreateTypeReference();
-            GosuParser parser = makeParserForPhase();
+            GosuParser parser = makeParserForPhase( true );
             GosuClassParser classParser = new GosuClassParser( parser );
             classParser.parseHeader( gosuClass, false, false, false );
           }
@@ -2604,10 +2604,14 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   private GosuParser makeParserForPhase()
   {
+    return makeParserForPhase( false );
+  }
+  private GosuParser makeParserForPhase( boolean header )
+  {
     createNewParseInfo();
     CompiledGosuClassSymbolTable symbolTable = CompiledGosuClassSymbolTable.instance();
     GosuParser parser = getOrCreateParser( symbolTable );
-    ISource source = _sourceFileHandle.getSource();
+    ISource source = _sourceFileHandle.getSource( header );
     parser.setScript( source );
     _parseInfo.updateSource( source.getSource() );
     if( ExecutionMode.isIDE() ) {
