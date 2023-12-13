@@ -4,16 +4,12 @@
 
 package gw.lang.reflect.module;
 
-import gw.config.CommonServices;
 import gw.lang.UnstableAPI;
-import gw.lang.init.GosuInitialization;
 import gw.lang.reflect.TypeSystem;
-import gw.util.ILogger;
 import manifold.util.ReflectUtil;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,7 +47,6 @@ public class TypeSystemLockHelper {
         // and try again to acquire the type sys lock. The idea is to prevent deadlock by ensuring
         // we can acquire both locks or none at all... albeit expensively.
         try {
-          maybeWaitOnContextLoader( objectToLock );
           objectToLock.wait(100);
         } catch (IllegalMonitorStateException e) {
           // Ugh! It turns out to be non-deterministic whether or not the VM will invoke this loop with the classloader's
@@ -83,7 +78,6 @@ public class TypeSystemLockHelper {
       }
       if( objectToLock != null && isMonitorOwner( thread, objectToLock ) ) {
         b.append( "!!! OWNS MONITOR: " ).append( objectToLock ).append( "!!!\n" );
-        b.append( "!!! Alternate lock strategy: " ).append( GosuInitialization._enableAlternateLockingStrategy ? "Enabled" : "Disabled" ).append( " !!!\n" );
       }
       for( StackTraceElement stackTraceElement : entry.getValue() ) {
         b.append( stackTraceElement ).append( '\n' );
@@ -116,24 +110,5 @@ public class TypeSystemLockHelper {
       }
     }
     return false;
-  }
-
-  private static void maybeWaitOnContextLoader(Object objectToLock) throws InterruptedException {
-    ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
-    if( objectToLock != ctxLoader && ctxLoader != null ) {
-      if(!GosuInitialization._enableAlternateLockingStrategy) {
-        try {
-          ctxLoader.wait(100);
-        } catch (IllegalMonitorStateException e) {
-          // ok, only wait if this thread owns the monitor, otherwise keep rolling
-        }
-      } else {
-        ILogger logger = CommonServices.getEntityAccess().getLogger();
-        if(logger.isDebugEnabled() && isMonitorOwner(Thread.currentThread(), ctxLoader)) {
-          logger.debug("Holds context monitor, but not waiting on context loader " +
-                  ctxLoader.getClass().getSimpleName() + ctxLoader.hashCode());
-        }
-      }
-    }
   }
 }

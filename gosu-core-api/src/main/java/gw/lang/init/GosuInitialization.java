@@ -4,13 +4,11 @@
 
 package gw.lang.init;
 
-import gw.config.CommonServices;
 import gw.lang.UnstableAPI;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
-import gw.util.concurrent.LocklessLazyVar;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -24,9 +22,6 @@ import java.util.stream.Collectors;
 @UnstableAPI
 public class GosuInitialization
 {
-  private static final String GW_ENABLE_ALTERNATE_LOCKING_STRATEGY = "gw.enable.alternate.locking.strategy";
-  public static final boolean _enableAlternateLockingStrategy = Boolean.getBoolean(GW_ENABLE_ALTERNATE_LOCKING_STRATEGY);
-
   private static final Map<IExecutionEnvironment, GosuInitialization> INSTANCES = new WeakHashMap<>();
 
   private IExecutionEnvironment _execEnv;
@@ -44,19 +39,9 @@ public class GosuInitialization
     return !INSTANCES.isEmpty();
   }
 
-  private static final LocklessLazyVar<Void> _initMessage = new LocklessLazyVar<Void>() {
-    @Override
-    protected Void init() {
-      CommonServices.getEntityAccess().getLogger().info("Alternative classloader locking strategy: " +
-        (_enableAlternateLockingStrategy ? "Enabled" : "Disabled") );
-      return null;
-    }
-  };
-
   private GosuInitialization( IExecutionEnvironment execEnv ) {
     _execEnv = execEnv;
     _initialized = false;
-    _initMessage.get();
   }
 
   public boolean isInitialized() {
