@@ -38,4 +38,37 @@ class DelegateTest extends BaseVerifyErrantTest {
     assertEquals( Integer, hi.blah<Integer>() )
     assertEquals( 3, hi.blah2( 3 ) )
   }
+
+    interface MyInterface {
+      function foo() : String
+
+      function bar() : String {
+        return null
+      }
+    }
+
+    class MyInterfaceImpl implements MyInterface {
+
+      override function foo() : String {
+        return "foo"
+      }
+
+      override function bar() : String {
+        return "bar"
+      }
+    }
+
+    class DelegateBug implements MyInterface {
+      delegate  _d : MyInterfaceImpl represents MyInterface
+
+      construct() {
+        _d = new MyInterfaceImpl()
+      }
+    }
+
+  function testJavaDefault() {
+    var d = new DelegateBug()
+    assertEquals( "foo", d.foo() )
+    assertEquals( "bar", d.bar() )
+  }
 }

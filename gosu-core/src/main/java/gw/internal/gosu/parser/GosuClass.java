@@ -2750,11 +2750,6 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
             unimpled = getUnimplementedMethods( gsInterface, pThis, unimpled, true, false );
             for( IMethodInfo mi : gsInterface.getTypeInfo().getMethods() )
             {
-              if( mi.isDefaultImpl() )
-              {
-                //## todo: see if there are other
-                continue;
-              }
               GosuMethodInfo gmi = (GosuMethodInfo)mi;
               IFunctionType type = new FunctionType( gmi );
               if( unimpled.contains( type ) )
