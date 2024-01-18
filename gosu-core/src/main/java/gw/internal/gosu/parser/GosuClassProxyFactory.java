@@ -451,30 +451,12 @@ public class GosuClassProxyFactory
 
   private void genInterfaceImpl( IJavaType type, boolean headerOnly, StringBuilder sb )
   {
-    sb.append( Modifier.toModifierString( type.getModifiers() ) ).append( " interface " ).append( getRelativeName( type ) ).append('\n');
+    sb.append( Modifier.toModifierString( type.getModifiers() ) )
+            .append( " interface " ).append( getRelativeName( type ) ).append( extendInterfaces( type ) ).append('\n');
     sb.append( "{\n" );
     if( !headerOnly )
     {
-      ITypeInfo ti = type.getTypeInfo();
-
-      // Interface properties
-      for( Object o : ti.getProperties() )
-      {
-        IPropertyInfo pi = (IPropertyInfo)o;
-        genInterfacePropertyDecl( sb, pi, type );
-      }
-
-      // Interface methods
-      for( Object o : ti.getMethods() )
-      {
-        IMethodInfo mi = (IMethodInfo)o;
-        if( mi.isDefaultImpl() || mi.isStatic() ) {
-          genMethodImpl( sb, mi );
-        }
-        else {
-          genInterfaceMethodDecl( sb, mi );
-        }
-      }
+      addInterfaceMembers( type, sb );
     }
     // Inner interfaces
     for( IJavaType iface : type.getInnerClasses() )
@@ -489,6 +471,60 @@ public class GosuClassProxyFactory
       }
     }
     sb.append( "}\n" );
+  }
+
+  private void addInterfaceMembers(IJavaType type, StringBuilder sb )
+  {
+    ITypeInfo ti = type.getTypeInfo();
+    // Interface properties
+    List<? extends IPropertyInfo> pis = (ti instanceof IRelativeTypeInfo) ? ((IRelativeTypeInfo) ti).getDeclaredProperties() : ti.getProperties();
+    for( IPropertyInfo pi : pis )
+    {
+      genInterfacePropertyDecl( sb, pi, type );
+    }
+    // Object properties
+    pis = ti.getProperties();
+    for( IPropertyInfo pi : pis )
+    {
+      if( pi.getOwnersType() == JavaTypes.OBJECT() )
+      {
+        genInterfacePropertyDecl(sb, pi, type);
+      }
+    }
+
+    // Interface methods
+    List<? extends IMethodInfo> mis = ti instanceof IRelativeTypeInfo ? ((IRelativeTypeInfo) ti).getDeclaredMethods() : ti.getMethods();
+    for( IMethodInfo mi : mis )
+    {
+      if( mi.isDefaultImpl() || mi.isStatic() )
+      {
+        genMethodImpl( sb, mi );
+      }
+      else
+      {
+        genInterfaceMethodDecl( sb, mi );
+      }
+    }
+    // Object methods
+    mis = ti.getMethods();
+    for( IMethodInfo mi : mis )
+    {
+      if( mi.getOwnersType() == JavaTypes.OBJECT() )
+      {
+        genInterfaceMethodDecl( sb, mi );
+      }
+    }
+  }
+
+  private String extendInterfaces(IJavaType type) {
+    StringBuilder sb = new StringBuilder();
+    IType[] interfaces = type.getInterfaces();
+    for (int i = 0; i < interfaces.length; i++) {
+      sb.append( i == 0 ? " extends " : ", " );
+      IType iface = interfaces[i];
+      sb.append(getRelativeName((IJavaType) iface));
+    }
+    return sb.toString();
   }
 
   private void genMethodImpl( StringBuilder sb, IMethodInfo mi )
