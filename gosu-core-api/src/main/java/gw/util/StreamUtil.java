@@ -30,6 +30,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 public class StreamUtil
 {
@@ -277,11 +278,10 @@ public class StreamUtil
     Path copy = PathUtil.create( toDir, PathUtil.getName( fileOrDirectory ) );
     if( PathUtil.isDirectory( fileOrDirectory ) )
     {
-      //noinspection ResultOfMethodCallIgnored
-      try
+      PathUtil.mkdir( copy );
+      try( Stream<Path> list = Files.list( fileOrDirectory ) )
       {
-        PathUtil.mkdir( copy );
-        Files.list( fileOrDirectory ).forEach( child -> copy( child, copy ) );
+        list.forEach(child -> copy( child, copy ) );
       }
       catch( IOException e )
       {
@@ -290,7 +290,6 @@ public class StreamUtil
     }
     else
     {
-      //noinspection ResultOfMethodCallIgnored
       try( InputStream is = new BufferedInputStream( Files.newInputStream( fileOrDirectory ) );
            OutputStream os = new BufferedOutputStream( Files.newOutputStream( copy ) ) )
       {
