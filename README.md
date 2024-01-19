@@ -47,8 +47,8 @@ You can read more about the Open Type System in these articles:
 
 Build instructions
 ------------------
-You need Java JDK 1.8 and Maven 3.x to build Gosu.
-Set the JAVA_HOME environment variable to JDK 1.8's home.
+You need Java JDK 1.11 and Maven 3.x to build Gosu.
+Set the JAVA_HOME environment variable to JDK 1.11's home.
 
 Clone the project from GitHub and run:
 
@@ -66,7 +66,7 @@ Quickstart
 ----------
 
 * Download the latest Gosu distribution [here](http://gosu-lang.github.io/downloads.html).
-* Set the JAVA_HOME environment variable to JDK 1.8's home, if needed.
+* Set the JAVA_HOME environment variable to JDK 1.11's home, if needed.
 * Unzip the distribution zip, go to the bin folder and double click on gosu.cmd (or gosu if you are using Linux/Mac).
 
 Support
