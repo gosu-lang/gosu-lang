@@ -22,8 +22,9 @@ public class LabDarkScheme extends Scheme
 
   private static final Color ORANGE = new Color( 251, 166, 0 );
 
-  private static final Color WHITISH = new Color( 200, 200, 200 );
-  private static final Color BLACKISH = new Color( 39, 39, 39 );
+  private static final Color WHITISH = new Color( 187, 187, 187 );
+  private static final Color BLACKISH = new Color( 43, 43, 43 );
+  private static final Color LIGHTER_BLACKISH = new Color( 49, 51, 53 );
 
   private static final Color CONTROL_LIGHT = WHITISH; //UIManager.getColor( "controlLtHighlight" );
   /* colors */
@@ -47,13 +48,13 @@ public class LabDarkScheme extends Scheme
   private static final Color USAGE_WRITE_HIGHLIGHT_SHADOW_COLOR = new Color( 200, 0, 160 );
   private static final Color SCOPE_HIGHLIGHT_COLOR = new Color( 0, 40, 110 );
 
-  private static final Color CONTROL = new Color( 89, 89, 89 );
-  private static final Color CONTROL_HIGHLIGHT = new Color( 160, 160, 160 );
-  private static final Color CONTROL_LIGHT_SHADOW = new Color( 80, 80, 80 );
-  private static final Color CONTROL_SHADOW = new Color( 65, 65, 65 );
+  private static final Color CONTROL = new Color( 60, 63, 65 );
+  private static final Color CONTROL_HIGHLIGHT = new Color( 130, 130, 130 );
+  private static final Color CONTROL_LIGHT_SHADOW = new Color( 70, 73, 75 );
+  private static final Color CONTROL_SHADOW = new Color( 50, 53, 55 );
   private static final Color CONTROL_DARKSHADOW = new Color( 49, 49, 49 );
   private static final Color CONTROL_DISABLED_TEXT = new Color( 140, 140, 140 );
-  private static final Color CONTROL_TEXT = new Color( 200, 200, 200 );
+  private static final Color CONTROL_TEXT = new Color( 187, 187, 187 );
 
   private static final Color BORDER = new Color( 122, 122, 122 );
 
@@ -64,7 +65,7 @@ public class LabDarkScheme extends Scheme
   private static final Color SEPARATOR_1 = new Color( 0, 0, 0, 0 ); // transparent
   private static final Color SEPARATOR_2 = BORDER;
 
-  private static final Color MENU = new Color( 77, 77, 77 );
+  private static final Color MENU = CONTROL;
   private static final Color MENU_TEXT = WINDOW_TEXT;
 
   private static final Color MENU_BORDER = SEPARATOR_2;
@@ -250,6 +251,12 @@ public class LabDarkScheme extends Scheme
   public Color getControlDisabledText()
   {
     return CONTROL_DISABLED_TEXT;
+  }
+
+  @Override
+  public Color getToggleButtonBorderColor()
+  {
+    return getControlHighlight();
   }
 
   @Override
@@ -449,6 +456,11 @@ public class LabDarkScheme extends Scheme
   @Override
   public Color getLineNumberColor()
   {
-    return SCROLLBAR_BORDER;
+    return new Color( 96, 99, 102);
+  }
+
+  public Color getAdviceColumnBackground()
+  {
+    return LIGHTER_BLACKISH;
   }
 }

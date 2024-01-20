@@ -6,11 +6,16 @@ import editor.util.FixupLookAndFeel;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.plaf.basic.BasicMenuItemUI;
 import javax.swing.plaf.metal.MetalIconFactory;
 import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
+import java.io.Serializable;
+
+import static sun.swing.SwingUtilities2.getAndSetAntialisingHintForScaledGraphics;
+import static sun.swing.SwingUtilities2.setAntialiasingHintForScaledGraphics;
 
 /**
  */
@@ -242,8 +247,8 @@ public class GosuLabLAF extends BasicLookAndFeel
       }),
 
       "CheckBox.font", ControlFont,
-      "CheckBox.icon",(UIDefaults.LazyValue)t -> MetalIconFactory.getCheckBoxIcon(),
-      "RadioButton.icon",(UIDefaults.LazyValue)t -> MetalIconFactory.getRadioButtonIcon(),
+      "CheckBox.icon",(UIDefaults.LazyValue)t -> new CheckBoxIcon(),
+      "RadioButton.icon",(UIDefaults.LazyValue)t -> new RadioButtonIcon(),
       "CheckBox.focusInputMap",
       new UIDefaults.LazyInputMap(new Object[] {
         "SPACE", "pressed",
@@ -877,4 +882,139 @@ public class GosuLabLAF extends BasicLookAndFeel
       throw new RuntimeException( e );
     }
   }
+
+  private static class CheckBoxIcon implements Icon, UIResource, Serializable
+  {
+    protected int getControlSize()
+    {
+      return 13;
+    }
+
+    public void paintIcon( Component c, Graphics g, int x, int y )
+    {
+      ButtonModel model = ((JCheckBox)c).getModel();
+      int controlSize = getControlSize();
+
+      if( model.isEnabled() )
+      {
+        if( model.isPressed() && model.isArmed() )
+        {
+          g.setColor( Scheme.active().getToggleButtonBorderColor() );
+          g.fillRect( x, y, controlSize, controlSize );
+          g.drawRect( x, y, controlSize, controlSize );
+        }
+        else
+        {
+          g.setColor( Scheme.active().getToggleButtonBorderColor() );
+          g.drawRect( x, y, controlSize, controlSize );
+        }
+      }
+      else
+      {
+        g.setColor( Scheme.active().getControlShadow() );
+        g.drawRect( x, y, controlSize - 2, controlSize - 2 );
+      }
+
+      if( model.isSelected() )
+      {
+        g.setColor( Scheme.active().getControlText() );
+        drawCheck( c, g, x, y );
+      }
+    }
+
+    protected void drawCheck( Component c, Graphics g, int x, int y )
+    {
+      int controlSize = getControlSize();
+      int csx = controlSize - 3;
+      int csy1 = controlSize - 6;
+      int csy2 = controlSize - 4;
+      int csy3 = controlSize - 3;
+      int[] xPoints = {3, 5, 5, csx, csx, 5, 5, 3};
+      int[] yPoints = {5, 5, csy1, 2, 4, csy2, csy3, csy3};
+      g.translate( x, y );
+      g.fillPolygon( xPoints, yPoints, 8 );
+      g.translate( -x, -y );
+    }
+
+    public int getIconWidth()
+    {
+      return getControlSize();
+    }
+
+    public int getIconHeight()
+    {
+      return getControlSize();
+    }
+  }
+
+  private static class RadioButtonIcon implements Icon, UIResource, Serializable
+  {
+    public void paintIcon( Component c, Graphics g, int x, int y )
+    {
+      JRadioButton rb = (JRadioButton)c;
+      ButtonModel model = rb.getModel();
+      boolean drawDot = model.isSelected();
+
+      Color background = c.getBackground();
+      Color dotColor = Scheme.active().getControlText();
+      Color shadow = Scheme.active().getControlShadow();
+      Color darkCircle = Scheme.active().getControlDarkshadow();
+      Color whiteInnerLeftArc = Scheme.active().getControlHighlight();
+      Color whiteOuterRightArc = Scheme.active().getControlHighlight();
+      Color interiorColor = background;
+
+      // Set up colors per RadioButtonModel condition
+      if( !model.isEnabled() )
+      {
+        whiteInnerLeftArc = whiteOuterRightArc = background;
+        darkCircle = dotColor = shadow;
+      }
+      else if( model.isPressed() && model.isArmed() )
+      {
+        whiteInnerLeftArc = interiorColor = shadow;
+      }
+
+      g.translate( x, y );
+
+      // fill interior
+      if( c.isOpaque() )
+      {
+        g.setColor( interiorColor );
+        g.fillRect( 2, 2, 9, 9 );
+      }
+
+      // draw Dark Circle (start at top, go clockwise)
+      g.setColor( Scheme.active().getToggleButtonBorderColor() );
+      g.drawOval( 0, 0, 11, 11 );
+
+//      // draw Inner Left (usually) White Arc
+//      //  start at lower left corner, go clockwise
+//      g.setColor( whiteInnerLeftArc );
+//      g.drawArc( 1, 1, 10, 10, 60, 160 );
+//      // draw Outer Right White Arc
+//      //  start at upper right corner, go clockwise
+//      g.setColor( whiteOuterRightArc );
+//      g.drawArc( -1, -1, 13, 13, 235, 180 );
+
+      // selected dot
+      if( drawDot )
+      {
+        g.setColor( dotColor );
+        g.fillOval( 2, 2, 7, 7 );
+      }
+
+      g.translate( -x, -y );
+    }
+
+    public int getIconWidth()
+    {
+      return 13;
+    }
+
+    public int getIconHeight()
+    {
+      return 13;
+    }
+  }
+
 }

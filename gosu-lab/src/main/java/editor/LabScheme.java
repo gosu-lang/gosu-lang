@@ -238,6 +238,12 @@ public class LabScheme extends Scheme
   }
 
   @Override
+  public Color getToggleButtonBorderColor()
+  {
+    return getControlShadow();
+  }
+
+  @Override
   public Color getTooltipBackground()
   {
     return TOOLTIP_BACKGROUND;
@@ -435,5 +441,10 @@ public class LabScheme extends Scheme
   public Color getLineNumberColor()
   {
     return getScrollbarBorderColor();
+  }
+
+  public Color getAdviceColumnBackground()
+  {
+    return getControl();
   }
 }

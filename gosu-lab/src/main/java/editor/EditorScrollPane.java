@@ -71,7 +71,7 @@ public class EditorScrollPane extends JScrollPane
     {
       setLayout( null );
       setBorder( new EmptyBorder( new Insets( 0, 1, 0, 1 ) ) );
-      setBackground( Scheme.active().getControl() );
+      setBackground( Scheme.active().getAdviceColumnBackground() );
       addMouseListener( new MouseAdapter()
       {
         @Override
