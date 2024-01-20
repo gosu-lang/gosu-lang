@@ -81,6 +81,8 @@ public abstract class Scheme
   public abstract Color getControlText();
   public abstract Color getControlDisabledText();
 
+  public abstract Color getToggleButtonBorderColor();
+
   public abstract Color getTooltipBackground();
   public abstract Color getTooltipText();
 
@@ -129,6 +131,7 @@ public abstract class Scheme
   public abstract Color debugVarBlueText();
 
   public abstract Color getLineNumberColor();
+  public abstract Color getAdviceColumnBackground();
 
   public abstract String splash();
 }

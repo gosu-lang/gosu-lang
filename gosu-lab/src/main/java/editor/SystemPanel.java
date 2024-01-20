@@ -1,5 +1,6 @@
 package editor;
 
+import editor.debugger.Breakpoint;
 import editor.debugger.BreakpointManager;
 import editor.debugger.Debugger;
 import editor.run.IRunConfig;
@@ -68,7 +69,7 @@ public class SystemPanel extends ClearablePanel
     editorRootScroller.setContentPane( _outputPanel );
     editorRootScroller.setBorder( null );
 
-    _scroller = new EditorScrollPane( null, _outputPanel, editorRootScroller );
+    _scroller = new EditorScrollPane( new SystemPanelLineInfoMgr(), _outputPanel, editorRootScroller );
     _scroller.setBorder( BorderFactory.createMatteBorder( 0, 1, 0, 1, Scheme.active().getScrollbarBorderColor() ) );
     JViewport vp = _scroller.getViewport();
     vp.setScrollMode( JViewport.BLIT_SCROLL_MODE );
@@ -345,6 +346,57 @@ public class SystemPanel extends ClearablePanel
       SimpleAttributeSet sas = new SimpleAttributeSet();
       StyleConstants.setForeground( sas, _outputPanel.getForeground() );
       _outputPanel.setCharacterAttributes( sas, false );
+    }
+  }
+
+  private static class SystemPanelLineInfoMgr extends AbstractLineInfoManager
+  {
+    @Override
+    public int getRequiredWidth()
+    {
+      // margin between line number and right edge of AdviceColumn
+      return 5;
+    }
+
+    @Override
+    public void handleLineClick( MouseEvent e, int iLine, int iX, int iY )
+    {
+    }
+
+    @Override
+    protected boolean isBreakpointAtLine( int iLine )
+    {
+      return false;
+    }
+
+    @Override
+    protected Breakpoint getBreakpointAtLine( int iLine )
+    {
+      return null;
+    }
+
+    @Override
+    protected boolean isExecPointAtLine( int iLine )
+    {
+      return false;
+    }
+
+    @Override
+    protected Breakpoint getExecPointAtLine( int iLine )
+    {
+      return null;
+    }
+
+    @Override
+    protected boolean isFramePointAtLine( int iLine )
+    {
+      return false;
+    }
+
+    @Override
+    protected Breakpoint getFramePointAtLine( int iLine )
+    {
+      return null;
     }
   }
 }
