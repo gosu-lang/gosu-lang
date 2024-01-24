@@ -228,7 +228,7 @@ public class GosuClassProxyFactory
 
     addModifiers(type, sb);
 
-    sb.append( "class " ).append( getRelativeName( type ) ).append( '\n' );
+    sb.append( "class " ).append( typeName( type, true ) ).append( '\n' );
     sb.append( "{\n" );
     if( !headerOnly )
     {
@@ -420,9 +420,9 @@ public class GosuClassProxyFactory
     return objProp != null;
   }
 
-  private String getRelativeName( IJavaType type )
+  private String typeName(IJavaType type, boolean relative )
   {
-    String strName = TypeSystem.getGenericRelativeName( type, false );
+    String strName = TypeSystem.getGenericName( type, relative, false );
     if( type.getEnclosingType() != null )
     {
       int iParamsIndex = strName.indexOf( '<' );
@@ -452,7 +452,7 @@ public class GosuClassProxyFactory
   private void genInterfaceImpl( IJavaType type, boolean headerOnly, StringBuilder sb )
   {
     sb.append( Modifier.toModifierString( type.getModifiers() ) )
-            .append( " interface " ).append( getRelativeName( type ) ).append( extendInterfaces( type ) ).append('\n');
+            .append( " interface " ).append( typeName( type, true ) ).append( extendInterfaces( type ) ).append('\n');
     sb.append( "{\n" );
     if( !headerOnly )
     {
@@ -522,7 +522,7 @@ public class GosuClassProxyFactory
     for (int i = 0; i < interfaces.length; i++) {
       sb.append( i == 0 ? " extends " : ", " );
       IType iface = interfaces[i];
-      sb.append(getRelativeName((IJavaType) iface));
+      sb.append(typeName((IJavaType) iface, false));
     }
     return sb.toString();
   }
