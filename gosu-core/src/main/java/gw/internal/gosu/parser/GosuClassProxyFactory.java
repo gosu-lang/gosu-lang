@@ -714,6 +714,11 @@ public class GosuClassProxyFactory
 
   private void genInterfaceMethodDecl( StringBuilder sb, IMethodInfo mi )
   {
+    if( mi.isPrivate() )
+    {
+      return;
+    }
+
     if( !(mi instanceof JavaMethodInfo) )
     {
       // It is possible that a methodinfo on a java type originates outside of java.
@@ -810,6 +815,11 @@ public class GosuClassProxyFactory
 
   private void genInterfacePropertyDecl( StringBuilder sb, IPropertyInfo pi, IJavaType javaType )
   {
+    if( pi.isPrivate() )
+    {
+      return;
+    }
+
     if( pi.isStatic() )
     {
       genStaticProperty( pi, sb );
