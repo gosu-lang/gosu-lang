@@ -35,7 +35,9 @@ import gw.internal.gosu.parser.Symbol;
 import gw.internal.gosu.parser.TypeLord;
 import gw.internal.gosu.parser.TypeVariableArrayType;
 import gw.internal.gosu.parser.TypeVariableType;
+import gw.internal.gosu.parser.expressions.BeanMethodCallExpression;
 import gw.internal.gosu.parser.expressions.BlockType;
+import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.fragments.GosuFragment;
 import gw.internal.gosu.runtime.GosuRuntimeMethods;
 import gw.lang.IDimension;
@@ -408,11 +410,33 @@ public abstract class AbstractElementTransformer<T extends IParsedElement>
     for (int i = 0; i < actualArgs.size(); i++) {
       convertedArgs.add( IRArgConverter.castOrConvertIfNecessary( paramTypes.get( i ), actualArgs.get( i ) ) );
     }
-    IRMethodCallExpression result = buildMethodCall(method.getOwningIRType(), method.getName(), owner.isInterface(), method.getReturnType(), paramTypes, root, convertedArgs);
-    if ( special ) {
+
+    IRType owningIRType = method.getOwningIRType();
+    if( special && owningIRType.isInterface() && isSuperCall() )
+    {
+      // method calls of the form `super.ifaceMethod()` must be called with owner as the super type
+      // this prevents illegal bypass of superclass to default methods
+      owningIRType = IRTypeResolver.getDescriptor( _cc().getSuperType() );
+    }
+
+    IRMethodCallExpression result = buildMethodCall( owningIRType, method.getName(), owner.isInterface(), method.getReturnType(), paramTypes, root, convertedArgs );
+    if( special )
+    {
       result.setSpecial( true );
     }
     return result;
+  }
+
+  private boolean isSuperCall()
+  {
+    T parsedElement = getParsedElement();
+    if( parsedElement instanceof BeanMethodCallExpression )
+    {
+      Expression rootExpression = ((BeanMethodCallExpression)parsedElement).getRootExpression();
+      return rootExpression instanceof Identifier &&
+             ((Identifier)rootExpression).getSymbol().getName().equals( "super" );
+    }
+    return false;
   }
 
   private void pushEnhancementTypeParams( IRMethod irMethod, IType enhancementType, List<IRExpression> args )
