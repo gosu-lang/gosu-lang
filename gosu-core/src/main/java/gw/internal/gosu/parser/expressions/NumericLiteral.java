@@ -3,11 +3,11 @@
  */
 package gw.internal.gosu.parser.expressions;
 
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.expressions.INumericLiteralExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.cache.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 /**
@@ -38,7 +38,7 @@ public final class NumericLiteral extends Literal implements INumericLiteralExpr
 
   public NumericLiteral( String strValue, Number value, IType type )
   {
-    _strValue = StringCache.get(strValue);
+      _strValue = StringPool.get(strValue);
     _value = value;
     setType( type );
   }

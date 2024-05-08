@@ -10,6 +10,7 @@ import gw.lang.parser.IToken;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.SourceCodeReader;
 import gw.util.GosuEscapeUtil;
+import gw.util.cache.StringPool;
 
 /**
 */
@@ -203,7 +204,7 @@ public class Token extends IToken
     {
       int iTokenEnd = Math.min( _iDocPosition + _iDocLength, document.getLength() );
       strText = document.subsequence( _iDocPosition, iTokenEnd ).toString();
-      strText = StringCache.get(strText);
+        strText = StringPool.get(strText);
     }
     return strText;
   }

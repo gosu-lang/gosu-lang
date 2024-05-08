@@ -14,6 +14,7 @@ import gw.lang.reflect.*;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
+import gw.util.cache.StringPool;
 
 /**
  * An expression representing a bean method call:
@@ -105,7 +106,7 @@ public final class BeanMethodCallExpression extends Expression implements IBeanM
    */
   public void setAccessPath(String accessPath) {
     assert accessPath != null;
-    _accessPath = StringCache.get(accessPath);
+      _accessPath = StringPool.get(accessPath);
   }
 
   public String getAccessPath() {

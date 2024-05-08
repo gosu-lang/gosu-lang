@@ -4,7 +4,6 @@
 
 package gw.lang.reflect;
 
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.StandardCoercionManager;
@@ -16,6 +15,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.util.cache.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;
@@ -123,7 +123,7 @@ public class FunctionType extends AbstractType implements IFunctionType, IGeneri
   }
 
   private void setName(String name) {
-    _strFunctionName = StringCache.get( name );
+      _strFunctionName = StringPool.get(name);
   }
 
   private void initLazyMethodInfoState()

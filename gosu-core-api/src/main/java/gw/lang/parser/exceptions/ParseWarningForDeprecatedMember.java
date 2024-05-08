@@ -6,7 +6,7 @@ package gw.lang.parser.exceptions;
 
 import gw.lang.parser.resources.Res;
 import gw.lang.parser.IParserState;
-import gw.util.StringPool;
+import gw.util.cache.StringPool;
 
 public class ParseWarningForDeprecatedMember extends ParseWarning
 {

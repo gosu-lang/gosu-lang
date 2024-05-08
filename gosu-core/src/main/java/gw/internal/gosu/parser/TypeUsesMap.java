@@ -12,7 +12,7 @@ import gw.lang.reflect.INamespaceType;
 import gw.lang.reflect.TypeSystem;
 import gw.util.DynamicArray;
 import gw.util.GosuClassUtil;
-import gw.util.StringPool;
+import gw.util.cache.StringPool;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -9,7 +9,7 @@ import gw.lang.parser.statements.IClassFileStatement;
 import gw.lang.parser.statements.INamespaceStatement;
 import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.reflect.module.IModule;
-import gw.util.StringPool;
+import gw.util.cache.StringPool;
 
 /**
  */

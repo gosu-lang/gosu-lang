@@ -4,10 +4,10 @@
 
 package gw.lang.reflect;
 
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
+import gw.util.cache.StringPool;
 import gw.util.concurrent.LocklessLazyVar;
 
 public class LazyType extends LocklessLazyVar<IType>
@@ -17,13 +17,13 @@ public class LazyType extends LocklessLazyVar<IType>
 
   public LazyType( String typeName )
   {
-    _typeName = StringCache.get(typeName);
+      _typeName = StringPool.get(typeName);
     _typeUsesMap = null;
   }
 
   public LazyType( CharSequence typeName, ITypeUsesMap typeUsesMap )
   {
-    _typeName = typeName instanceof String ? StringCache.get((String)typeName) : typeName;
+      _typeName = typeName instanceof String ? StringPool.get((String) typeName) : typeName;
     _typeUsesMap = typeUsesMap;
   }
 

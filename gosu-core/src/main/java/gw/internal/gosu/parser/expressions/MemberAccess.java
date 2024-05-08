@@ -7,7 +7,6 @@ package gw.internal.gosu.parser.expressions;
 import gw.internal.gosu.parser.BeanAccess;
 import gw.internal.gosu.parser.Expression;
 import gw.internal.gosu.parser.RuntimeExceptionWithNoStacktrace;
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.MemberAccessKind;
 import gw.internal.gosu.parser.optimizer.SinglePropertyMemberAccessRuntime;
 
@@ -22,6 +21,7 @@ import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IProgramInstance;
 import gw.lang.reflect.java.ICompileTimeConstantValue;
+import gw.util.cache.StringPool;
 
 /**
  * Represents a member access expression in the Gosu grammar:
@@ -105,7 +105,7 @@ public class MemberAccess extends Expression implements IFieldAccessExpression, 
   public void setMemberName( String strMemberName )
   {
     assert strMemberName != null;
-    _strMemberName = StringCache.get(strMemberName);
+      _strMemberName = StringPool.get(strMemberName);
   }
 
   public int getStartOffset()

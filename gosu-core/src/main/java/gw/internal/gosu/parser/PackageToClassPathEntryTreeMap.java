@@ -13,7 +13,7 @@ import gw.lang.reflect.ITypeLoader;
 import gw.lang.reflect.gs.IFileSystemGosuClassRepository;
 import gw.lang.reflect.gs.TypeName;
 import gw.lang.reflect.module.IModule;
-import gw.util.StringPool;
+import gw.util.cache.StringPool;
 
 import java.io.File;
 import java.io.IOException;

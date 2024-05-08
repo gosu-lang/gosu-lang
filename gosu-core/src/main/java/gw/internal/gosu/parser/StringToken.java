@@ -6,6 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.IToken;
 import gw.lang.parser.SourceCodeReader;
+import gw.util.cache.StringPool;
 
 /**
 */
@@ -34,7 +35,7 @@ public class StringToken extends Token
 
   protected void assignContent( String strValue, SourceCodeReader document )
   {
-    _strValue = StringCache.get(strValue);
+      _strValue = StringPool.get(strValue);
     _strStringLiteralValue = getMyTextFromSource( document );
   }
 

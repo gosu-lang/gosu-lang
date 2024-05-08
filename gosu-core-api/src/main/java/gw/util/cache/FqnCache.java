@@ -4,7 +4,6 @@
 
 package gw.util.cache;
 
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.util.DynamicArray;
 import gw.util.Predicate;
@@ -160,7 +159,7 @@ public class FqnCache<T> implements IFqnCache<T> {
         part = theRest;
         theRest = null;
       }
-      parts.add( isCacheableString(part) ? StringCache.get( part ) : part );
+        parts.add( isCacheableString(part) ? StringPool.get(part) : part );
     }
     return parts.toArray(new String[parts.size()]);
   }

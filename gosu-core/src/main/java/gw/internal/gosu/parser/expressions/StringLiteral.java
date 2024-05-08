@@ -4,9 +4,9 @@
 
 package gw.internal.gosu.parser.expressions;
 
-import gw.internal.gosu.parser.StringCache;
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.expressions.IStringLiteralExpression;
+import gw.util.cache.StringPool;
 
 /**
  * Represents a String literal expression as defined in the Gosu grammar.
@@ -19,7 +19,7 @@ public class StringLiteral extends Literal implements IStringLiteralExpression
 
   public StringLiteral( String strValue )
   {
-    _strValue = StringCache.get(strValue);
+      _strValue = StringPool.get(strValue);
     setType( GosuParserTypes.STRING_TYPE() );
   }
 

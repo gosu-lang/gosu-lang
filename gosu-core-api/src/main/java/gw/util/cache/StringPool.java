@@ -1,10 +1,11 @@
-package gw.util;
+package gw.util.cache;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Faster than String.intern()
+ * <p/>
+ * @deprecated This class is going away soon, do not use this.
  */
 public class StringPool
 {
@@ -19,15 +20,23 @@ public class StringPool
     _map = new ConcurrentHashMap<>();
   }
 
+  @Deprecated
   public static String get( String value ) {
-    String existing = INSTANCE._map.get( value );
-    if( existing != null ) {
-      return existing;
-    }
-    INSTANCE._map.put( value, value );
     return value;
   }
 
+//  public static String get( String value ) {
+//    if( value == null ) {
+//      return null;
+//    }
+//    String existing = INSTANCE._map.get( value );
+//    if( existing != null ) {
+//      return existing;
+//    }
+//    INSTANCE._map.put( value, value );
+//    return value;
+//  }
+//
 //  public static String get( String value ) {
 //    String existing = INSTANCE._map.get( value );
 //    INSTANCE._total++;
