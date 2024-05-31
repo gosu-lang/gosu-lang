@@ -255,10 +255,24 @@ public class Registry
   {
     InputStream inputStream = registrURL.openStream();;
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    disableExternalEntities( dbf );
     DocumentBuilder db = dbf.newDocumentBuilder();
     Document doc = db.parse( new InputSource( inputStream ) );
     inputStream.close();
     return doc;
+  }
+
+  /**
+   * The purpose of this method is to prevent vulnerabilities related to XXE (XML external entity injection). Although
+   * the nature of Gosu's registry in this case is such that it is _not_ vulnerable, we configure the parser in this way
+   * to appease those who demand zero alarm results from static analysis tooling such as Veracode.
+   */
+  private void disableExternalEntities( DocumentBuilderFactory dbf ) throws ParserConfigurationException
+  {
+    dbf.setFeature( "http://xml.org/sax/features/external-general-entities", false );
+    dbf.setFeature( "http://xml.org/sax/features/external-parameter-entities", false );
+    dbf.setXIncludeAware( false ); //disable XML Inclusions
+    dbf.setExpandEntityReferences( false ); // disable expand entity reference nodes
   }
 
   private Node getTag( Document doc, String tagName )

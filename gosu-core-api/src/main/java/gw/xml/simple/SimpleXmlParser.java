@@ -6,6 +6,8 @@ package gw.xml.simple;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -76,10 +78,23 @@ public class SimpleXmlParser {
     }
     if (parser == null) {
       SAXParserFactory factory = SAXParserFactory.newInstance();
+      disableExternalEntities(factory);
+
       parser = factory.newSAXParser();
       _saxParser.set( parser );
     }
     return parser;
+  }
+
+  /**
+   * The purpose of this method is to prevent vulnerabilities related to XXE (XML external entity injection). Although
+   * the nature of XML parsing in this case is such that it is _not_ vulnerable, we configure the parser in this way
+   * to appease those who demand zero alarm results from static analysis tooling such as Veracode.
+   */
+  private static void disableExternalEntities(SAXParserFactory factory) throws ParserConfigurationException, SAXNotRecognizedException, SAXNotSupportedException {
+    // completely disable external entities declarations
+    factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
   }
 
 }

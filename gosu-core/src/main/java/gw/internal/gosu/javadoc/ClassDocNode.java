@@ -63,7 +63,10 @@ class ClassDocNode extends BaseFeatureNode implements IClassDocNode, IDocNodeWit
     @Override
     protected XMLInputFactory init()
     {
-      return XMLInputFactory.newInstance();
+      XMLInputFactory xif = XMLInputFactory.newFactory();
+      xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+      xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+      return xif;
     }
   };
 
