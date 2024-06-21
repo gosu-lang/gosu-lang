@@ -7,7 +7,7 @@ package gw.lang.reflect;
 import gw.lang.parser.ITypeUsesMap;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 import gw.util.concurrent.LocklessLazyVar;
 
 public class LazyType extends LocklessLazyVar<IType>

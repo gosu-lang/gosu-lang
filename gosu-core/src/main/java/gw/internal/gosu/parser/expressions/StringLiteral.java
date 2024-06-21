@@ -6,7 +6,7 @@ package gw.internal.gosu.parser.expressions;
 
 import gw.lang.parser.GosuParserTypes;
 import gw.lang.parser.expressions.IStringLiteralExpression;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  * Represents a String literal expression as defined in the Gosu grammar.

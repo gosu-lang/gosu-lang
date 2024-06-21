@@ -4,7 +4,7 @@
 
 package gw.lang.parser;
 
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 import java.util.HashMap;
 import java.util.Map;

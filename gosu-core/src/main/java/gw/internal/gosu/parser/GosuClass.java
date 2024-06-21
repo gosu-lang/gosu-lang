@@ -72,7 +72,7 @@ import gw.lang.reflect.module.IModule;
 import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 import gw.util.concurrent.LocklessLazyVar;

@@ -7,7 +7,7 @@ import gw.lang.parser.expressions.INumericLiteralExpression;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 /**

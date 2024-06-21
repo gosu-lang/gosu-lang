@@ -4,6 +4,7 @@
 
 package gw.util.cache;
 
+import gw.internal.gosu.util.StringPool;
 import gw.lang.parser.TypeSystemAwareCache;
 import gw.util.DynamicArray;
 import gw.util.Predicate;

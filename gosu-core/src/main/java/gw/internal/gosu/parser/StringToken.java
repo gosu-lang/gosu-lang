@@ -6,7 +6,7 @@ package gw.internal.gosu.parser;
 
 import gw.lang.parser.IToken;
 import gw.lang.parser.SourceCodeReader;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
 */

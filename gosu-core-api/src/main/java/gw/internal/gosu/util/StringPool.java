@@ -1,17 +1,21 @@
-package gw.util.cache;
+package gw.internal.gosu.util;
+
+import gw.lang.UnstableAPI;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Faster than String.intern()
  * <p/>
- * @deprecated This class is going away soon, do not use this.
+ * WARNING: This API is unstable and intended for internal use only.
  */
+@UnstableAPI
 public class StringPool
 {
   private static final StringPool INSTANCE = new StringPool();
 
-  private ConcurrentHashMap<String, String> _map;
+  private final ConcurrentHashMap<String, String> _map;
+
   private int _misses;
   private int _total;
   private long _size;
@@ -20,23 +24,22 @@ public class StringPool
     _map = new ConcurrentHashMap<>();
   }
 
-  @Deprecated
+  /**
+   * This method is intended for internal use only.
+   */
+  @UnstableAPI
   public static String get( String value ) {
+    if( value == null ) {
+      return null;
+    }
+    String existing = INSTANCE._map.get( value );
+    if( existing != null ) {
+      return existing;
+    }
+    INSTANCE._map.put( value, value );
     return value;
   }
 
-//  public static String get( String value ) {
-//    if( value == null ) {
-//      return null;
-//    }
-//    String existing = INSTANCE._map.get( value );
-//    if( existing != null ) {
-//      return existing;
-//    }
-//    INSTANCE._map.put( value, value );
-//    return value;
-//  }
-//
 //  public static String get( String value ) {
 //    String existing = INSTANCE._map.get( value );
 //    INSTANCE._total++;

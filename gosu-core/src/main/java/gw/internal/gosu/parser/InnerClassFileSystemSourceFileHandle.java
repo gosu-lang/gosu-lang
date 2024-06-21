@@ -13,7 +13,7 @@ import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.ISourceFileHandle;
 import gw.lang.reflect.gs.ClassType;
 import gw.lang.reflect.TypeSystem;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  */

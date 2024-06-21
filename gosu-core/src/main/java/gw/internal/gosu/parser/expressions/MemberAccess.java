@@ -21,7 +21,7 @@ import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IProgramInstance;
 import gw.lang.reflect.java.ICompileTimeConstantValue;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  * Represents a member access expression in the Gosu grammar:

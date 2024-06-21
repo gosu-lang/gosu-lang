@@ -10,7 +10,7 @@ import gw.lang.parser.IToken;
 import gw.lang.parser.Keyword;
 import gw.lang.parser.SourceCodeReader;
 import gw.util.GosuEscapeUtil;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
 */

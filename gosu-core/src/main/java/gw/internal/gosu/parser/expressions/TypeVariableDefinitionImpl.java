@@ -12,7 +12,7 @@ import gw.lang.parser.expressions.Variance;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  */

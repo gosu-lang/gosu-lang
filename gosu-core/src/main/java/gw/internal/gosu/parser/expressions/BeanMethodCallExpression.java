@@ -14,7 +14,7 @@ import gw.lang.reflect.*;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuMethodInfo;
 import gw.lang.reflect.java.JavaTypes;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  * An expression representing a bean method call:

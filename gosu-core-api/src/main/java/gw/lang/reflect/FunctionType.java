@@ -15,7 +15,7 @@ import gw.lang.reflect.java.IJavaClassInfo;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.TypeVarToTypeMap;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 import gw.util.concurrent.LockingLazyVar;
 
 import java.io.ObjectStreamException;

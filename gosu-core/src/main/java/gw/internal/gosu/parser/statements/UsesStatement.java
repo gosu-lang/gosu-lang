@@ -10,7 +10,7 @@ import gw.lang.parser.statements.ITerminalStatement;
 import gw.lang.parser.statements.IUsesStatement;
 import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.module.IModule;
-import gw.util.cache.StringPool;
+import gw.internal.gosu.util.StringPool;
 
 /**
  */
