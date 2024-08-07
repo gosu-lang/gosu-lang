@@ -486,7 +486,7 @@ public class GosuClassProxyFactory
     pis = ti.getProperties();
     for( IPropertyInfo pi : pis )
     {
-      if( pi.getOwnersType() == JavaTypes.OBJECT() )
+      if( pi.getOwnersType() == JavaTypes.OBJECT() && pi.isPublic() )
       {
         genInterfacePropertyDecl(sb, pi, type);
       }
@@ -509,7 +509,7 @@ public class GosuClassProxyFactory
     mis = ti.getMethods();
     for( IMethodInfo mi : mis )
     {
-      if( mi.getOwnersType() == JavaTypes.OBJECT() )
+      if( mi.getOwnersType() == JavaTypes.OBJECT() && mi.isPublic() )
       {
         genInterfaceMethodDecl( sb, mi );
       }
