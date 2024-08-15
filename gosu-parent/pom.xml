@@ -3,7 +3,7 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1.17.11-SNAPSHOT</version>
+  <version>1.17.11</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
@@ -30,7 +30,7 @@
     <connection>${scm.root}/gosu-lang.git</connection>
     <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
-    <tag>rel/1.17.11</tag>
+    <tag>v1.17.11</tag>
   </scm>
 
   <properties>
