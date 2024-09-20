@@ -38,8 +38,9 @@ enhancement CoreBindingsEnhancement : Bindings {
     if( isNewLine( sb ) ) {
       indent( sb, indent )
     }
+    sb.append( "{" )
     if( this.size() > 0 ) {
-      sb.append( "{\n" )
+      sb.append( "\n" )
       for( key in this.keySet() ) {
         indent( sb, indent + 2 )
         sb.append( '\"' ).append( key ).append( '\"' ).append( ": " )
@@ -56,8 +57,8 @@ enhancement CoreBindingsEnhancement : Bindings {
         appendCommaNewLine( sb, iKey < this.size() - 1 )
         iKey++
       }
+      indent( sb, indent )
     }
-    indent( sb, indent )
     sb.append( "}" )
   }
 

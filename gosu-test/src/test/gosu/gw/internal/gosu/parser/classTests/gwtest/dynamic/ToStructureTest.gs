@@ -26,7 +26,17 @@ class ToStructureTest {
   function resetToDefaultParser() {
     Json.setParserName("gw.lang.reflect.json.DefaultParser")
   }
-  
+
+  @Test
+  function emptyStructure() {
+    var emptyness = '{\n  "emptyness": {}\n}'
+    var x = Json.fromJson(emptyness)
+    Assert.assertEquals(emptyness, x.toJson())
+
+    var es = x.toStructure("EmptyStructureTest")
+    Assert.assertTrue(es.contains("structure emptyness {\n  }"))
+  }
+
   @Test
   function SimpleIntVsLongs() {
     print("About to evaluate: \n" + simpleArrayOfNumbersJson)
