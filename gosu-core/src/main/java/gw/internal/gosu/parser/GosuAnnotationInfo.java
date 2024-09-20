@@ -368,7 +368,7 @@ public class GosuAnnotationInfo implements IAnnotationInfo
     try
     {
       parser.setSymbolTable( TypeSystem.getCompiledGosuClassSymbolTable() ); // Set up the symbol table
-      return (INewExpression)parser.parseExp( new TypelessScriptPartId( toString() ), options.getExpectedType(), options.getFileContext(), false );
+      return (INewExpression)parser.parseExp( new TypelessScriptPartId( toString(), ownersType ), options.getExpectedType(), options.getFileContext(), false );
     }
     catch( ParseResultsException e )
     {

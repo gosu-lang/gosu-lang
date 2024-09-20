@@ -44,7 +44,8 @@ public class ContextType {
     _type = type;
     _unboundType = unboundType;
     _bMethodScoring = bScoring;
-    _bCompileTimeConstant = bCompileTimeConstant;
+    _bCompileTimeConstant = bCompileTimeConstant ||
+            type != null && JavaTypes.ANNOTATION().isAssignableFrom( type );
   }
 
   public boolean isMethodScoring() {

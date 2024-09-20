@@ -1957,7 +1957,7 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
   @Override
   public boolean shouldFullyCompileAnnotations()
   {
-    return getCompilationState().isCompilingDefinitions();
+    return getCompilationState().isCompilingDefinitions() || getCompilationState().isDefinitionsCompiled();
   }
 
   public void setCompilingDefinitions( boolean bCompilingDefinitions )

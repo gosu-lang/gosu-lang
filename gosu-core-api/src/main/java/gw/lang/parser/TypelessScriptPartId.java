@@ -11,15 +11,22 @@ public class TypelessScriptPartId extends IScriptPartId
 {
   private String _strPartId;
   private IGosuClass _runtimeType;
+  private IGosuClass _containingType;
 
   public TypelessScriptPartId( String strPartId )
   {
     _strPartId = strPartId;
   }
 
+  public TypelessScriptPartId( String strPartId, IGosuClass containingType )
+  {
+    this(strPartId);
+    _containingType = containingType;
+  }
+
   public IType getContainingType()
   {
-    return null;
+    return _containingType;
   }
 
   public String getId()
@@ -34,7 +41,7 @@ public class TypelessScriptPartId extends IScriptPartId
 
   public String getContainingTypeName()
   {
-    return null;
+    return _containingType == null ? null : _containingType.getName();
   }
 
   public void setRuntimeType( IGosuClass runtimeType )
@@ -58,7 +65,7 @@ public class TypelessScriptPartId extends IScriptPartId
     }
 
     TypelessScriptPartId that = (TypelessScriptPartId)o;
-    return _strPartId.equals( that._strPartId );
+    return _strPartId.equals( that._strPartId ) && _containingType == that._containingType;
   }
 
   public int hashCode()

@@ -8771,6 +8771,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
         !parseCharLiteral( token ) &&
         !parseBooleanLiteral( token ) &&
         !parseNullLiteral( token ) &&
+        !parseAnnotation( token ) &&
         !parseTypeLiteral( token ) )
     {
       Expression expr = popExpression();
@@ -8781,6 +8782,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
       Token T = getTokenizer().getPriorToken();
       setLocation( T.getTokenEnd(), T.getLine(), T.getTokenColumn(), true );
     }
+  }
+
+  private boolean parseAnnotation( Token token )
+  {
+    IType type = getContextType().getType();
+    if( token.getType() == '@' && JavaTypes.ANNOTATION().isAssignableFrom( type ) )
+    {
+//      _tokenizer.restoreToMark( _tokenizer.getState()-1 );
+      List<IGosuAnnotation> anno = new ArrayList<>( 1 );
+      getOwner().parseAnnotation( anno );
+      pushExpression( (Expression)anno.get( 0 ).getExpression() );
+      return true;
+    }
+    return false;
   }
 
   private boolean parseRelativeFeatureLiteral( Token token )
