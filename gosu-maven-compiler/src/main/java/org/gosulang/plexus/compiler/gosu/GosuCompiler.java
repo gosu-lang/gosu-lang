@@ -45,6 +45,11 @@ public class GosuCompiler extends AbstractCompiler {
   }
 
   @Override
+  public String getCompilerId() {
+    return null;
+  }
+
+  @Override
   public CompilerResult performCompile(CompilerConfiguration config) throws CompilerException {
 
     File destinationDir = new File(config.getOutputLocation());
