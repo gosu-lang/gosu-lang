@@ -14,7 +14,7 @@
 
   <scm>
     <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
-    <tag>rel/1.17.13</tag>
+    <tag>rel/1.17.12</tag>
   </scm>
   
   <modules>
