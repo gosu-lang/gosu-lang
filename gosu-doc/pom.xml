@@ -120,7 +120,9 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
+          <useDefaultManifestFile>false</useDefaultManifestFile>
           <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
             <manifest>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
@@ -128,6 +130,9 @@
               <Contains-Sources>gs, gsx, gst</Contains-Sources>
             </manifestEntries>
           </archive>
+          <excludes>
+            <exclude>**/.DS_Store</exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
