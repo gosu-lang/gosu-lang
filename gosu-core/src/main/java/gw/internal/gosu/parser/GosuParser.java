@@ -14330,7 +14330,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       if( T == null )
       {
         int mark = getTokenizer().mark();
-        bHasName = verify( element, match( null, SourceCodeTokenizer.TT_WORD ), Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
+        bHasName = verify( element, match( null, SourceCodeTokenizer.TT_WORD ) || matchNonDeclarationKeyword(), Res.MSG_EXPECTING_NAME_FUNCTION_DEF );
         token = getTokenizer().getTokenAt( mark );
         iTokenStart = token == null ? 0 : token.getTokenStart();
         if( bHasName )
@@ -14519,6 +14519,20 @@ public final class GosuParser extends ParserBase implements IGosuParser
     {
       _symTable.popScope();
     }
+  }
+
+  private boolean matchNonDeclarationKeyword()
+  {
+    if( match( null, null, SourceCodeTokenizer.TT_KEYWORD, true ) )
+    {
+      Token nameToken = getTokenizer().getCurrentToken();
+      String stringValue = nameToken.getStringValue();
+      if( stringValue != null && !isDeclarationKeyword( stringValue ) )
+      {
+        return match( null, SourceCodeTokenizer.TT_KEYWORD );
+      }
+    }
+    return false;
   }
 
   boolean maybeEatNonDeclKeyword( boolean bHasName, String strFunctionName )
