@@ -299,6 +299,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
           parseClassBodyDecl( strClassName, gsClass );
         }
       }
+      catch( Exception e )
+      {
+        throw makeFailureException( e, gsClass );
+      }
       finally
       {
         getSymbolTable().popScope();
@@ -328,6 +332,19 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       popScopeIfNeeded( bPushedScope, gsClass );
       getTokenizer().popOffsetMarker( this );
     }
+  }
+
+  /**
+   * For diagnostics, wrap cause and indicate parser phase, compiling class name, and position at the time of failure.
+   */
+  private GosuCompilationFailure makeFailureException( Exception e, IGosuClassInternal gsClass )
+  {
+    if( e instanceof GosuCompilationFailure )
+    {
+      return (GosuCompilationFailure)e;
+    }
+    int ln = getTokenizer().getLineNumber();
+    return new GosuCompilationFailure( e, gsClass, ln );
   }
 
   private boolean isTopLevelClass( IGosuClassInternal gsClass )
@@ -448,6 +465,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
         {
           getOwner().setParsed( true );
         }
+      }
+      catch( Exception e )
+      {
+        throw makeFailureException( e, gsClass );
       }
       finally
       {
@@ -1779,6 +1800,10 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
       {
         return null;
       }
+    }
+    catch( Exception e )
+    {
+      throw makeFailureException( e, gsClass );
     }
     finally
     {
