@@ -75,8 +75,8 @@ public class ExecutionEnvironment implements IExecutionEnvironment
    * included in the classpath. This is a replacement to old SPECIAL_FILES variable.
    */
   private static final List<String> SPECIAL_CLASSES = Arrays.asList(
-          "javax.servlet.Servlet",
-          "javax.servlet.http.HttpServletRequest"
+          "jakarta.servlet.Servlet",
+          "jakarta.servlet.http.HttpServletRequest"
   );
 
   private IProject _project;
