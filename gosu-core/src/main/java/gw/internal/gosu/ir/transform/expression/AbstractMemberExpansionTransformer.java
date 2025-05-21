@@ -269,7 +269,8 @@ public abstract class AbstractMemberExpansionTransformer<T extends IMemberAccess
     {
       IType arrayComponentType = getMoreSpecificType( resultCompType, resultType.getComponentType() );
       IRExpression listToArrayCall;
-      if( isBytecodeType( arrayComponentType ) )
+      if( isBytecodeType( arrayComponentType ) &&
+              !(arrayComponentType instanceof IGosuClass && ((IGosuClass)arrayComponentType).isStructure()) )
       {
         listToArrayCall = callStaticMethod( AbstractMemberExpansionTransformer.class, "listToArray", new Class[]{List.class, Class.class},
                             exprList( identifier( resultArrayList ), classLiteral( getDescriptor( arrayComponentType ) ) ));

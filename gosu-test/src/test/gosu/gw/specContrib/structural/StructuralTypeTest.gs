@@ -50,4 +50,30 @@ class StructuralTypeTest extends gw.BaseVerifyErrantTest
     var inputs = { x, y }
     assertEquals( { x }, inputs.whereTypeIs( MyStructure ) )
   }
+
+  function testStructuralExpansionOperator()
+  {
+    var o = new Outer()
+    var ll : List<Outer> = {o,o,o}
+
+    assertEquals( "[9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi]", java.util.Arrays.toString( ll*.classArray ) )
+    assertEquals( "[9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi, 9hi]", java.util.Arrays.toString( ll*.structArray ) )
+
+    assertEquals( "[9, 9, 9, 9, 9, 9, 9, 9, 9]", java.util.Arrays.toString( ll*.classArray*.N ) )
+    assertEquals( "[9, 9, 9, 9, 9, 9, 9, 9, 9]", java.util.Arrays.toString( ll*.structArray*.N ) )
+  }
+  structure Struct {
+    property get N(): int
+  }
+  static class Nominal {
+    var n : int as N = 9
+    function toString() : String {
+      return N + "hi"
+    }
+  }
+  static class Outer {
+    var c = new Nominal()
+    var classArray : Nominal[] = {c,c,c}
+    var structArray : Struct[] = {c,c,c}
+  }
 }
