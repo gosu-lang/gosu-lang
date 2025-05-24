@@ -1,6 +1,7 @@
 package gw.internal.gosu.util;
 
 import gw.lang.UnstableAPI;
+import gw.lang.reflect.gs.IGosuProgram;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +32,10 @@ public class StringPool
   public static String get( String value ) {
     if( value == null ) {
       return null;
+    }
+    if( value.contains( IGosuProgram.NAME_PREFIX ) ) {
+      // not caching these, see SFDR-4560
+      return value;
     }
     String existing = INSTANCE._map.get( value );
     if( existing != null ) {
