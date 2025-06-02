@@ -179,13 +179,13 @@ public class GenericTypeVariable implements IGenericTypeVariable
   {
     TypeVarToTypeMap paramByVarNameIncludingMethod = new TypeVarToTypeMap();
     GenericTypeVariable[] toVars = new GenericTypeVariable[fromVars.length];
+    TypeVarToTypeMap classTypeVars = classType == null ? new TypeVarToTypeMap() : TypeLord.mapTypeByVarName( classType, classType );
+    if( classTypeVars == TypeVarToTypeMap.EMPTY_MAP )
+    {
+      classTypeVars = new TypeVarToTypeMap();
+    }
     for( int i = 0; i < toVars.length; i++ )
     {
-      TypeVarToTypeMap classTypeVars = classType == null ? new TypeVarToTypeMap() : TypeLord.mapTypeByVarName( classType, classType );
-      if( classTypeVars == TypeVarToTypeMap.EMPTY_MAP )
-      {
-        classTypeVars = new TypeVarToTypeMap();
-      }
       toVars[i] = new GenericTypeVariable( enclosingType, fromVars[i], classTypeVars );
       paramByVarNameIncludingMethod.put( toVars[i].getTypeVariableDefinition().getType(), toVars[i].getTypeVariableDefinition().getType() );
     }
