@@ -207,6 +207,12 @@ public class GosuTypeManifold implements ITypeManifold
       return null;
     }
 
-    return TypeSystem.getByFullNameIfValidNoJava( fqn );
+    IType type = TypeSystem.getByFullNameIfValidNoJava( fqn );
+    if( type != null && TypeSystem.getJavaClassInfo( fqn, TypeSystem.getCurrentModule() ) != null )
+    {
+      // If the Gosu class is already compiled, defer to that class instead
+      return null;
+    }
+    return type;
   }
 }
