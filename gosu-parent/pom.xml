@@ -51,10 +51,10 @@
   </repositories>-->
 
   <distributionManagement>
-    <snapshotRepository>
+ <!--   <snapshotRepository>
       <id>central</id>
       <url>${dist.mvn.central.snapshotrepo.url}</url>
-    </snapshotRepository>
+    </snapshotRepository>-->
     <repository>
       <id>publish.to.repository.id</id>
       <url>${env.PUBLISH_TO_REPOSITORY_URL}</url>
