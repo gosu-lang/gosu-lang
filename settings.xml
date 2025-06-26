@@ -6,5 +6,15 @@
       <username>${env.SNAPSHOT_USER}</username>
       <password>${env.SNAPSHOT_PASS}</password>
     </server>
+    <server>
+      <id>central</id>
+      <username>${env.SNAPSHOT_USER_CENTRAL}</username>
+      <password>${env.SNAPSHOT_PASS_CENTRAL}</password>
+    </server>
+    <server>
+      <id>publish.to.repository.id</id>
+      <username>${PUBLISH_WITH_USERNAME}</username>
+      <password>${PUBLISH_WITH_PASSWORD}</password>
+    </server>
   </servers>
 </settings>
