@@ -39,7 +39,7 @@
     <scm.root>scm:git:git@github.com:gosu-lang</scm.root>
   </properties>
 
- <repositories>
+<!-- <repositories>
     <repository>
       <id>central</id>
       <name>Central Repository (snapshots)</name>
@@ -48,7 +48,7 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
-  </repositories>
+  </repositories>-->
 
   <distributionManagement>
     <snapshotRepository>
