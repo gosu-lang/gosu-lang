@@ -13,7 +13,35 @@ public class CommandLineOptions {
   @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
   private boolean _checkedarithmetic;
 
-  /**
+    public void setClasspath(String classpath) {
+        this._classpath = classpath;
+    }
+
+    public void setDestDir(String destDir) {
+        this._destDir = destDir;
+    }
+
+    public void setIncremental(boolean incremental) {
+        this._incremental = incremental;
+    }
+
+    public void setDependencyFile(String dependencyFile) {
+        this._dependencyFile = dependencyFile;
+    }
+
+    public void setChangedFiles(List<String> changedFiles) {
+        this._changedFiles = changedFiles;
+    }
+
+    public void setSrcFiles(List<String> srcFiles) {
+        this._srcFiles = srcFiles;
+    }
+
+    public void setDeletedFiles(List<String> deletedFiles) {
+        this._deletedFiles = deletedFiles;
+    }
+
+    /**
    * @return true if '-ca' or '-checkedArithmetic' was specified on the command line
    */
   public boolean isCheckedArithmetic() {
@@ -56,6 +84,10 @@ public class CommandLineOptions {
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
   private String _sourcepath;
+
+  public void setSourcepath(String sourcepath) {
+    this._sourcepath = sourcepath;
+  }
 
   public String getSourcepath() {
     return _sourcepath == null ? "" : _sourcepath;
@@ -109,6 +141,37 @@ public class CommandLineOptions {
    */
   public int getMaxWarns() {
     return _maxwarns;
+  }
+
+  @Parameter(names = "-incremental", description = "Enable incremental compilation")
+  private boolean _incremental;
+
+  /**
+   * @return true if '-incremental' was specified on the command line
+   */
+  public boolean isIncremental() {
+    return _incremental;
+  }
+
+  @Parameter(names = "-dependency-file", description = "Path to dependency tracking file for incremental compilation")
+  private String _dependencyFile;
+
+  public String getDependencyFile() {
+    return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
+  }
+
+  @Parameter(names = "-changed-files", description = "Changed source files for incremental compilation")
+  private List<String> _changedFiles = new ArrayList<>();
+
+  public List<String> getChangedFiles() {
+    return _changedFiles;
+  }
+
+  @Parameter(names = "-deleted-files", description = "Deleted source files for incremental compilation")
+  private List<String> _deletedFiles = new ArrayList<>();
+
+  public List<String> getDeletedFiles() {
+    return _deletedFiles;
   }
 
 }
