@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
@@ -64,13 +66,71 @@ public class GosuCompiler implements IGosuCompiler
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
+  protected IncrementalCompilationManager _incrementalManager;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
+    // Initialize incremental compilation if enabled
+    if( options.isIncremental() )
+    {
+      _incrementalManager = new IncrementalCompilationManager(
+        options.getDependencyFile(),
+        options.isVerbose() );
+
+      // Handle deleted files
+      List<String> deletedFiles = options.getDeletedFiles();
+      if( !deletedFiles.isEmpty() )
+      {
+        IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+        if( moduleOutputDirectory != null )
+        {
+          _incrementalManager.deleteOutputsForDeletedFiles( deletedFiles,
+            moduleOutputDirectory.getPath().getFileSystemPathString() );
+        }
+      }
+
+      // Calculate files that need recompilation
+      List<String> changedFiles = options.getChangedFiles();
+      Set<String> filesToCompile = _incrementalManager.calculateRecompilationSet(
+        changedFiles, deletedFiles );
+
+      if( options.isVerbose() && !filesToCompile.isEmpty() )
+      {
+        System.out.println( "Incremental compilation: recompiling " + filesToCompile.size() + " files" );
+      }
+      
+      // Filter source files to only compile what's needed
+      List<String> allSourceFiles = getSourceFiles( options );
+      List<String> sourceFiles = new ArrayList<>();
+      for( String file : allSourceFiles )
+      {
+        if( filesToCompile.contains( file ) )
+        {
+          sourceFiles.add( file );
+        }
+      }
+      
+      // If incremental mode but no specific files to compile, compile all changed files
+      if( sourceFiles.isEmpty() && !changedFiles.isEmpty() )
+      {
+        sourceFiles = changedFiles;
+      }
+      
+      return compileFilteredSources( sourceFiles, options, driver );
+    }
+    else
+    {
+      // Normal compilation - compile all sources
+      return compileFilteredSources( getSourceFiles( options ), options, driver );
+    }
+  }
+  
+  private boolean compileFilteredSources( List<String> sourceFiles, CommandLineOptions options, ICompilerDriver driver )
+  {
     List<String> gosuFiles = new ArrayList<>();
     List<String> javaFiles = new ArrayList<>();
-    for( String fileName : getSourceFiles( options ) )
+    for( String fileName : sourceFiles )
     {
       if( fileName.toLowerCase().endsWith( ".java" ) )
       {
@@ -82,11 +142,13 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
+    boolean thresholdExceeded = false;
+    
     if( !gosuFiles.isEmpty() )
     {
       if( compileGosuSources( options, driver, gosuFiles ) )
       {
-        return true;
+        thresholdExceeded = true;
       }
     }
 
@@ -94,10 +156,17 @@ public class GosuCompiler implements IGosuCompiler
     {
       if( compileJavaSources( options, driver, javaFiles ) )
       {
-        return true;
+        thresholdExceeded = true;
       }
     }
-    return false;
+    
+    // Save dependency information if incremental compilation is enabled and the error/warning threshold was not exceeded
+    if( _incrementalManager != null && !thresholdExceeded )
+    {
+      _incrementalManager.saveDependencyFile();
+    }
+    
+    return thresholdExceeded;
   }
 
   private List<String> getSourceFiles( CommandLineOptions options )
@@ -244,6 +313,22 @@ public class GosuCompiler implements IGosuCompiler
         if( type.isValid() )
         {
           createGosuOutputFiles( (IGosuClass)type, driver );
+          
+          // Track output files if incremental compilation is enabled
+          if( _incrementalManager != null )
+          {
+            IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+            if( moduleOutputDirectory != null )
+            {
+              File destDir = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
+              Set<String> outputFiles = _incrementalManager.scanOutputFiles( 
+                sourceFile.getAbsolutePath(), destDir );
+              _incrementalManager.recordOutputFiles( sourceFile.getAbsolutePath(), outputFiles );
+              
+              // Track dependencies (simplified for now - tracks superclass and interfaces)
+              trackDependencies( (IGosuClass)type, sourceFile );
+            }
+          }
         }
       }
       catch( CompilerDriverException ex )
@@ -265,6 +350,149 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     return false;
+  }
+  
+  private void trackDependencies( IGosuClass gsClass, File sourceFile )
+  {
+    if( _incrementalManager == null )
+    {
+      return;
+    }
+    
+    String sourcePath = sourceFile.getAbsolutePath();
+    Set<IType> trackedTypes = new HashSet<>();
+
+    // Track superclass dependency
+    IType supertype = gsClass.getSupertype();
+    if( supertype != null && supertype instanceof IGosuClass )
+    {
+      trackTypeDependency( sourcePath, supertype, trackedTypes );
+    }
+    
+    // Track interface dependencies
+    for( IType iface : gsClass.getInterfaces() )
+    {
+      if( iface instanceof IGosuClass )
+      {
+        trackTypeDependency( sourcePath, iface, trackedTypes );
+      }
+    }
+
+    // Track field type dependencies
+    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getProperties() != null )
+    {
+      for( Object propInfo : gsClass.getTypeInfo().getProperties() )
+      {
+        if( propInfo instanceof gw.lang.reflect.IPropertyInfo )
+        {
+          IType fieldType = ((gw.lang.reflect.IPropertyInfo)propInfo).getFeatureType();
+          trackTypeDependency( sourcePath, fieldType, trackedTypes );
+        }
+      }
+    }
+
+    // Track method parameter and return type dependencies
+    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getMethods() != null )
+    {
+      for( Object methodInfo : gsClass.getTypeInfo().getMethods() )
+      {
+        if( methodInfo instanceof gw.lang.reflect.IMethodInfo )
+        {
+          gw.lang.reflect.IMethodInfo method = (gw.lang.reflect.IMethodInfo)methodInfo;
+
+          // Track return type
+          IType returnType = method.getReturnType();
+          trackTypeDependency( sourcePath, returnType, trackedTypes );
+
+          // Track parameter types
+          gw.lang.reflect.IParameterInfo[] params = method.getParameters();
+          if( params != null )
+          {
+            for( gw.lang.reflect.IParameterInfo param : params )
+            {
+              trackTypeDependency( sourcePath, param.getFeatureType(), trackedTypes );
+            }
+          }
+        }
+      }
+    }
+
+    // Track types from uses statements
+    if( gsClass.getTypeUsesMap() != null )
+    {
+      Set<String> typeUses = gsClass.getTypeUsesMap().getTypeUses();
+      if( typeUses != null )
+      {
+        for( String typeUseName : typeUses )
+        {
+          try
+          {
+            IType usedType = TypeSystem.getByFullNameIfValid( typeUseName );
+            if( usedType != null )
+            {
+              trackTypeDependency( sourcePath, usedType, trackedTypes );
+            }
+          }
+          catch( Exception e )
+          {
+            // Ignore type resolution errors for uses statements
+          }
+        }
+      }
+    }
+  }
+
+  private void trackTypeDependency( String sourcePath, IType type, Set<IType> trackedTypes )
+  {
+    if( type == null || trackedTypes.contains( type ) )
+    {
+      return;
+    }
+
+    // Skip primitive types and Java types (for now)
+    if( type.isPrimitive() || type instanceof IJavaType )
+    {
+      return;
+    }
+
+    trackedTypes.add( type );
+
+    // Only track Gosu types that have source files
+    if( type instanceof IGosuClass )
+    {
+      ISourceFileHandle sfh = ((IGosuClass)type).getSourceFileHandle();
+      if( sfh != null && sfh.getFile() != null )
+      {
+        try
+        {
+          String dependencyPath = sfh.getFile().getPath().getFileSystemPathString();
+          _incrementalManager.recordDependency( sourcePath, dependencyPath );
+        }
+        catch( Exception e )
+        {
+          // Ignore if we can't get the file path
+        }
+      }
+    }
+    
+    // Also track array component types
+    if( type.isArray() )
+    {
+      trackTypeDependency( sourcePath, type.getComponentType(), trackedTypes );
+    }
+
+    // Track parameterized type arguments
+    if( type.isParameterizedType() )
+    {
+      IType[] typeParams = type.getTypeParameters();
+      if( typeParams != null )
+      {
+        for( IType typeParam : typeParams )
+        {
+          trackTypeDependency( sourcePath, typeParam, trackedTypes );
+        }
+      }
+    }
   }
 
   private IType getType( File file )
