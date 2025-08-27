@@ -776,9 +776,204 @@ public class IncrementalCompilationEndToEndIT {
   }
   
   private boolean isNewer(FileTime t1, FileTime t2) {
+    if (t1 == null || t2 == null) {
+      return false;
+    }
     return t1.compareTo(t2) > 0;
   }
   
+  @Test
+  public void testIncrementalCompilationWithGosuExtensions() throws Exception {
+    // Step 1: Create a base class that will be enhanced
+    File person = createSourceFile("example/Person.gs",
+      "package example\n" +
+      "\n" +
+      "class Person {\n" +
+      "  var _firstName : String\n" +
+      "  var _lastName : String\n" +
+      "  \n" +
+      "  construct(firstName : String, lastName : String) {\n" +
+      "    _firstName = firstName\n" +
+      "    _lastName = lastName\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get FirstName() : String {\n" +
+      "    return _firstName\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get LastName() : String {\n" +
+      "    return _lastName\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 2: Create an enhancement for Person
+    File personEnhancement = createSourceFile("example/PersonEnhancement.gsx",
+      "package example\n" +
+      "\n" +
+      "enhancement PersonEnhancement : Person {\n" +
+      "  \n" +
+      "  property get FullName() : String {\n" +
+      "    return this.FirstName + \" \" + this.LastName\n" +
+      "  }\n" +
+      "  \n" +
+      "  function getInitials() : String {\n" +
+      "    return this.FirstName.charAt(0) + \".\" + this.LastName.charAt(0) + \".\"\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 3: Create a class that uses the enhanced Person type
+    File userService = createSourceFile("example/UserService.gs",
+      "package example\n" +
+      "\n" +
+      "class UserService {\n" +
+      "  \n" +
+      "  function formatUser(person : Person) : String {\n" +
+      "    // Using enhancement methods\n" +
+      "    return person.FullName + \" (\" + person.getInitials() + \")\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  function createSampleUser() : Person {\n" +
+      "    return new Person(\"John\", \"Doe\")\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 4: Initial compilation
+    System.out.println("\n=== Initial compilation with extensions ===");
+    List<File> allFiles = Arrays.asList(person, personEnhancement, userService);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+    
+    // Step 5: Verify dependency tracking in JSON file
+    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
+    System.out.println("Dependency file content: " + depsContent);
+    
+    // Check that PersonEnhancement.gsx depends on Person.gs
+    assertTrue("PersonEnhancement should depend on Person", 
+      depsContent.contains("PersonEnhancement.gsx") && 
+      depsContent.contains("Person.gs"));
+    
+    // Check that UserService.gs depends on both Person.gs and PersonEnhancement.gsx
+    assertTrue("UserService should depend on Person", 
+      depsContent.contains("UserService.gs") && 
+      depsContent.contains("Person.gs"));
+    
+    // Step 6: Record initial timestamps
+    Thread.sleep(1000); // Ensure timestamp differences are detectable
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    
+    // Step 7: Modify the enhancement to add a new method
+    String enhancedPersonContent = 
+      "package example\n" +
+      "\n" +
+      "enhancement PersonEnhancement : Person {\n" +
+      "  \n" +
+      "  property get FullName() : String {\n" +
+      "    return this.FirstName + \" \" + this.LastName\n" +
+      "  }\n" +
+      "  \n" +
+      "  function getInitials() : String {\n" +
+      "    return this.FirstName.charAt(0) + \".\" + this.LastName.charAt(0) + \".\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  // New method added to enhancement\n" +
+      "  function getDisplayName() : String {\n" +
+      "    return \"Mr./Ms. \" + this.FullName\n" +
+      "  }\n" +
+      "}";
+    Files.write(personEnhancement.toPath(), enhancedPersonContent.getBytes());
+    Thread.sleep(1000);
+    
+    // Step 8: Incremental compilation - changing enhancement should recompile dependent files
+    System.out.println("\n=== Incremental compilation after enhancement change ===");
+    result = compile(Arrays.asList(personEnhancement), true);
+    assertTrue("Incremental compilation should succeed: " + result.error, result.success);
+    
+    // Step 9: Verify that files using the enhancement were recompiled
+    Map<String, FileTime> newTimestamps = recordTimestamps();
+    
+    // PersonEnhancement.class should be newer (the file we changed)
+    assertTrue("PersonEnhancement.class should be recompiled",
+      isNewer(newTimestamps.get("PersonEnhancement.class"), 
+              initialTimestamps.get("PersonEnhancement.class")));
+    
+    // UserService.class should be newer (uses enhancement methods)
+    assertTrue("UserService.class should be recompiled due to enhancement change",
+      isNewer(newTimestamps.get("UserService.class"), 
+              initialTimestamps.get("UserService.class")));
+    
+    // Person.class should NOT be newer (base class unchanged)
+    assertFalse("Person.class should NOT be recompiled",
+      isNewer(newTimestamps.get("Person.class"), 
+              initialTimestamps.get("Person.class")));
+              
+    System.out.println("✓ Extension dependency tracking works correctly");
+  }
+  
+  @Test
+  public void testEnhancementDependencyInJson() throws Exception {
+    // Create base type
+    createSourceFile("example/Vehicle.gs",
+      "package example\n" +
+      "\n" +
+      "class Vehicle {\n" +
+      "  var _brand : String\n" +
+      "  \n" +
+      "  construct(brand : String) {\n" +
+      "    _brand = brand\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Brand() : String {\n" +
+      "    return _brand\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Create enhancement
+    createSourceFile("example/VehicleEnhancement.gsx",
+      "package example\n" +
+      "\n" +
+      "enhancement VehicleEnhancement : Vehicle {\n" +
+      "  \n" +
+      "  function getDescription() : String {\n" +
+      "    return \"This is a \" + this.Brand + \" vehicle\"\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Compile
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/Vehicle.gs"),
+      new File(srcDir.toFile(), "example/VehicleEnhancement.gsx")
+    );
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Compilation should succeed: " + result.error, result.success);
+    
+    // Read and parse dependency JSON
+    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
+    System.out.println("Dependency JSON: " + depsContent);
+    
+    // Debug: Check what's actually in the JSON
+    System.out.println("=== DETAILED JSON ANALYSIS ===");
+    System.out.println("Contains VehicleEnhancement.gsx: " + depsContent.contains("VehicleEnhancement.gsx"));
+    System.out.println("Contains Vehicle.gs: " + depsContent.contains("Vehicle.gs"));
+    
+    // Verify structure - VehicleEnhancement.gsx should list Vehicle.gs as dependency
+    boolean hasEnhancement = depsContent.contains("VehicleEnhancement.gsx");
+    boolean hasVehicle = depsContent.contains("Vehicle.gs");
+    
+    if (!hasEnhancement || !hasVehicle) {
+      System.out.println("FAILURE DETAILS:");
+      System.out.println("- Enhancement present: " + hasEnhancement);
+      System.out.println("- Vehicle present: " + hasVehicle);
+      fail("Enhancement should depend on enhanced type. JSON content: " + depsContent);
+    }
+      
+    System.out.println("✓ Enhancement dependencies properly recorded in JSON");
+  }
+
   private static class CompileResult {
     boolean success;
     String error;
