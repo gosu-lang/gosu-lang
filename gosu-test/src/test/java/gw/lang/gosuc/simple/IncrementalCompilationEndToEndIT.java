@@ -1151,6 +1151,94 @@ public class IncrementalCompilationEndToEndIT {
     
     System.out.println("✓ Block inner class output tracking works correctly");
   }
+
+  @Test
+  public void testBlocksAsFunctionTypes() throws Exception {
+    // Test blocks used as explicit function types (both with and without arguments)
+    File functionTypeFile = createSourceFile("example/FunctionTypeExample.gs",
+      "package example\n" +
+      "\n" +
+      "class FunctionTypeExample {\n" +
+      "  \n" +
+      "  // Function that takes a no-arg function type and returns a value\n" +
+      "  function executeNoArgFunction(fn():String) : String {\n" +
+      "    return \"Result: \" + fn()\n" +
+      "  }\n" +
+      "  \n" +
+      "  // Function that takes a function type with arguments\n" +
+      "  function executeTransformer(input : String, transformer(s:String):String) : String {\n" +
+      "    return transformer(input)\n" +
+      "  }\n" +
+      "  \n" +
+      "  // Function that returns a function type (no args)\n" +
+      "  function createGreeter() : block():String {\n" +
+      "    return \\-> \"Hello World\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  // Function that returns a function type (with args)\n" +
+      "  function createProcessor() : block(x:String):String {\n" +
+      "    return \\input : String -> input.toUpperCase()\n" +
+      "  }\n" +
+      "  \n" +
+      "  // Test method that uses all the above\n" +
+      "  function testAllFunctionTypes() : String {\n" +
+      "    var greeting = executeNoArgFunction(\\-> \"Hello\")\n" +
+      "    var processed = executeTransformer(\"test\", \\s -> s.toLowerCase())\n" +
+      "    var greeter = createGreeter()\n" +
+      "    var processor = createProcessor()\n" +
+      "    return greeting + \"|\" + processed + \"|\" + greeter() + \"|\" + processor(\"world\")\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 2: Initial compilation
+    CompileResult result = compile(Arrays.asList(functionTypeFile), false);
+    assertTrue("Initial compilation should succeed", result.success);
+    
+    // Step 3: Check that all block inner classes were created
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    
+    assertTrue("FunctionTypeExample.class should exist", 
+      initialTimestamps.containsKey("FunctionTypeExample.class"));
+    assertTrue("Block inner classes should exist", 
+      initialTimestamps.keySet().stream().anyMatch(name -> name.startsWith("FunctionTypeExample$block_")));
+      
+    // Count how many block classes were generated (should be multiple - one for each block)
+    long blockClassCount = initialTimestamps.keySet().stream()
+      .filter(name -> name.startsWith("FunctionTypeExample$block_"))
+      .count();
+    assertTrue("Should have generated multiple block inner classes for function types", blockClassCount >= 4);
+    
+    System.out.println("✓ Initial compilation created " + blockClassCount + " block inner classes for function types");
+    
+    // Step 4: Modify a function type usage and test incremental compilation
+    modifySourceFile(functionTypeFile,
+      "return \\-> \"Hello World\"",
+      "return \\-> \"Hello Modified World\""
+    );
+    
+    result = compile(Arrays.asList(functionTypeFile), true);
+    assertTrue("Incremental compilation should succeed", result.success);
+    
+    // Step 5: Verify all block classes were recompiled
+    Map<String, FileTime> newTimestamps = recordTimestamps();
+    
+    // Main class should be newer
+    assertTrue("FunctionTypeExample.class should be recompiled",
+      isNewer(newTimestamps.get("FunctionTypeExample.class"), 
+              initialTimestamps.get("FunctionTypeExample.class")));
+    
+    // All block classes should be newer
+    for (String className : initialTimestamps.keySet()) {
+      if (className.startsWith("FunctionTypeExample$block_")) {
+        assertTrue("Block class " + className + " should be recompiled",
+          isNewer(newTimestamps.get(className), 
+                  initialTimestamps.get(className)));
+      }
+    }
+    
+    System.out.println("✓ Function type block incremental compilation works correctly");
+  }
   
   private void modifySourceFile(File file, String oldContent, String newContent) throws IOException {
     String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
