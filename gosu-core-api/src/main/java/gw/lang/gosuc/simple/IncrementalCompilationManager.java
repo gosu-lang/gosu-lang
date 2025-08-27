@@ -163,7 +163,7 @@ public class IncrementalCompilationManager {
    */
   public Set<String> calculateRecompilationSet(List<String> changedFiles, List<String> deletedFiles) {
     Set<String> toRecompile = new HashSet<>(changedFiles);
-
+    
     // Add files that depend on changed files
     for (String changedFile : changedFiles) {
       // First check if we have stored usedBy information for this file
@@ -186,9 +186,6 @@ public class IncrementalCompilationManager {
         CompilationInfo sourceInfo = entry.getValue();
         if (sourceInfo.dependencies != null && sourceInfo.dependencies.contains(changedFile)) {
           toRecompile.add(sourceFile);
-          if (verbose) {
-            System.out.println("File " + sourceFile + " depends on changed file " + changedFile);
-          }
         }
       }
     }
@@ -209,9 +206,6 @@ public class IncrementalCompilationManager {
         CompilationInfo sourceInfo = entry.getValue();
         if (sourceInfo.dependencies != null && sourceInfo.dependencies.contains(deletedFile)) {
           toRecompile.add(sourceFile);
-          if (verbose) {
-            System.out.println("File " + sourceFile + " depends on deleted file " + deletedFile);
-          }
         }
       }
 
@@ -245,6 +239,7 @@ public class IncrementalCompilationManager {
   public Set<String> scanOutputFiles(String sourceFile, File destDir) {
     Set<String> outputs = new HashSet<>();
     
+
     // Convert source file path to expected class file base name
     String baseName = sourceFile;
     if (baseName.endsWith(".gs") || baseName.endsWith(".gsx") || baseName.endsWith(".gst")) {
@@ -252,10 +247,12 @@ public class IncrementalCompilationManager {
     }
     baseName = baseName.replace('/', '.').replace('\\', '.');
     
+
     // Find all class files that match this base name
     String classFileBase = baseName.replace('.', File.separatorChar);
     File baseClassFile = new File(destDir, classFileBase + ".class");
     
+
     if (baseClassFile.exists()) {
       // Get relative path from destDir
       String relativePath = destDir.toPath().relativize(baseClassFile.toPath()).toString();
