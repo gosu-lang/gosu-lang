@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -972,6 +973,189 @@ public class IncrementalCompilationEndToEndIT {
     }
       
     System.out.println("✓ Enhancement dependencies properly recorded in JSON");
+  }
+
+  @Test
+  public void testIncrementalCompilationWithBlocks() throws Exception {
+    // Step 1: Create a class with various types of blocks
+    File blockFile = createSourceFile("example/BlockExample.gs",
+      "package example\n" +
+      "\n" +
+      "class BlockExample {\n" +
+      "  \n" +
+      "  function simpleBlock() : String {\n" +
+      "    var blk = \\-> \"simple\"\n" +
+      "    return blk()\n" +
+      "  }\n" +
+      "  \n" +
+      "  function blockWithArg() : String {\n" +
+      "    var blk = \\s : String -> s.toUpperCase()\n" +
+      "    return blk(\"test\")\n" +
+      "  }\n" +
+      "  \n" +
+      "  function blockWithCapture() : String {\n" +
+      "    var message = \"captured\"\n" +
+      "    var blk = \\-> message + \"!\"\n" +
+      "    return blk()\n" +
+      "  }\n" +
+      "  \n" +
+      "  function nestedBlocks() : String {\n" +
+      "    var blk1 = \\-> \\-> \"nested\"\n" +
+      "    var blk2 = blk1()\n" +
+      "    return blk2()\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 2: Initial compilation
+    CompileResult result = compile(Arrays.asList(blockFile), false);
+    assertTrue("Initial compilation should succeed", result.success);
+    
+    // Step 3: Check that all block inner classes were created
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    
+    assertTrue("BlockExample.class should exist", 
+      initialTimestamps.containsKey("BlockExample.class"));
+    assertTrue("Block inner classes should exist", 
+      initialTimestamps.keySet().stream().anyMatch(name -> name.startsWith("BlockExample$block_")));
+      
+    // Count how many block classes were generated
+    long blockClassCount = initialTimestamps.keySet().stream()
+      .filter(name -> name.startsWith("BlockExample$block_"))
+      .count();
+    assertTrue("Should have generated multiple block inner classes", blockClassCount >= 4);
+    
+    System.out.println("✓ Initial compilation created " + blockClassCount + " block inner classes");
+    
+    // Step 4: Modify a block and test incremental compilation
+    modifySourceFile(blockFile,
+      "var blk = \\-> \"simple\"",
+      "var blk = \\-> \"modified simple\""
+    );
+    
+    result = compile(Arrays.asList(blockFile), true);
+    assertTrue("Incremental compilation should succeed", result.success);
+    
+    // Step 5: Verify all block classes were recompiled
+    Map<String, FileTime> newTimestamps = recordTimestamps();
+    
+    // Main class should be newer
+    assertTrue("BlockExample.class should be recompiled",
+      isNewer(newTimestamps.get("BlockExample.class"), 
+              initialTimestamps.get("BlockExample.class")));
+    
+    // All block classes should be newer
+    for (String className : initialTimestamps.keySet()) {
+      if (className.startsWith("BlockExample$block_")) {
+        assertTrue("Block class " + className + " should be recompiled",
+          isNewer(newTimestamps.get(className), 
+                  initialTimestamps.get(className)));
+      }
+    }
+    
+    System.out.println("✓ Block incremental compilation works correctly");
+  }
+
+  @Test
+  public void testBlockDependencyTracking() throws Exception {
+    // Step 1: Create a utility class
+    File utilClass = createSourceFile("example/BlockUtil.gs",
+      "package example\n" +
+      "\n" +
+      "class BlockUtil {\n" +
+      "  static function transform(s : String) : String {\n" +
+      "    return s.toLowerCase()\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 2: Create a class that uses blocks with dependencies
+    File blockUser = createSourceFile("example/BlockUser.gs",
+      "package example\n" +
+      "\n" +
+      "uses example.BlockUtil\n" +
+      "\n" +
+      "class BlockUser {\n" +
+      "  \n" +
+      "  function processStrings(strings : java.util.List<String>) : java.util.List<String> {\n" +
+      "    // Block that depends on BlockUtil\n" +
+      "    var transformer = \\s : String -> BlockUtil.transform(s)\n" +
+      "    return strings.map(transformer)\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    // Step 3: Initial compilation
+    CompileResult result = compile(Arrays.asList(utilClass, blockUser), false);
+    assertTrue("Initial compilation should succeed", result.success);
+    
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    
+    // Step 4: Modify the utility class
+    modifySourceFile(utilClass,
+      "return s.toLowerCase()",
+      "return s.toUpperCase()"
+    );
+    
+    result = compile(Arrays.asList(utilClass), true);
+    assertTrue("Incremental compilation should succeed", result.success);
+    
+    Map<String, FileTime> newTimestamps = recordTimestamps();
+    
+    // Step 5: Verify that BlockUser and its block classes were recompiled due to dependency
+    assertTrue("BlockUser.class should be recompiled due to dependency on BlockUtil",
+      isNewer(newTimestamps.get("BlockUser.class"), 
+              initialTimestamps.get("BlockUser.class")));
+    
+    // Block inner classes should also be recompiled
+    for (String className : initialTimestamps.keySet()) {
+      if (className.startsWith("BlockUser$block_")) {
+        assertTrue("Block class " + className + " should be recompiled due to dependency",
+          isNewer(newTimestamps.get(className), 
+                  initialTimestamps.get(className)));
+      }
+    }
+    
+    System.out.println("✓ Block dependency tracking works correctly");
+  }
+
+  @Test
+  public void testBlockInnerClassOutputTracking() throws Exception {
+    // Test that block inner classes are properly tracked in dependency JSON
+    File blockFile = createSourceFile("example/OutputTrackingTest.gs",
+      "package example\n" +
+      "\n" +
+      "class OutputTrackingTest {\n" +
+      "  function multipleBlocks() : String {\n" +
+      "    var blk1 = \\-> \"first\"\n" +
+      "    var blk2 = \\s : String -> s + \" second\"\n" +
+      "    var blk3 = \\-> \\-> \"nested\"\n" +
+      "    return blk1() + blk2(\"test\") + blk3()()\n" +
+      "  }\n" +
+      "}"
+    );
+    
+    CompileResult result = compile(Arrays.asList(blockFile), false);
+    assertTrue("Compilation should succeed", result.success);
+    
+    // Check dependency JSON contains all block inner classes
+    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    assertFalse("Dependency file should not be empty", depsContent.trim().isEmpty());
+    
+    assertTrue("Should track main class", depsContent.contains("OutputTrackingTest.class"));
+    assertTrue("Should track block classes", depsContent.contains("OutputTrackingTest$block_"));
+    
+    // Verify that nested blocks are tracked  
+    assertTrue("Should track nested block classes", 
+      depsContent.contains("$block_") && depsContent.contains("$block_0_"));
+    
+    System.out.println("✓ Block inner class output tracking works correctly");
+  }
+  
+  private void modifySourceFile(File file, String oldContent, String newContent) throws IOException {
+    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+    content = content.replace(oldContent, newContent);
+    Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
   }
 
   private static class CompileResult {
