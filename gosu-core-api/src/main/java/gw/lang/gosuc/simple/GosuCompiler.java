@@ -165,6 +165,16 @@ public class GosuCompiler implements IGosuCompiler
         sourceFiles = changedFiles;
       }
       
+      // Ensure all changed files are included even if not found in allSourceFiles
+      // This handles path differences between changed files and source file enumeration
+      for( String changedFile : changedFiles )
+      {
+        if( !sourceFiles.contains( changedFile ) )
+        {
+          sourceFiles.add( changedFile );
+        }
+      }
+      
       // If still no files to compile in incremental mode, this is likely the first compilation
       // Compile all source files to build initial dependency data
       if( sourceFiles.isEmpty() )
@@ -452,6 +462,17 @@ public class GosuCompiler implements IGosuCompiler
     String sourcePath = sourceFile.getAbsolutePath();
     Set<IType> trackedTypes = new HashSet<>();
 
+    // Track enhancement dependency - if this is an enhancement, track the enhanced type
+    if( gsClass instanceof gw.lang.reflect.gs.IGosuEnhancement )
+    {
+      gw.lang.reflect.gs.IGosuEnhancement enhancement = (gw.lang.reflect.gs.IGosuEnhancement)gsClass;
+      IType enhancedType = enhancement.getEnhancedType();
+      if( enhancedType != null )
+      {
+        trackTypeDependency( sourcePath, enhancedType, trackedTypes );
+      }
+    }
+
     // Track superclass dependency
     IType supertype = gsClass.getSupertype();
     if( supertype != null && supertype instanceof IGosuClass )
@@ -587,6 +608,27 @@ public class GosuCompiler implements IGosuCompiler
         {
           trackTypeDependency( sourcePath, ownerType, trackedTypes );
         }
+        
+        // Check if this method call is from an enhancement
+        // Enhancement methods have the enhancement type as their declaring type
+        try
+        {
+          if( funcSymbol instanceof gw.lang.reflect.IMethodInfo )
+          {
+            gw.lang.reflect.IMethodInfo methodInfo = (gw.lang.reflect.IMethodInfo)funcSymbol;
+            IType declaringType = methodInfo.getOwnersType();
+            
+            // If the declaring type is different from the owner type, it might be an enhancement method
+            if( declaringType != null && declaringType != ownerType && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
+            {
+              trackTypeDependency( sourcePath, declaringType, trackedTypes );
+            }
+          }
+        }
+        catch( Exception e )
+        {
+          // Ignore errors in enhancement detection to avoid breaking compilation
+        }
       }
 
       // Also track the return type
@@ -607,6 +649,26 @@ public class GosuCompiler implements IGosuCompiler
       if( rootType != null )
       {
         trackTypeDependency( sourcePath, rootType, trackedTypes );
+      }
+      
+      // Check if this member access is from an enhancement (like person.FullName)
+      try
+      {
+        gw.lang.reflect.IPropertyInfo propInfo = memberAccess.getPropertyInfo();
+        if( propInfo != null )
+        {
+          IType declaringType = propInfo.getOwnersType();
+          
+          // If the declaring type is an enhancement, track it
+          if( declaringType != null && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
+          {
+            trackTypeDependency( sourcePath, declaringType, trackedTypes );
+          }
+        }
+      }
+      catch( Exception e )
+      {
+        // Ignore errors in enhancement detection to avoid breaking compilation
       }
     }
 
