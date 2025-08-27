@@ -13,34 +13,6 @@ public class CommandLineOptions {
   @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
   private boolean _checkedarithmetic;
 
-    public void setClasspath(String classpath) {
-        this._classpath = classpath;
-    }
-
-    public void setDestDir(String destDir) {
-        this._destDir = destDir;
-    }
-
-    public void setIncremental(boolean incremental) {
-        this._incremental = incremental;
-    }
-
-    public void setDependencyFile(String dependencyFile) {
-        this._dependencyFile = dependencyFile;
-    }
-
-    public void setChangedFiles(List<String> changedFiles) {
-        this._changedFiles = changedFiles;
-    }
-
-    public void setSrcFiles(List<String> srcFiles) {
-        this._srcFiles = srcFiles;
-    }
-
-    public void setDeletedFiles(List<String> deletedFiles) {
-        this._deletedFiles = deletedFiles;
-    }
-
     /**
    * @return true if '-ca' or '-checkedArithmetic' was specified on the command line
    */
@@ -84,10 +56,6 @@ public class CommandLineOptions {
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
   private String _sourcepath;
-
-  public void setSourcepath(String sourcepath) {
-    this._sourcepath = sourcepath;
-  }
 
   public String getSourcepath() {
     return _sourcepath == null ? "" : _sourcepath;

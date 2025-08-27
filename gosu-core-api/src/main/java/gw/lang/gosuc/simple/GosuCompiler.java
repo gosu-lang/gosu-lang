@@ -16,6 +16,7 @@ import gw.lang.javac.SourceJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
+import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -74,26 +75,73 @@ public class GosuCompiler implements IGosuCompiler
     // Initialize incremental compilation if enabled
     if( options.isIncremental() )
     {
-      _incrementalManager = new IncrementalCompilationManager(
-        options.getDependencyFile(),
+      _incrementalManager = new IncrementalCompilationManager( 
+        options.getDependencyFile(), 
         options.isVerbose() );
-
+      
       // Handle deleted files
       List<String> deletedFiles = options.getDeletedFiles();
       if( !deletedFiles.isEmpty() )
       {
-        IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-        if( moduleOutputDirectory != null )
+        if( TypeSystem.getGlobalModule() != null )
         {
-          _incrementalManager.deleteOutputsForDeletedFiles( deletedFiles,
-            moduleOutputDirectory.getPath().getFileSystemPathString() );
+          IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+          if( moduleOutputDirectory != null )
+          {
+            _incrementalManager.deleteOutputsForDeletedFiles( deletedFiles,
+              moduleOutputDirectory.getPath().getFileSystemPathString() );
+          }
         }
       }
-
+      
       // Calculate files that need recompilation
       List<String> changedFiles = options.getChangedFiles();
-      Set<String> filesToCompile = _incrementalManager.calculateRecompilationSet(
+      Set<String> filesToCompile = _incrementalManager.calculateRecompilationSet( 
         changedFiles, deletedFiles );
+
+      // DEBUG: Check if deleted types are still available in TypeSystem/ClassLoader
+      if( !deletedFiles.isEmpty() )
+      {
+        for( String deletedFile : deletedFiles )
+        {
+          // Try to extract type name from file path
+          String typeName = extractTypeNameFromPath( deletedFile );
+          if( typeName != null )
+          {
+            if( options.isVerbose() ) {
+              System.out.println( "DEBUG: Checking deleted type " + typeName );
+            }
+            // Check TypeSystem
+            IType type = TypeSystem.getByFullNameIfValid( typeName );
+            if( options.isVerbose() ) {
+              System.out.println( "DEBUG: TypeSystem.getByFullNameIfValid(\"" + typeName + "\") = " + type );
+            }
+            // Check ClassLoader
+            try
+            {
+              Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass( typeName );
+              if( options.isVerbose() ) {
+                System.out.println( "DEBUG: ClassLoader found " + typeName + " at " + clazz.getProtectionDomain().getCodeSource().getLocation() );
+              }
+            }
+            catch( ClassNotFoundException e )
+            {
+              if( options.isVerbose() ) {
+                System.out.println( "DEBUG: ClassLoader did not find " + typeName );
+              }
+            }
+
+            // Check if class file exists in output directory
+            if( options.getDestDir() != null )
+            {
+              String classFileName = typeName.replace( '.', '/' ) + ".class";
+              File classFile = new File( options.getDestDir(), classFileName );
+              if( options.isVerbose() ) {
+                System.out.println( "DEBUG: Class file " + classFile.getAbsolutePath() + " exists: " + classFile.exists() );
+              }}
+          }
+        }
+      }
 
       if( options.isVerbose() && !filesToCompile.isEmpty() )
       {
@@ -117,6 +165,17 @@ public class GosuCompiler implements IGosuCompiler
         sourceFiles = changedFiles;
       }
       
+      // If still no files to compile in incremental mode, this is likely the first compilation
+      // Compile all source files to build initial dependency data
+      if( sourceFiles.isEmpty() )
+      {
+        sourceFiles = allSourceFiles;
+        if( options.isVerbose() )
+        {
+          System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
+        }
+      }
+
       return compileFilteredSources( sourceFiles, options, driver );
     }
     else
@@ -312,22 +371,23 @@ public class GosuCompiler implements IGosuCompiler
       {
         if( type.isValid() )
         {
-          createGosuOutputFiles( (IGosuClass)type, driver );
-          
-          // Track output files if incremental compilation is enabled
+          // Create a wrapper driver to capture output registrations if incremental compilation is enabled
+          ICompilerDriver actualDriver = driver;
+          Set<String> outputFiles = new HashSet<>();
           if( _incrementalManager != null )
           {
-            IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-            if( moduleOutputDirectory != null )
-            {
-              File destDir = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
-              Set<String> outputFiles = _incrementalManager.scanOutputFiles( 
-                sourceFile.getAbsolutePath(), destDir );
-              _incrementalManager.recordOutputFiles( sourceFile.getAbsolutePath(), outputFiles );
-              
-              // Track dependencies (simplified for now - tracks superclass and interfaces)
-              trackDependencies( (IGosuClass)type, sourceFile );
-            }
+            actualDriver = new OutputTrackingCompilerDriver( driver, sourceFile, outputFiles );
+          }
+
+          createGosuOutputFiles( (IGosuClass)type, actualDriver );
+
+          // Track output files and dependencies if incremental compilation is enabled
+          if( _incrementalManager != null )
+          {
+            _incrementalManager.recordOutputFiles( sourceFile.getAbsolutePath(), outputFiles );
+
+            // Track dependencies
+            trackDependencies( (IGosuClass)type, sourceFile );
           }
         }
       }
@@ -349,7 +409,37 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
-    return false;
+    return true;
+  }
+
+  private String extractTypeNameFromPath( String filePath )
+  {
+    try
+    {
+      // Convert file path to type name (e.g., /path/to/example/StringUtil.gs -> example.StringUtil)
+      File file = new File( filePath );
+      String fileName = file.getName();
+
+      // Remove .gs extension
+      if( fileName.endsWith( ".gs" ) )
+      {
+        fileName = fileName.substring( 0, fileName.length() - 3 );
+      }
+
+      // Get the parent directories to construct package name
+      File parent = file.getParentFile();
+      if( parent != null )
+      {
+        String parentName = parent.getName();
+        return parentName + "." + fileName;
+      }
+
+      return fileName;
+    }
+    catch( Exception e )
+    {
+      return null;
+    }
   }
   
   private void trackDependencies( IGosuClass gsClass, File sourceFile )
@@ -440,6 +530,98 @@ public class GosuCompiler implements IGosuCompiler
         }
       }
     }
+
+    // Enhanced dependency tracking - traverse AST for method calls
+    try
+    {
+      trackDependenciesFromAST( gsClass, sourcePath, trackedTypes );
+    }
+    catch( Exception e )
+    {
+      // Ignore AST traversal errors to avoid breaking compilation
+    }
+  }
+
+  private void trackDependenciesFromAST( IGosuClass gsClass, String sourcePath, Set<IType> trackedTypes )
+  {
+    try
+    {
+      IClassStatement classStmt = gsClass.getClassStatementWithoutCompile();
+      if( classStmt != null )
+      {
+
+        classStmt.visit( element -> {
+          try
+          {
+            trackDependenciesFromElement( element, sourcePath, trackedTypes );
+          }
+          catch( Exception e )
+          {
+            // Ignore individual element processing errors
+          }
+        });
+      }
+      else
+      {
+      }
+    }
+    catch( Exception e )
+    {
+    }
+  }
+
+  private void trackDependenciesFromElement( IParsedElement element, String sourcePath, Set<IType> trackedTypes )
+  {
+    // Check for method call expressions - track both the method owner and return type
+    if( element instanceof gw.lang.parser.expressions.IMethodCallExpression )
+    {
+      gw.lang.parser.expressions.IMethodCallExpression methodCall =
+        (gw.lang.parser.expressions.IMethodCallExpression)element;
+
+      // Track the function symbol's type (this is the declaring class for static methods)
+      IFunctionSymbol funcSymbol = methodCall.getFunctionSymbol();
+      if( funcSymbol != null )
+      {
+        IType ownerType = funcSymbol.getType();
+        if( ownerType != null )
+        {
+          trackTypeDependency( sourcePath, ownerType, trackedTypes );
+        }
+      }
+
+      // Also track the return type
+      IType returnType = methodCall.getType();
+      if( returnType != null )
+      {
+        trackTypeDependency( sourcePath, returnType, trackedTypes );
+      }
+    }
+
+    // Check for member access expressions (like StringUtil.capitalize or StringUtil.CONSTANT)
+    if( element instanceof gw.lang.parser.expressions.IMemberAccessExpression )
+    {
+      gw.lang.parser.expressions.IMemberAccessExpression memberAccess =
+        (gw.lang.parser.expressions.IMemberAccessExpression)element;
+
+      IType rootType = memberAccess.getRootType();
+      if( rootType != null )
+      {
+        trackTypeDependency( sourcePath, rootType, trackedTypes );
+      }
+    }
+
+    // Track type literal references
+    if( element instanceof gw.lang.parser.expressions.ITypeLiteralExpression )
+    {
+      gw.lang.parser.expressions.ITypeLiteralExpression typeLiteral =
+        (gw.lang.parser.expressions.ITypeLiteralExpression)element;
+
+      IType referencedType = typeLiteral.getType().getType();
+      if( referencedType != null )
+      {
+        trackTypeDependency( sourcePath, referencedType, trackedTypes );
+      }
+    }
   }
 
   private void trackTypeDependency( String sourcePath, IType type, Set<IType> trackedTypes )
@@ -470,7 +652,7 @@ public class GosuCompiler implements IGosuCompiler
         }
         catch( Exception e )
         {
-          // Ignore if we can't get the file path
+            // Ignore if we can't get the file path
         }
       }
     }
@@ -775,5 +957,72 @@ public class GosuCompiler implements IGosuCompiler
   public boolean isPathIgnored( String sourceFile )
   {
     return CommonServices.getPlatformHelper().isPathIgnored( sourceFile );
+  }
+
+  /**
+   * Wrapper compiler driver that tracks output files for incremental compilation
+   */
+  private static class OutputTrackingCompilerDriver implements ICompilerDriver
+  {
+    private final ICompilerDriver delegate;
+    private final File sourceFile;
+    private final Set<String> outputFiles;
+    private final String destDir;
+
+    public OutputTrackingCompilerDriver( ICompilerDriver delegate, File sourceFile, Set<String> outputFiles )
+    {
+      this.delegate = delegate;
+      this.sourceFile = sourceFile;
+      this.outputFiles = outputFiles;
+
+      // Get the destination directory from the TypeSystem
+      IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+      this.destDir = moduleOutputDirectory != null ?
+        moduleOutputDirectory.getPath().getFileSystemPathString() : null;
+    }
+
+    @Override
+    public void sendCompileIssue( File file, int category, long offset, long line, long column, String message )
+    {
+      delegate.sendCompileIssue( file, category, offset, line, column, message );
+    }
+
+    @Override
+    public void registerOutput( File srcFile, File outputFile )
+    {
+      delegate.registerOutput( srcFile, outputFile );
+
+      // Track the output file relative to the destination directory
+      if( srcFile.equals( sourceFile ) && destDir != null )
+      {
+        File destDirFile = new File( destDir );
+        String relativePath = destDirFile.toPath().relativize( outputFile.toPath() ).toString();
+        outputFiles.add( relativePath.replace( File.separatorChar, '/' ) );
+      }
+    }
+
+    @Override
+    public boolean isIncludeWarnings()
+    {
+      return delegate.isIncludeWarnings();
+    }
+
+    @Override
+    public boolean hasErrors()
+    {
+      return delegate.hasErrors();
+    }
+
+    @Override
+    public List<String> getErrors()
+    {
+      return delegate.getErrors();
+    }
+
+    @Override
+    public List<String> getWarnings()
+    {
+      return delegate.getWarnings();
+    }
   }
 }
