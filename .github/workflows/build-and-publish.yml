@@ -1,0 +1,132 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [ master, 'spec-*', 'km/*' ]
+  pull_request:
+    branches: [ master, 'spec-*' ]
+  workflow_dispatch:
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: 'corretto'
+        server-id: central
+        server-username: SNAPSHOT_USER_CENTRAL
+        server-password: SNAPSHOT_PASS_CENTRAL
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+    
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
+    
+    - name: Build and test
+      run: mvn clean verify -B -V
+    
+    - name: Test Results Summary
+      if: success() || failure()
+      run: |
+        echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "**Java Version:** 11" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test files and results
+        TOTAL_FILES=$(find . -name "TEST-*.xml" | wc -l)
+        echo "**Test report files:** $TOTAL_FILES" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $TOTAL_FILES -gt 0 ]; then
+          # Parse results from XML files
+          TOTAL_TESTS=$(grep -h 'tests="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_FAILURES=$(grep -h 'failures="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*failures="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_ERRORS=$(grep -h 'errors="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*errors="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_SKIPPED=$(grep -h 'skipped="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*skipped="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          
+          echo "**Total Tests:** $TOTAL_TESTS  " >> $GITHUB_STEP_SUMMARY
+          echo "**Failures:** $TOTAL_FAILURES  " >> $GITHUB_STEP_SUMMARY  
+          echo "**Errors:** $TOTAL_ERRORS  " >> $GITHUB_STEP_SUMMARY
+          echo "**Skipped:** $TOTAL_SKIPPED  " >> $GITHUB_STEP_SUMMARY
+          
+          if [ $TOTAL_FAILURES -gt 0 ] || [ $TOTAL_ERRORS -gt 0 ]; then
+            echo "❌ **Some tests failed - check artifacts for details**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ **All tests passed!**" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ No test reports found" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Upload detailed test reports
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: test-reports
+        path: |
+          **/target/surefire-reports/
+          **/target/failsafe-reports/
+        retention-days: 30
+    
+    - name: Check if should publish
+      id: should-publish
+      run: |
+        # Only publish on push (not PR) and if user has permissions
+        if [ "${{ github.event_name }}" != "pull_request" ]; then
+          echo "is-push=true" >> $GITHUB_OUTPUT
+        else
+          echo "is-push=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Check repository permissions
+      id: check-perms
+      if: steps.should-publish.outputs.is-push == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          try {
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: 'gosu-lang',
+              repo: 'gosu-lang',
+              username: context.actor
+            });
+            console.log(`User ${context.actor} repository permission: ${permission.data.permission}`);
+            const allowedRoles = ['admin', 'maintain'];
+            const hasPermission = allowedRoles.includes(permission.data.permission);
+            console.log(`Permission check result: ${hasPermission}`);
+            core.setOutput('can-publish', hasPermission.toString());
+            return hasPermission;
+          } catch (error) {
+            console.log(`Permission check failed: ${error.message}`);
+            core.setOutput('can-publish', 'false');
+            return false;
+          }
+    
+    - name: Publish snapshot to Maven Central
+      if: steps.should-publish.outputs.is-push == 'true' && steps.check-perms.outputs.can-publish == 'true'
+      run: mvn deploy -Pcentral -DskipTests=true -B
+      env:
+        SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
+        SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+    
+    - name: Report published version
+      if: steps.should-publish.outputs.is-push == 'true' && steps.check-perms.outputs.can-publish == 'true'
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "## 📦 Snapshot Published" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "**Repository:** Maven Central Snapshots" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 [Search Maven Central](https://central.sonatype.com/search?q=g:org.gosu-lang.gosu+v:$VERSION)" >> $GITHUB_STEP_SUMMARY
