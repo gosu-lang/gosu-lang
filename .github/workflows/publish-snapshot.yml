@@ -35,9 +35,13 @@ jobs:
             });
             console.log(`User ${context.actor} repository permission: ${permission.data.permission}`);
             const allowedRoles = ['admin', 'maintain'];
-            return allowedRoles.includes(permission.data.permission);
+            const hasPermission = allowedRoles.includes(permission.data.permission);
+            console.log(`Permission check result: ${hasPermission}`);
+            core.setOutput('is-member', hasPermission.toString());
+            return hasPermission;
           } catch (error) {
             console.log(`Permission check failed: ${error.message}`);
+            core.setOutput('is-member', 'false');
             return false;
           }
 
