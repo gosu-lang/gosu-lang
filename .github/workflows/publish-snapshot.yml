@@ -17,6 +17,9 @@ jobs:
   check-membership:
     runs-on: ubuntu-latest
     if: github.repository == 'gosu-lang/gosu-lang'
+    permissions:
+      contents: read
+      members: read
     outputs:
       is-member: ${{ steps.check.outputs.is-member }}
     steps:
