@@ -20,20 +20,21 @@ jobs:
     outputs:
       is-member: ${{ steps.check.outputs.is-member }}
     steps:
-    - name: Check organization membership
+    - name: Check team membership
       id: check
       uses: actions/github-script@v7
       with:
         script: |
           try {
-            const membership = await github.rest.orgs.getMembershipForUser({
+            const membership = await github.rest.teams.getMembershipForUserInOrg({
               org: 'gosu-lang',
+              team_slug: 'core',
               username: context.actor
             });
-            console.log(`User ${context.actor} membership: ${membership.data.state}`);
+            console.log(`User ${context.actor} team membership: ${membership.data.state}`);
             return membership.data.state === 'active';
           } catch (error) {
-            console.log(`User ${context.actor} is not a member of gosu-lang organization`);
+            console.log(`User ${context.actor} is not a member of the core team: ${error.message}`);
             return false;
           }
 
