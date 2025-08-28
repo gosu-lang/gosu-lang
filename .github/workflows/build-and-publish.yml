@@ -21,9 +21,6 @@ jobs:
       with:
         java-version: 11
         distribution: 'corretto'
-        server-id: central
-        server-username: SNAPSHOT_USER_CENTRAL
-        server-password: SNAPSHOT_PASS_CENTRAL
         gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
     
@@ -116,7 +113,7 @@ jobs:
     
     - name: Publish snapshot to Maven Central
       if: steps.should-publish.outputs.is-push == 'true' && steps.check-perms.outputs.can-publish == 'true'
-      run: mvn deploy -Pcentral -DskipTests=true -Dmaven.deploy.skip=false -B
+      run: mvn deploy -Pcentral -DskipTests=true -Dmaven.deploy.skip=false -s settings.xml -B
       env:
         SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
         SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
