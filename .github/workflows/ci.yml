@@ -37,17 +37,37 @@ jobs:
     - name: Run tests
       run: mvn verify -B
       
-    - name: Generate test summary
-      uses: dorny/test-reporter@v1
+    - name: Test Results Summary
       if: success() || failure()
-      with:
-        name: Maven Tests Summary (Java ${{ matrix.java }})
-        path: '**/target/surefire-reports/TEST-*.xml'
-        reporter: java-junit
-        fail-on-error: true
-        max-annotations: 3
-        list-suites: failed
-        list-tests: failed
+      run: |
+        echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "**Java Version:** ${{ matrix.java }}" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test files and results
+        TOTAL_FILES=$(find . -name "TEST-*.xml" | wc -l)
+        echo "**Test report files:** $TOTAL_FILES" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $TOTAL_FILES -gt 0 ]; then
+          # Parse results from XML files
+          TOTAL_TESTS=$(grep -h 'tests="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_FAILURES=$(grep -h 'failures="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*failures="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_ERRORS=$(grep -h 'errors="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*errors="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          TOTAL_SKIPPED=$(grep -h 'skipped="[0-9]*"' **/target/surefire-reports/TEST-*.xml | sed 's/.*skipped="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum+0}')
+          
+          echo "**Total Tests:** $TOTAL_TESTS  " >> $GITHUB_STEP_SUMMARY
+          echo "**Failures:** $TOTAL_FAILURES  " >> $GITHUB_STEP_SUMMARY  
+          echo "**Errors:** $TOTAL_ERRORS  " >> $GITHUB_STEP_SUMMARY
+          echo "**Skipped:** $TOTAL_SKIPPED  " >> $GITHUB_STEP_SUMMARY
+          
+          if [ $TOTAL_FAILURES -gt 0 ] || [ $TOTAL_ERRORS -gt 0 ]; then
+            echo "❌ **Some tests failed - check artifacts for details**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ **All tests passed!**" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ No test reports found" >> $GITHUB_STEP_SUMMARY
+        fi
     
     - name: Upload detailed test reports
       uses: actions/upload-artifact@v4
