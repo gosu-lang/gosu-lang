@@ -23,13 +23,13 @@ jobs:
         java-version: ${{ matrix.java }}
         distribution: 'corretto'
     
-#    - name: Cache Maven dependencies
-#      uses: actions/cache@v4
-#      with:
-#        path: ~/.m2
-#        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-#        restore-keys: |
-#          ${{ runner.os }}-m2-
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
     
     - name: Build with Maven
       run: mvn clean compile -B -V
