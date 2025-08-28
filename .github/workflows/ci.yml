@@ -45,8 +45,9 @@ jobs:
         path: '**/target/surefire-reports/TEST-*.xml'
         reporter: java-junit
         fail-on-error: true
-        max-annotations: 10
-        only-summary: true
+        max-annotations: 3
+        list-suites: failed
+        list-tests: failed
     
     - name: Upload detailed test reports
       uses: actions/upload-artifact@v4
