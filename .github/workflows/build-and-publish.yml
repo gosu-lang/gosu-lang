@@ -113,7 +113,7 @@ jobs:
     
     - name: Publish snapshot to Maven Central
       if: steps.should-publish.outputs.is-push == 'true' && steps.check-perms.outputs.can-publish == 'true'
-      run: mvn deploy -Pcentral -DskipTests=true -Dmaven.deploy.skip=false -s settings.xml -B
+      run: mvn deploy -Pcentral -Dmaven.main.skip=true -Dmaven.resources.skip=true -Dmaven.test.skip=true -Dmaven.deploy.skip=false -s settings.xml -B
       env:
         SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
         SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
