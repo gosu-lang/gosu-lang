@@ -4,6 +4,7 @@ import gw.internal.ext.com.beust.jcommander.Parameter;
 import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandLineOptions {
@@ -128,18 +129,38 @@ public class CommandLineOptions {
     return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
   }
 
-  @Parameter(names = "-changed-files", description = "Changed source files for incremental compilation")
-  private List<String> _changedFiles = new ArrayList<>();
+  @Parameter(names = "-changed-files", description = "Changed source files for incremental compilation (separated by path separator)")
+  private String _changedFiles;
+
+  @Parameter(names = "-deleted-files", description = "Deleted source files for incremental compilation (separated by path separator)")
+  private String _deletedFiles;
 
   public List<String> getChangedFiles() {
-    return _changedFiles;
+    if (_changedFiles == null || _changedFiles.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> files = new ArrayList<>();
+    for (String file : _changedFiles.split(java.io.File.pathSeparator)) {
+      String trimmed = file.trim();
+      if (!trimmed.isEmpty()) {
+        files.add(trimmed);
+      }
+    }
+    return files;
   }
 
-  @Parameter(names = "-deleted-files", description = "Deleted source files for incremental compilation")
-  private List<String> _deletedFiles = new ArrayList<>();
-
   public List<String> getDeletedFiles() {
-    return _deletedFiles;
+    if (_deletedFiles == null || _deletedFiles.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> files = new ArrayList<>();
+    for (String file : _deletedFiles.split(java.io.File.pathSeparator)) {
+      String trimmed = file.trim();
+      if (!trimmed.isEmpty()) {
+        files.add(trimmed);
+      }
+    }
+    return files;
   }
 
 }

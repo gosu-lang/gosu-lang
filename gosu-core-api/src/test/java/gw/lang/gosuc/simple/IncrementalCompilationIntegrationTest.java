@@ -63,8 +63,8 @@ public class IncrementalCompilationIntegrationTest {
     // In a real test environment, we'd use JCommander to parse arguments
     setPrivateField(options, "_incremental", true);
     setPrivateField(options, "_dependencyFile", dependencyFile.getAbsolutePath());
-    setPrivateField(options, "_changedFiles", Arrays.asList("MyClass.gs"));
-    setPrivateField(options, "_deletedFiles", new ArrayList<>());
+    setPrivateField(options, "_changedFiles", "MyClass.gs");
+    setPrivateField(options, "_deletedFiles", "");
     
     // Then
     assertTrue(options.isIncremental());
