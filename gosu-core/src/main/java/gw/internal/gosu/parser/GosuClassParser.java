@@ -95,7 +95,6 @@ import gw.util.GosuExceptionUtil;
 import gw.util.GosuObjectUtil;
 import gw.util.GosuStringUtil;
 import gw.util.Stack;
-import manifold.util.JreUtil;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -1404,7 +1403,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
               }
               else if( (mi != null) && (!featureIsOwnedByEnhancement( enhancement, mi ) || (enhancedType != JavaTypes.OBJECT() && GosuClass.isObjectMethod( mi ))) )
               {
-                addDeclaredNameParseIssue( func, JreUtil.isJava21orLater(), Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
+                addDeclaredNameParseWarning( func, Res.MSG_CANNOT_OVERRIDE_FUNCTIONS_IN_ENHANCEMENTS, mi.getDisplayName(), enhancedType.getRelativeName() );
               }
               else if( enhancedType instanceof IGosuClass )
               {
@@ -1459,7 +1458,7 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
                                : typeInfo.getProperty( prop.getFunctionName() );
             if( pi != null && !featureIsOwnedByEnhancement( enhancement, pi ) )
             {
-              addDeclaredNameParseIssue( prop, JreUtil.isJava21orLater(), Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
+              addDeclaredNameParseWarning( prop, Res.MSG_CANNOT_OVERRIDE_PROPERTIES_IN_ENHANCEMENTS, pi.getDisplayName(), enhancedType.getRelativeName() );
             }
             else
             {
@@ -1530,18 +1529,6 @@ public class GosuClassParser extends ParserBase implements IGosuClassParser, ITo
     ParseWarning warning = new ParseWarning( stmt.getLineNum(), 1, stmt.getLocation().getColumn(), nameOffset, nameOffset + ((stmt instanceof VarStatement) ? ((VarStatement)stmt).getIdentifierName().length() : stmt.getFunctionName().length()),
                                              getSymbolTable(), key, args );
     stmt.addParseWarning( warning );
-  }
-
-  void addDeclaredNameParseIssue( IParsedElementWithAtLeastOneDeclaration stmt, boolean isError, ResourceKey key, Object... args )
-  {
-    if( isError )
-    {
-      addDeclaredNameParseError( stmt, key, args );
-    }
-    else
-    {
-      addDeclaredNameParseWarning( stmt, key, args );
-    }
   }
 
   private boolean overridesMethodWithDefaultParams(FunctionStatement func, ITypeInfo typeInfo) {
