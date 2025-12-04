@@ -2199,6 +2199,10 @@ public class TypeLord
     boolean toT1FromT0 = isAWideningConversion(t1, t0);
 
     if( toT0FromT1 ) {
+      if( toT1FromT0 && t0.isPrimitive() && !t1.isPrimitive() ) {
+        // to enforce commutativity wrt boxing e.g., boolean & Boolean == Boolean & boolean
+        return t1;
+      }
       return t0;
     } else if( toT1FromT0 ){
       return t1;
