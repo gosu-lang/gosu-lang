@@ -13,10 +13,10 @@
   <name>Gosu :: Project Aggregator</name>
 
   <scm>
-    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
-    <tag>rel/1.18.6</tag>
+    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
+    <tag>rel/1.18.8</tag>
   </scm>
-  
+
   <modules>
     <module>gosu</module>
     <module>gosu-ant-tools</module>

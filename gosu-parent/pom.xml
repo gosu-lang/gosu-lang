@@ -27,8 +27,8 @@
   </developers>
 
   <scm>
-    <connection>${scm.root}/gosu-lang.git</connection>
-    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
+    <connection>scm:git:https://github.com/gosu-lang/gosu-lang.git</connection>
+    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
     <tag>rel/1.18.6</tag>
   </scm>
@@ -107,21 +107,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
-          <executions>
-            <execution>
-              <id>default-deploy</id>
-              <phase>none</phase>
-              <!--<phase>none</phase> disabling this required for snapshot publish-->
-            </execution>
-          </executions>
-          <configuration>
-            <deployAtEnd>true</deployAtEnd>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.3.2</version>
           <configuration>
@@ -146,10 +131,17 @@
           <version>1.9.1</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+          <configuration>
+            <deployAtEnd>true</deployAtEnd>
+          </configuration>
+        </plugin>
+        <plugin>
           <artifactId>maven-release-plugin</artifactId>
           <version>2.5.3</version>
         </plugin>
-
       </plugins>
     </pluginManagement>
 
@@ -206,10 +198,10 @@
     <profile>
       <id>central</id>
       <distributionManagement>
-        <repository>
+        <snapshotRepository>
           <id>central</id>
           <url>${dist.mvn.central.snapshotrepo.url}</url>
-        </repository>
+        </snapshotRepository>
       </distributionManagement>
     </profile>
     <profile>
@@ -250,6 +242,20 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.8.2</version>
+            <executions>
+              <execution>
+              <id>default-deploy</id>
+              <phase>none</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <deployAtEnd>true</deployAtEnd>
+            </configuration>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
