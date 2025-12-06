@@ -112,7 +112,7 @@
           <executions>
             <execution>
               <id>default-deploy</id>
-              <phase>none</phase>
+              <!--<phase>none</phase> -->
               <!--<phase>none</phase> disabling this required for snapshot publish-->
             </execution>
           </executions>
