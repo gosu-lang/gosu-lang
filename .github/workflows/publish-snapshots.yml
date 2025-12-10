@@ -1,8 +1,6 @@
 name: Publish-Snapshots to mvn Central
 
 on:
- # push:
-  #  branches: [ 'rel/*' ]
   workflow_dispatch:
 
 jobs:

@@ -1,5 +1,6 @@
-name: Build & Test 
+name: Build & Test
 
+# Author: The following script is taken from Kyle moore's user branch
 on:
   push:
     branches:
