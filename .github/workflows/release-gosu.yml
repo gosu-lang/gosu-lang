@@ -12,6 +12,9 @@ jobs:
   prepare-release:
    # needs: build-test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Push commits and tags
+      actions: read
     outputs:
       can-publish: ${{ steps.check-perms.outputs.can-publish }}
     steps:
@@ -70,6 +73,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: prepare release
         if: steps.check-perms.outputs.can-publish == 'true'
