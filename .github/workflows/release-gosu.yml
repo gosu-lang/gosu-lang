@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Ensure release branch
         run: |
@@ -62,6 +65,11 @@ jobs:
             exit 1
           fi
           echo "Version ${{ inputs.version }} is valid"
+
+      - name: Configure Git user
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
 
       - name: prepare release
         if: steps.check-perms.outputs.can-publish == 'true'
