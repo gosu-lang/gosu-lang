@@ -113,7 +113,7 @@
           <executions>
             <execution>
               <id>default-deploy</id>
-              <phase>none</phase>
+              <!-- <phase>none</phase> -->
             </execution>
           </executions>
           <configuration>
