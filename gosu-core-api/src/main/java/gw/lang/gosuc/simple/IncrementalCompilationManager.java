@@ -19,48 +19,46 @@ import java.util.stream.Collectors;
  * - API signatures for detecting breaking changes
  */
 public class IncrementalCompilationManager {
-  
-  private static final String DEPENDENCY_VERSION = "1.0";
+
+  private static final String DEPENDENCY_VERSION = "2.0";
   private final String dependencyFilePath;
-  private final Map<String, CompilationInfo> compilationData;
-  private final Map<String, Set<String>> currentDependencies;
-  private final Map<String, Set<String>> currentOutputs;
+  private final TypeDependencies typeDependencies;
+  private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
   private final Gson gson;
-  
+
   public IncrementalCompilationManager(String dependencyFilePath, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
     this.verbose = verbose;
     this.gson = new GsonBuilder().setPrettyPrinting().create();
-    this.compilationData = loadDependencyFile();
-    this.currentDependencies = new HashMap<>();
-    this.currentOutputs = new HashMap<>();
+    this.typeDependencies = loadDependencyFile();
+    this.currentUsedBy = new HashMap<>();
   }
   
   /**
    * Load existing dependency data from file
    */
-  private Map<String, CompilationInfo> loadDependencyFile() {
+  private TypeDependencies loadDependencyFile() {
     File depFile = new File(dependencyFilePath);
     if (!depFile.exists()) {
       if (verbose) {
         System.out.println("No existing dependency file found at: " + dependencyFilePath);
       }
-      return new HashMap<>();
+      return new TypeDependencies();
     }
-    
+
     try (Reader reader = new FileReader(depFile)) {
       DependencyData data = gson.fromJson(reader, DependencyData.class);
-      if (data != null && DEPENDENCY_VERSION.equals(data.version)) {
-        return data.compilations != null ? data.compilations : new HashMap<>();
+      if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.types != null) {
+        return data.types;
       }
       if (verbose) {
         System.out.println("Dependency file version mismatch, starting fresh");
       }
-      return new HashMap<>();
+      return new TypeDependencies();
     } catch (Exception e) {
       System.err.println("Error loading dependency file: " + e.getMessage());
-      return new HashMap<>();
+      return new TypeDependencies();
     }
   }
   
@@ -69,34 +67,27 @@ public class IncrementalCompilationManager {
    */
   public void saveDependencyFile() {
     try {
-      // Update compilation data with current session data
-      for (Map.Entry<String, Set<String>> entry : currentOutputs.entrySet()) {
-        String sourceFile = entry.getKey();
-        CompilationInfo info = compilationData.computeIfAbsent(sourceFile, k -> new CompilationInfo());
-        info.outputs = new ArrayList<>(entry.getValue());
+      // Update typeDependencies with current session data
+      for (Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet()) {
+        String typeFqcn = entry.getKey();
+        typeDependencies.usedBy.put(typeFqcn, new ArrayList<>(entry.getValue()));
       }
-      
-      for (Map.Entry<String, Set<String>> entry : currentDependencies.entrySet()) {
-        String sourceFile = entry.getKey();
-        CompilationInfo info = compilationData.computeIfAbsent(sourceFile, k -> new CompilationInfo());
-        info.dependencies = new ArrayList<>(entry.getValue());
-      }
-      
-      // Update reverse dependencies (usedBy)
-      updateUsedByReferences();
-      
+
       DependencyData data = new DependencyData();
       data.version = DEPENDENCY_VERSION;
-      data.compilations = compilationData;
-      
+      data.types = typeDependencies;
+
       // Ensure directory exists
       File depFile = new File(dependencyFilePath);
-      depFile.getParentFile().mkdirs();
-      
+      File parentDir = depFile.getParentFile();
+      if (parentDir != null) {
+        parentDir.mkdirs();
+      }
+
       try (Writer writer = new FileWriter(depFile)) {
         gson.toJson(data, writer);
       }
-      
+
       if (verbose) {
         System.out.println("Saved dependency data to: " + dependencyFilePath);
       }
@@ -106,113 +97,95 @@ public class IncrementalCompilationManager {
   }
   
   /**
-   * Update the reverse dependency mapping (usedBy)
+   * Record a type-level dependency.
+   * When consumer uses producer, we record that producer is usedBy consumer.
+   *
+   * @param producer The FQCN of the type being used (e.g., "com.example.Interface")
+   * @param consumer The FQCN of the type that uses it (e.g., "com.example.Implementation")
    */
-  private void updateUsedByReferences() {
-    // Clear existing usedBy
-    compilationData.values().forEach(info -> info.usedBy = new ArrayList<>());
-    
-    // Rebuild usedBy from dependencies
-    for (Map.Entry<String, CompilationInfo> entry : compilationData.entrySet()) {
-      String sourceFile = entry.getKey();
-      CompilationInfo info = entry.getValue();
-      
-      if (info.dependencies != null) {
-        for (String dependency : info.dependencies) {
-          CompilationInfo depInfo = compilationData.get(dependency);
-          if (depInfo != null) {
-            if (depInfo.usedBy == null) {
-              depInfo.usedBy = new ArrayList<>();
-            }
-            if (!depInfo.usedBy.contains(sourceFile)) {
-              depInfo.usedBy.add(sourceFile);
-            }
-          }
-        }
-      }
-    }
+  public void recordTypeDependency(String producer, String consumer) {
+    currentUsedBy.computeIfAbsent(producer, k -> new HashSet<>()).add(consumer);
   }
-  
-  /**
-   * Record a dependency between source files
-   */
-  public void recordDependency(String sourceFile, String dependsOn) {
-    currentDependencies.computeIfAbsent(sourceFile, k -> new HashSet<>()).add(dependsOn);
-  }
-  
-  /**
-   * Record output files generated from a source file
-   */
-  public void recordOutputFiles(String sourceFile, Set<String> outputFiles) {
-    currentOutputs.put(sourceFile, outputFiles);
-  }
-  
-  /**
-   * Get all output files for a source file from previous compilation
-   */
-  public Set<String> getOutputFiles(String sourceFile) {
-    CompilationInfo info = compilationData.get(sourceFile);
-    if (info != null && info.outputs != null) {
-      return new HashSet<>(info.outputs);
-    }
-    return Collections.emptySet();
-  }
-  
-  /**
-   * Calculate which files need recompilation based on changes
-   */
-  public Set<String> calculateRecompilationSet(List<String> changedFiles, List<String> deletedFiles) {
-    Set<String> toRecompile = new HashSet<>(changedFiles);
-    
-    // Add files that depend on changed files
-    for (String changedFile : changedFiles) {
-      // First check if we have stored usedBy information for this file
-      CompilationInfo info = compilationData.get(changedFile);
-      if (info != null) {
-        // Check if this is an API change (for now, assume all changes are API changes)
-        // TODO: Implement proper API signature comparison
-        if (info.usedBy != null) {
-          toRecompile.addAll(info.usedBy);
-          if (verbose) {
-            System.out.println("File " + changedFile + " is used by: " + info.usedBy);
-          }
-        }
-      }
 
-      // Also scan all compilation data to find files that depend on the changed file
-      // This handles cases where the changed file wasn't previously tracked
-      for (Map.Entry<String, CompilationInfo> entry : compilationData.entrySet()) {
-        String sourceFile = entry.getKey();
-        CompilationInfo sourceInfo = entry.getValue();
-        if (sourceInfo.dependencies != null && sourceInfo.dependencies.contains(changedFile)) {
-          toRecompile.add(sourceFile);
-        }
-      }
+  /**
+   * Record a type dependency where the consumer is identified by source path.
+   * The consumer source path will be converted to FQCN, then recorded as depending on the producer.
+   *
+   * @param consumerSourcePath The source path of the consumer file (will be converted to FQCN)
+   * @param producerFqcn The FQCN of the producer type (Java or Gosu)
+   */
+  public void recordTypeDependencyFromSourcePath(String consumerSourcePath, String producerFqcn) {
+    // Convert consumer source path to FQCN
+    String consumerFqcn = convertSourcePathToFqcn(consumerSourcePath);
+    if (consumerFqcn != null) {
+      recordTypeDependency(producerFqcn, consumerFqcn);
     }
-    
-    // Add files that depend on deleted files
-    for (String deletedFile : deletedFiles) {
-      CompilationInfo info = compilationData.get(deletedFile);
-      if (info != null && info.usedBy != null) {
-        toRecompile.addAll(info.usedBy);
+  }
+
+  /**
+   * Convert a Gosu source file path to FQCN.
+   * Example: "com/example/MyClass.gs" -> "com.example.MyClass"
+   */
+  private String convertSourcePathToFqcn(String sourcePath) {
+    String fqcn = sourcePath;
+
+    // Remove extension
+    if (fqcn.endsWith(".gs")) {
+      fqcn = fqcn.substring(0, fqcn.length() - 3);
+    } else if (fqcn.endsWith(".gsx")) {
+      fqcn = fqcn.substring(0, fqcn.length() - 4);
+    } else if (fqcn.endsWith(".gst")) {
+      fqcn = fqcn.substring(0, fqcn.length() - 4);
+    }
+
+    // Convert path separators to dots
+    fqcn = fqcn.replace('/', '.').replace('\\', '.');
+
+    return fqcn.isEmpty() ? null : fqcn;
+  }
+  
+  /**
+   * Calculate which types need recompilation based on changed/removed types.
+   *
+   * @param changedTypes List of changed type FQCNs (Java + Gosu)
+   * @param removedTypes List of removed type FQCNs (Java + Gosu)
+   * @return Set of type FQCNs that need recompilation (Gosu types only)
+   */
+  public Set<String> calculateRecompilationSet(List<String> changedTypes, List<String> removedTypes) {
+    Set<String> toRecompile = new HashSet<>();
+
+    // Add Gosu types that changed (Java types are already compiled, we only recompile their consumers)
+    for (String changedType : changedTypes) {
+      // Only add if it's a Gosu type (will be recompiled)
+      // Java types don't need recompilation by gosuc
+      toRecompile.add(changedType);
+    }
+
+    // Find consumers of changed types
+    for (String changedType : changedTypes) {
+      List<String> consumers = typeDependencies.usedBy.get(changedType);
+      if (consumers != null) {
+        toRecompile.addAll(consumers);
         if (verbose) {
-          System.out.println("Deleted file " + deletedFile + " was used by: " + info.usedBy);
+          System.out.println("Type " + changedType + " is used by: " + consumers);
         }
       }
-
-      // Also scan for files that depend on the deleted file
-      for (Map.Entry<String, CompilationInfo> entry : compilationData.entrySet()) {
-        String sourceFile = entry.getKey();
-        CompilationInfo sourceInfo = entry.getValue();
-        if (sourceInfo.dependencies != null && sourceInfo.dependencies.contains(deletedFile)) {
-          toRecompile.add(sourceFile);
-        }
-      }
-
-      // Remove deleted file from compilation data
-      compilationData.remove(deletedFile);
     }
-    
+
+    // Find consumers of removed types
+    for (String removedType : removedTypes) {
+      List<String> consumers = typeDependencies.usedBy.get(removedType);
+      if (consumers != null) {
+        toRecompile.addAll(consumers);
+        if (verbose) {
+          System.out.println("Removed type " + removedType + " was used by: " + consumers);
+        }
+      }
+
+      // Remove from dependency tracking
+      typeDependencies.usedBy.remove(removedType);
+    }
+
     return toRecompile;
   }
   
@@ -299,16 +272,16 @@ public class IncrementalCompilationManager {
    */
   private static class DependencyData {
     String version;
-    Map<String, CompilationInfo> compilations;
+    TypeDependencies types;
   }
-  
+
   /**
-   * Information about a compiled source file
+   * Type-level dependency tracking using FQCNs.
+   * Tracks both Java and Gosu types in a unified structure.
    */
-  public static class CompilationInfo {
-    List<String> outputs;
-    List<String> dependencies;
-    List<String> usedBy;
-    String apiSignature;
+  public static class TypeDependencies {
+    // Type FQCN -> List of type FQCNs that depend on it
+    // Example: "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]
+    Map<String, List<String>> usedBy = new HashMap<>();
   }
 }
