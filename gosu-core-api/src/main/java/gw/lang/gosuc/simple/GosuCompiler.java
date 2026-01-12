@@ -75,103 +75,42 @@ public class GosuCompiler implements IGosuCompiler
     // Initialize incremental compilation if enabled
     if( options.isIncremental() )
     {
-      _incrementalManager = new IncrementalCompilationManager( 
-        options.getDependencyFile(), 
+      _incrementalManager = new IncrementalCompilationManager(
+        options.getDependencyFile(),
         options.isVerbose() );
-      
-      // Handle deleted files
-      List<String> deletedFiles = options.getDeletedFiles();
-      if( !deletedFiles.isEmpty() )
-      {
-        if( TypeSystem.getGlobalModule() != null )
-        {
-          IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-          if( moduleOutputDirectory != null )
-          {
-            _incrementalManager.deleteOutputsForDeletedFiles( deletedFiles,
-              moduleOutputDirectory.getPath().getFileSystemPathString() );
-          }
-        }
-      }
-      
-      // Calculate files that need recompilation
-      List<String> changedFiles = options.getChangedFiles();
-      Set<String> filesToCompile = _incrementalManager.calculateRecompilationSet( 
-        changedFiles, deletedFiles );
 
-      // DEBUG: Check if deleted types are still available in TypeSystem/ClassLoader
-      if( !deletedFiles.isEmpty() )
-      {
-        for( String deletedFile : deletedFiles )
-        {
-          // Try to extract type name from file path
-          String typeName = extractTypeNameFromPath( deletedFile );
-          if( typeName != null )
-          {
-            if( options.isVerbose() ) {
-              System.out.println( "DEBUG: Checking deleted type " + typeName );
-            }
-            // Check TypeSystem
-            IType type = TypeSystem.getByFullNameIfValid( typeName );
-            if( options.isVerbose() ) {
-              System.out.println( "DEBUG: TypeSystem.getByFullNameIfValid(\"" + typeName + "\") = " + type );
-            }
-            // Check ClassLoader
-            try
-            {
-              Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass( typeName );
-              if( options.isVerbose() ) {
-                System.out.println( "DEBUG: ClassLoader found " + typeName + " at " + clazz.getProtectionDomain().getCodeSource().getLocation() );
-              }
-            }
-            catch( ClassNotFoundException e )
-            {
-              if( options.isVerbose() ) {
-                System.out.println( "DEBUG: ClassLoader did not find " + typeName );
-              }
-            }
+      // Get changed and removed type FQCNs from CLI
+      List<String> changedTypes = options.getChangedTypes();
+      List<String> removedTypes = options.getRemovedTypes();
 
-            // Check if class file exists in output directory
-            if( options.getDestDir() != null )
-            {
-              String classFileName = typeName.replace( '.', '/' ) + ".class";
-              File classFile = new File( options.getDestDir(), classFileName );
-              if( options.isVerbose() ) {
-                System.out.println( "DEBUG: Class file " + classFile.getAbsolutePath() + " exists: " + classFile.exists() );
-              }}
-          }
+      // Calculate types that need recompilation (returns FQCNs)
+      Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
+        changedTypes, removedTypes );
+
+      if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
+      {
+        System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
+        for( String fqcn : typeFqcnsToCompile )
+        {
+          System.out.println( "  - " + fqcn );
         }
       }
 
-      if( options.isVerbose() && !filesToCompile.isEmpty() )
-      {
-        System.out.println( "Incremental compilation: recompiling " + filesToCompile.size() + " files" );
-      }
-      
-      // Filter source files to only compile what's needed
+      // Convert type FQCNs to source file paths
       List<String> allSourceFiles = getSourceFiles( options );
       List<String> sourceFiles = new ArrayList<>();
-      for( String file : allSourceFiles )
+
+      // Match FQCNs to source files
+      for( String fqcn : typeFqcnsToCompile )
       {
-        if( filesToCompile.contains( file ) )
+        String matchedFile = findSourceFileForFqcn( fqcn, allSourceFiles );
+        if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
         {
-          sourceFiles.add( file );
+          sourceFiles.add( matchedFile );
         }
-      }
-      
-      // If incremental mode but no specific files to compile, compile all changed files
-      if( sourceFiles.isEmpty() && !changedFiles.isEmpty() )
-      {
-        sourceFiles = changedFiles;
-      }
-      
-      // Ensure all changed files are included even if not found in allSourceFiles
-      // This handles path differences between changed files and source file enumeration
-      for( String changedFile : changedFiles )
-      {
-        if( !sourceFiles.contains( changedFile ) )
+        else if( options.isVerbose() && matchedFile == null )
         {
-          sourceFiles.add( changedFile );
+          System.out.println( "Warning: Could not find source file for type " + fqcn );
         }
       }
       
@@ -451,7 +390,39 @@ public class GosuCompiler implements IGosuCompiler
       return null;
     }
   }
-  
+
+  /**
+   * Find a source file that matches the given FQCN from a list of source files.
+   * Searches for a file ending with the path pattern derived from the FQCN.
+   * Example: For FQCN "com.example.MyClass", finds a file ending with "com/example/MyClass.gs"
+   *
+   * @param fqcn The fully-qualified class name to search for
+   * @param sourceFiles List of source file paths to search
+   * @return The matching source file path, or null if not found
+   */
+  private String findSourceFileForFqcn( String fqcn, List<String> sourceFiles )
+  {
+    // Convert FQCN to expected path pattern (normalize to forward slashes)
+    // e.g., "com.example.MyClass" -> "com/example/MyClass"
+    String expectedPath = fqcn.replace( '.', '/' );
+
+    for( String sourceFile : sourceFiles )
+    {
+      // Normalize source file path to forward slashes for comparison
+      String normalizedSourceFile = sourceFile.replace( '\\', '/' );
+
+      // Check if the source file ends with the expected path (with Gosu extensions)
+      if( normalizedSourceFile.endsWith( expectedPath + ".gs" ) ||
+          normalizedSourceFile.endsWith( expectedPath + ".gsx" ) ||
+          normalizedSourceFile.endsWith( expectedPath + ".gst" ) )
+      {
+        return sourceFile; // Return original path (not normalized)
+      }
+    }
+
+    return null;
+  }
+
   private void trackDependencies( IGosuClass gsClass, File sourceFile )
   {
     if( _incrementalManager == null )
@@ -693,30 +664,31 @@ public class GosuCompiler implements IGosuCompiler
       return;
     }
 
-    // Skip primitive types and Java types (for now)
-    if( type.isPrimitive() || type instanceof IJavaType )
+    // Skip primitive types only
+    if( type.isPrimitive() )
     {
       return;
     }
 
     trackedTypes.add( type );
 
-    // Only track Gosu types that have source files
-    if( type instanceof IGosuClass )
+    // Track Java type dependencies
+    if( type instanceof IJavaType )
     {
-      ISourceFileHandle sfh = ((IGosuClass)type).getSourceFileHandle();
-      if( sfh != null && sfh.getFile() != null )
-      {
-        try
-        {
-          String dependencyPath = sfh.getFile().getPath().getFileSystemPathString();
-          _incrementalManager.recordDependency( sourcePath, dependencyPath );
-        }
-        catch( Exception e )
-        {
-            // Ignore if we can't get the file path
-        }
-      }
+      IJavaType javaType = (IJavaType)type;
+      String producerFqcn = javaType.getName();
+
+      // Record: sourcePath (consumer) depends on producerFqcn (Java type)
+      _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+    }
+    // Track Gosu-to-Gosu type dependencies
+    else if( type instanceof IGosuClass )
+    {
+      IGosuClass gosuClass = (IGosuClass)type;
+      String producerFqcn = gosuClass.getName();
+
+      // Record: sourcePath (consumer) depends on producerFqcn (Gosu type)
+      _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
     }
     
     // Also track array component types
