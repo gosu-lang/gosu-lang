@@ -129,38 +129,38 @@ public class CommandLineOptions {
     return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
   }
 
-  @Parameter(names = "-changed-files", description = "Changed source files for incremental compilation (separated by path separator)")
-  private String _changedFiles;
+  @Parameter(names = "-changed-types", description = "Changed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
+  private String _changedTypes;
 
-  @Parameter(names = "-deleted-files", description = "Deleted source files for incremental compilation (separated by path separator)")
-  private String _deletedFiles;
+  @Parameter(names = "-removed-types", description = "Removed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
+  private String _removedTypes;
 
-  public List<String> getChangedFiles() {
-    if (_changedFiles == null || _changedFiles.trim().isEmpty()) {
+  public List<String> getChangedTypes() {
+    if (_changedTypes == null || _changedTypes.trim().isEmpty()) {
       return Collections.emptyList();
     }
-    List<String> files = new ArrayList<>();
-    for (String file : _changedFiles.split(java.io.File.pathSeparator)) {
-      String trimmed = file.trim();
+    List<String> types = new ArrayList<>();
+    for (String type : _changedTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
       if (!trimmed.isEmpty()) {
-        files.add(trimmed);
+        types.add(trimmed);
       }
     }
-    return files;
+    return types;
   }
 
-  public List<String> getDeletedFiles() {
-    if (_deletedFiles == null || _deletedFiles.trim().isEmpty()) {
+  public List<String> getRemovedTypes() {
+    if (_removedTypes == null || _removedTypes.trim().isEmpty()) {
       return Collections.emptyList();
     }
-    List<String> files = new ArrayList<>();
-    for (String file : _deletedFiles.split(java.io.File.pathSeparator)) {
-      String trimmed = file.trim();
+    List<String> types = new ArrayList<>();
+    for (String type : _removedTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
       if (!trimmed.isEmpty()) {
-        files.add(trimmed);
+        types.add(trimmed);
       }
     }
-    return files;
+    return types;
   }
 
 }
