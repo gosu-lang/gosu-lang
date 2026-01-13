@@ -21,14 +21,30 @@ import java.util.stream.Collectors;
 public class IncrementalCompilationManager {
 
   private static final String DEPENDENCY_VERSION = "2.0";
+
+  /**
+   * Common types that are used by every Gosu class and can be safely ignored in dependency tracking.
+   * These types are part of the core runtime and unlikely to change. If they do change,
+   * classpath ABI changes would trigger a full recompilation anyway.
+   */
+  private static final Set<String> COMMON_TYPES_TO_IGNORE = Set.of(
+    "_proxy_.gw.lang.reflect.gs.IGosuObject",  // Internal Gosu proxy interface
+    "gw.lang.reflect.IType",                    // Gosu reflection API
+    "java.lang.Object",                         // Base class of everything
+    "java.lang.Class<java.lang.Object>",        // Reflection class
+    "java.lang.String"                          // Used everywhere, very stable API
+  );
+
   private final String dependencyFilePath;
   private final TypeDependencies typeDependencies;
   private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
   private final Gson gson;
+  private final List<String> sourceRoots;
 
-  public IncrementalCompilationManager(String dependencyFilePath, boolean verbose) {
+  public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
+    this.sourceRoots = sourceRoots != null ? sourceRoots : new ArrayList<>();
     this.verbose = verbose;
     this.gson = new GsonBuilder().setPrettyPrinting().create();
     this.typeDependencies = loadDependencyFile();
@@ -67,10 +83,18 @@ public class IncrementalCompilationManager {
    */
   public void saveDependencyFile() {
     try {
-      // Update typeDependencies with current session data
+      // Update typeDependencies with current session data, filtering out common types
       for (Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet()) {
         String typeFqcn = entry.getKey();
-        typeDependencies.usedBy.put(typeFqcn, new ArrayList<>(entry.getValue()));
+
+        // Skip common types that are used by every Gosu class
+        if (COMMON_TYPES_TO_IGNORE.contains(typeFqcn)) {
+          continue;
+        }
+
+        List<String> consumers = new ArrayList<>(entry.getValue());
+        Collections.sort(consumers);  // Sort for deterministic output
+        typeDependencies.usedBy.put(typeFqcn, consumers);
       }
 
       DependencyData data = new DependencyData();
@@ -124,10 +148,23 @@ public class IncrementalCompilationManager {
 
   /**
    * Convert a Gosu source file path to FQCN.
-   * Example: "com/example/MyClass.gs" -> "com.example.MyClass"
+   * Strips the source root prefix and converts the relative path to a package-qualified name.
+   * Example: "/tmp/project/src/main/gosu/com/example/MyClass.gs" -> "com.example.MyClass"
    */
   private String convertSourcePathToFqcn(String sourcePath) {
     String fqcn = sourcePath;
+
+    // Strip source root prefix to get relative path
+    for (String sourceRoot : sourceRoots) {
+      if (fqcn.startsWith(sourceRoot)) {
+        // Strip the source root and any leading separator
+        fqcn = fqcn.substring(sourceRoot.length());
+        if (fqcn.startsWith("/") || fqcn.startsWith("\\")) {
+          fqcn = fqcn.substring(1);
+        }
+        break;
+      }
+    }
 
     // Remove extension
     if (fqcn.endsWith(".gs")) {
@@ -191,18 +228,13 @@ public class IncrementalCompilationManager {
   
   /**
    * Delete output files for deleted source files
+   * Note: In v2 FQCN-based architecture, output file deletion is not implemented.
+   * Stale class files will remain but are harmless.
    */
   public void deleteOutputsForDeletedFiles(List<String> deletedFiles, String destDir) {
-    for (String deletedFile : deletedFiles) {
-      Set<String> outputs = getOutputFiles(deletedFile);
-      for (String output : outputs) {
-        File outputFile = new File(destDir, output);
-        if (outputFile.exists() && outputFile.delete()) {
-          if (verbose) {
-            System.out.println("Deleted output file: " + outputFile.getAbsolutePath());
-          }
-        }
-      }
+    // No-op in v2 architecture - FQCN-based tracking doesn't maintain source→output mapping
+    if (verbose) {
+      System.out.println("deleteOutputsForDeletedFiles: no-op in v2 FQCN-based architecture");
     }
   }
   
