@@ -63,14 +63,14 @@ public class IncrementalCompilationIntegrationTest {
     // In a real test environment, we'd use JCommander to parse arguments
     setPrivateField(options, "_incremental", true);
     setPrivateField(options, "_dependencyFile", dependencyFile.getAbsolutePath());
-    setPrivateField(options, "_changedFiles", "MyClass.gs");
-    setPrivateField(options, "_deletedFiles", "");
-    
+    setPrivateField(options, "_changedTypes", "MyClass");
+    setPrivateField(options, "_removedTypes", "");
+
     // Then
     assertTrue(options.isIncremental());
     assertEquals(dependencyFile.getAbsolutePath(), options.getDependencyFile());
-    assertEquals(1, options.getChangedFiles().size());
-    assertEquals(0, options.getDeletedFiles().size());
+    assertEquals(1, options.getChangedTypes().size());
+    assertEquals(0, options.getRemovedTypes().size());
   }
   
   @Test
@@ -110,20 +110,14 @@ public class IncrementalCompilationIntegrationTest {
       "package test\nclass IndependentClass { }".getBytes());
     
     // 2. First compilation - compile all files
-    IncrementalCompilationManager manager = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
+    IncrementalCompilationManager manager =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
     // Simulate recording dependencies (normally done during compilation)
-    manager.recordDependency(derivedClass.getAbsolutePath(), baseClass.getAbsolutePath());
-    
-    // Record output files
-    manager.recordOutputFiles(baseClass.getAbsolutePath(), 
-      new HashSet<>(Arrays.asList("test/BaseClass.class")));
-    manager.recordOutputFiles(derivedClass.getAbsolutePath(), 
-      new HashSet<>(Arrays.asList("test/DerivedClass.class")));
-    manager.recordOutputFiles(independentClass.getAbsolutePath(), 
-      new HashSet<>(Arrays.asList("test/IndependentClass.class")));
-    
+    // test.DerivedClass extends test.BaseClass
+    manager.recordTypeDependency("test.BaseClass", "test.DerivedClass");
+
     manager.saveDependencyFile();
     
     // 3. Modify base class
@@ -131,104 +125,119 @@ public class IncrementalCompilationIntegrationTest {
       "package test\nclass BaseClass { function newMethod() {} }".getBytes());
     
     // 4. Calculate what needs recompilation
-    IncrementalCompilationManager manager2 = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
+    IncrementalCompilationManager manager2 =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
     Set<String> toRecompile = manager2.calculateRecompilationSet(
-      Arrays.asList(baseClass.getAbsolutePath()),
+      Arrays.asList("test.BaseClass"),  // Changed types as FQCNs
       Collections.emptyList()
     );
-    
-    // 5. Verify results
-    assertTrue("Base class should be recompiled", 
-      toRecompile.contains(baseClass.getAbsolutePath()));
-    assertTrue("Derived class should be recompiled", 
-      toRecompile.contains(derivedClass.getAbsolutePath()));
-    assertFalse("Independent class should NOT be recompiled", 
-      toRecompile.contains(independentClass.getAbsolutePath()));
+
+    // 5. Verify results - calculateRecompilationSet returns FQCNs
+    assertTrue("Base class should be recompiled",
+      toRecompile.contains("test.BaseClass"));
+    assertTrue("Derived class should be recompiled",
+      toRecompile.contains("test.DerivedClass"));
+    assertFalse("Independent class should NOT be recompiled",
+      toRecompile.contains("test.IndependentClass"));
   }
   
   @Test
   public void testFileDeletedScenario() throws IOException {
     // Scenario: Interface deleted, implementations should recompile
-    
-    File interfaceFile = new File(srcDir.toFile(), "IMyInterface.gs");
-    File implClass1 = new File(srcDir.toFile(), "ImplClass1.gs");
-    File implClass2 = new File(srcDir.toFile(), "ImplClass2.gs");
-    
+
     // Setup initial compilation state
-    IncrementalCompilationManager manager = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
-    manager.recordDependency(implClass1.getAbsolutePath(), interfaceFile.getAbsolutePath());
-    manager.recordDependency(implClass2.getAbsolutePath(), interfaceFile.getAbsolutePath());
-    
-    // Create output files
-    File outputDir = tempDir.resolve("output").toFile();
-    File interfaceOutput = new File(outputDir, "test/IMyInterface.class");
-    interfaceOutput.getParentFile().mkdirs();
-    interfaceOutput.createNewFile();
-    
-    manager.recordOutputFiles(interfaceFile.getAbsolutePath(), 
-      new HashSet<>(Arrays.asList("test/IMyInterface.class")));
-    
+    IncrementalCompilationManager manager =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
+    // test.ImplClass1 implements test.IMyInterface
+    // test.ImplClass2 implements test.IMyInterface
+    manager.recordTypeDependency("test.IMyInterface", "test.ImplClass1");
+    manager.recordTypeDependency("test.IMyInterface", "test.ImplClass2");
+
     manager.saveDependencyFile();
-    
+
     // Delete the interface file
-    IncrementalCompilationManager manager2 = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
-    // Delete output files for deleted source
-    manager2.deleteOutputsForDeletedFiles(
-      Arrays.asList(interfaceFile.getAbsolutePath()),
-      outputDir.getAbsolutePath()
-    );
-    
-    // Calculate recompilation set
+    IncrementalCompilationManager manager2 =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
+    // Calculate recompilation set when interface is removed
     Set<String> toRecompile = manager2.calculateRecompilationSet(
       Collections.emptyList(),
-      Arrays.asList(interfaceFile.getAbsolutePath())
+      Arrays.asList("test.IMyInterface")  // Removed types as FQCNs
     );
-    
-    // Verify
-    assertFalse("Interface output file should be deleted", interfaceOutput.exists());
-    assertTrue("Implementation 1 should be recompiled", 
-      toRecompile.contains(implClass1.getAbsolutePath()));
-    assertTrue("Implementation 2 should be recompiled", 
-      toRecompile.contains(implClass2.getAbsolutePath()));
+
+    // Verify - both implementations need recompilation
+    assertTrue("Implementation 1 should be recompiled",
+      toRecompile.contains("test.ImplClass1"));
+    assertTrue("Implementation 2 should be recompiled",
+      toRecompile.contains("test.ImplClass2"));
   }
   
   @Test
   public void testNoRecompilationNeeded() throws IOException {
     // Scenario: File changes but has no dependents
     
-    File lonelyClass = new File(srcDir.toFile(), "LonelyClass.gs");
-    Files.write(lonelyClass.toPath(), "package test\nclass LonelyClass { }".getBytes());
-    
-    IncrementalCompilationManager manager = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
-    manager.recordOutputFiles(lonelyClass.getAbsolutePath(), 
-      new HashSet<>(Arrays.asList("test/LonelyClass.class")));
+    IncrementalCompilationManager manager =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
+    // test.LonelyClass has no dependencies recorded
     manager.saveDependencyFile();
-    
+
     // Modify the lonely class
-    Files.write(lonelyClass.toPath(), 
-      "package test\nclass LonelyClass { function foo() {} }".getBytes());
-    
-    IncrementalCompilationManager manager2 = 
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(), false);
-    
+    IncrementalCompilationManager manager2 =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
     Set<String> toRecompile = manager2.calculateRecompilationSet(
-      Arrays.asList(lonelyClass.getAbsolutePath()),
+      Arrays.asList("test.LonelyClass"),  // Changed types as FQCNs
       Collections.emptyList()
     );
-    
+
     // Only the changed file itself should be recompiled
     assertEquals(1, toRecompile.size());
-    assertTrue(toRecompile.contains(lonelyClass.getAbsolutePath()));
+    assertTrue(toRecompile.contains("test.LonelyClass"));
   }
-  
+
+  @Test
+  public void testDependencyJsonFormat() throws IOException {
+    // Verify the exact JSON format of the dependency file
+    // This ensures FQCNs are used (not file paths) and the structure is correct
+
+    IncrementalCompilationManager manager =
+      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+
+    // Record dependencies: BaseClass is used by DerivedClass and AnotherDerived
+    manager.recordTypeDependency("com.example.BaseClass", "com.example.DerivedClass");
+    manager.recordTypeDependency("com.example.BaseClass", "com.example.AnotherDerived");
+
+    manager.saveDependencyFile();
+
+    // Read actual JSON
+    String actualJson = new String(Files.readAllBytes(dependencyFile.toPath()));
+
+    // Expected JSON structure (formatted for readability, sorted alphabetically)
+    String expectedJson = "{\n" +
+      "  \"version\": \"2.0\",\n" +
+      "  \"types\": {\n" +
+      "    \"usedBy\": {\n" +
+      "      \"com.example.BaseClass\": [\n" +
+      "        \"com.example.AnotherDerived\",\n" +
+      "        \"com.example.DerivedClass\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+
+    assertEquals("Dependency JSON format should match expected structure",
+      expectedJson, actualJson);
+  }
+
   private void setPrivateField(Object obj, String fieldName, Object value) {
     try {
       java.lang.reflect.Field field = obj.getClass().getDeclaredField(fieldName);
