@@ -75,8 +75,18 @@ public class GosuCompiler implements IGosuCompiler
     // Initialize incremental compilation if enabled
     if( options.isIncremental() )
     {
+      // Extract source roots from sourcepath for FQCN computation
+      List<String> sourceRoots = new ArrayList<>();
+      String sourcepath = options.getSourcepath();
+      if (sourcepath != null && !sourcepath.isEmpty()) {
+        for (StringTokenizer tok = new StringTokenizer(sourcepath, File.pathSeparator); tok.hasMoreTokens(); ) {
+          sourceRoots.add(tok.nextToken());
+        }
+      }
+
       _incrementalManager = new IncrementalCompilationManager(
         options.getDependencyFile(),
+        sourceRoots,
         options.isVerbose() );
 
       // Get changed and removed type FQCNs from CLI
@@ -320,22 +330,11 @@ public class GosuCompiler implements IGosuCompiler
       {
         if( type.isValid() )
         {
-          // Create a wrapper driver to capture output registrations if incremental compilation is enabled
-          ICompilerDriver actualDriver = driver;
-          Set<String> outputFiles = new HashSet<>();
+          createGosuOutputFiles( (IGosuClass)type, driver );
+
+          // Track dependencies if incremental compilation is enabled (v2 FQCN-based architecture)
           if( _incrementalManager != null )
           {
-            actualDriver = new OutputTrackingCompilerDriver( driver, sourceFile, outputFiles );
-          }
-
-          createGosuOutputFiles( (IGosuClass)type, actualDriver );
-
-          // Track output files and dependencies if incremental compilation is enabled
-          if( _incrementalManager != null )
-          {
-            _incrementalManager.recordOutputFiles( sourceFile.getAbsolutePath(), outputFiles );
-
-            // Track dependencies
             trackDependencies( (IGosuClass)type, sourceFile );
           }
         }
