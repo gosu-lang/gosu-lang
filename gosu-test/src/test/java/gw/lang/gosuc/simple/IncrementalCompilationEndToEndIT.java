@@ -1154,35 +1154,55 @@ public class IncrementalCompilationEndToEndIT {
 
   @Test
   public void testBlockInnerClassOutputTracking() throws Exception {
-    // Test that block inner classes are properly tracked in dependency JSON
+    // Test that blocks correctly participate in dependency tracking
+    // When a block references another type, that dependency should be tracked
+
+    // Create a utility class that will be referenced by the block
+    File utilFile = createSourceFile("example/BlockUtil.gs",
+      "package example\n" +
+      "\n" +
+      "class BlockUtil {\n" +
+      "  static function process(s : String) : String {\n" +
+      "    return s.toUpperCase()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Create a class that uses blocks which reference BlockUtil
     File blockFile = createSourceFile("example/OutputTrackingTest.gs",
       "package example\n" +
+      "\n" +
+      "uses example.BlockUtil\n" +
       "\n" +
       "class OutputTrackingTest {\n" +
       "  function multipleBlocks() : String {\n" +
       "    var blk1 = \\-> \"first\"\n" +
-      "    var blk2 = \\s : String -> s + \" second\"\n" +
-      "    var blk3 = \\-> \\-> \"nested\"\n" +
+      "    var blk2 = \\s : String -> BlockUtil.process(s)\n" +
+      "    var blk3 = \\-> \\-> BlockUtil.process(\"nested\")\n" +
       "    return blk1() + blk2(\"test\") + blk3()()\n" +
       "  }\n" +
       "}"
     );
-    
-    CompileResult result = compile(Arrays.asList(blockFile), false);
+
+    CompileResult result = compile(Arrays.asList(utilFile, blockFile), false);
     assertTrue("Compilation should succeed", result.success);
-    
-    // Check dependency JSON contains all block inner classes
+
+    // Check dependency JSON structure
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
     assertFalse("Dependency file should not be empty", depsContent.trim().isEmpty());
-    
-    assertTrue("Should track main class", depsContent.contains("OutputTrackingTest.class"));
-    assertTrue("Should track block classes", depsContent.contains("OutputTrackingTest$block_"));
-    
-    // Verify that nested blocks are tracked  
-    assertTrue("Should track nested block classes", 
-      depsContent.contains("$block_") && depsContent.contains("$block_0_"));
-    
-    System.out.println("✓ Block inner class output tracking works correctly");
+
+    // V2 architecture: type dependencies (FQCN -> list of consumer FQCNs)
+    // OutputTrackingTest uses BlockUtil (via uses statement and method calls)
+    // So BlockUtil should have OutputTrackingTest in its usedBy list
+    String expectedDependency =
+      "\"example.BlockUtil\"" +
+      ".*" +
+      "\"example.OutputTrackingTest\"";
+
+    assertTrue("Should track BlockUtil dependency:\n" + depsContent,
+      depsContent.matches("(?s).*" + expectedDependency + ".*"));
+
+    System.out.println("✓ Block dependency tracking works correctly");
   }
 
   @Test
