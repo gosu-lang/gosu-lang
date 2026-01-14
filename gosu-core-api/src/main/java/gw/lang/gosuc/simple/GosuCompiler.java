@@ -97,6 +97,19 @@ public class GosuCompiler implements IGosuCompiler
       Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
         changedTypes, removedTypes );
 
+      // Delete .class files for removed types (prevents stale class files)
+      if( !removedTypes.isEmpty() )
+      {
+        String destDir = options.getDestDir();
+        if( destDir != null && !destDir.isEmpty() )
+        {
+          for( String removedType : removedTypes )
+          {
+            deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
+          }
+        }
+      }
+
       if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
       {
         System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
@@ -420,6 +433,77 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     return null;
+  }
+
+  /**
+   * Delete .class files for a removed type, including inner/anonymous classes.
+   * This prevents stale class files from remaining in the output directory.
+   *
+   * @param fqcn The fully-qualified class name of the removed type
+   * @param outputDir The output directory containing compiled .class files
+   * @param verbose Whether to log deletion operations
+   */
+  private void deleteClassFile( String fqcn, File outputDir, boolean verbose )
+  {
+    // Convert FQCN to file path: com.example.Foo -> com/example/Foo.class
+    String relativePath = fqcn.replace( '.', File.separatorChar );
+    File mainClassFile = new File( outputDir, relativePath + ".class" );
+
+    if( verbose )
+    {
+      System.out.println( "Attempting to delete class file for removed type: " + fqcn );
+      System.out.println( "  Output dir: " + outputDir );
+      System.out.println( "  Target file: " + mainClassFile );
+      System.out.println( "  File exists: " + mainClassFile.exists() );
+    }
+
+    // Delete main class file
+    if( mainClassFile.exists() )
+    {
+      if( mainClassFile.delete() )
+      {
+        if( verbose )
+        {
+          System.out.println( "Deleted stale class file: " + mainClassFile );
+        }
+      }
+      else
+      {
+        System.err.println( "Warning: Failed to delete class file: " + mainClassFile );
+      }
+    }
+    else if( verbose )
+    {
+      System.out.println( "Class file does not exist (may have already been deleted): " + mainClassFile );
+    }
+
+    // Delete inner/anonymous classes (Foo$*.class)
+    File parentDir = mainClassFile.getParentFile();
+    if( parentDir != null && parentDir.exists() )
+    {
+      String className = mainClassFile.getName().replace( ".class", "" );
+      File[] innerClasses = parentDir.listFiles( (dir, name) ->
+        name.startsWith( className + "$" ) && name.endsWith( ".class" )
+      );
+
+      if( innerClasses != null )
+      {
+        for( File innerClass : innerClasses )
+        {
+          if( innerClass.delete() )
+          {
+            if( verbose )
+            {
+              System.out.println( "Deleted stale inner class file: " + innerClass );
+            }
+          }
+          else
+          {
+            System.err.println( "Warning: Failed to delete inner class file: " + innerClass );
+          }
+        }
+      }
+    }
   }
 
   private void trackDependencies( IGosuClass gsClass, File sourceFile )
