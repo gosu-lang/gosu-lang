@@ -1187,20 +1187,25 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult result = compile(Arrays.asList(utilFile, blockFile), false);
     assertTrue("Compilation should succeed", result.success);
 
-    // Check dependency JSON structure
-    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
-    assertFalse("Dependency file should not be empty", depsContent.trim().isEmpty());
+    // Verify exact dependency JSON structure
+    String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
 
     // V2 architecture: type dependencies (FQCN -> list of consumer FQCNs)
-    // OutputTrackingTest uses BlockUtil (via uses statement and method calls)
-    // So BlockUtil should have OutputTrackingTest in its usedBy list
-    String expectedDependency =
-      "\"example.BlockUtil\"" +
-      ".*" +
-      "\"example.OutputTrackingTest\"";
+    // OutputTrackingTest uses BlockUtil, so BlockUtil should list OutputTrackingTest in its usedBy array
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"2.0\",\n" +
+      "  \"types\": {\n" +
+      "    \"usedBy\": {\n" +
+      "      \"example.BlockUtil\": [\n" +
+      "        \"example.OutputTrackingTest\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
 
-    assertTrue("Should track BlockUtil dependency:\n" + depsContent,
-      depsContent.matches("(?s).*" + expectedDependency + ".*"));
+    assertEquals("Dependency file should track BlockUtil -> OutputTrackingTest dependency",
+      expectedDeps, actualDeps);
 
     System.out.println("✓ Block dependency tracking works correctly");
   }
