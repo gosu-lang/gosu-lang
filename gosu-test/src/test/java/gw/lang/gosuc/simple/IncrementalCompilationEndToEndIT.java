@@ -484,6 +484,33 @@ public class IncrementalCompilationEndToEndIT {
     Files.write(filePath, content.getBytes());
     return filePath.toFile();
   }
+
+  private boolean isGosuSourceFile(Path path) {
+    String fileName = path.getFileName().toString();
+    int dotIndex = fileName.lastIndexOf('.');
+    if (dotIndex < 0) {
+      return false;
+    }
+    String ext = fileName.substring(dotIndex);
+    return gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS_SET.contains(ext);
+  }
+
+  private String fileToFqcn(File file) {
+    // Convert file path to FQCN by removing src dir prefix and Gosu extension
+    Path relativePath = srcDir.relativize(file.toPath());
+    String pathStr = relativePath.toString();
+
+    // Remove extension using GosuClassTypeLoader constants (single source of truth)
+    for (String ext : gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS) {
+      if (pathStr.endsWith(ext)) {
+        pathStr = pathStr.substring(0, pathStr.length() - ext.length());
+        break;
+      }
+    }
+
+    // Replace path separators with dots
+    return pathStr.replace(File.separatorChar, '.');
+  }
   
   private CompileResult compile(List<File> sourceFiles, boolean incremental) {
     CompileResult result = new CompileResult();
@@ -512,22 +539,24 @@ public class IncrementalCompilationEndToEndIT {
         args.add("-incremental");
         args.add("-dependency-file");
         args.add(dependencyFile.getAbsolutePath());
-        
-        // Add changed files
+
+        // Add changed types (as FQCNs, path-separator delimited)
         if (!sourceFiles.isEmpty()) {
-          args.add("-changed-files");
+          List<String> changedTypes = new ArrayList<>();
           for (File f : sourceFiles) {
-            args.add(f.getAbsolutePath());
+            changedTypes.add(fileToFqcn(f));
           }
+          args.add("-changed-types");
+          args.add(String.join(File.pathSeparator, changedTypes));
         }
-        
+
         // For incremental compilation, provide all source files but indicate which ones changed
-        // The compiler will determine which files to recompile based on the changed files and dependencies
+        // The compiler will determine which files to recompile based on the changed types and dependencies
         List<File> allSourceFiles = new ArrayList<>();
         Files.walk(srcDir)
-            .filter(path -> path.toString().endsWith(".gs"))
+            .filter(this::isGosuSourceFile)
             .forEach(path -> allSourceFiles.add(path.toFile()));
-        
+
         for (File f : allSourceFiles) {
           args.add(f.getAbsolutePath());
         }
@@ -571,8 +600,8 @@ public class IncrementalCompilationEndToEndIT {
         // Count compiled files from output
         String output = outStream.toString();
         if (incremental && output.contains("Incremental compilation: recompiling")) {
-          // Parse the number of files from output
-          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("recompiling (\\d+) files");
+          // Parse the number of types from output (v2 uses "types" not "files")
+          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("recompiling (\\d+) types");
           java.util.regex.Matcher matcher = pattern.matcher(output);
           if (matcher.find()) {
             result.filesCompiled = Integer.parseInt(matcher.group(1));
@@ -671,29 +700,33 @@ public class IncrementalCompilationEndToEndIT {
         args.add("-incremental");
         args.add("-dependency-file");
         args.add(dependencyFile.getAbsolutePath());
-        
-        // Add changed files
+
+        // Add changed types (as FQCNs, path-separator delimited)
         if (!changedFiles.isEmpty()) {
-          args.add("-changed-files");
+          List<String> changedTypes = new ArrayList<>();
           for (File f : changedFiles) {
-            args.add(f.getAbsolutePath());
+            changedTypes.add(fileToFqcn(f));
           }
+          args.add("-changed-types");
+          args.add(String.join(File.pathSeparator, changedTypes));
         }
-        
-        // Add deleted files
+
+        // Add removed types (as FQCNs, path-separator delimited)
         if (!deletedFiles.isEmpty()) {
-          args.add("-deleted-files");
+          List<String> removedTypes = new ArrayList<>();
           for (File f : deletedFiles) {
-            args.add(f.getAbsolutePath());
+            removedTypes.add(fileToFqcn(f));
           }
+          args.add("-removed-types");
+          args.add(String.join(File.pathSeparator, removedTypes));
         }
         
         // For incremental compilation, provide remaining source files
         List<File> remainingSourceFiles = new ArrayList<>();
         Files.walk(srcDir)
-            .filter(path -> path.toString().endsWith(".gs"))
+            .filter(this::isGosuSourceFile)
             .forEach(path -> remainingSourceFiles.add(path.toFile()));
-        
+
         for (File f : remainingSourceFiles) {
           args.add(f.getAbsolutePath());
         }
@@ -851,15 +884,15 @@ public class IncrementalCompilationEndToEndIT {
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
     System.out.println("Dependency file content: " + depsContent);
     
-    // Check that PersonEnhancement.gsx depends on Person.gs
-    assertTrue("PersonEnhancement should depend on Person", 
-      depsContent.contains("PersonEnhancement.gsx") && 
-      depsContent.contains("Person.gs"));
-    
-    // Check that UserService.gs depends on both Person.gs and PersonEnhancement.gsx
-    assertTrue("UserService should depend on Person", 
-      depsContent.contains("UserService.gs") && 
-      depsContent.contains("Person.gs"));
+    // Check that PersonEnhancement depends on Person (v2 format uses FQCNs)
+    assertTrue("PersonEnhancement should depend on Person",
+      depsContent.contains("example.PersonEnhancement") &&
+      depsContent.contains("example.Person"));
+
+    // Check that UserService depends on both Person and PersonEnhancement (v2 format uses FQCNs)
+    assertTrue("UserService should depend on Person",
+      depsContent.contains("example.UserService") &&
+      depsContent.contains("example.Person"));
     
     // Step 6: Record initial timestamps
     Thread.sleep(1000); // Ensure timestamp differences are detectable
@@ -956,15 +989,15 @@ public class IncrementalCompilationEndToEndIT {
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
     System.out.println("Dependency JSON: " + depsContent);
     
-    // Debug: Check what's actually in the JSON
+    // Debug: Check what's actually in the JSON (v2 uses FQCNs, not file paths)
     System.out.println("=== DETAILED JSON ANALYSIS ===");
-    System.out.println("Contains VehicleEnhancement.gsx: " + depsContent.contains("VehicleEnhancement.gsx"));
-    System.out.println("Contains Vehicle.gs: " + depsContent.contains("Vehicle.gs"));
-    
-    // Verify structure - VehicleEnhancement.gsx should list Vehicle.gs as dependency
-    boolean hasEnhancement = depsContent.contains("VehicleEnhancement.gsx");
-    boolean hasVehicle = depsContent.contains("Vehicle.gs");
-    
+    System.out.println("Contains example.VehicleEnhancement: " + depsContent.contains("example.VehicleEnhancement"));
+    System.out.println("Contains example.Vehicle: " + depsContent.contains("example.Vehicle"));
+
+    // Verify structure - Vehicle should be used by VehicleEnhancement (v2 format)
+    boolean hasEnhancement = depsContent.contains("example.VehicleEnhancement");
+    boolean hasVehicle = depsContent.contains("example.Vehicle");
+
     if (!hasEnhancement || !hasVehicle) {
       System.out.println("FAILURE DETAILS:");
       System.out.println("- Enhancement present: " + hasEnhancement);
