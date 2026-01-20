@@ -12,6 +12,8 @@ jobs:
   prepare-release:
    # needs: build-test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed for creating tags and pushing commits
     outputs:
       can-publish: ${{ steps.check-perms.outputs.can-publish }}
     steps:
