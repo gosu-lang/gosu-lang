@@ -66,6 +66,12 @@ jobs:
           fi
           echo "Version $VERSION is valid"
 
+      - name: Configure Git
+        if: steps.check-perms.outputs.can-publish == 'true'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: prepare release
         if: steps.check-perms.outputs.can-publish == 'true'
         run: mvn release:prepare -B -DdevelopmentVersion=1-X-SNAPSHOT -DreleaseVersion=${{ inputs.version }}
