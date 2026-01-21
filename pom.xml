@@ -12,6 +12,17 @@
 
   <name>Gosu :: Project Aggregator</name>
 
+  <!--
+    SCM block must be explicitly defined here even though gosu-parent has one.
+    Maven automatically appends the child artifactId to inherited SCM URLs, which would
+    result in https://github.com/gosu-lang/gosu-lang.git/gosu-proj/ (incorrect).
+    Defining it here prevents that behavior and ensures the correct repository URL is used.
+  -->
+  <scm>
+    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
   <modules>
     <module>gosu</module>
     <module>gosu-ant-tools</module>
