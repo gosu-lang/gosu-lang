@@ -27,17 +27,16 @@
   </developers>
 
   <scm>
-    <connection>${scm.root}/gosu-lang.git</connection>
-    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
+    <connection>scm:git:https://github.com/gosu-lang/gosu-lang.git</connection>
+    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
-    <tag>rel/1.18.5</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputTimestamp>1980-02-01T00:00:00Z</project.build.outputTimestamp>
     <dist.mvn.central.snapshotrepo.url>https://central.sonatype.com/repository/maven-snapshots/</dist.mvn.central.snapshotrepo.url>
-    <scm.root>scm:git:git@github.com:gosu-lang</scm.root>
   </properties>
 
   <build>

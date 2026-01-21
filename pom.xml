@@ -12,11 +12,6 @@
 
   <name>Gosu :: Project Aggregator</name>
 
-  <scm>
-    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
-    <tag>rel/1.18.5</tag>
-  </scm>
-  
   <modules>
     <module>gosu</module>
     <module>gosu-ant-tools</module>
