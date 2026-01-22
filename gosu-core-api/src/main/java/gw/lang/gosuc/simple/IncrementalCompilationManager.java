@@ -50,7 +50,7 @@ public class IncrementalCompilationManager {
     this.sourceRoots = sourceRoots != null ? sourceRoots : new ArrayList<>();
     this.localJavaTypes = localJavaTypes != null ? new HashSet<>(localJavaTypes) : new HashSet<>();
     this.verbose = verbose;
-    this.gson = new GsonBuilder().setPrettyPrinting().create();
+    this.gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     this.typeDependencies = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
   }
