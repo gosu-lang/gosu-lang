@@ -135,6 +135,9 @@ public class CommandLineOptions {
   @Parameter(names = "-removed-types", description = "Removed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
   private String _removedTypes;
 
+  @Parameter(names = "-local-java-types", description = "FQCNs of same-module Java types for selective tracking (path-separator delimited)")
+  private String _localJavaTypes;
+
   public List<String> getChangedTypes() {
     if (_changedTypes == null || _changedTypes.trim().isEmpty()) {
       return Collections.emptyList();
@@ -155,6 +158,20 @@ public class CommandLineOptions {
     }
     List<String> types = new ArrayList<>();
     for (String type : _removedTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
+      if (!trimmed.isEmpty()) {
+        types.add(trimmed);
+      }
+    }
+    return types;
+  }
+
+  public List<String> getLocalJavaTypes() {
+    if (_localJavaTypes == null || _localJavaTypes.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> types = new ArrayList<>();
+    for (String type : _localJavaTypes.split(java.io.File.pathSeparator)) {
       String trimmed = type.trim();
       if (!trimmed.isEmpty()) {
         types.add(trimmed);

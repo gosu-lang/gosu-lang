@@ -112,7 +112,8 @@ public class IncrementalCompilationIntegrationTest {
     // 2. First compilation - compile all files
     IncrementalCompilationManager manager =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     // Simulate recording dependencies (normally done during compilation)
     // test.DerivedClass extends test.BaseClass
@@ -127,7 +128,8 @@ public class IncrementalCompilationIntegrationTest {
     // 4. Calculate what needs recompilation
     IncrementalCompilationManager manager2 =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     Set<String> toRecompile = manager2.calculateRecompilationSet(
       Arrays.asList("test.BaseClass"),  // Changed types as FQCNs
@@ -150,7 +152,8 @@ public class IncrementalCompilationIntegrationTest {
     // Setup initial compilation state
     IncrementalCompilationManager manager =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     // test.ImplClass1 implements test.IMyInterface
     // test.ImplClass2 implements test.IMyInterface
@@ -162,7 +165,8 @@ public class IncrementalCompilationIntegrationTest {
     // Delete the interface file
     IncrementalCompilationManager manager2 =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     // Calculate recompilation set when interface is removed
     Set<String> toRecompile = manager2.calculateRecompilationSet(
@@ -183,7 +187,8 @@ public class IncrementalCompilationIntegrationTest {
     
     IncrementalCompilationManager manager =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     // test.LonelyClass has no dependencies recorded
     manager.saveDependencyFile();
@@ -191,7 +196,8 @@ public class IncrementalCompilationIntegrationTest {
     // Modify the lonely class
     IncrementalCompilationManager manager2 =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     Set<String> toRecompile = manager2.calculateRecompilationSet(
       Arrays.asList("test.LonelyClass"),  // Changed types as FQCNs
@@ -210,7 +216,8 @@ public class IncrementalCompilationIntegrationTest {
 
     IncrementalCompilationManager manager =
       new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()), false);
+        Collections.singletonList(srcDir.toAbsolutePath().toString()),
+        Collections.emptyList(), false);
 
     // Record dependencies: BaseClass is used by DerivedClass and AnotherDerived
     manager.recordTypeDependency("com.example.BaseClass", "com.example.DerivedClass");
@@ -223,14 +230,12 @@ public class IncrementalCompilationIntegrationTest {
 
     // Expected JSON structure (formatted for readability, sorted alphabetically)
     String expectedJson = "{\n" +
-      "  \"version\": \"2.0\",\n" +
-      "  \"types\": {\n" +
-      "    \"usedBy\": {\n" +
-      "      \"com.example.BaseClass\": [\n" +
-      "        \"com.example.AnotherDerived\",\n" +
-      "        \"com.example.DerivedClass\"\n" +
-      "      ]\n" +
-      "    }\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"com.example.BaseClass\": [\n" +
+      "      \"com.example.AnotherDerived\",\n" +
+      "      \"com.example.DerivedClass\"\n" +
+      "    ]\n" +
       "  }\n" +
       "}";
 

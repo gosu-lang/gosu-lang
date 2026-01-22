@@ -1194,13 +1194,11 @@ public class IncrementalCompilationEndToEndIT {
     // OutputTrackingTest uses BlockUtil, so BlockUtil should list OutputTrackingTest in its usedBy array
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"2.0\",\n" +
-      "  \"types\": {\n" +
-      "    \"usedBy\": {\n" +
-      "      \"example.BlockUtil\": [\n" +
-      "        \"example.OutputTrackingTest\"\n" +
-      "      ]\n" +
-      "    }\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.BlockUtil\": [\n" +
+      "      \"example.OutputTrackingTest\"\n" +
+      "    ]\n" +
       "  }\n" +
       "}";
 

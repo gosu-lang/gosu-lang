@@ -27,7 +27,8 @@ public class IncrementalCompilationManagerTest {
     tempDir = Files.createTempDirectory("incremental-test");
     dependencyFile = new File(tempDir.toFile(), "test-deps.json");
     manager = new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-      Collections.singletonList(tempDir.toAbsolutePath().toString()), false);
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(), false);
   }
 
   @After
@@ -61,6 +62,7 @@ public class IncrementalCompilationManagerTest {
     IncrementalCompilationManager newManager = new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
@@ -82,6 +84,7 @@ public class IncrementalCompilationManagerTest {
     IncrementalCompilationManager newManager = new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
@@ -103,6 +106,7 @@ public class IncrementalCompilationManagerTest {
     IncrementalCompilationManager newManager = new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
