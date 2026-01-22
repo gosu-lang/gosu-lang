@@ -5,6 +5,7 @@ import gw.internal.ext.com.google.gson.GsonBuilder;
 import gw.internal.ext.com.google.gson.reflect.TypeToken;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -66,7 +67,8 @@ public class IncrementalCompilationManager {
       return new HashMap<>();
     }
 
-    try (Reader reader = new FileReader(depFile)) {
+    try (Reader reader = new BufferedReader(
+        new InputStreamReader(new FileInputStream(depFile), StandardCharsets.UTF_8))) {
       DependencyData data = gson.fromJson(reader, DependencyData.class);
       if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.consumers != null) {
         return data.consumers;
@@ -114,7 +116,8 @@ public class IncrementalCompilationManager {
         parentDir.mkdirs();
       }
 
-      try (Writer writer = new FileWriter(depFile)) {
+      try (Writer writer = new BufferedWriter(
+          new OutputStreamWriter(new FileOutputStream(depFile), StandardCharsets.UTF_8))) {
         gson.toJson(data, writer);
       }
 
