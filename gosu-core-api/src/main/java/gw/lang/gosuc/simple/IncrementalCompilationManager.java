@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class IncrementalCompilationManager {
 
-  private static final String DEPENDENCY_VERSION = "2.0";
+  private static final String DEPENDENCY_VERSION = "1.0";  // Still in alpha, keep at 1.x
 
   /**
    * Common types that are used by every Gosu class and can be safely ignored in dependency tracking.
@@ -36,15 +36,18 @@ public class IncrementalCompilationManager {
   );
 
   private final String dependencyFilePath;
-  private final TypeDependencies typeDependencies;
+  private final Map<String, List<String>> typeDependencies;
   private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
   private final Gson gson;
   private final List<String> sourceRoots;
+  private final Set<String> localJavaTypes;
 
-  public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots, boolean verbose) {
+  public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
+                                       List<String> localJavaTypes, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
     this.sourceRoots = sourceRoots != null ? sourceRoots : new ArrayList<>();
+    this.localJavaTypes = localJavaTypes != null ? new HashSet<>(localJavaTypes) : new HashSet<>();
     this.verbose = verbose;
     this.gson = new GsonBuilder().setPrettyPrinting().create();
     this.typeDependencies = loadDependencyFile();
@@ -54,27 +57,27 @@ public class IncrementalCompilationManager {
   /**
    * Load existing dependency data from file
    */
-  private TypeDependencies loadDependencyFile() {
+  private Map<String, List<String>> loadDependencyFile() {
     File depFile = new File(dependencyFilePath);
     if (!depFile.exists()) {
       if (verbose) {
         System.out.println("No existing dependency file found at: " + dependencyFilePath);
       }
-      return new TypeDependencies();
+      return new HashMap<>();
     }
 
     try (Reader reader = new FileReader(depFile)) {
       DependencyData data = gson.fromJson(reader, DependencyData.class);
-      if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.types != null) {
-        return data.types;
+      if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.consumers != null) {
+        return data.consumers;
       }
       if (verbose) {
         System.out.println("Dependency file version mismatch, starting fresh");
       }
-      return new TypeDependencies();
+      return new HashMap<>();
     } catch (Exception e) {
       System.err.println("Error loading dependency file: " + e.getMessage());
-      return new TypeDependencies();
+      return new HashMap<>();
     }
   }
   
@@ -93,13 +96,16 @@ public class IncrementalCompilationManager {
         }
 
         List<String> consumers = new ArrayList<>(entry.getValue());
-        Collections.sort(consumers);  // Sort for deterministic output
-        typeDependencies.usedBy.put(typeFqcn, consumers);
+        Collections.sort(consumers);  // Sort consumer lists for deterministic output
+        typeDependencies.put(typeFqcn, consumers);
       }
+
+      // Sort the map by keys before serialization for deterministic output
+      Map<String, List<String>> sortedConsumers = new TreeMap<>(typeDependencies);
 
       DependencyData data = new DependencyData();
       data.version = DEPENDENCY_VERSION;
-      data.types = typeDependencies;
+      data.consumers = sortedConsumers;
 
       // Ensure directory exists
       File depFile = new File(dependencyFilePath);
@@ -180,7 +186,24 @@ public class IncrementalCompilationManager {
 
     return fqcn.isEmpty() ? null : fqcn;
   }
-  
+
+  /**
+   * Determine if a Java type should be tracked in the dependency graph.
+   * Only track same-module Java types (from javaClassesDir), not JRE stdlib or JAR dependencies.
+   *
+   * @param javaTypeFqcn The FQCN of the Java type to check
+   * @return true if the type should be tracked, false otherwise
+   */
+  public boolean shouldTrackJavaType(String javaTypeFqcn) {
+    // If no whitelist provided, track everything (backward compatible)
+    if (localJavaTypes.isEmpty()) {
+      return true;
+    }
+
+    // Only track if in the local Java types whitelist
+    return localJavaTypes.contains(javaTypeFqcn);
+  }
+
   /**
    * Calculate which types need recompilation based on changed/removed types.
    *
@@ -200,7 +223,7 @@ public class IncrementalCompilationManager {
 
     // Find consumers of changed types
     for (String changedType : changedTypes) {
-      List<String> consumers = typeDependencies.usedBy.get(changedType);
+      List<String> consumers = typeDependencies.get(changedType);
       if (consumers != null) {
         toRecompile.addAll(consumers);
         if (verbose) {
@@ -211,7 +234,7 @@ public class IncrementalCompilationManager {
 
     // Find consumers of removed types
     for (String removedType : removedTypes) {
-      List<String> consumers = typeDependencies.usedBy.get(removedType);
+      List<String> consumers = typeDependencies.get(removedType);
       if (consumers != null) {
         toRecompile.addAll(consumers);
         if (verbose) {
@@ -220,7 +243,7 @@ public class IncrementalCompilationManager {
       }
 
       // Remove from dependency tracking
-      typeDependencies.usedBy.remove(removedType);
+      typeDependencies.remove(removedType);
     }
 
     return toRecompile;
@@ -300,20 +323,13 @@ public class IncrementalCompilationManager {
   }
   
   /**
-   * Data structure for JSON serialization
+   * Data structure for JSON serialization.
+   * Simplified flat structure: maps producer type FQCN to list of consumer type FQCNs.
+   * Example: "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]
    */
   private static class DependencyData {
     String version;
-    TypeDependencies types;
-  }
-
-  /**
-   * Type-level dependency tracking using FQCNs.
-   * Tracks both Java and Gosu types in a unified structure.
-   */
-  public static class TypeDependencies {
-    // Type FQCN -> List of type FQCNs that depend on it
-    // Example: "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]
-    Map<String, List<String>> usedBy = new HashMap<>();
+    // Use HashMap for O(1) puts during compilation; will be sorted before serialization
+    Map<String, List<String>> consumers = new HashMap<>();
   }
 }
