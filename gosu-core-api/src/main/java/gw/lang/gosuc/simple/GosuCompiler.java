@@ -87,6 +87,7 @@ public class GosuCompiler implements IGosuCompiler
       _incrementalManager = new IncrementalCompilationManager(
         options.getDependencyFile(),
         sourceRoots,
+        options.getLocalJavaTypes(),
         options.isVerbose() );
 
       // Get changed and removed type FQCNs from CLI
@@ -761,8 +762,14 @@ public class GosuCompiler implements IGosuCompiler
       IJavaType javaType = (IJavaType)type;
       String producerFqcn = javaType.getName();
 
-      // Record: sourcePath (consumer) depends on producerFqcn (Java type)
-      _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+      // Only track if this is a same-module Java type (not JRE or JAR dependencies)
+      if( _incrementalManager.shouldTrackJavaType( producerFqcn ) )
+      {
+        // Record: sourcePath (consumer) depends on producerFqcn (Java type)
+        _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+      }
+
+      return;  // Don't recurse into Java type internals
     }
     // Track Gosu-to-Gosu type dependencies
     else if( type instanceof IGosuClass )
