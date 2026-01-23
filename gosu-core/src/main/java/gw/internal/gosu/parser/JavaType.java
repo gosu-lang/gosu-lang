@@ -895,7 +895,10 @@ class JavaType extends InnerClassCapableType implements IJavaTypeInternal
 
   public boolean isGenericType()
   {
-    return _bDefiningGenericTypes || (_lazyGenericTypeVars.get() != null && _lazyGenericTypeVars.get().length > 0);
+    if (_bDefiningGenericTypes) return true;
+    // Cache to avoid multiple lock acquisitions
+    GenericTypeVariable[] typeVars = _lazyGenericTypeVars.get();
+    return typeVars != null && typeVars.length > 0;
   }
 
   public GenericTypeVariable[] getGenericTypeVariables()

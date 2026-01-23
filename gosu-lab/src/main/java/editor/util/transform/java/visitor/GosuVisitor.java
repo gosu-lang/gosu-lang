@@ -47,7 +47,8 @@ public class GosuVisitor implements TreeVisitor<String, Object>
 
   private enum Mode
   {
-    NORMAL, USING_NO_MODIFIERS, CATCH_PARAM, USING_CAST, METHOD_PARAM, ADD_RESOURCES_FINALLY_BLOCK, LAMBDA_PARAM, CLASS_VAR
+    NORMAL, USING_NO_MODIFIERS, CATCH_PARAM, USING_CAST, METHOD_PARAM, ADD_RESOURCES_FINALLY_BLOCK, LAMBDA_PARAM, CLASS_VAR,
+    TRY_RESOURCE_WITH_CATCH  // Used when try-with-resources has catch blocks - resources must be "final var" (not just "var")
   }
 
   public GosuVisitor( int tabSize, DocTrees docTrees )
@@ -393,6 +394,9 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     }
     if( !resources.isEmpty() )
     {
+      Mode oldMode = _mode;
+      // Set mode so resources are generated as "final var" - Java try-with-resources variables are implicitly final
+      _mode = Mode.TRY_RESOURCE_WITH_CATCH;
       for( Tree res : resources )
       {
         out.append( "\n" );
@@ -401,6 +405,7 @@ public class GosuVisitor implements TreeVisitor<String, Object>
         String ident = ((JCTree.JCVariableDecl)res).getName().toString();
         resIdents.add( ident );
       }
+      _mode = oldMode;
     }
     out.append( "\n" );
     appendIndent( out );
@@ -701,6 +706,11 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     boolean appedVar = !(_mode == Mode.METHOD_PARAM || _mode == Mode.CATCH_PARAM || _mode == Mode.LAMBDA_PARAM);
     if( appedVar )
     {
+      // Try-with-resources variables are implicitly final in Java, so explicitly mark them "final var"
+      if( _mode == Mode.TRY_RESOURCE_WITH_CATCH )
+      {
+        out.append( "final " );
+      }
       out.append( "var " );
     }
     out.append( name );
@@ -2208,37 +2218,63 @@ public class GosuVisitor implements TreeVisitor<String, Object>
     return out.toString();
   }
 
-  // Overrides for visitors new in Java 17...
+  // Overrides for visitors new in Java 17 (uncommented for Java 21 compatibility)
 
-//  public String visitBindingPattern( BindingPatternTree node, Object o )
-//  {
-//    return null;
-//  }
-//
-//  public String visitDefaultCaseLabel( DefaultCaseLabelTree node, Object o )
-//  {
-//    return null;
-//  }
-//
-//  public String visitGuardedPattern( GuardedPatternTree node, Object o )
-//  {
-//    return null;
-//  }
-//
-//  public String visitParenthesizedPattern( ParenthesizedPatternTree node, Object o )
-//  {
-//    return null;
-//  }
-//
-//  public String visitSwitchExpression( SwitchExpressionTree node, Object o )
-//  {
-//    return null;
-//  }
-//
-//  public String visitYield( YieldTree node, Object o )
-//  {
-//    return null;
-//  }
+  public String visitBindingPattern( BindingPatternTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitDefaultCaseLabel( DefaultCaseLabelTree node, Object o )
+  {
+    return null;
+  }
+
+  // GuardedPattern and ParenthesizedPattern were removed in Java 21
+  // public String visitGuardedPattern( GuardedPatternTree node, Object o )
+  // {
+  //   return null;
+  // }
+
+  // public String visitParenthesizedPattern( ParenthesizedPatternTree node, Object o )
+  // {
+  //   return null;
+  // }
+
+  public String visitDeconstructionPattern( com.sun.source.tree.DeconstructionPatternTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitPatternCaseLabel( com.sun.source.tree.PatternCaseLabelTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitConstantCaseLabel( com.sun.source.tree.ConstantCaseLabelTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitAnyPattern( com.sun.source.tree.AnyPatternTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitStringTemplate( com.sun.source.tree.StringTemplateTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitSwitchExpression( SwitchExpressionTree node, Object o )
+  {
+    return null;
+  }
+
+  public String visitYield( YieldTree node, Object o )
+  {
+    return null;
+  }
 
   private void pushIndent()
   {

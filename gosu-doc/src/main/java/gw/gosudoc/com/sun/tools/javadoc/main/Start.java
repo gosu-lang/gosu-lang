@@ -17,7 +17,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.file.BaseFileManager;
 import com.sun.tools.javac.main.Arguments;
@@ -261,14 +260,7 @@ public class Start extends gw.gosudoc.com.sun.tools.javadoc.main.ToolOption.Help
 
         // Preprocess @file arguments
         try {
-            if( JreUtil.isJava17orLater() ) {
-                List<String> args = (List<String>)ReflectUtil.method( CommandLine.class, "parse", List.class )
-                  .invokeStatic( Arrays.asList(argv) );
-                argv = args.toArray(new String[0]);
-            }
-            else { // Java 11
-                argv = CommandLine.parse(argv);
-            }
+            argv = expandAtFiles(argv);
         } catch (FileNotFoundException e) {
             messager.error( Messager.NOPOS, "main.cant.read", e.getMessage());
             exit();
@@ -567,5 +559,120 @@ public class Start extends gw.gosudoc.com.sun.tools.javadoc.main.ToolOption.Help
                 compOpts.put(name, value);
             }
         };
+    }
+
+    /**
+     * Expands @file arguments by reading argument files.
+     * This replaces the functionality of the removed com.sun.tools.javac.main.CommandLine class
+     * for Java 21 compatibility.
+     *
+     * @param args the original arguments which may contain @file references
+     * @return expanded arguments with @file contents included
+     * @throws IOException if an argument file cannot be read
+     */
+    private static String[] expandAtFiles(String[] args) throws IOException {
+        java.util.List<String> expanded = new ArrayList<>();
+        for (String arg : args) {
+            if (arg.startsWith("@")) {
+                // This is an @file argument - read and expand it
+                String filename = arg.substring(1);
+                File file = new File(filename);
+                if (!file.exists()) {
+                    throw new FileNotFoundException(filename);
+                }
+                expanded.addAll(readArgumentFile(file));
+            } else {
+                expanded.add(arg);
+            }
+        }
+        return expanded.toArray(new String[0]);
+    }
+
+    /**
+     * Reads an argument file and returns its contents as a list of arguments.
+     * Handles quoted strings and whitespace properly.
+     *
+     * @param file the argument file to read
+     * @return list of arguments from the file
+     * @throws IOException if the file cannot be read
+     */
+    private static java.util.List<String> readArgumentFile(File file) throws IOException {
+        java.util.List<String> args = new ArrayList<>();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.FileReader(file))) {
+            StringBuilder currentArg = new StringBuilder();
+            boolean inQuote = false;
+            boolean escape = false;
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Skip comments and empty lines
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+
+                for (int i = 0; i < line.length(); i++) {
+                    char c = line.charAt(i);
+
+                    if (escape) {
+                        currentArg.append(c);
+                        escape = false;
+                        continue;
+                    }
+
+                    if (c == '\\') {
+                        escape = true;
+                        continue;
+                    }
+
+                    if (c == '"' || c == '\'') {
+                        inQuote = !inQuote;
+                        continue;
+                    }
+
+                    if (!inQuote && Character.isWhitespace(c)) {
+                        if (currentArg.length() > 0) {
+                            String argStr = currentArg.toString();
+                            // Handle nested @file references
+                            if (argStr.startsWith("@")) {
+                                String filename = argStr.substring(1);
+                                File nestedFile = new File(filename);
+                                if (nestedFile.exists()) {
+                                    args.addAll(readArgumentFile(nestedFile));
+                                } else {
+                                    args.add(argStr);
+                                }
+                            } else {
+                                args.add(argStr);
+                            }
+                            currentArg.setLength(0);
+                        }
+                        continue;
+                    }
+
+                    currentArg.append(c);
+                }
+
+                // Add any remaining argument at end of line
+                if (currentArg.length() > 0) {
+                    String argStr = currentArg.toString();
+                    // Handle nested @file references
+                    if (argStr.startsWith("@")) {
+                        String filename = argStr.substring(1);
+                        File nestedFile = new File(filename);
+                        if (nestedFile.exists()) {
+                            args.addAll(readArgumentFile(nestedFile));
+                        } else {
+                            args.add(argStr);
+                        }
+                    } else {
+                        args.add(argStr);
+                    }
+                    currentArg.setLength(0);
+                }
+            }
+        }
+        return args;
     }
 }

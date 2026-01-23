@@ -2636,11 +2636,12 @@ public class TypeLord
   {
     inferTypeVariableTypesFromGenParamTypeAndConcreteType( genParamType, argType, inferenceMap, new HashSet<ITypeVariableType>(), true );
   }
+  // Infer type variable mappings from generic and concrete types
   public static void inferTypeVariableTypesFromGenParamTypeAndConcreteType( IType genParamType, IType argType, TypeVarToTypeMap inferenceMap, HashSet<ITypeVariableType> inferredInCallStack, boolean bReverse )
   {
     if( argType == GosuParserTypes.NULL_TYPE() ||
         argType instanceof IErrorType ||
-        (argType instanceof IMetaType && ((IMetaType)argType).getType() instanceof IErrorType) )
+        (argType instanceof IMetaType metaType && metaType.getType() instanceof IErrorType) )
     {
       return;
     }

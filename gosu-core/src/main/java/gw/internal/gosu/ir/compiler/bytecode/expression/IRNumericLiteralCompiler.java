@@ -79,9 +79,9 @@ public class IRNumericLiteralCompiler extends AbstractBytecodeCompiler {
         mv.visitLdcInsn( constant );
       }
     }
-    else if( constant instanceof Float )
+    // Use specialized bytecode constants for common float values
+    else if( constant instanceof Float fValue )
     {
-      Float fValue = (Float)constant;
       if( fValue == 0 && !fValue.toString().startsWith( "-" ) )
       {
         mv.visitInsn( Opcodes.FCONST_0 );
@@ -99,9 +99,9 @@ public class IRNumericLiteralCompiler extends AbstractBytecodeCompiler {
         mv.visitLdcInsn( constant );
       }
     }
-    else if( constant instanceof Double )
+    // Use specialized bytecode constants for common double values
+    else if( constant instanceof Double dValue )
     {
-      Double dValue = (Double) constant;
       if( dValue == 0 && !dValue.toString().startsWith( "-" ) )
       {
         mv.visitInsn( Opcodes.DCONST_0 );

@@ -320,8 +320,13 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public List<IAnnotationInfo> getDeclaredAnnotations() {
     List<IAnnotationInfo> annotations = super.getDeclaredAnnotations();
-    if (getMethodDocs() != null && getMethodDocs().get() != null && getMethodDocs().get().isDeprecated()) {
-      annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(getMethodDocs().get().getDeprecated()), this));
+    // Cache to avoid multiple lock acquisitions
+    IDocRef<IMethodNode> methodDocsRef = getMethodDocs();
+    if (methodDocsRef != null) {
+      IMethodNode methodDocs = methodDocsRef.get();
+      if (methodDocs != null && methodDocs.isDeprecated()) {
+        annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(methodDocs.getDeprecated()), this));
+      }
     }
     return annotations;
   }
@@ -344,8 +349,11 @@ public class JavaPropertyInfo extends JavaBaseFeatureInfo implements IJavaProper
   @Override
   public String getReturnDescription()
   {
-    IDocRef<IMethodNode> methodDocs = getMethodDocs();
-    return (methodDocs == null || methodDocs.get() == null) ? "" : methodDocs.get().getReturnDescription();
+    IDocRef<IMethodNode> methodDocsRef = getMethodDocs();
+    if (methodDocsRef == null) return "";
+    // Cache to avoid multiple lock acquisitions
+    IMethodNode methodDocs = methodDocsRef.get();
+    return methodDocs == null ? "" : methodDocs.getReturnDescription();
   }
 
 

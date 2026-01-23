@@ -78,18 +78,25 @@ public class StructuralTypeProxyGenerator {
       ifaceType = TypeLord.makeParameteredType( ifaceType, inferenceMap );
       ifaceType = TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( ifaceType );
     }
-    return new StringBuilder()
-      .append( "package " ).append( getNamespace( ifaceType ) ).append( "\n" )
-      .append( "\n" )
-      .append( "class " ).append( name ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
-      .append( "  final var _root: " ).append( _bStatic ? "Type<" + type.getName() + ">" : type.getName() ).append( "\n" )
-      .append( "  \n" )
-      .append( "  construct( root: " ).append( _bStatic ? "Type<" + type.getName() + ">" : type.getName() ).append( " ) {\n" )
-      .append( "    _root = root\n" )
-      .append( "  }\n" )
-      .append( "  \n" )
-      .append( implementIface( ifaceType, type ) )
-      .append( "}" );
+    // Java 15+ text blocks for cleaner code generation
+    String rootType = _bStatic ? "Type<" + type.getName() + ">" : type.getName();
+    return new StringBuilder(String.format("""
+      package %s
+
+      class %s implements %s {
+        final var _root: %s
+
+        construct( root: %s ) {
+          _root = root
+        }
+
+      %s}""",
+      getNamespace( ifaceType ),
+      name,
+      ifaceType.getName(),
+      rootType,
+      rootType,
+      implementIface( ifaceType, type )));
   }
 
   private String getNamespace( IType ifaceType ) {

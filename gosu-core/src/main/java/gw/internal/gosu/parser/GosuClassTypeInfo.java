@@ -326,9 +326,9 @@ public class GosuClassTypeInfo extends BaseTypeInfo implements IGosuClassTypeInf
       IGosuClassInternal cl = TypeLord.getPureGenericType( _gsClass );
       for( IPropertyInfo pi : cl.getTypeInfo().getDeclaredProperties() )
       {
-        if( pi instanceof GosuVarPropertyInfo )
+        if( pi instanceof GosuVarPropertyInfo varPropertyInfo )
         {
-          GosuVarPropertyInfo fieldProp = new GosuVarPropertyInfo( this, (GosuVarPropertyInfo)pi );
+          GosuVarPropertyInfo fieldProp = new GosuVarPropertyInfo( this, varPropertyInfo );
           declaredPropertiesMap.add( fieldProp );
         }
       }

@@ -259,16 +259,16 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     // Class<T> <- Meta<T' instanceof JavaType>
     //=============================================================================
     if( (JavaTypes.CLASS().equals( TypeSystem.getPureGenericType( lhsType ) ) &&
-         (rhsType instanceof IMetaType &&
-          (((IMetaType)rhsType).getType() instanceof IHasJavaClass ||
-           ((IMetaType)rhsType).getType() instanceof ITypeVariableType ||
-           ((IMetaType)rhsType).getType() instanceof IMetaType && ((IMetaType)((IMetaType)rhsType).getType()).getType() instanceof IHasJavaClass)))  )
+         (rhsType instanceof IMetaType metaType &&
+          (metaType.getType() instanceof IHasJavaClass ||
+           metaType.getType() instanceof ITypeVariableType ||
+           metaType.getType() instanceof IMetaType innerMetaType && innerMetaType.getType() instanceof IHasJavaClass)))  )
     {
       if( !lhsType.isParameterizedType() ||
-          lhsType.getTypeParameters()[0].isAssignableFrom( ((IMetaType)rhsType).getType() ) ||
+          lhsType.getTypeParameters()[0].isAssignableFrom( metaType.getType() ) ||
           isStructurallyAssignable( lhsType.getTypeParameters()[0], rhsType ) ||
-          isStructurallyAssignable( lhsType.getTypeParameters()[0], ((IMetaType)rhsType).getType() ) ||
-          (((IMetaType)rhsType).getType().isPrimitive() && canCoerce( lhsType.getTypeParameters()[0], ((IMetaType)rhsType).getType() )) )
+          isStructurallyAssignable( lhsType.getTypeParameters()[0], metaType.getType() ) ||
+          (metaType.getType().isPrimitive() && canCoerce( lhsType.getTypeParameters()[0], metaType.getType() )) )
       {
         return MetaTypeToClassCoercer.instance();
       }
@@ -277,11 +277,11 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //=============================================================================
     // Meta<T> <- Class<T' instanceof JavaType>
     //=============================================================================
-    if( lhsType instanceof IMetaType &&
+    if( lhsType instanceof IMetaType lhsMetaType &&
         rhsType instanceof IJavaType && JavaTypes.CLASS().equals( TypeSystem.getPureGenericType( rhsType ) ) ) {
       if( !rhsType.isParameterizedType() ||
-          TypeSystem.canCast( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ||
-          isStructurallyAssignable( ((IMetaType)lhsType).getType(), rhsType.getTypeParameters()[0] ) ) {
+          TypeSystem.canCast( lhsMetaType.getType(), rhsType.getTypeParameters()[0] ) ||
+          isStructurallyAssignable( lhsMetaType.getType(), rhsType.getTypeParameters()[0] ) ) {
         return IdentityCoercer.instance();
       }
     }
@@ -327,9 +327,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //=============================================================================
     // JavaType interface <- compatible block
     //=============================================================================
-    if( rhsType instanceof IFunctionType && lhsType.isInterface() )
+    if( rhsType instanceof IFunctionType rhsFunctionType && lhsType.isInterface() )
     {
-      IFunctionType rhsFunctionType = (IFunctionType)rhsType;
       IFunctionType lhsFunctionType = lhsType.getFunctionalInterface();
       if( lhsFunctionType != null )
       {
@@ -380,20 +379,20 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //=============================================================================
     // block <- compatible block
     //=============================================================================
-    if (lhsType instanceof IFunctionType &&
+    if (lhsType instanceof IFunctionType lhsFunctionType &&
         rhsType.isParameterizedType() &&
         JavaTypes.IFEATURE_REFERENCE().isAssignableFrom( rhsType ) &&
-        (lhsType.isAssignableFrom( rhsType.getTypeParameters()[1] ) ||
-         getCoercerInternal( lhsType, rhsType.getTypeParameters()[1], runtime ) != null) ) {
+        (lhsFunctionType.isAssignableFrom( rhsType.getTypeParameters()[1] ) ||
+         getCoercerInternal( lhsFunctionType, rhsType.getTypeParameters()[1], runtime ) != null) ) {
       return FeatureReferenceToBlockCoercer.instance();
     }
 
     //=============================================================================
     // Coerce synthetic block classes to function types
     //=============================================================================
-    if( lhsType instanceof IFunctionType && rhsType instanceof IBlockClass )
+    if( lhsType instanceof IFunctionType lhsFuncType && rhsType instanceof IBlockClass blockClass )
     {
-      if( lhsType.isAssignableFrom( ((IBlockClass)rhsType).getBlockType() ) )
+      if( lhsFuncType.isAssignableFrom( blockClass.getBlockType() ) )
       {
         return IdentityCoercer.instance();
       }
@@ -402,8 +401,8 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     //=============================================================================
     // compatible block <- JavaType interface
     //=============================================================================
-    if( lhsType instanceof IFunctionType && rhsType.isInterface() &&
-        FunctionFromInterfaceCoercer.areTypesCompatible( (IFunctionType)lhsType, rhsType ) )
+    if( lhsType instanceof IFunctionType lhsFunctionTypeForInterface && rhsType.isInterface() &&
+        FunctionFromInterfaceCoercer.areTypesCompatible( lhsFunctionTypeForInterface, rhsType ) )
     {
       return FunctionFromInterfaceCoercer.instance();
     }

@@ -341,16 +341,15 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
       return;
     }
 
-    if( genSuperType instanceof IJavaType )
+    // Resolve generic super type with type variable mapping
+    if( genSuperType instanceof IJavaTypeInternal javaGenSuperType )
     {
-      IJavaTypeInternal javaGenSuperType = (IJavaTypeInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
       setSuperType( TypeLord.getActualType( javaGenSuperType, actualParamByVarName, true ) );
       ((IJavaTypeInternal)_superType).setAdapterClass( javaGenSuperType.getAdapterClass() );
     }
-    else if( genSuperType instanceof IGosuClassInternal )
+    else if( genSuperType instanceof IGosuClassInternal gsGenSuperType )
     {
-      IGosuClassInternal gsGenSuperType = (IGosuClassInternal)genSuperType;
       TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
       setSuperType( TypeLord.getActualType( gsGenSuperType, actualParamByVarName, true ) );
     }
@@ -371,18 +370,17 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     }
     for( IType genInterface : interfaces )
     {
+      // Resolve generic interface types with type variable mapping
       if( TypeLord.hasTypeVariable( genInterface ) )
       {
-        if( genInterface instanceof IJavaType)
+        if( genInterface instanceof IJavaTypeInternal javaGenInterface)
         {
-          IJavaTypeInternal javaGenInterface = (IJavaTypeInternal)genInterface;
           TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
           genInterface = TypeLord.getActualType( javaGenInterface, actualParamByVarName, true );
           ((IJavaTypeInternal)genInterface).setAdapterClass( javaGenInterface.getAdapterClass() );
         }
-        else if( genInterface instanceof IGosuClassInternal )
+        else if( genInterface instanceof IGosuClassInternal gsGenInterface )
         {
-          IGosuClassInternal gsGenInterface = (IGosuClassInternal)genInterface;
           TypeVarToTypeMap actualParamByVarName = TypeLord.mapTypeByVarName( getOrCreateTypeReference(), getOrCreateTypeReference() );
           genInterface = TypeLord.getActualType( gsGenInterface, actualParamByVarName, true );
         }
@@ -1041,17 +1039,17 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
          return true;
        }
 
-       if (anInterface instanceof IJavaTypeInternal)
+       // Check if Java interface has been updated
+       if (anInterface instanceof IJavaTypeInternal iFace)
        {
-         final IJavaTypeInternal iFace = (IJavaTypeInternal) anInterface;
          if (JavaType.hasBeenUpdated(iFace, tiCheckSum, new HashSet<IType>()))
          {
            return true;
          }
        }
-       else if (anInterface instanceof IGosuClassInternal)
+       else if (anInterface instanceof IGosuClassInternal gosuInterface)
        {
-         if (hasBeenUpdated((IGosuClassInternal) anInterface, tiCheckSum))
+         if (hasBeenUpdated(gosuInterface, tiCheckSum))
          {
            return true;
          }
@@ -2086,9 +2084,10 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
     compileHeaderIfNeeded();
 
     IType superType = getSupertype();
-    if( superType instanceof IGosuClassInternal )
+    // Return Gosu super class if supertype is a Gosu class
+    if( superType instanceof IGosuClassInternal gosuSuperType )
     {
-      return (IGosuClassInternal)superType;
+      return gosuSuperType;
     }
     else if( superType instanceof IJavaType)
     {

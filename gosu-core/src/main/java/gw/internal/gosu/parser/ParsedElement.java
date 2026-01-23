@@ -209,7 +209,7 @@ public abstract class ParsedElement implements IParsedElement
     ArrayList<IParseIssue> issues = null;
     if( _lnf != null )
     {
-      if( _lnf._parseExceptions != null && _lnf._parseExceptions.size() > 0 )
+      if( _lnf._parseExceptions != null && !_lnf._parseExceptions.isEmpty() )
       {
         if( issues == null )
         {
@@ -217,7 +217,7 @@ public abstract class ParsedElement implements IParsedElement
         }
         issues.addAll( _lnf._parseExceptions );
       }
-      if( _lnf._parseWarnings != null && _lnf._parseWarnings.size() > 0 )
+      if( _lnf._parseWarnings != null && !_lnf._parseWarnings.isEmpty() )
       {
         if( issues == null )
         {
@@ -538,7 +538,7 @@ public abstract class ParsedElement implements IParsedElement
 
   public boolean hasImmediateParseWarnings()
   {
-    return _lnf != null && _lnf._parseWarnings.size() > 0;
+    return _lnf != null && !_lnf._parseWarnings.isEmpty();
   }
 
   public boolean hasImmediateParseWarning( ResourceKey errKey )
@@ -830,7 +830,7 @@ public abstract class ParsedElement implements IParsedElement
         }
       }
     }
-    return listResults != null && listResults.size() > 0;
+    return listResults != null && !listResults.isEmpty();
   }
 
   public final Integer makeInteger( Object obj )

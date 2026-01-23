@@ -167,7 +167,9 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
   @Override
   public String getDescription()
   {
-    return getVarDocs().get() == null ? null : getVarDocs().get().getDescription();
+    // Cache to avoid multiple lock acquisitions
+    IVarNode varDocs = getVarDocs().get();
+    return varDocs == null ? null : varDocs.getDescription();
   }
 
   private IDocRef<IVarNode> getVarDocs() {
@@ -184,9 +186,11 @@ public class JavaFieldPropertyInfo extends JavaBaseFeatureInfo implements IJavaF
   public List<IAnnotationInfo> getDeclaredAnnotations()
   {
     List<IAnnotationInfo> annotations = super.getDeclaredAnnotations();
-    if( getVarDocs().get() != null && getVarDocs().get().isDeprecated() )
+    // Cache to avoid multiple lock acquisitions
+    IVarNode varDocs = getVarDocs().get();
+    if( varDocs != null && varDocs.isDeprecated() )
     {
-      annotations.add( GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated( getVarDocs().get().getDeprecated() ), this ) );
+      annotations.add( GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated( varDocs.getDeprecated() ), this ) );
     }
     return annotations;
   }

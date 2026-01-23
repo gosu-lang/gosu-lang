@@ -47,7 +47,7 @@ public class IDirectoryUtil {
           if (pathComponent.equals(".") && !first) {
             // ignore
           } else if (pathComponent.equals("..") && !first) {
-            if (results.isEmpty() || results.get(results.size() - 1).equals("..")) {
+            if (results.isEmpty() || results.getLast().equals("..")) {  // Java 21 Sequenced Collections
               results.add(pathComponent);
             } else {
               results.remove(results.size() - 1);
@@ -79,7 +79,7 @@ public class IDirectoryUtil {
     if (pathComponents.size() == 0) {
       return root;
     } else if (pathComponents.size() == 1) {
-      return root.getOrCreateDirectory(pathComponents.get(0));
+      return root.getOrCreateDirectory(pathComponents.getFirst());  // Java 21 Sequenced Collections
     } else {
       return findParentDirectory(root, pathComponents);
     }
@@ -90,7 +90,7 @@ public class IDirectoryUtil {
     if (pathComponents.size() == 0) {
       throw new IllegalArgumentException("Cannot call file() with an empty path");
     } else if (pathComponents.size() == 1) {
-      return root.getOrCreateFile(pathComponents.get(0));
+      return root.getOrCreateFile(pathComponents.getFirst());  // Java 21 Sequenced Collections
     } else {
       String fileName = pathComponents.remove(pathComponents.size() - 1);
       IDirectory parentDir = findParentDirectory(root, pathComponents);

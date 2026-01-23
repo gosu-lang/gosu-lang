@@ -58,7 +58,7 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
     types = removeRedundantTypes( types );
     if( types.size() == 1 )
     {
-      return types.iterator().next();
+      return types.stream().findFirst().orElseThrow();  // Cleaner than iterator().next()
     }
 
     if( types.contains( JavaTypes.OBJECT() ) )
@@ -67,7 +67,7 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
       types.remove( JavaTypes.OBJECT() );
       if( types.size() == 1 )
       {
-        return types.iterator().next();
+        return types.stream().findFirst().orElseThrow();  // Cleaner than iterator().next()
       }
     }
     String strName = getNameFrom( types, false );

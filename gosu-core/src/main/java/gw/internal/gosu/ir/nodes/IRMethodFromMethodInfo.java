@@ -42,8 +42,9 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     _originalMethod = originalMethod;
 
     _terminalMethod = originalMethod;
-    while (_terminalMethod instanceof IMethodInfoDelegate && !(_terminalMethod instanceof IAspectMethodInfoDelegate)) {
-      _terminalMethod = ((IMethodInfoDelegate) _terminalMethod).getSource();
+    // Pattern matching eliminates redundant cast
+    while (_terminalMethod instanceof IMethodInfoDelegate delegate && !(delegate instanceof IAspectMethodInfoDelegate)) {
+      _terminalMethod = delegate.getSource();
     }
 
     _functionType = functionType;
@@ -85,10 +86,11 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
   @Override
   public IType getOwningIType() {
     IType owningType;
-    if( _terminalMethod instanceof IJavaMethodInfo )
+    // Pattern matching eliminates redundant cast
+    if( _terminalMethod instanceof IJavaMethodInfo javaMethodInfo )
     {
       // We have to get the owner type from the method because it may be different from the owning type e.g., entity aspects see ContactGosuAspect.AllAdresses
-      IJavaClassMethod m = ((IJavaMethodInfo)_terminalMethod).getMethod();
+      IJavaClassMethod m = javaMethodInfo.getMethod();
       if( m != null )
       {
         owningType = TypeSystem.get( m.getEnclosingClass() );
@@ -137,8 +139,9 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
 
   @Override
   public IGenericTypeVariable[] getTypeVariables() {
-    if (_terminalMethod instanceof IGosuMethodInfo && !IGosuClass.ProxyUtil.isProxy(_terminalMethod.getOwnersType())) {
-      return ((IGosuMethodInfo) _terminalMethod).getTypeVariables();
+    // Pattern matching eliminates redundant cast
+    if (_terminalMethod instanceof IGosuMethodInfo gosuMethodInfo && !IGosuClass.ProxyUtil.isProxy(_terminalMethod.getOwnersType())) {
+      return gosuMethodInfo.getTypeVariables();
     } else {
       return null;
     }
@@ -202,14 +205,16 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
 
   @Override
   public boolean couldHaveTypeVariables() {
+    // Pattern matching - already checking type, no cast needed
     return _terminalMethod instanceof IGosuMethodInfo && !IGosuClass.ProxyUtil.isProxy(_terminalMethod.getOwnersType());
   }
 
   private String getActualMethodName(IMethodInfo methodInfo) {
-    if( methodInfo instanceof IJavaMethodInfo)
+    // Pattern matching eliminates redundant cast
+    if( methodInfo instanceof IJavaMethodInfo javaMethodInfo)
     {
       // Get the name from the Java method in case a PublishedName attr was used in typeinfo
-      return ((IJavaMethodInfo)methodInfo).getMethod().getName();
+      return javaMethodInfo.getMethod().getName();
     }
     else
     {
@@ -217,18 +222,18 @@ public class IRMethodFromMethodInfo extends IRFeatureBase implements IRMethod {
     }
   }
 
+  // Get return type descriptor with proper type variable bounds
   private IRType getBoundedReturnType( IMethodInfo mi )
   {
-    if( mi instanceof IJavaMethodInfo )
+    if( mi instanceof IJavaMethodInfo javaMethodInfo )
     {
-      return IRTypeResolver.getDescriptor( ((IJavaMethodInfo)mi).getMethod().getReturnClassInfo() );
+      return IRTypeResolver.getDescriptor( javaMethodInfo.getMethod().getReturnClassInfo() );
     }
-    else if( mi instanceof IGosuMethodInfo)
+    else if( mi instanceof IGosuMethodInfo gosuMethodInfo)
     {
-      IReducedDynamicFunctionSymbol dfs = ((IGosuMethodInfo)mi).getDfs();
-      while( dfs instanceof ReducedParameterizedDynamicFunctionSymbol)
+      IReducedDynamicFunctionSymbol dfs = gosuMethodInfo.getDfs();
+      while( dfs instanceof ReducedParameterizedDynamicFunctionSymbol pdfs)
       {
-        ReducedParameterizedDynamicFunctionSymbol pdfs = (ReducedParameterizedDynamicFunctionSymbol)dfs;
         dfs = pdfs.getBackingDfs();
       }
 

@@ -124,52 +124,32 @@ public class IRTreeVerifier {
 
     verifyParentIsSet( statement );
 
-    if (statement instanceof IRAssignmentStatement) {
-      verifyIRAssignmentStatement((IRAssignmentStatement) statement);
-    } else if (statement instanceof IRFieldDecl) {
-      verifyIRFieldDecl((IRFieldDecl) statement);
-    } else if (statement instanceof IRFieldSetStatement) {
-      verifyIRFieldSetStatement((IRFieldSetStatement) statement);
-    } else if (statement instanceof IRIfStatement) {
-      verifyIRIfStatement((IRIfStatement) statement);
-    } else if (statement instanceof IRMethodCallStatement) {
-      verifyIRMethodCallStatement((IRMethodCallStatement) statement);
-    } else if (statement instanceof IRMethodStatement) {
-      verifyIRMethodStatement((IRMethodStatement) statement);
-    } else if (statement instanceof IRNoOpStatement) {
-      verifyIRNoOpStatement((IRNoOpStatement) statement);
-    } else if (statement instanceof IRReturnStatement) {
-      verifyIRReturnStatement((IRReturnStatement) statement);
-    } else if (statement instanceof IRStatementList) {
-      verifyIRStatementList((IRStatementList) statement);
-    } else if (statement instanceof IRArrayStoreStatement) {
-      verifyIRArrayStoreStatement((IRArrayStoreStatement) statement);
-    } else if (statement instanceof IRThrowStatement) {
-      verifyIRThrowStatement((IRThrowStatement) statement);
-    } else if (statement instanceof IRTryCatchFinallyStatement) {
-      verifyIRTryCatchFinallyStatement((IRTryCatchFinallyStatement) statement);
-    } else if (statement instanceof IRSyntheticStatement) {
-      verifyIRSyntheticStatement((IRSyntheticStatement) statement);
-    } else if (statement instanceof IRForEachStatement) {
-      verifyIRForEachStatement((IRForEachStatement) statement);
-    } else if (statement instanceof IRBreakStatement) {
-      verifyIRBreakStatement((IRBreakStatement) statement);
-    } else if (statement instanceof IRContinueStatement) {
-      verifyIRContinueStatement((IRContinueStatement) statement);
-    } else if (statement instanceof IRWhileStatement) {
-      verifyIRWhileStatement((IRWhileStatement) statement);
-    } else if (statement instanceof IRDoWhileStatement) {
-      verifyIRDoWhileStatement((IRDoWhileStatement) statement);
-    } else if (statement instanceof IRMonitorLockAcquireStatement) {
-      verifyIRIRMonitorLockAcquireStatement((IRMonitorLockAcquireStatement) statement);
-    } else if (statement instanceof IRMonitorLockReleaseStatement ) {
-      verifyIRIRMonitorLockReleaseStatement((IRMonitorLockReleaseStatement) statement);
-    } else if (statement instanceof IRSwitchStatement) {
-      verifyIRSwitchStatement((IRSwitchStatement) statement);
-    } else if (statement instanceof IREvalStatement ) {
-      verifyIREvalStatement((IREvalStatement) statement);
-    } else {
-      throw new IllegalArgumentException("Unrecognized statement of type " + statement.getClass());
+    // Java 21 switch pattern matching - more concise and compiler-verified exhaustiveness
+    switch (statement) {
+      case IRAssignmentStatement s -> verifyIRAssignmentStatement(s);
+      case IRFieldDecl s -> verifyIRFieldDecl(s);
+      case IRFieldSetStatement s -> verifyIRFieldSetStatement(s);
+      case IRIfStatement s -> verifyIRIfStatement(s);
+      case IRMethodCallStatement s -> verifyIRMethodCallStatement(s);
+      case IRMethodStatement s -> verifyIRMethodStatement(s);
+      case IRNoOpStatement s -> verifyIRNoOpStatement(s);
+      case IRReturnStatement s -> verifyIRReturnStatement(s);
+      case IRStatementList s -> verifyIRStatementList(s);
+      case IRArrayStoreStatement s -> verifyIRArrayStoreStatement(s);
+      case IRThrowStatement s -> verifyIRThrowStatement(s);
+      case IRTryCatchFinallyStatement s -> verifyIRTryCatchFinallyStatement(s);
+      case IRSyntheticStatement s -> verifyIRSyntheticStatement(s);
+      case IRForEachStatement s -> verifyIRForEachStatement(s);
+      case IRBreakStatement s -> verifyIRBreakStatement(s);
+      case IRContinueStatement s -> verifyIRContinueStatement(s);
+      case IRWhileStatement s -> verifyIRWhileStatement(s);
+      case IRDoWhileStatement s -> verifyIRDoWhileStatement(s);
+      case IRMonitorLockAcquireStatement s -> verifyIRIRMonitorLockAcquireStatement(s);
+      case IRMonitorLockReleaseStatement s -> verifyIRIRMonitorLockReleaseStatement(s);
+      case IRSwitchStatement s -> verifyIRSwitchStatement(s);
+      case IREvalStatement s -> verifyIREvalStatement(s);
+      case null -> throw new IllegalArgumentException("Null statement");
+      default -> throw new IllegalArgumentException("Unrecognized statement of type " + statement.getClass());
     }
   }
 

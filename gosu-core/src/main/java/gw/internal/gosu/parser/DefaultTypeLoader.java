@@ -92,15 +92,19 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     // strip off all trailing array brackets "[]"
     String fqnNoArrays = ModuleTypeLoader.stripArrayBrackets(fullyQualifiedName);
 
-    IJavaClassInfo result = _classInfoCache.get(fqnNoArrays);
-    if (result == null) {
-      result = resolveJavaClassInfo(fqnNoArrays);
-      if (result == null) {
+    // Note: Cannot use computeIfAbsent here because resolveJavaClassInfo may recursively
+    // call getJavaClassInfo, causing IllegalStateException: Recursive update
+    IJavaClassInfo result = _classInfoCache.get( fqnNoArrays );
+    if( result == null )
+    {
+      result = resolveJavaClassInfo( fqnNoArrays );
+      if( result == null )
+      {
         result = IJavaClassInfo.NULL_TYPE;
       }
-      _classInfoCache.put(fqnNoArrays, result);
+      _classInfoCache.put( fqnNoArrays, result );
     }
-    if( result != IJavaClassType.NULL_TYPE ) {
+    if( result != IJavaClassInfo.NULL_TYPE ) {
       int numArrays = (fullyQualifiedName.length() - fqnNoArrays.length()) / 2;
       for( int i = 0; i < numArrays; i++ )
       {
@@ -121,7 +125,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     }
     String fullyQualifiedName = aClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
-    if( result == null ) {
+    if( result == null )
+    {
       result = new ClassJavaClassInfo( aClass, gosuModule );
       _classInfoCache.put( fullyQualifiedName, result );
     }
@@ -134,7 +139,8 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     } else {
     String fullyQualifiedName = aClass.getName().replace('$', '.');
     IJavaClassInfo result = _classInfoCache.get( fullyQualifiedName );
-    if( result == null ) {
+    if( result == null )
+    {
       result = new AsmClassJavaClassInfo( aClass, gosuModule );
       _classInfoCache.put( fullyQualifiedName, result );
     }
@@ -288,18 +294,18 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     }
 
     if (object instanceof IGosuObject) {
-      if (object instanceof AbstractTypeRef) {
-        object = ((AbstractTypeRef) object)._getType();
+      if (object instanceof AbstractTypeRef abstractTypeRef) {
+        object = abstractTypeRef._getType();
       }
       IType type = ((IGosuObject) object).getIntrinsicType();
-      if( type instanceof IBlockClass ) {
-        return ((IBlockClass)type).getBlockType();
+      if( type instanceof IBlockClass blockClass) {
+        return blockClass.getBlockType();
       }
       return type;
     }
 
-    if (object instanceof IType) {
-      return MetaType.get((IType) object);
+    if (object instanceof IType iType) {
+      return MetaType.get(iType);
     }
 
     return TypeSystem.get(object.getClass()); // Call allllll the way back through the stack if this is a Class;

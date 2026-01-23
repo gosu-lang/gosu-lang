@@ -52,7 +52,7 @@ public class Stack<T> implements Iterable<T> {
     if (isEmpty()) {
       throw new EmptyStackException();
     }
-    return _list.get(0);
+    return _list.getFirst();  // Java 21 Sequenced Collections - clearer than get(0)
   }
 
   public boolean contains(T obj) {

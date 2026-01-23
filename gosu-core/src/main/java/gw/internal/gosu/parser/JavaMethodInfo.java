@@ -150,8 +150,10 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   @Override
   public List<IAnnotationInfo> getDeclaredAnnotations() {
     List<IAnnotationInfo> annotations = super.getDeclaredAnnotations();
-    if (getMethodDocs().get() != null && getMethodDocs().get().isDeprecated()) {
-      annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(getMethodDocs().get().getDeprecated()), this));
+    // Cache to avoid multiple lock acquisitions
+    IMethodNode methodDocs = getMethodDocs().get();
+    if (methodDocs != null && methodDocs.isDeprecated()) {
+      annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(methodDocs.getDeprecated()), this));
     }
     return annotations;
   }
@@ -403,7 +405,9 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   @Override
   public String getReturnDescription()
   {
-    return getMethodDocs().get() == null ? "" : getMethodDocs().get().getReturnDescription();
+    // Cache to avoid multiple lock acquisitions
+    IMethodNode methodDocs = getMethodDocs().get();
+    return methodDocs == null ? "" : methodDocs.getReturnDescription();
   }
 
   @Override
@@ -419,7 +423,9 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
         _exceptions.add(new JavaExceptionInfo(this, exceptionClass, new IDocRef<IExceptionNode>() {
           @Override
           public IExceptionNode get() {
-            return getMethodDocs().get() == null ? null : getMethodDocs().get().getException(exceptionClass);
+            // Cache to avoid multiple lock acquisitions
+            IMethodNode methodDocs = getMethodDocs().get();
+            return methodDocs == null ? null : methodDocs.getException(exceptionClass);
           }
         }));
       }
@@ -463,13 +469,17 @@ public class JavaMethodInfo extends JavaBaseFeatureInfo implements IJavaMethodIn
   @Override
   public String getShortDescription()
   {
-    return getMethodDocs().get() == null ? null : getMethodDocs().get().getDescription();
+    // Cache to avoid multiple lock acquisitions
+    IMethodNode methodDocs = getMethodDocs().get();
+    return methodDocs == null ? null : methodDocs.getDescription();
   }
 
   @Override
   public String getDescription()
   {
-    return getMethodDocs().get() == null ? null : getMethodDocs().get().getDescription();
+    // Cache to avoid multiple lock acquisitions
+    IMethodNode methodDocs = getMethodDocs().get();
+    return methodDocs == null ? null : methodDocs.getDescription();
   }
 
   @Override

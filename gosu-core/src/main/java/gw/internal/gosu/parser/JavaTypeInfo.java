@@ -87,9 +87,8 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
             ret = new ArrayList<IPropertyInfo>();
             for( IJavaPropertyDescriptor property : properties )
             {
-              if( property instanceof IndexedPropertyDescriptor )
+              if( property instanceof IndexedPropertyDescriptor indexedProp )
               {
-                IndexedPropertyDescriptor indexedProp = (IndexedPropertyDescriptor)property;
                 if( indexedProp.getPropertyType() == null )
                 {
                   // Indexed properties must provide non-indexed access.
@@ -460,8 +459,10 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
 
   @Override
   public String getDescription() {
-    if (getDocNode().get() != null && getDocNode().get().getDescription() != null) {
-      return getDocNode().get().getDescription();
+    // Cache to avoid multiple lock acquisitions
+    IClassDocNode docNode = getDocNode().get();
+    if (docNode != null && docNode.getDescription() != null) {
+      return docNode.getDescription();
     }
 
     return null;
@@ -478,8 +479,10 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
   public List<IAnnotationInfo> getDeclaredAnnotations() {
     List<IAnnotationInfo> annotations = super.getDeclaredAnnotations();
     String deprecatedWarningToAdd = null;
-    if (getDocNode().get() != null && getDocNode().get().isDeprecated()) {
-      deprecatedWarningToAdd = getDocNode().get().getDeprecated();
+    // Cache to avoid multiple lock acquisitions
+    IClassDocNode docNode = getDocNode().get();
+    if (docNode != null && docNode.isDeprecated()) {
+      deprecatedWarningToAdd = docNode.getDeprecated();
     }
     if (deprecatedWarningToAdd != null) {
       annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(deprecatedWarningToAdd), this));
@@ -537,8 +540,8 @@ public class JavaTypeInfo extends JavaBaseFeatureInfo implements IJavaTypeInfo
       return Accessibility.PUBLIC;
     }
 
-    if (whosAskin instanceof IGosuClassInternal && ((IGosuClassInternal)whosAskin).isProxy()) {
-      IJavaType javaType = ((IGosuClassInternal)whosAskin).getJavaType();
+    if (whosAskin instanceof IGosuClassInternal gosuClassInternal && gosuClassInternal.isProxy()) {
+      IJavaType javaType = gosuClassInternal.getJavaType();
       if( javaType != null )
       {
         whosAskin = javaType;

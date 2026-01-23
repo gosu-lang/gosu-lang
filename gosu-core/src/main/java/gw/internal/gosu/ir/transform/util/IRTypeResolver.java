@@ -37,11 +37,12 @@ public class IRTypeResolver {
   {
     type = type instanceof IMetaType ? type : TypeLord.getPureGenericType( type );
 
-    if( type instanceof IJavaType ) // handles primitives too
+    // Handle Java types including primitives
+    if( type instanceof IJavaType javaType )
     {
       try
       {
-        return JavaClassIRType.get( ((IJavaType)type).getBackingClassInfo() );
+        return JavaClassIRType.get( javaType.getBackingClassInfo() );
       }
       catch( Exception e )
       {
@@ -68,19 +69,21 @@ public class IRTypeResolver {
       // Array types NEVER use concrete types for meta types
       return getDescriptor(type.getComponentType(), false).getArrayType();
     }
-    else if( type instanceof TypeVariableType)
+    // Resolve type variable to its bounding type
+    else if( type instanceof TypeVariableType typeVarType)
     {
-      return getDescriptor( ((TypeVariableType)type).getBoundingType(), getConcreteTypeForMetaType );
+      return getDescriptor( typeVarType.getBoundingType(), getConcreteTypeForMetaType );
     }
-    else if( type instanceof IFunctionType)
+    // Map function type to corresponding function interface
+    else if( type instanceof IFunctionType funcType)
     {
-      IFunctionType funcType = (IFunctionType)type;
       return getDescriptor( FunctionClassUtil.getFunctionInterfaceForArity( funcType.getReturnType() != JavaTypes.pVOID(), funcType.getParameterTypes().length ) );
     }
-    else if( type instanceof MetaType)
+    // Handle meta type based on whether concrete type is needed
+    else if( type instanceof MetaType metaType)
     {
       if (getConcreteTypeForMetaType) {
-        return getConcreteIRTypeForMetaType((MetaType) type);
+        return getConcreteIRTypeForMetaType(metaType);
       } else {
         return getDescriptor( IType.class );
       }
@@ -123,11 +126,12 @@ public class IRTypeResolver {
     return "entity".equals(namespace) || "typekey".equals(namespace);
   }
 
+  // Extract backing class info if type is Java-backed
   public static IJavaClassInfo getJavaBackedClass( IType arg )
   {
-    if( arg instanceof IJavaBackedType)
+    if( arg instanceof IJavaBackedType javaBackedType)
     {
-      IJavaClassInfo cls = ((IJavaBackedType)arg).getBackingClassInfo();
+      IJavaClassInfo cls = javaBackedType.getBackingClassInfo();
       if( cls == null )
       {
         throw new IllegalStateException( "Type: " + arg.getName() + " returned null Class from IJavaBackedType.getBackingClassInfo()" );

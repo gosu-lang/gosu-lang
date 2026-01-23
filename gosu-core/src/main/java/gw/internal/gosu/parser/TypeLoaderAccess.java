@@ -135,7 +135,7 @@ public class TypeLoaderAccess extends BaseService implements ITypeSystem
     ArrayList list = (ArrayList)g_moduleStack.get();
     if( list != null && !list.isEmpty() )
     {
-      return (Module)list.get(list.size() - 1);
+      return (Module)list.getLast();  // Java 21 Sequenced Collections - safer than size()-1
     }
 
     if( ExecutionEnvironment.getAll().size() == 1 )

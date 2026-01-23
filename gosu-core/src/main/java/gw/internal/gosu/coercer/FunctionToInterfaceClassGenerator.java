@@ -104,21 +104,24 @@ public class FunctionToInterfaceClassGenerator {
     //
 
     IType ifaceType = type.isParameterizedType() ? TypeLord.replaceTypeVariableTypeParametersWithBoundingTypes( type ): type;
-    StringBuilder sb = new StringBuilder()
-      .append( "package " ).append( namespace ).append( "\n" )
-      .append( "\n" )
-      .append( "static class " ).append( relativeName ).append( " implements " ).append( ifaceType.getName() ).append( " {\n" )
-      .append( "  static final var $REDRUM = \"" ).append( name ).append( "\"\n" )
-      .append( "  final var _block: gw.lang.function.IBlock\n" )
-      .append( "  \n" )
-      .append( "  construct( brock: gw.lang.function.IBlock ) {\n" )
-      .append( "    _block = brock\n" )
-      .append( "  }\n" )
-      .append( "  \n" )
-      .append( "  override function toString() : String {\n" )
-      .append( "    return _block.toString()\n" )
-      .append( "  }\n" )
-      .append( "\n" );
+    // Java 15+ text blocks for cleaner code generation
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("""
+      package %s
+
+      static class %s implements %s {
+        static final var $REDRUM = "%s"
+        final var _block: gw.lang.function.IBlock
+
+        construct( brock: gw.lang.function.IBlock ) {
+          _block = brock
+        }
+
+        override function toString() : String {
+          return _block.toString()
+        }
+
+      """, namespace, relativeName, ifaceType.getName(), name));
     implementIface( sb, type );
     sb.append( "}" );
     return sb;

@@ -142,15 +142,16 @@ public class IRMethodCallExpressionCompiler extends AbstractBytecodeCompiler {
     if( proxyByClass == null ) {
       PROXY_CACHE.put( iface, proxyByClass = new ConcurrentHashMap<Class, Constructor>() );
     }
+    // Determine if root is a class reference or instance
     boolean bStaticImpl;
     Class rootClass;
-    if( root instanceof IGosuClass ) {
+    if( root instanceof IGosuClass gosuClass ) {
       bStaticImpl = true;
-      rootClass = ((IGosuClass) root).getBackingClass();
+      rootClass = gosuClass.getBackingClass();
     }
-    else if( root instanceof Class ) {
+    else if( root instanceof Class rootClassCast ) {
       bStaticImpl = true;
-      rootClass = (Class)root;
+      rootClass = rootClassCast;
       root = TypeSystem.get( rootClass );
     }
     else {

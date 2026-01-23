@@ -51,35 +51,17 @@ public class GosuExceptionUtil
    */
   public static void throwArgMismatchException( IllegalArgumentException exceptionToWrap, String featureName, Class[] actualParameters, Object[] args )
   {
-    String argTypes = "(";
-    for( int i = 0; i < actualParameters.length; i++ )
-    {
-      Class aClass = actualParameters[i];
-      if( i > 0 )
-      {
-        argTypes += " ,";
-      }
-      argTypes += aClass.getName();
-    }
-    argTypes += ")";
+    // Build expected parameter types string efficiently using streams
+    String paramTypesList = java.util.Arrays.stream(actualParameters)
+        .map(Class::getName)
+        .collect(java.util.stream.Collectors.joining(" ,"));
+    String argTypes = "(" + paramTypesList + ")";
 
-    String rttTypes = "(";
-    for( int i = 0; i < args.length; i++ )
-    {
-      if( i > 0 )
-      {
-        rttTypes += " ,";
-      }
-      if( args[i] != null )
-      {
-        rttTypes += args[i].getClass().getName();
-      }
-      else
-      {
-        rttTypes += "null";
-      }
-    }
-    rttTypes += ")";
+    // Build actual runtime types string efficiently using streams
+    String runtimeTypesList = java.util.Arrays.stream(args)
+        .map(arg -> arg != null ? arg.getClass().getName() : "null")
+        .collect(java.util.stream.Collectors.joining(" ,"));
+    String rttTypes = "(" + runtimeTypesList + ")";
 
     throw new RuntimeException( "Tried to pass values of types: " + rttTypes + " into " + featureName + " that takes types " + argTypes, exceptionToWrap );
   }
@@ -109,15 +91,14 @@ public class GosuExceptionUtil
     return null;
   }
 
+  // Convert throwable to RuntimeException, avoiding unnecessary wrapping
   public static RuntimeException convertToRuntimeException( Throwable t )
   {
-    RuntimeException e;
-    if (t instanceof RuntimeException) {
-      e = (RuntimeException) t;
+    if (t instanceof RuntimeException e) {
+      return e;
     } else {
-      e = new RuntimeException(t);
+      return new RuntimeException(t);
     }
-    return e;
   }
 
   public static String getStackTraceAsString(Throwable t) {

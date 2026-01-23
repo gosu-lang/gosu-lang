@@ -24,7 +24,9 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
   @Override
   protected int expectedWarnings() {
-    return 1; // Person.gs has one intentional warning
+    // Person.gs has one intentional warning about List<int>
+    // Java 21 produces 4 additional warnings about "source value 8 is obsolete" (2 files × 2 warnings each)
+    return 5;
   }
 
   @Override

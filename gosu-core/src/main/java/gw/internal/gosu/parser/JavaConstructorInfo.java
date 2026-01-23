@@ -114,8 +114,10 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
   @Override
   public List<IAnnotationInfo> getDeclaredAnnotations() {
     List<IAnnotationInfo> annotations = super.getDeclaredAnnotations();
-    if (getConstructorDocs().get() != null && getConstructorDocs().get().isDeprecated()) {
-      annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(getConstructorDocs().get().getDeprecated()), this));
+    // Cache to avoid multiple lock acquisitions
+    IConstructorNode constructorDocs = getConstructorDocs().get();
+    if (constructorDocs != null && constructorDocs.isDeprecated()) {
+      annotations.add(GosuShop.getAnnotationInfoFactory().createJavaAnnotation(makeDeprecated(constructorDocs.getDeprecated()), this));
     }
     return annotations;
   }
@@ -133,7 +135,9 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
         _exceptions.add( new JavaExceptionInfo( this, exceptionClass, new IDocRef<IExceptionNode>() {
           @Override
           public IExceptionNode get() {
-            return getConstructorDocs().get() == null ? null : getConstructorDocs().get().getException( exceptionClass );
+            // Cache to avoid multiple lock acquisitions
+            IConstructorNode constructorDocs = getConstructorDocs().get();
+            return constructorDocs == null ? null : constructorDocs.getException( exceptionClass );
           }
         } ) );
       }
@@ -175,7 +179,9 @@ public class JavaConstructorInfo extends JavaBaseFeatureInfo implements IJavaCon
 
   public String getShortDescription()
   {
-    return getConstructorDocs().get() != null ? getConstructorDocs().get().getDescription() : null;
+    // Cache to avoid multiple lock acquisitions
+    IConstructorNode constructorDocs = getConstructorDocs().get();
+    return constructorDocs != null ? constructorDocs.getDescription() : null;
   }
 
   @Override

@@ -177,8 +177,13 @@ class GSRootDocImpl extends GSDocImpl implements RootDoc{
     printNotice( "Loading types to generate GosuDoc" )
     for( typeName in TypeSystem.getAllTypeNames() ){
         try{
-          if(!isExcluded( typeName.toString() )) {
-            var iType = TypeSystem.getByFullName( typeName.toString() )
+          var typeNameStr = typeName.toString()
+          // Skip package-info files - they are package-level documentation, not loadable types
+          if(typeNameStr.endsWith(".package-info") || typeNameStr.endsWith(".package-info.java")) {
+            continue
+          }
+          if(!isExcluded( typeNameStr )) {
+            var iType = TypeSystem.getByFullName( typeNameStr )
             if( shouldDocumentType( iType ) ){
               getOrCreateClass( iType )
             }

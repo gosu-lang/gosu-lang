@@ -9,6 +9,21 @@ uses gw.date.DayOfWeek
 
 class CoreDateEnhancementTest extends TestClass
 {
+  var _originalTimeZone : TimeZone
+
+  override function beforeTestClass() {
+    // Save the default timezone and set to UTC for consistent test behavior
+    _originalTimeZone = TimeZone.getDefault()
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+  }
+
+  override function afterTestClass() {
+    // Restore the original timezone
+    if (_originalTimeZone != null) {
+      TimeZone.setDefault(_originalTimeZone)
+    }
+  }
+
   function testCreateDefaulting() {
     var date = Date.create(2011)
     assertEquals(2011, date.toCalendar().CalendarYear)

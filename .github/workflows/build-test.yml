@@ -19,12 +19,11 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-
-      - name: Set up Java (Amazon Corretto 11)
+      - name: Set up Java (Amazon Corretto 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: '11'
+          java-version: '21'
           cache: 'maven'
 
       - name: Build and run tests
@@ -42,7 +41,7 @@ jobs:
         if: always()
         run: |
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "**Java Version:** 11" >> $GITHUB_STEP_SUMMARY
+          echo "**Java Version:** 21" >> $GITHUB_STEP_SUMMARY
           # Count test files and results
           TOTAL_FILES=$(find . -name "TEST-*.xml" | wc -l)
           echo "**Test report files:** $TOTAL_FILES" >> $GITHUB_STEP_SUMMARY
