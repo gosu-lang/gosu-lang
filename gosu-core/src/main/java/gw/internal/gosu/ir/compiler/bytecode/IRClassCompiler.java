@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.compiler.bytecode;
 
 import gw.internal.ext.org.objectweb.asm.Attribute;
+import gw.internal.ext.org.objectweb.asm.ByteVector;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.ClassVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
@@ -128,9 +129,16 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
       Constructor[] constr = aClass.getDeclaredConstructors();
       ReflectUtil.setAccessible( constr[0] );
       Object instance = constr[0].newInstance( "GosuVersion" );
-      Field[] fields = aClass.getDeclaredFields();
-      ReflectUtil.setAccessible( fields[1] );
-      fields[1].set( instance, _gosuVersion );
+
+      // ASM 9.8 changed the field from "byte[] content" to "ByteVector cachedContent"
+      // Use ByteVector's public API instead of reflection
+      ByteVector byteVector = new ByteVector();
+      byteVector.putByteArray( _gosuVersion, 0, _gosuVersion.length );
+
+      Field contentField = aClass.getDeclaredField( "cachedContent" );
+      ReflectUtil.setAccessible( contentField );
+      contentField.set( instance, byteVector );
+
       _cv.visitAttribute( (Attribute) instance );
     }
     catch( Exception e )

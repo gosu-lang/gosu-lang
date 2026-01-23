@@ -3,7 +3,7 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1.18.8-SNAPSHOT</version>
+  <version>1.19.0-java25-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
@@ -27,10 +27,10 @@
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/gosu-lang/gosu-lang.git</connection>
-    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
+    <connection>${scm.root}/gosu-lang.git</connection>
+    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
-    <tag>rel/1.18.6</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>

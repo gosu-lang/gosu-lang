@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.18.8-SNAPSHOT</version>
+    <version>1.19.0-java25-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -13,8 +13,8 @@
   <name>Gosu :: Project Aggregator</name>
 
   <scm>
-    <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
-    <tag>rel/1.18.8</tag>
+    <developerConnection>${scm.root}/gosu-lang.git</developerConnection>
+    <tag>HEAD</tag>
   </scm>
 
   <modules>
