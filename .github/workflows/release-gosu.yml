@@ -9,14 +9,19 @@ on:
         type: string
 
 jobs:
-  prepare-release:
-   # needs: build-test
+  release-gosu:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Push commits and tags
+      actions: read
     outputs:
       can-publish: ${{ steps.check-perms.outputs.can-publish }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Ensure release branch
         run: |
@@ -66,24 +71,24 @@ jobs:
           fi
           echo "Version $VERSION is valid"
 
+      - name: Configure Git user
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
       - name: prepare release
         if: steps.check-perms.outputs.can-publish == 'true'
         run: mvn release:prepare -B -DdevelopmentVersion=1-X-SNAPSHOT -DreleaseVersion=${{ inputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  release-gosu:
-    needs: prepare-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Set up Java (Amazon Corretto 11)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '11'
-          cache: 'maven'
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
 
       - name: release Gosu
-        if: needs.prepare-release.outputs.can-publish == 'true'
         run: mvn release:perform -B -s $GITHUB_WORKSPACE/settings.xml -Prelease
+        env:
+          SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
+          SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
