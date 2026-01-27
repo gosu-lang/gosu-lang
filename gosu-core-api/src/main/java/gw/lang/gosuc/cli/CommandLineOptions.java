@@ -4,6 +4,7 @@ import gw.internal.ext.com.beust.jcommander.Parameter;
 import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandLineOptions {
@@ -13,7 +14,7 @@ public class CommandLineOptions {
   @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
   private boolean _checkedarithmetic;
 
-  /**
+    /**
    * @return true if '-ca' or '-checkedArithmetic' was specified on the command line
    */
   public boolean isCheckedArithmetic() {
@@ -109,6 +110,74 @@ public class CommandLineOptions {
    */
   public int getMaxWarns() {
     return _maxwarns;
+  }
+
+  @Parameter(names = "-incremental", description = "Enable incremental compilation")
+  private boolean _incremental;
+
+  /**
+   * @return true if '-incremental' was specified on the command line
+   */
+  public boolean isIncremental() {
+    return _incremental;
+  }
+
+  @Parameter(names = "-dependency-file", description = "Path to dependency tracking file for incremental compilation")
+  private String _dependencyFile;
+
+  public String getDependencyFile() {
+    return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
+  }
+
+  @Parameter(names = "-changed-types", description = "Changed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
+  private String _changedTypes;
+
+  @Parameter(names = "-removed-types", description = "Removed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
+  private String _removedTypes;
+
+  @Parameter(names = "-local-java-types", description = "FQCNs of same-module Java types for selective tracking (path-separator delimited)")
+  private String _localJavaTypes;
+
+  public List<String> getChangedTypes() {
+    if (_changedTypes == null || _changedTypes.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> types = new ArrayList<>();
+    for (String type : _changedTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
+      if (!trimmed.isEmpty()) {
+        types.add(trimmed);
+      }
+    }
+    return types;
+  }
+
+  public List<String> getRemovedTypes() {
+    if (_removedTypes == null || _removedTypes.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> types = new ArrayList<>();
+    for (String type : _removedTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
+      if (!trimmed.isEmpty()) {
+        types.add(trimmed);
+      }
+    }
+    return types;
+  }
+
+  public List<String> getLocalJavaTypes() {
+    if (_localJavaTypes == null || _localJavaTypes.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> types = new ArrayList<>();
+    for (String type : _localJavaTypes.split(java.io.File.pathSeparator)) {
+      String trimmed = type.trim();
+      if (!trimmed.isEmpty()) {
+        types.add(trimmed);
+      }
+    }
+    return types;
   }
 
 }

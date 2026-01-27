@@ -16,6 +16,7 @@ import gw.lang.javac.SourceJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
+import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -46,6 +47,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
@@ -64,13 +67,102 @@ public class GosuCompiler implements IGosuCompiler
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
+  protected IncrementalCompilationManager _incrementalManager;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
+    // Initialize incremental compilation if enabled
+    if( options.isIncremental() )
+    {
+      // Extract source roots from sourcepath for FQCN computation
+      List<String> sourceRoots = new ArrayList<>();
+      String sourcepath = options.getSourcepath();
+      if (sourcepath != null && !sourcepath.isEmpty()) {
+        for (StringTokenizer tok = new StringTokenizer(sourcepath, File.pathSeparator); tok.hasMoreTokens(); ) {
+          sourceRoots.add(tok.nextToken());
+        }
+      }
+
+      _incrementalManager = new IncrementalCompilationManager(
+        options.getDependencyFile(),
+        sourceRoots,
+        options.getLocalJavaTypes(),
+        options.isVerbose() );
+
+      // Get changed and removed type FQCNs from CLI
+      List<String> changedTypes = options.getChangedTypes();
+      List<String> removedTypes = options.getRemovedTypes();
+
+      // Calculate types that need recompilation (returns FQCNs)
+      Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
+        changedTypes, removedTypes );
+
+      // Delete .class files for removed types (prevents stale class files)
+      if( !removedTypes.isEmpty() )
+      {
+        String destDir = options.getDestDir();
+        if( destDir != null && !destDir.isEmpty() )
+        {
+          for( String removedType : removedTypes )
+          {
+            deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
+          }
+        }
+      }
+
+      if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
+      {
+        System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
+        for( String fqcn : typeFqcnsToCompile )
+        {
+          System.out.println( "  - " + fqcn );
+        }
+      }
+
+      // Convert type FQCNs to source file paths
+      List<String> allSourceFiles = getSourceFiles( options );
+      List<String> sourceFiles = new ArrayList<>();
+
+      // Match FQCNs to source files
+      for( String fqcn : typeFqcnsToCompile )
+      {
+        String matchedFile = findSourceFileForFqcn( fqcn, allSourceFiles );
+        if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
+        {
+          sourceFiles.add( matchedFile );
+        }
+        else if( options.isVerbose() && matchedFile == null )
+        {
+          System.out.println( "Warning: Could not find source file for type " + fqcn );
+        }
+      }
+      
+      // If still no files to compile in incremental mode, this is likely the first compilation
+      // Compile all source files to build initial dependency data
+      if( sourceFiles.isEmpty() )
+      {
+        sourceFiles = allSourceFiles;
+        if( options.isVerbose() )
+        {
+          System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
+        }
+      }
+
+      return compileFilteredSources( sourceFiles, options, driver );
+    }
+    else
+    {
+      // Normal compilation - compile all sources
+      return compileFilteredSources( getSourceFiles( options ), options, driver );
+    }
+  }
+  
+  private boolean compileFilteredSources( List<String> sourceFiles, CommandLineOptions options, ICompilerDriver driver )
+  {
     List<String> gosuFiles = new ArrayList<>();
     List<String> javaFiles = new ArrayList<>();
-    for( String fileName : getSourceFiles( options ) )
+    for( String fileName : sourceFiles )
     {
       if( fileName.toLowerCase().endsWith( ".java" ) )
       {
@@ -82,11 +174,13 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
+    boolean thresholdExceeded = false;
+    
     if( !gosuFiles.isEmpty() )
     {
       if( compileGosuSources( options, driver, gosuFiles ) )
       {
-        return true;
+        thresholdExceeded = true;
       }
     }
 
@@ -94,10 +188,17 @@ public class GosuCompiler implements IGosuCompiler
     {
       if( compileJavaSources( options, driver, javaFiles ) )
       {
-        return true;
+        thresholdExceeded = true;
       }
     }
-    return false;
+    
+    // Save dependency information if incremental compilation is enabled and the error/warning threshold was not exceeded
+    if( _incrementalManager != null && !thresholdExceeded )
+    {
+      _incrementalManager.saveDependencyFile();
+    }
+    
+    return thresholdExceeded;
   }
 
   private List<String> getSourceFiles( CommandLineOptions options )
@@ -244,6 +345,12 @@ public class GosuCompiler implements IGosuCompiler
         if( type.isValid() )
         {
           createGosuOutputFiles( (IGosuClass)type, driver );
+
+          // Track dependencies if incremental compilation is enabled (v2 FQCN-based architecture)
+          if( _incrementalManager != null )
+          {
+            trackDependencies( (IGosuClass)type, sourceFile );
+          }
         }
       }
       catch( CompilerDriverException ex )
@@ -264,7 +371,434 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
-    return false;
+    return true;
+  }
+
+  private String extractTypeNameFromPath( String filePath )
+  {
+    try
+    {
+      // Convert file path to type name (e.g., /path/to/example/StringUtil.gs -> example.StringUtil)
+      File file = new File( filePath );
+      String fileName = file.getName();
+
+      // Remove .gs extension
+      if( fileName.endsWith( ".gs" ) )
+      {
+        fileName = fileName.substring( 0, fileName.length() - 3 );
+      }
+
+      // Get the parent directories to construct package name
+      File parent = file.getParentFile();
+      if( parent != null )
+      {
+        String parentName = parent.getName();
+        return parentName + "." + fileName;
+      }
+
+      return fileName;
+    }
+    catch( Exception e )
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Find a source file that matches the given FQCN from a list of source files.
+   * Searches for a file ending with the path pattern derived from the FQCN.
+   * Example: For FQCN "com.example.MyClass", finds a file ending with "com/example/MyClass.gs"
+   *
+   * @param fqcn The fully-qualified class name to search for
+   * @param sourceFiles List of source file paths to search
+   * @return The matching source file path, or null if not found
+   */
+  private String findSourceFileForFqcn( String fqcn, List<String> sourceFiles )
+  {
+    // Convert FQCN to expected path pattern (normalize to forward slashes)
+    // e.g., "com.example.MyClass" -> "com/example/MyClass"
+    String expectedPath = fqcn.replace( '.', '/' );
+
+    for( String sourceFile : sourceFiles )
+    {
+      // Normalize source file path to forward slashes for comparison
+      String normalizedSourceFile = sourceFile.replace( '\\', '/' );
+
+      // Check if the source file ends with the expected path (with Gosu extensions)
+      if( normalizedSourceFile.endsWith( expectedPath + ".gs" ) ||
+          normalizedSourceFile.endsWith( expectedPath + ".gsx" ) ||
+          normalizedSourceFile.endsWith( expectedPath + ".gst" ) )
+      {
+        return sourceFile; // Return original path (not normalized)
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Delete .class files for a removed type, including inner/anonymous classes.
+   * This prevents stale class files from remaining in the output directory.
+   *
+   * @param fqcn The fully-qualified class name of the removed type
+   * @param outputDir The output directory containing compiled .class files
+   * @param verbose Whether to log deletion operations
+   */
+  private void deleteClassFile( String fqcn, File outputDir, boolean verbose )
+  {
+    // Convert FQCN to file path: com.example.Foo -> com/example/Foo.class
+    String relativePath = fqcn.replace( '.', File.separatorChar );
+    File mainClassFile = new File( outputDir, relativePath + ".class" );
+
+    if( verbose )
+    {
+      System.out.println( "Attempting to delete class file for removed type: " + fqcn );
+      System.out.println( "  Output dir: " + outputDir );
+      System.out.println( "  Target file: " + mainClassFile );
+      System.out.println( "  File exists: " + mainClassFile.exists() );
+    }
+
+    // Delete main class file
+    if( mainClassFile.exists() )
+    {
+      if( mainClassFile.delete() )
+      {
+        if( verbose )
+        {
+          System.out.println( "Deleted stale class file: " + mainClassFile );
+        }
+      }
+      else
+      {
+        System.err.println( "Warning: Failed to delete class file: " + mainClassFile );
+      }
+    }
+    else if( verbose )
+    {
+      System.out.println( "Class file does not exist (may have already been deleted): " + mainClassFile );
+    }
+
+    // Delete inner/anonymous classes (Foo$*.class)
+    File parentDir = mainClassFile.getParentFile();
+    if( parentDir != null && parentDir.exists() )
+    {
+      String className = mainClassFile.getName().replace( ".class", "" );
+      File[] innerClasses = parentDir.listFiles( (dir, name) ->
+        name.startsWith( className + "$" ) && name.endsWith( ".class" )
+      );
+
+      if( innerClasses != null )
+      {
+        for( File innerClass : innerClasses )
+        {
+          if( innerClass.delete() )
+          {
+            if( verbose )
+            {
+              System.out.println( "Deleted stale inner class file: " + innerClass );
+            }
+          }
+          else
+          {
+            System.err.println( "Warning: Failed to delete inner class file: " + innerClass );
+          }
+        }
+      }
+    }
+  }
+
+  private void trackDependencies( IGosuClass gsClass, File sourceFile )
+  {
+    if( _incrementalManager == null )
+    {
+      return;
+    }
+    
+    String sourcePath = sourceFile.getAbsolutePath();
+    Set<IType> trackedTypes = new HashSet<>();
+
+    // Track enhancement dependency - if this is an enhancement, track the enhanced type
+    if( gsClass instanceof gw.lang.reflect.gs.IGosuEnhancement )
+    {
+      gw.lang.reflect.gs.IGosuEnhancement enhancement = (gw.lang.reflect.gs.IGosuEnhancement)gsClass;
+      IType enhancedType = enhancement.getEnhancedType();
+      if( enhancedType != null )
+      {
+        trackTypeDependency( sourcePath, enhancedType, trackedTypes );
+      }
+    }
+
+    // Track superclass dependency
+    IType supertype = gsClass.getSupertype();
+    if( supertype != null && supertype instanceof IGosuClass )
+    {
+      trackTypeDependency( sourcePath, supertype, trackedTypes );
+    }
+    
+    // Track interface dependencies
+    for( IType iface : gsClass.getInterfaces() )
+    {
+      if( iface instanceof IGosuClass )
+      {
+        trackTypeDependency( sourcePath, iface, trackedTypes );
+      }
+    }
+
+    // Track field type dependencies
+    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getProperties() != null )
+    {
+      for( Object propInfo : gsClass.getTypeInfo().getProperties() )
+      {
+        if( propInfo instanceof gw.lang.reflect.IPropertyInfo )
+        {
+          IType fieldType = ((gw.lang.reflect.IPropertyInfo)propInfo).getFeatureType();
+          trackTypeDependency( sourcePath, fieldType, trackedTypes );
+        }
+      }
+    }
+
+    // Track method parameter and return type dependencies
+    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getMethods() != null )
+    {
+      for( Object methodInfo : gsClass.getTypeInfo().getMethods() )
+      {
+        if( methodInfo instanceof gw.lang.reflect.IMethodInfo )
+        {
+          gw.lang.reflect.IMethodInfo method = (gw.lang.reflect.IMethodInfo)methodInfo;
+
+          // Track return type
+          IType returnType = method.getReturnType();
+          trackTypeDependency( sourcePath, returnType, trackedTypes );
+
+          // Track parameter types
+          gw.lang.reflect.IParameterInfo[] params = method.getParameters();
+          if( params != null )
+          {
+            for( gw.lang.reflect.IParameterInfo param : params )
+            {
+              trackTypeDependency( sourcePath, param.getFeatureType(), trackedTypes );
+            }
+          }
+        }
+      }
+    }
+
+    // Track types from uses statements
+    if( gsClass.getTypeUsesMap() != null )
+    {
+      Set<String> typeUses = gsClass.getTypeUsesMap().getTypeUses();
+      if( typeUses != null )
+      {
+        for( String typeUseName : typeUses )
+        {
+          try
+          {
+            IType usedType = TypeSystem.getByFullNameIfValid( typeUseName );
+            if( usedType != null )
+            {
+              trackTypeDependency( sourcePath, usedType, trackedTypes );
+            }
+          }
+          catch( Exception e )
+          {
+            // Ignore type resolution errors for uses statements
+          }
+        }
+      }
+    }
+
+    // Enhanced dependency tracking - traverse AST for method calls
+    try
+    {
+      trackDependenciesFromAST( gsClass, sourcePath, trackedTypes );
+    }
+    catch( Exception e )
+    {
+      // Ignore AST traversal errors to avoid breaking compilation
+    }
+  }
+
+  private void trackDependenciesFromAST( IGosuClass gsClass, String sourcePath, Set<IType> trackedTypes )
+  {
+    try
+    {
+      IClassStatement classStmt = gsClass.getClassStatementWithoutCompile();
+      if( classStmt != null )
+      {
+
+        classStmt.visit( element -> {
+          try
+          {
+            trackDependenciesFromElement( element, sourcePath, trackedTypes );
+          }
+          catch( Exception e )
+          {
+            // Ignore individual element processing errors
+          }
+        });
+      }
+      else
+      {
+      }
+    }
+    catch( Exception e )
+    {
+    }
+  }
+
+  private void trackDependenciesFromElement( IParsedElement element, String sourcePath, Set<IType> trackedTypes )
+  {
+    // Check for method call expressions - track both the method owner and return type
+    if( element instanceof gw.lang.parser.expressions.IMethodCallExpression )
+    {
+      gw.lang.parser.expressions.IMethodCallExpression methodCall =
+        (gw.lang.parser.expressions.IMethodCallExpression)element;
+
+      // Track the function symbol's type (this is the declaring class for static methods)
+      IFunctionSymbol funcSymbol = methodCall.getFunctionSymbol();
+      if( funcSymbol != null )
+      {
+        IType ownerType = funcSymbol.getType();
+        if( ownerType != null )
+        {
+          trackTypeDependency( sourcePath, ownerType, trackedTypes );
+        }
+        
+        // Check if this method call is from an enhancement
+        // Enhancement methods have the enhancement type as their declaring type
+        try
+        {
+          if( funcSymbol instanceof gw.lang.reflect.IMethodInfo )
+          {
+            gw.lang.reflect.IMethodInfo methodInfo = (gw.lang.reflect.IMethodInfo)funcSymbol;
+            IType declaringType = methodInfo.getOwnersType();
+            
+            // If the declaring type is different from the owner type, it might be an enhancement method
+            if( declaringType != null && declaringType != ownerType && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
+            {
+              trackTypeDependency( sourcePath, declaringType, trackedTypes );
+            }
+          }
+        }
+        catch( Exception e )
+        {
+          // Ignore errors in enhancement detection to avoid breaking compilation
+        }
+      }
+
+      // Also track the return type
+      IType returnType = methodCall.getType();
+      if( returnType != null )
+      {
+        trackTypeDependency( sourcePath, returnType, trackedTypes );
+      }
+    }
+
+    // Check for member access expressions (like StringUtil.capitalize or StringUtil.CONSTANT)
+    if( element instanceof gw.lang.parser.expressions.IMemberAccessExpression )
+    {
+      gw.lang.parser.expressions.IMemberAccessExpression memberAccess =
+        (gw.lang.parser.expressions.IMemberAccessExpression)element;
+
+      IType rootType = memberAccess.getRootType();
+      if( rootType != null )
+      {
+        trackTypeDependency( sourcePath, rootType, trackedTypes );
+      }
+      
+      // Check if this member access is from an enhancement (like person.FullName)
+      try
+      {
+        gw.lang.reflect.IPropertyInfo propInfo = memberAccess.getPropertyInfo();
+        if( propInfo != null )
+        {
+          IType declaringType = propInfo.getOwnersType();
+          
+          // If the declaring type is an enhancement, track it
+          if( declaringType != null && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
+          {
+            trackTypeDependency( sourcePath, declaringType, trackedTypes );
+          }
+        }
+      }
+      catch( Exception e )
+      {
+        // Ignore errors in enhancement detection to avoid breaking compilation
+      }
+    }
+
+    // Track type literal references
+    if( element instanceof gw.lang.parser.expressions.ITypeLiteralExpression )
+    {
+      gw.lang.parser.expressions.ITypeLiteralExpression typeLiteral =
+        (gw.lang.parser.expressions.ITypeLiteralExpression)element;
+
+      IType referencedType = typeLiteral.getType().getType();
+      if( referencedType != null )
+      {
+        trackTypeDependency( sourcePath, referencedType, trackedTypes );
+      }
+    }
+  }
+
+  private void trackTypeDependency( String sourcePath, IType type, Set<IType> trackedTypes )
+  {
+    if( type == null || trackedTypes.contains( type ) )
+    {
+      return;
+    }
+
+    // Skip primitive types only
+    if( type.isPrimitive() )
+    {
+      return;
+    }
+
+    trackedTypes.add( type );
+
+    // Track Java type dependencies
+    if( type instanceof IJavaType )
+    {
+      IJavaType javaType = (IJavaType)type;
+      String producerFqcn = javaType.getName();
+
+      // Only track if this is a same-module Java type (not JRE or JAR dependencies)
+      if( _incrementalManager.shouldTrackJavaType( producerFqcn ) )
+      {
+        // Record: sourcePath (consumer) depends on producerFqcn (Java type)
+        _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+      }
+
+      return;  // Don't recurse into Java type internals
+    }
+    // Track Gosu-to-Gosu type dependencies
+    else if( type instanceof IGosuClass )
+    {
+      IGosuClass gosuClass = (IGosuClass)type;
+      String producerFqcn = gosuClass.getName();
+
+      // Record: sourcePath (consumer) depends on producerFqcn (Gosu type)
+      _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+    }
+    
+    // Also track array component types
+    if( type.isArray() )
+    {
+      trackTypeDependency( sourcePath, type.getComponentType(), trackedTypes );
+    }
+
+    // Track parameterized type arguments
+    if( type.isParameterizedType() )
+    {
+      IType[] typeParams = type.getTypeParameters();
+      if( typeParams != null )
+      {
+        for( IType typeParam : typeParams )
+        {
+          trackTypeDependency( sourcePath, typeParam, trackedTypes );
+        }
+      }
+    }
   }
 
   private IType getType( File file )
@@ -547,5 +1081,72 @@ public class GosuCompiler implements IGosuCompiler
   public boolean isPathIgnored( String sourceFile )
   {
     return CommonServices.getPlatformHelper().isPathIgnored( sourceFile );
+  }
+
+  /**
+   * Wrapper compiler driver that tracks output files for incremental compilation
+   */
+  private static class OutputTrackingCompilerDriver implements ICompilerDriver
+  {
+    private final ICompilerDriver delegate;
+    private final File sourceFile;
+    private final Set<String> outputFiles;
+    private final String destDir;
+
+    public OutputTrackingCompilerDriver( ICompilerDriver delegate, File sourceFile, Set<String> outputFiles )
+    {
+      this.delegate = delegate;
+      this.sourceFile = sourceFile;
+      this.outputFiles = outputFiles;
+
+      // Get the destination directory from the TypeSystem
+      IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
+      this.destDir = moduleOutputDirectory != null ?
+        moduleOutputDirectory.getPath().getFileSystemPathString() : null;
+    }
+
+    @Override
+    public void sendCompileIssue( File file, int category, long offset, long line, long column, String message )
+    {
+      delegate.sendCompileIssue( file, category, offset, line, column, message );
+    }
+
+    @Override
+    public void registerOutput( File srcFile, File outputFile )
+    {
+      delegate.registerOutput( srcFile, outputFile );
+
+      // Track the output file relative to the destination directory
+      if( srcFile.equals( sourceFile ) && destDir != null )
+      {
+        File destDirFile = new File( destDir );
+        String relativePath = destDirFile.toPath().relativize( outputFile.toPath() ).toString();
+        outputFiles.add( relativePath.replace( File.separatorChar, '/' ) );
+      }
+    }
+
+    @Override
+    public boolean isIncludeWarnings()
+    {
+      return delegate.isIncludeWarnings();
+    }
+
+    @Override
+    public boolean hasErrors()
+    {
+      return delegate.hasErrors();
+    }
+
+    @Override
+    public List<String> getErrors()
+    {
+      return delegate.getErrors();
+    }
+
+    @Override
+    public List<String> getWarnings()
+    {
+      return delegate.getWarnings();
+    }
   }
 }
