@@ -3,7 +3,8 @@
     "image": "mcr.microsoft.com/devcontainers/java:11",
     "features": {
         "ghcr.io/devcontainers/features/java:1": {
-            "version": "none",
+            "version": "11",
+            "jdkDistro": "amzn",
             "installMaven": true,
             "mavenVersion": "3.9.12"
        }
