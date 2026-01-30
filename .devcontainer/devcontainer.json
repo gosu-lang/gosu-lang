@@ -1,6 +1,13 @@
 {
     "name": "gosu-lang development environment",
     "image": "mcr.microsoft.com/devcontainers/java:11",
+    "features": {
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "none",
+            "installMaven": true,
+            "mavenVersion": "3.9.12"
+       }
+    },
     "customizations": {
         "coder": {
             "autoStart": true
