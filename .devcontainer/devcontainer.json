@@ -1,0 +1,10 @@
+{
+    "name": "gosu-lang development environment",
+    "image": "mcr.microsoft.com/devcontainers/java:11",
+    "customizations": {
+        "coder": {
+            "autoStart": true
+        }
+    },
+    "postCreateCommand": "java -version"
+}
