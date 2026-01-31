@@ -1,6 +1,6 @@
 {
     "name": "gosu-lang development environment",
-    "image": "mcr.microsoft.com/devcontainers/java:11",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
         "ghcr.io/devcontainers/features/java:1": {
             "version": "11",
