@@ -2,15 +2,32 @@ package gw.lang.gosuc.simple;
 
 import gw.internal.ext.com.google.gson.Gson;
 import gw.internal.ext.com.google.gson.GsonBuilder;
-import gw.internal.ext.com.google.gson.reflect.TypeToken;
+import gw.lang.reflect.gs.GosuClassTypeLoader;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Manages dependency tracking and incremental compilation for gosuc.
@@ -175,13 +192,13 @@ public class IncrementalCompilationManager {
       }
     }
 
-    // Remove extension
-    if (fqcn.endsWith(".gs")) {
-      fqcn = fqcn.substring(0, fqcn.length() - 3);
-    } else if (fqcn.endsWith(".gsx")) {
-      fqcn = fqcn.substring(0, fqcn.length() - 4);
-    } else if (fqcn.endsWith(".gst")) {
-      fqcn = fqcn.substring(0, fqcn.length() - 4);
+    // Remove extension using GosuClassTypeLoader constants (single source of truth)
+    // ALL_EXTS contains: [".gs", ".gsx", ".gsp", ".gst", ".gr", ".grs"]
+    for (String ext : GosuClassTypeLoader.ALL_EXTS) {
+      if (fqcn.endsWith(ext)) {
+        fqcn = fqcn.substring(0, fqcn.length() - ext.length());
+        break;
+      }
     }
 
     // Convert path separators to dots
