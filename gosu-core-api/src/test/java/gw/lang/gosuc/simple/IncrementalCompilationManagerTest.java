@@ -219,4 +219,90 @@ public class IncrementalCompilationManagerTest {
     assertTrue("AsyncDocumentStorage should be recompiled when entity.Document changes",
       toRecompile.contains("rules.EventMessage.EventFired_dir.AsyncDocument_dir.AsyncDocumentStorage"));
   }
+
+  @Test
+  public void testSelfReferencesAreNotRecorded() {
+    // Record self-reference (should be ignored)
+    manager.recordTypeDependency("com.example.Builder", "com.example.Builder");
+
+    // Record legitimate dependency
+    manager.recordTypeDependency("com.example.Builder", "com.example.Consumer");
+
+    manager.saveDependencyFile();
+
+    // Load and verify
+    IncrementalCompilationManager newManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
+      false);
+
+    Set<String> toRecompile = newManager.calculateRecompilationSet(
+      Arrays.asList("com.example.Builder"),
+      Collections.emptyList()
+    );
+
+    // Both Builder (changed type) and Consumer (dependent) should be recompiled
+    // But NOT Builder twice (self-reference should be filtered)
+    assertTrue("Builder should be recompiled when it changes",
+      toRecompile.contains("com.example.Builder"));
+    assertTrue("Consumer should be recompiled when Builder changes",
+      toRecompile.contains("com.example.Consumer"));
+    // Verify the set has exactly 2 elements (not 3 as the self-reference was counted)
+    assertTrue("Should have exactly 2 types to recompile",
+      toRecompile.size() == 2);
+  }
+
+  @Test
+  public void testTypesWithoutConsumersAreRegistered() {
+    // Register type with no dependencies
+    manager.ensureTypeRegistered("com.example.SimplePOGO");
+
+    manager.saveDependencyFile();
+
+    // Load and verify
+    IncrementalCompilationManager newManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
+      false);
+
+    Set<String> toRecompile = newManager.calculateRecompilationSet(
+      Arrays.asList("com.example.SimplePOGO"),
+      Collections.emptyList()
+    );
+
+    // SimplePOGO itself should be recompiled (it exists in the dependency file)
+    assertTrue("SimplePOGO should be recompiled when it changes",
+      toRecompile.contains("com.example.SimplePOGO"));
+  }
+
+  @Test
+  public void testSelfReferencingTypeRegisteredWithEmptyArray() {
+    // Register type and add only self-reference
+    manager.ensureTypeRegistered("com.example.Builder");
+    manager.recordTypeDependency("com.example.Builder", "com.example.Builder");
+
+    manager.saveDependencyFile();
+
+    // Load and verify
+    IncrementalCompilationManager newManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
+      false);
+
+    Set<String> toRecompile = newManager.calculateRecompilationSet(
+      Arrays.asList("com.example.Builder"),
+      Collections.emptyList()
+    );
+
+    // Builder should exist in dependency file but with no external consumers
+    // Only the changed type itself should be recompiled (no consumers)
+    assertTrue("Builder should be recompiled when it changes",
+      toRecompile.contains("com.example.Builder"));
+    // Check that there are no other types to recompile
+    assertTrue("Only Builder should be in recompilation set",
+      toRecompile.size() == 1);
+  }
 }

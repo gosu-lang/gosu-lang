@@ -522,9 +522,13 @@ public class GosuCompiler implements IGosuCompiler
     {
       return;
     }
-    
+
     String sourcePath = sourceFile.getAbsolutePath();
     Set<IType> trackedTypes = new HashSet<>();
+
+    // Ensure this type is registered in dependency file, even if it has no dependencies
+    String typeFqcn = gsClass.getName();
+    _incrementalManager.ensureTypeRegistered(typeFqcn);
 
     // Track enhancement dependency - if this is an enhancement, track the enhanced type
     if( gsClass instanceof gw.lang.reflect.gs.IGosuEnhancement )
