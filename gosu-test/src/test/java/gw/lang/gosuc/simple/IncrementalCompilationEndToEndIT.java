@@ -414,7 +414,89 @@ public class IncrementalCompilationEndToEndIT {
     // Verify StringUtil.class was deleted
     assertFalse("StringUtil.class should be deleted", Files.exists(utilClassFile));
   }
-  
+
+  @Test
+  public void testSourceFileDeletionOnTypeRemoval() throws Exception {
+    // Test that both .class and source files are deleted from output when types are removed
+
+    // Step 1: Create an interface
+    File myInterface = createSourceFile("example/IRemovable.gs",
+      "package example\n" +
+      "\n" +
+      "interface IRemovable {\n" +
+      "  function getValue() : String\n" +
+      "}"
+    );
+
+    // Step 2: Create implementation
+    File implementation = createSourceFile("example/RemovableImpl.gs",
+      "package example\n" +
+      "\n" +
+      "class RemovableImpl implements IRemovable {\n" +
+      "  override function getValue() : String {\n" +
+      "    return \"test value\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Create an enhancement file (.gsx)
+    File enhancement = createSourceFile("example/StringEnhancement.gsx",
+      "package example\n" +
+      "\n" +
+      "enhancement StringEnhancement : String {\n" +
+      "  function reversed() : String {\n" +
+      "    return new StringBuilder(this).reverse().toString()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 4: Initial compilation
+    List<File> allFiles = Arrays.asList(myInterface, implementation, enhancement);
+    CompileResult initialResult = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed", initialResult.success);
+
+    // Step 5: Verify that both .class and source files exist in output
+    Path interfaceClassFile = outputDir.resolve("example/IRemovable.class");
+    Path interfaceSourceFile = outputDir.resolve("example/IRemovable.gs");
+    Path implClassFile = outputDir.resolve("example/RemovableImpl.class");
+    Path implSourceFile = outputDir.resolve("example/RemovableImpl.gs");
+    Path enhancementClassFile = outputDir.resolve("example/StringEnhancement.class");
+    Path enhancementSourceFile = outputDir.resolve("example/StringEnhancement.gsx");
+
+    assertTrue("Interface .class should exist in output", Files.exists(interfaceClassFile));
+    assertTrue("Interface .gs should exist in output", Files.exists(interfaceSourceFile));
+    assertTrue("Implementation .class should exist in output", Files.exists(implClassFile));
+    assertTrue("Implementation .gs should exist in output", Files.exists(implSourceFile));
+    assertTrue("Enhancement .class should exist in output", Files.exists(enhancementClassFile));
+    assertTrue("Enhancement .gsx should exist in output", Files.exists(enhancementSourceFile));
+
+    // Step 6: Delete the interface and enhancement from source
+    Files.delete(myInterface.toPath());
+    Files.delete(enhancement.toPath());
+
+    // Step 7: Incremental compilation with deleted files
+    CompileResult incrementalResult = compileWithDeleted(
+      Collections.emptyList(),
+      Arrays.asList(myInterface, enhancement),
+      true
+    );
+
+    // Should fail because implementation depends on deleted interface
+    assertFalse("Compilation should fail due to missing interface", incrementalResult.success);
+
+    // Step 8: THE KEY TEST - Verify both .class AND source files were deleted from output
+    assertFalse("Interface .class should be deleted from output", Files.exists(interfaceClassFile));
+    assertFalse("Interface .gs source should be deleted from output", Files.exists(interfaceSourceFile));
+    assertFalse("Enhancement .class should be deleted from output", Files.exists(enhancementClassFile));
+    assertFalse("Enhancement .gsx source should be deleted from output", Files.exists(enhancementSourceFile));
+
+    // Step 9: Implementation files should still exist (compilation failed but wasn't deleted)
+    assertTrue("Implementation .class should still exist", Files.exists(implClassFile));
+    assertTrue("Implementation .gs should still exist", Files.exists(implSourceFile));
+
+    System.out.println("✓ Source file deletion works correctly - both .class and source files removed");
+  }
+
   @Test
   public void testNoRecompilationForIndependentChange() throws Exception {
     // Create completely independent files

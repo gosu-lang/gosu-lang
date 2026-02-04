@@ -514,6 +514,53 @@ public class GosuCompiler implements IGosuCompiler
         }
       }
     }
+
+    // Delete source files for all known Gosu extensions
+    deleteSourceFiles(fqcn, outputDir, verbose);
+  }
+
+  /**
+   * Deletes source file for the given type from the output directory.
+   * Attempts to delete source files for all known Gosu file extensions.
+   *
+   * Since there's no way to determine which extension a FQCN originally had
+   * (could be .gs, .gr, .grs, .gst, .gsp, or .gsx), we attempt deletion for
+   * all known Gosu extensions. File.delete() is safe for non-existent files.
+   *
+   * @param fqcn The fully qualified name of the type
+   * @param outputDir The output directory containing source files
+   * @param verbose Whether to log deletion operations
+   */
+  private void deleteSourceFiles(String fqcn, File outputDir, boolean verbose) {
+    // Use official list from GosuClassTypeLoader: .gs, .gsx, .gsp, .gst, .gr, .grs
+    String[] extensions = gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS;
+
+    for (String extension : extensions) {
+      deleteSourceFile(fqcn, extension, outputDir, verbose);
+    }
+  }
+
+  /**
+   * Deletes a specific source file from the output directory.
+   *
+   * @param fqcn The fully qualified name of the type
+   * @param extension The file extension (e.g., ".gs", ".gr", etc.)
+   * @param outputDir The output directory
+   * @param verbose Whether to log deletion operations
+   */
+  private void deleteSourceFile(String fqcn, String extension, File outputDir, boolean verbose) {
+    String relativePath = fqcn.replace('.', File.separatorChar);
+    File sourceFile = new File(outputDir, relativePath + extension);
+
+    if (sourceFile.exists()) {
+      if (sourceFile.delete()) {
+        if (verbose) {
+          System.out.println("Deleted stale source file: " + sourceFile);
+        }
+      } else {
+        System.err.println("Warning: Failed to delete source file: " + sourceFile);
+      }
+    }
   }
 
   private void trackDependencies( IGosuClass gsClass, File sourceFile )

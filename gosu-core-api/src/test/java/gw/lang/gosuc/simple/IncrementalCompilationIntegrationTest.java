@@ -243,6 +243,38 @@ public class IncrementalCompilationIntegrationTest {
       expectedJson, actualJson);
   }
 
+  @Test
+  public void testSourceFileDeletionOnTypeRemoval() throws Exception {
+    // Scenario: When a type is removed, both .class and source files should be deleted from output
+
+    // 1. Setup output directory with compiled artifacts
+    File outputPackageDir = new File(outputDir.toFile(), "gw/test");
+    outputPackageDir.mkdirs();
+
+    // Simulate compiled interface with both .class and .gs in output
+    File interfaceClassFile = new File(outputPackageDir, "IDeletionTest.class");
+    File interfaceSourceFile = new File(outputPackageDir, "IDeletionTest.gs");
+
+    Files.write(interfaceClassFile.toPath(), "fake class content".getBytes());
+    Files.write(interfaceSourceFile.toPath(),
+      "package gw.test\ninterface IDeletionTest { }".getBytes());
+
+    // 2. Create a mock compiler to test deleteClassFile method
+    GosuCompiler compiler = new GosuCompiler();
+
+    // Use reflection to call private deleteClassFile method
+    java.lang.reflect.Method deleteMethod = GosuCompiler.class.getDeclaredMethod(
+      "deleteClassFile", String.class, File.class, boolean.class);
+    deleteMethod.setAccessible(true);
+
+    // 3. Delete the type
+    deleteMethod.invoke(compiler, "gw.test.IDeletionTest", outputDir.toFile(), false);
+
+    // 4. Verify both .class and .gs files are deleted
+    assertFalse(".class file should be deleted", interfaceClassFile.exists());
+    assertFalse(".gs source file should be deleted from output", interfaceSourceFile.exists());
+  }
+
   private void setPrivateField(Object obj, String fieldName, Object value) {
     try {
       java.lang.reflect.Field field = obj.getClass().getDeclaredField(fieldName);
