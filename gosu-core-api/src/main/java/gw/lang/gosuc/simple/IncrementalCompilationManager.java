@@ -154,7 +154,11 @@ public class IncrementalCompilationManager {
    * @param consumer The FQCN of the type that uses it (e.g., "com.example.Implementation")
    */
   public void recordTypeDependency(String producer, String consumer) {
-    currentUsedBy.computeIfAbsent(producer, k -> new HashSet<>()).add(consumer);
+    // Skip self-references (e.g., builder methods returning 'this')
+    if (producer.equals(consumer)) {
+      return;
+    }
+    getOrCreateConsumerSet(producer).add(consumer);
   }
 
   /**
@@ -170,6 +174,27 @@ public class IncrementalCompilationManager {
     if (consumerFqcn != null) {
       recordTypeDependency(producerFqcn, consumerFqcn);
     }
+  }
+
+  /**
+   * Get the consumer set for a producer type, creating it if necessary.
+   * This is the single source of truth for initializing consumer sets.
+   *
+   * @param producerFqcn The FQCN of the producer type
+   * @return The consumer set (existing or newly created)
+   */
+  private Set<String> getOrCreateConsumerSet(String producerFqcn) {
+    return currentUsedBy.computeIfAbsent(producerFqcn, k -> new HashSet<>());
+  }
+
+  /**
+   * Ensure a type is registered in the dependency file, even if it has no consumers.
+   * This is called for every compiled type to maintain a complete registry.
+   *
+   * @param typeFqcn The FQCN of the compiled type
+   */
+  public void ensureTypeRegistered(String typeFqcn) {
+    getOrCreateConsumerSet(typeFqcn);  // Just ensure the set exists
   }
 
   /**

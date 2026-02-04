@@ -1192,13 +1192,15 @@ public class IncrementalCompilationEndToEndIT {
 
     // V2 architecture: type dependencies (FQCN -> list of consumer FQCNs)
     // OutputTrackingTest uses BlockUtil, so BlockUtil should list OutputTrackingTest in its usedBy array
+    // Note: All types are registered (even with empty arrays) to ensure proper tracking
     String expectedDeps =
       "{\n" +
       "  \"version\": \"1.0\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.BlockUtil\": [\n" +
       "      \"example.OutputTrackingTest\"\n" +
-      "    ]\n" +
+      "    ],\n" +
+      "    \"example.OutputTrackingTest\": []\n" +
       "  }\n" +
       "}";
 
