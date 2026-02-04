@@ -63,7 +63,14 @@ import static gw.lang.gosuc.simple.ICompilerDriver.WARNING;
 
 public class GosuCompiler implements IGosuCompiler
 {
-  private static final String[] SOURCE_EXTS = { ".gs", ".gsx", ".gst", ".java" };
+  // Use GosuClassTypeLoader.ALL_EXTS for Gosu files (.gs, .gsx, .gst, .gsp, .gr, .grs) plus .java
+  private static final String[] SOURCE_EXTS = buildSourceExtensions();
+
+  private static String[] buildSourceExtensions() {
+    List<String> exts = new ArrayList<>( Arrays.asList( gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS ) );
+    exts.add( ".java" );
+    return exts.toArray( new String[0] );
+  }
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
@@ -424,12 +431,14 @@ public class GosuCompiler implements IGosuCompiler
       // Normalize source file path to forward slashes for comparison
       String normalizedSourceFile = sourceFile.replace( '\\', '/' );
 
-      // Check if the source file ends with the expected path (with Gosu extensions)
-      if( normalizedSourceFile.endsWith( expectedPath + ".gs" ) ||
-          normalizedSourceFile.endsWith( expectedPath + ".gsx" ) ||
-          normalizedSourceFile.endsWith( expectedPath + ".gst" ) )
+      // Check if the source file ends with the expected path (with any Gosu extension)
+      // Use GosuClassTypeLoader.ALL_EXTS for single source of truth (includes .gs, .gsx, .gst, .gsp, .gr, .grs)
+      for( String ext : gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS )
       {
-        return sourceFile; // Return original path (not normalized)
+        if( normalizedSourceFile.endsWith( expectedPath + ext ) )
+        {
+          return sourceFile; // Return original path (not normalized)
+        }
       }
     }
 
