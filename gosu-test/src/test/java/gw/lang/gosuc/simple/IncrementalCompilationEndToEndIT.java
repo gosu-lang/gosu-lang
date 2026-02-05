@@ -1386,6 +1386,483 @@ public class IncrementalCompilationEndToEndIT {
     Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
   }
 
+  @Test
+  public void testFeatureLiteralDependencyTracking() throws Exception {
+    // Test that feature literals (Type#method) create proper dependencies
+
+    // Step 1: Create StringUtil with capitalize method
+    File stringUtil = createSourceFile("example/StringUtil.gs",
+      "package example\n" +
+      "\n" +
+      "class StringUtil {\n" +
+      "  static function capitalize(s : String) : String {\n" +
+      "    return s?.substring(0, 1).toUpperCase() + s?.substring(1)\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create FeatureUser that uses StringUtil#capitalize feature literal
+    File featureUser = createSourceFile("example/FeatureUser.gs",
+      "package example\n" +
+      "\n" +
+      "class FeatureUser {\n" +
+      "  function testFeature() : boolean {\n" +
+      "    var ref = StringUtil#capitalize(String)\n" +
+      "    return ref != null\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(stringUtil, featureUser);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 4: Modify StringUtil (add method to trigger recompilation)
+    Files.write(stringUtil.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class StringUtil {\n" +
+      "  static function capitalize(s : String) : String {\n" +
+      "    return s?.substring(0, 1).toUpperCase() + s?.substring(1)\n" +
+      "  }\n" +
+      "  \n" +
+      "  static function reverse(s : String) : String {\n" +
+      "    return new StringBuilder(s).reverse().toString()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 5: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(stringUtil), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 6: Verify FeatureUser was recompiled due to feature literal dependency
+    assertTrue("StringUtil should be recompiled",
+      isNewer(afterTimestamps.get("StringUtil.class"), initialTimestamps.get("StringUtil.class")));
+    assertTrue("FeatureUser should be recompiled due to feature literal dependency",
+      isNewer(afterTimestamps.get("FeatureUser.class"), initialTimestamps.get("FeatureUser.class")));
+
+    System.out.println("✓ Feature literal dependency tracking works correctly");
+  }
+
+  @Test
+  public void testTypeCastDependencyTracking() throws Exception {
+    // Test that type casts (obj as CustomType) create proper dependencies
+
+    // Step 1: Create CustomType class
+    File customType = createSourceFile("example/CustomType.gs",
+      "package example\n" +
+      "\n" +
+      "class CustomType {\n" +
+      "  var _value : String\n" +
+      "  \n" +
+      "  construct(value : String) {\n" +
+      "    _value = value\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Value() : String {\n" +
+      "    return _value\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create CastUser that casts to CustomType
+    File castUser = createSourceFile("example/CastUser.gs",
+      "package example\n" +
+      "\n" +
+      "class CastUser {\n" +
+      "  function processObject(obj : Object) : String {\n" +
+      "    var custom = obj as CustomType\n" +
+      "    return custom?.Value\n" +
+      "  }\n" +
+      "  \n" +
+      "  function safeCast(obj : Object) : CustomType {\n" +
+      "    return obj as CustomType\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(customType, castUser);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 4: Modify CustomType (add method)
+    Files.write(customType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class CustomType {\n" +
+      "  var _value : String\n" +
+      "  \n" +
+      "  construct(value : String) {\n" +
+      "    _value = value\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Value() : String {\n" +
+      "    return _value\n" +
+      "  }\n" +
+      "  \n" +
+      "  function getUpperValue() : String {\n" +
+      "    return _value.toUpperCase()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 5: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(customType), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 6: Verify CastUser was recompiled due to cast dependency
+    assertTrue("CustomType should be recompiled",
+      isNewer(afterTimestamps.get("CustomType.class"), initialTimestamps.get("CustomType.class")));
+    assertTrue("CastUser should be recompiled due to type cast dependency",
+      isNewer(afterTimestamps.get("CastUser.class"), initialTimestamps.get("CastUser.class")));
+
+    System.out.println("✓ Type cast dependency tracking works correctly");
+  }
+
+  @Test
+  public void testTypeTestDependencyTracking() throws Exception {
+    // Test that type tests (obj typeis TestableType) create proper dependencies
+
+    // Step 1: Create TestableType class
+    File testableType = createSourceFile("example/TestableType.gs",
+      "package example\n" +
+      "\n" +
+      "class TestableType {\n" +
+      "  var _data : String\n" +
+      "  \n" +
+      "  construct(data : String) {\n" +
+      "    _data = data\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Data() : String {\n" +
+      "    return _data\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create TypeTester that uses typeis operator
+    File typeTester = createSourceFile("example/TypeTester.gs",
+      "package example\n" +
+      "\n" +
+      "class TypeTester {\n" +
+      "  function isTestableType(obj : Object) : boolean {\n" +
+      "    return obj typeis TestableType\n" +
+      "  }\n" +
+      "  \n" +
+      "  function processIfTestable(obj : Object) : String {\n" +
+      "    if (obj typeis TestableType) {\n" +
+      "      return (obj as TestableType).Data\n" +
+      "    }\n" +
+      "    return \"not testable\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(testableType, typeTester);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 4: Modify TestableType
+    Files.write(testableType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class TestableType {\n" +
+      "  var _data : String\n" +
+      "  var _id : int\n" +
+      "  \n" +
+      "  construct(data : String) {\n" +
+      "    _data = data\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Data() : String {\n" +
+      "    return _data\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Id() : int {\n" +
+      "    return _id\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 5: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(testableType), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 6: Verify TypeTester was recompiled due to typeis dependency
+    assertTrue("TestableType should be recompiled",
+      isNewer(afterTimestamps.get("TestableType.class"), initialTimestamps.get("TestableType.class")));
+    assertTrue("TypeTester should be recompiled due to typeis dependency",
+      isNewer(afterTimestamps.get("TypeTester.class"), initialTimestamps.get("TypeTester.class")));
+
+    System.out.println("✓ Type test (typeis) dependency tracking works correctly");
+  }
+
+  @Test
+  public void testExceptionCatchDependencyTracking() throws Exception {
+    // Test that exception catch clauses create proper dependencies
+
+    // Step 1: Create CustomException class
+    File customException = createSourceFile("example/CustomException.gs",
+      "package example\n" +
+      "\n" +
+      "class CustomException extends Exception {\n" +
+      "  var _errorCode : int\n" +
+      "  \n" +
+      "  construct(message : String, code : int) {\n" +
+      "    super(message)\n" +
+      "    _errorCode = code\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get ErrorCode() : int {\n" +
+      "    return _errorCode\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create ExceptionHandler with catch clause
+    File exceptionHandler = createSourceFile("example/ExceptionHandler.gs",
+      "package example\n" +
+      "\n" +
+      "class ExceptionHandler {\n" +
+      "  function handleOperation() : String {\n" +
+      "    try {\n" +
+      "      throw new CustomException(\"test error\", 123)\n" +
+      "    } catch (e : CustomException) {\n" +
+      "      return \"Caught CustomException with code: \" + e.ErrorCode\n" +
+      "    }\n" +
+      "  }\n" +
+      "  \n" +
+      "  function multiCatch() : String {\n" +
+      "    try {\n" +
+      "      throw new RuntimeException(\"test\")\n" +
+      "    } catch (e : CustomException) {\n" +
+      "      return \"Custom: \" + e.ErrorCode\n" +
+      "    } catch (e : Exception) {\n" +
+      "      return \"Generic: \" + e.Message\n" +
+      "    }\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(customException, exceptionHandler);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 4: Modify CustomException (add field)
+    Files.write(customException.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class CustomException extends Exception {\n" +
+      "  var _errorCode : int\n" +
+      "  var _severity : String\n" +
+      "  \n" +
+      "  construct(message : String, code : int) {\n" +
+      "    super(message)\n" +
+      "    _errorCode = code\n" +
+      "    _severity = \"ERROR\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get ErrorCode() : int {\n" +
+      "    return _errorCode\n" +
+      "  }\n" +
+      "  \n" +
+      "  property get Severity() : String {\n" +
+      "    return _severity\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 5: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(customException), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 6: Verify ExceptionHandler was recompiled due to catch clause dependency
+    assertTrue("CustomException should be recompiled",
+      isNewer(afterTimestamps.get("CustomException.class"), initialTimestamps.get("CustomException.class")));
+    assertTrue("ExceptionHandler should be recompiled due to catch clause dependency",
+      isNewer(afterTimestamps.get("ExceptionHandler.class"), initialTimestamps.get("ExceptionHandler.class")));
+
+    System.out.println("✓ Exception catch clause dependency tracking works correctly");
+  }
+
+  @Test
+  public void testDelegateDependencyTracking() throws Exception {
+    // Test that delegate statements create proper dependencies
+
+    // Step 1: Create IMyInterface interface
+    File myInterface = createSourceFile("example/IMyInterface.gs",
+      "package example\n" +
+      "\n" +
+      "interface IMyInterface {\n" +
+      "  function doSomething() : String\n" +
+      "  function getValue() : int\n" +
+      "}"
+    );
+
+    // Step 2: Create implementation of interface
+    File implementation = createSourceFile("example/MyImplementation.gs",
+      "package example\n" +
+      "\n" +
+      "class MyImplementation implements IMyInterface {\n" +
+      "  override function doSomething() : String {\n" +
+      "    return \"implementation\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  override function getValue() : int {\n" +
+      "    return 42\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Create DelegateUser with delegate statement
+    File delegateUser = createSourceFile("example/DelegateUser.gs",
+      "package example\n" +
+      "\n" +
+      "class DelegateUser implements IMyInterface {\n" +
+      "  delegate _impl represents IMyInterface\n" +
+      "  \n" +
+      "  construct() {\n" +
+      "    _impl = new MyImplementation()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 4: Initial compilation
+    List<File> allFiles = Arrays.asList(myInterface, implementation, delegateUser);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 5: Modify IMyInterface (add method)
+    Files.write(myInterface.toPath(), (
+      "package example\n" +
+      "\n" +
+      "interface IMyInterface {\n" +
+      "  function doSomething() : String\n" +
+      "  function getValue() : int\n" +
+      "  function getStatus() : String\n" +
+      "}"
+    ).getBytes());
+
+    // Step 6: Incremental compilation (will fail due to missing implementation, but should still track dependency)
+    CompileResult incrementalResult = compile(Arrays.asList(myInterface), true);
+    // Note: This may fail because MyImplementation doesn't implement the new method
+    // But we're testing that DelegateUser is identified as needing recompilation
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 7: Verify DelegateUser was identified for recompilation due to delegate dependency
+    assertTrue("IMyInterface should be recompiled",
+      isNewer(afterTimestamps.get("IMyInterface.class"), initialTimestamps.get("IMyInterface.class")));
+    assertTrue("DelegateUser should be recompiled due to delegate dependency",
+      isNewer(afterTimestamps.get("DelegateUser.class"), initialTimestamps.get("DelegateUser.class")));
+
+    System.out.println("✓ Delegate statement dependency tracking works correctly");
+  }
+
+  @Test
+  public void testStaticFieldInitializerDependencyTracking() throws Exception {
+    // Test that static field initializers create proper dependencies
+    // This should already work via existing method call tracking
+
+    // Step 1: Create Factory class with static create() method
+    File factory = createSourceFile("example/Factory.gs",
+      "package example\n" +
+      "\n" +
+      "class Factory {\n" +
+      "  static function create() : String {\n" +
+      "    return \"created instance\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  static function createWithId(id : int) : String {\n" +
+      "    return \"created instance \" + id\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create StaticUser with static field initializer
+    File staticUser = createSourceFile("example/StaticUser.gs",
+      "package example\n" +
+      "\n" +
+      "class StaticUser {\n" +
+      "  static var INSTANCE : String = Factory.create()\n" +
+      "  static var INSTANCE_WITH_ID : String = Factory.createWithId(1)\n" +
+      "  \n" +
+      "  static function getInstance() : String {\n" +
+      "    return INSTANCE\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(factory, staticUser);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 4: Modify Factory.create() return type (not just implementation)
+    Files.write(factory.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Factory {\n" +
+      "  static function create() : String {\n" +
+      "    return \"created modified instance\"\n" +
+      "  }\n" +
+      "  \n" +
+      "  static function createWithId(id : int) : String {\n" +
+      "    return \"created modified instance \" + id\n" +
+      "  }\n" +
+      "  \n" +
+      "  static function getVersion() : int {\n" +
+      "    return 2\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 5: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(factory), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 6: Verify StaticUser was recompiled (should already work via method call tracking)
+    assertTrue("Factory should be recompiled",
+      isNewer(afterTimestamps.get("Factory.class"), initialTimestamps.get("Factory.class")));
+    assertTrue("StaticUser should be recompiled due to static initializer dependency",
+      isNewer(afterTimestamps.get("StaticUser.class"), initialTimestamps.get("StaticUser.class")));
+
+    System.out.println("✓ Static field initializer dependency tracking works correctly");
+  }
+
   private static class CompileResult {
     boolean success;
     String error;
