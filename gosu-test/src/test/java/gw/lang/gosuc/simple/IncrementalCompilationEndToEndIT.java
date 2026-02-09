@@ -1387,6 +1387,195 @@ public class IncrementalCompilationEndToEndIT {
   }
 
   @Test
+  public void testInnerClassRecompiledWithOuter() throws Exception {
+    // Test that inner class dependencies are tracked at the outer class level
+    // and that incremental compilation works correctly
+
+    // Step 1: Create outer class with inner class
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  var _value : String\n" +
+      "  \n" +
+      "  class Inner {\n" +
+      "    var _innerValue : String\n" +
+      "    \n" +
+      "    function getInnerValue() : String {\n" +
+      "      return _innerValue\n" +
+      "    }\n" +
+      "  }\n" +
+      "  \n" +
+      "  function createInner() : Inner {\n" +
+      "    return new Inner()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create consumer that references the outer class (which includes inner class usage)
+    File consumer = createSourceFile("example/InnerClassConsumer.gs",
+      "package example\n" +
+      "\n" +
+      "class InnerClassConsumer {\n" +
+      "  function useOuter() : Outer {\n" +
+      "    return new Outer()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(outerFile, consumer);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
+    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    System.out.println("Dependency file content:\n" + depsContent);
+
+    // Should contain example.Outer but NOT example.Outer.Inner or example.Outer$Inner
+    assertTrue("Dependency file should contain Outer class",
+      depsContent.contains("example.Outer"));
+    assertFalse("Dependency file should NOT contain inner class entry with dot",
+      depsContent.contains("example.Outer.Inner"));
+    assertFalse("Dependency file should NOT contain inner class entry with dollar",
+      depsContent.contains("example.Outer$Inner"));
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 5: Modify outer class
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  var _value : String\n" +
+      "  var _count : int\n" +
+      "  \n" +
+      "  class Inner {\n" +
+      "    var _innerValue : String\n" +
+      "    \n" +
+      "    function getInnerValue() : String {\n" +
+      "      return _innerValue\n" +
+      "    }\n" +
+      "    \n" +
+      "    function getCount() : int {\n" +
+      "      return 42\n" +
+      "    }\n" +
+      "  }\n" +
+      "  \n" +
+      "  function createInner() : Inner {\n" +
+      "    return new Inner()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 6: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(outerFile), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 7: Verify consumer was recompiled
+    assertTrue("Outer.class should be recompiled",
+      isNewer(afterTimestamps.get("Outer.class"), initialTimestamps.get("Outer.class")));
+    assertTrue("Inner class file should exist",
+      initialTimestamps.keySet().stream().anyMatch(name -> name.startsWith("Outer$Inner")));
+    assertTrue("Consumer should be recompiled due to outer class change",
+      isNewer(afterTimestamps.get("InnerClassConsumer.class"), initialTimestamps.get("InnerClassConsumer.class")));
+
+    System.out.println("✓ Inner class dependency tracking works correctly");
+  }
+
+  @Test
+  public void testInnerEnumRecompiledWithOuter() throws Exception {
+    // Test inner enum case - simulates RegionsUIHelper.SearchOn scenario from plan
+
+    // Step 1: Create outer class with inner enum
+    File outerFile = createSourceFile("example/RegionsUIHelper.gs",
+      "package example\n" +
+      "\n" +
+      "class RegionsUIHelper {\n" +
+      "  enum SearchOn {\n" +
+      "    NAME,\n" +
+      "    CODE,\n" +
+      "    DESCRIPTION\n" +
+      "  }\n" +
+      "  \n" +
+      "  function search(criteria : SearchOn) : String {\n" +
+      "    return \"Searching on: \" + criteria.toString()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Create consumer that uses the inner enum
+    File consumer = createSourceFile("example/RegionsPageExpressions.gs",
+      "package example\n" +
+      "\n" +
+      "class RegionsPageExpressions {\n" +
+      "  function performSearch() : String {\n" +
+      "    var helper = new RegionsUIHelper()\n" +
+      "    return helper.search(RegionsUIHelper.SearchOn.NAME)\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 3: Initial compilation
+    List<File> allFiles = Arrays.asList(outerFile, consumer);
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    // Step 4: Verify dependency file has only "RegionsUIHelper" entry
+    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    System.out.println("Dependency file content:\n" + depsContent);
+
+    assertTrue("Dependency file should contain RegionsUIHelper",
+      depsContent.contains("example.RegionsUIHelper"));
+    // The dependency file uses FQCNs, and inner types use $ in bytecode
+    // So we should NOT see RegionsUIHelper.SearchOn or RegionsUIHelper$SearchOn as separate entries
+    boolean hasInnerEnumWithDot = depsContent.contains("\"example.RegionsUIHelper.SearchOn\"");
+    boolean hasInnerEnumWithDollar = depsContent.contains("\"example.RegionsUIHelper$SearchOn\"");
+    assertFalse("Dependency file should NOT contain inner enum entry with dot notation: " + depsContent,
+      hasInnerEnumWithDot);
+    assertFalse("Dependency file should NOT contain inner enum entry with dollar notation: " + depsContent,
+      hasInnerEnumWithDollar);
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 5: Modify outer class (add enum value)
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class RegionsUIHelper {\n" +
+      "  enum SearchOn {\n" +
+      "    NAME,\n" +
+      "    CODE,\n" +
+      "    DESCRIPTION,\n" +
+      "    ALL\n" +
+      "  }\n" +
+      "  \n" +
+      "  function search(criteria : SearchOn) : String {\n" +
+      "    return \"Searching on: \" + criteria.toString()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 6: Incremental compilation
+    CompileResult incrementalResult = compile(Arrays.asList(outerFile), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 7: Verify consumer was recompiled
+    assertTrue("RegionsUIHelper should be recompiled",
+      isNewer(afterTimestamps.get("RegionsUIHelper.class"), initialTimestamps.get("RegionsUIHelper.class")));
+    assertTrue("Consumer should be recompiled due to outer class change",
+      isNewer(afterTimestamps.get("RegionsPageExpressions.class"), initialTimestamps.get("RegionsPageExpressions.class")));
+
+    System.out.println("✓ Inner enum dependency tracking works correctly - RegionsUIHelper.SearchOn scenario");
+  }
+
+  @Test
   public void testFeatureLiteralDependencyTracking() throws Exception {
     // Test that feature literals (Type#method) create proper dependencies
 

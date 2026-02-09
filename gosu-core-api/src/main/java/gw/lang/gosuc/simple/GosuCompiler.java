@@ -574,7 +574,10 @@ public class GosuCompiler implements IGosuCompiler
     Set<IType> trackedTypes = new HashSet<>();
 
     // Ensure this type is registered in dependency file, even if it has no dependencies
-    String typeFqcn = gsClass.getName();
+    // For inner classes, register only the outermost enclosing type since inner classes
+    // are always compiled together with their outer class
+    IType typeToRegister = getOutermostEnclosingType(gsClass);
+    String typeFqcn = typeToRegister.getName();
     _incrementalManager.ensureTypeRegistered(typeFqcn);
 
     // Track enhancement dependency - if this is an enhancement, track the enhanced type
@@ -801,6 +804,34 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
+  /**
+   * Returns the outermost enclosing type for inner classes, or the type itself if it's a top-level type.
+   * Inner classes are always compiled together with their outer class, so for dependency tracking
+   * we only need to track the outermost type.
+   *
+   * @param type The type to check
+   * @return The outermost enclosing type, or the type itself if it's not an inner class
+   */
+  private IType getOutermostEnclosingType( IType type )
+  {
+    if( !(type instanceof IGosuClass) )
+    {
+      return type;
+    }
+
+    IType outermost = type;
+    while( outermost instanceof IGosuClass )
+    {
+      IType enclosingType = ((IGosuClass)outermost).getEnclosingTypeReference();
+      if( enclosingType == null )
+      {
+        break;  // Found outermost type
+      }
+      outermost = enclosingType;
+    }
+    return outermost;
+  }
+
   private void trackTypeDependency( String sourcePath, IType type, Set<IType> trackedTypes )
   {
     if( type == null || trackedTypes.contains( type ) )
@@ -835,7 +866,12 @@ public class GosuCompiler implements IGosuCompiler
     else if( type instanceof IGosuClass )
     {
       IGosuClass gosuClass = (IGosuClass)type;
-      String producerFqcn = gosuClass.getName();
+
+      // For inner classes, track dependency on outermost enclosing type only.
+      // Inner classes are always compiled together with their outer class (lines 1050-1059),
+      // so tracking the outer class dependency is sufficient and avoids redundant entries.
+      IType typeToTrack = getOutermostEnclosingType(gosuClass);
+      String producerFqcn = typeToTrack.getName();
 
       // Record: sourcePath (consumer) depends on producerFqcn (Gosu type)
       _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
