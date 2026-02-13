@@ -3,7 +3,7 @@
 
   <groupId>org.gosu-lang.gosu</groupId>
   <artifactId>gosu-parent</artifactId>
-  <version>1.18.7-incremental-alpha-9</version>
+  <version>1.18.7-incremental-alpha-9-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Gosu :: Parent POM</name>
@@ -30,7 +30,7 @@
     <connection>scm:git:https://github.com/gosu-lang/gosu-lang.git</connection>
     <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
     <url>https://github.com/gosu-lang/gosu-lang</url>
-    <tag>v1.18.7-incremental-alpha-9</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
