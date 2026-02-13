@@ -1,8 +1,10 @@
 package gw.lang.gosuc.simple;
 
+import gw.fs.IFile;
 import gw.internal.ext.com.google.gson.Gson;
 import gw.internal.ext.com.google.gson.GsonBuilder;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
+import gw.lang.reflect.gs.IGosuClass;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -247,6 +249,62 @@ public class IncrementalCompilationManager {
 
     // Only track if in the local Java types whitelist
     return localJavaTypes.contains(javaTypeFqcn);
+  }
+
+  /**
+   * Determine if a Gosu type should be tracked in the dependency graph.
+   *
+   * Auto-detects based on source file URI scheme:
+   * - Local types: Filesystem paths (e.g., /home/user/project/src/main/gosu/MyClass.gs)
+   * - External types: JAR paths with jar: scheme (e.g., jar:file:///.../lib.jar!/MyClass.gs)
+   *
+   * Note: Gosu packages source files into JARs (unconventional), so external types
+   * have source files too, but with jar: URI scheme instead of filesystem paths.
+   *
+   * @param gosuType The IGosuClass to check
+   * @return true if the type should be tracked (local source), false otherwise (external JAR)
+   */
+  public boolean shouldTrackGosuType(IGosuClass gosuType) {
+    String gosuTypeFqcn = gosuType.getName();
+
+    // Check if type has source files
+    IFile[] sourceFiles = gosuType.getSourceFiles();
+    if (sourceFiles == null || sourceFiles.length == 0) {
+      if (verbose) {
+        System.out.println("Gosu type " + gosuTypeFqcn +
+                          " has no source files, skipping");
+      }
+      return false;
+    }
+
+    // Check if source file is from a JAR
+    // Local sources: /path/to/project/src/main/gosu/com/example/MyClass.gs
+    // External sources can be:
+    //   - jar:file:///.gradle/caches/.../lib.jar!/com/example/MyClass.gs (URI scheme)
+    //   - /path/to/repository/.../lib.jar/com/example/MyClass.gs (Unix)
+    //   - C:\path\to\repository\...\lib.jar\com\example\MyClass.gs (Windows)
+    String sourceFilePath = sourceFiles[0].getPath().getPathString();
+
+    // Check for JAR paths - jar: URI scheme or .jar followed by path separator
+    boolean isFromJar = sourceFilePath.startsWith("jar:") ||
+                        sourceFilePath.contains(".jar/") ||
+                        sourceFilePath.contains(".jar\\") ||
+                        sourceFilePath.contains(".jar!");
+
+    if (isFromJar) {
+      if (verbose) {
+        System.out.println("Gosu type " + gosuTypeFqcn +
+                          " is from JAR (" + sourceFilePath + "), skipping");
+      }
+      return false;
+    }
+
+    // Filesystem path = local source
+    if (verbose) {
+      System.out.println("Gosu type " + gosuTypeFqcn +
+                        " has local source (" + sourceFilePath + "), tracking");
+    }
+    return true;
   }
 
   /**
