@@ -871,10 +871,17 @@ public class GosuCompiler implements IGosuCompiler
       // Inner classes are always compiled together with their outer class (lines 1050-1059),
       // so tracking the outer class dependency is sufficient and avoids redundant entries.
       IType typeToTrack = getOutermostEnclosingType(gosuClass);
-      String producerFqcn = typeToTrack.getName();
+      IGosuClass gosuTypeToTrack = typeToTrack instanceof IGosuClass ? (IGosuClass)typeToTrack : null;
 
-      // Record: sourcePath (consumer) depends on producerFqcn (Gosu type)
-      _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+      if( gosuTypeToTrack == null ) {
+        return;  // Not a Gosu class (shouldn't happen, but defensive)
+      }
+
+      // Only track if this is a local Gosu type (not from external JAR)
+      if( _incrementalManager.shouldTrackGosuType( gosuTypeToTrack ) ) {
+        String producerFqcn = typeToTrack.getName();
+        _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+      }
     }
     
     // Also track array component types

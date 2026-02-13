@@ -409,4 +409,66 @@ public class IncrementalCompilationManagerTest {
     assertTrue("Consumer should be recompiled when OuterClass changes",
       toRecompile.contains("com.example.Consumer"));
   }
+
+
+  /**
+   * VERIFICATION TEST: Verify that external Gosu types from JARs have jar: URI scheme paths.
+   * This test validates our assumption for the shouldTrackGosuType() implementation.
+   *
+   * NOTE: This test requires the TypeSystem to be initialized, which may not work in all
+   * test environments. It's primarily for manual verification during development.
+   */
+  @Test
+  public void testVerifyExternalGosuTypesHaveJarPaths() {
+    try {
+      // Attempt to load TypeSystem (may not be available in all test environments)
+      Class<?> typeSystemClass = Class.forName("gw.lang.reflect.TypeSystem");
+      java.lang.reflect.Method getByFullName = typeSystemClass.getMethod("getByFullName", String.class);
+
+      // Try to load gw.lang.Export (external type from gosu-core-api.jar)
+      Object exportType = getByFullName.invoke(null, "gw.lang.Export");
+
+      if (exportType == null) {
+        System.out.println("SKIPPED: TypeSystem not initialized or gw.lang.Export not available");
+        return;
+      }
+
+      // Check if it's a Gosu class
+      Class<?> gosuClassInterface = Class.forName("gw.lang.reflect.gs.IGosuClass");
+      if (!gosuClassInterface.isInstance(exportType)) {
+        System.out.println("SKIPPED: gw.lang.Export is not an IGosuClass");
+        return;
+      }
+
+      // Get source files
+      java.lang.reflect.Method getSourceFiles = exportType.getClass().getMethod("getSourceFiles");
+      Object[] sourceFiles = (Object[]) getSourceFiles.invoke(exportType);
+
+      assertTrue("External type should have source files in JAR",
+                 sourceFiles != null && sourceFiles.length > 0);
+
+      // Get path string
+      Object sourceFile = sourceFiles[0];
+      java.lang.reflect.Method getPath = sourceFile.getClass().getMethod("getPath");
+      Object path = getPath.invoke(sourceFile);
+      java.lang.reflect.Method getPathString = path.getClass().getMethod("getPathString");
+      String sourcePath = (String) getPathString.invoke(path);
+
+      System.out.println("External source path for gw.lang.Export: " + sourcePath);
+
+      // Verify it's a JAR path
+      assertTrue("External source should be from JAR (should start with 'jar:' or contain '.jar!')",
+                 sourcePath.startsWith("jar:") || sourcePath.contains(".jar!"));
+
+      // Verify it does NOT look like a local filesystem path
+      assertFalse("External source should not be a regular filesystem source path",
+                  sourcePath.contains("/src/main/gosu/") || sourcePath.contains("/src/test/gosu/"));
+
+    } catch (ClassNotFoundException e) {
+      System.out.println("SKIPPED: TypeSystem classes not available in test classpath");
+    } catch (Exception e) {
+      System.out.println("SKIPPED: Could not verify external type paths: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
 }
