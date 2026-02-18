@@ -97,7 +97,7 @@ public interface IType extends Serializable
    * Note a Parameterzied Type is not the same as a Generic Type. The difference
    * is that a Parameterized Type is a concrete version of a Generic Type. For
    * instance, the class ArrayList<T> is a Generic Type, while the class
-   * ArrayList<String> is a Parameterized Type of the the Generic Type ArrayList<T>.
+   * ArrayList<String> is a Parameterized Type of the Generic Type ArrayList<T>.
    */
   boolean isParameterizedType();
 
