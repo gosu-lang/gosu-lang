@@ -411,6 +411,33 @@ public class IncrementalCompilationManagerTest {
   }
 
 
+  @Test
+  public void testJavaChangedTypeNotAddedToRecompileSet() {
+    // When a local Java type (e.g. a generated *Internal class) changes alongside a Gosu entity type,
+    // the Java type should NOT appear in the recompile set - gosuc cannot compile Java files.
+    // Its Gosu consumers should still be found and recompiled.
+    manager.recordTypeDependency("com.guidewire._generated.entity.DocumentInternal", "gw.document.DocumentProduction");
+    manager.saveDependencyFile();
+
+    IncrementalCompilationManager newManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Arrays.asList("com.guidewire._generated.entity.DocumentInternal"),  // in localJavaTypes
+      false);
+
+    Set<String> toRecompile = newManager.calculateRecompilationSet(
+      Arrays.asList("entity.Document", "com.guidewire._generated.entity.DocumentInternal"),
+      Collections.emptyList()
+    );
+
+    assertFalse("Java type DocumentInternal should NOT be in the recompile set",
+      toRecompile.contains("com.guidewire._generated.entity.DocumentInternal"));
+    assertTrue("Gosu entity type entity.Document should be in the recompile set",
+      toRecompile.contains("entity.Document"));
+    assertTrue("Consumer of DocumentInternal should still be recompiled",
+      toRecompile.contains("gw.document.DocumentProduction"));
+  }
+
   /**
    * VERIFICATION TEST: Verify that external Gosu types from JARs have jar: URI scheme paths.
    * This test validates our assumption for the shouldTrackGosuType() implementation.

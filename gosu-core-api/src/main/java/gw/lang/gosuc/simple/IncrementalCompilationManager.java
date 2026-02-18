@@ -319,9 +319,10 @@ public class IncrementalCompilationManager {
 
     // Add Gosu types that changed (Java types are already compiled, we only recompile their consumers)
     for (String changedType : changedTypes) {
-      // Only add if it's a Gosu type (will be recompiled)
-      // Java types don't need recompilation by gosuc
-      toRecompile.add(changedType);
+      // Only add if it's a Gosu type (not a known local Java type) - gosuc cannot compile Java files
+      if (!localJavaTypes.contains(changedType)) {
+        toRecompile.add(changedType);
+      }
     }
 
     // Find consumers of changed types
