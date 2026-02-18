@@ -2052,6 +2052,99 @@ public class IncrementalCompilationEndToEndIT {
     System.out.println("✓ Static field initializer dependency tracking works correctly");
   }
 
+  @Test
+  public void testParameterisedInterfaceDepFileKeyIsRawType() throws Exception {
+    // Regression test: when a class declares `implements SomeInterface<T>`, the dep file
+    // must record the raw key "SomeInterface", not the parameterised "SomeInterface<T>".
+    // Before the fix, GosuCompiler stored the parameterised name verbatim, producing
+    // two separate entries for the same type.
+
+    // IResult<T> - generic interface
+    createSourceFile("example/IResult.gs",
+      "package example\n" +
+      "\n" +
+      "interface IResult<T> {\n" +
+      "  property get Value() : T\n" +
+      "}"
+    );
+
+    // ResultBase<T> implements IResult<T> - this is the case that used to produce
+    // "example.IResult<T>" as a dep file key instead of "example.IResult"
+    createSourceFile("example/ResultBase.gs",
+      "package example\n" +
+      "\n" +
+      "abstract class ResultBase<T> implements IResult<T> {\n" +
+      "  private var _value : T\n" +
+      "\n" +
+      "  construct(v : T) {\n" +
+      "    _value = v\n" +
+      "  }\n" +
+      "\n" +
+      "  override property get Value() : T {\n" +
+      "    return _value\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Concrete subclass - consumer of ResultBase
+    createSourceFile("example/StringResult.gs",
+      "package example\n" +
+      "\n" +
+      "class StringResult extends ResultBase<String> {\n" +
+      "  construct(v : String) {\n" +
+      "    super(v)\n" +
+      "  }\n" +
+      "}"
+    );
+
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/IResult.gs"),
+      new File(srcDir.toFile(), "example/ResultBase.gs"),
+      new File(srcDir.toFile(), "example/StringResult.gs")
+    );
+    CompileResult result = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+
+    String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.IResult\": [\n" +
+      "      \"example.ResultBase\"\n" +
+      "    ],\n" +
+      "    \"example.ResultBase\": [\n" +
+      "      \"example.StringResult\"\n" +
+      "    ],\n" +
+      "    \"example.StringResult\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file must use raw type names (no angle brackets) and track both consumer relationships",
+      expectedDeps, actualDeps);
+
+    // Incremental: changing IResult must trigger recompilation of ResultBase
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    Files.write(srcDir.resolve("example/IResult.gs"), (
+      "package example\n" +
+      "\n" +
+      "interface IResult<T> {\n" +
+      "  property get Value() : T\n" +
+      "  property get HasValue() : boolean\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incrementalResult = compile(
+      Arrays.asList(new File(srcDir.toFile(), "example/IResult.gs")), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
+      incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue("ResultBase should be recompiled when IResult changes",
+      isNewer(afterTimestamps.get("ResultBase.class"), initialTimestamps.get("ResultBase.class")));
+  }
+
   private static class CompileResult {
     boolean success;
     String error;

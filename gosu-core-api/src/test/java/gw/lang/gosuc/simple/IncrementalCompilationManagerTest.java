@@ -412,6 +412,27 @@ public class IncrementalCompilationManagerTest {
 
 
   @Test
+  public void testParameterizedTypeStoredUnderRawName() {
+    // GosuCompiler resolves parameterized types to their raw form via getGenericType() before
+    // calling recordTypeDependency, so the dep file always stores raw names.
+    manager.recordTypeDependency("gw.plugin.geocode.impl.PendingResult", "gw.plugin.geocode.impl.PendingResultBase");
+    manager.saveDependencyFile();
+
+    IncrementalCompilationManager newManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(),
+      false);
+
+    Set<String> toRecompile = newManager.calculateRecompilationSet(
+      Arrays.asList("gw.plugin.geocode.impl.PendingResult"),
+      Collections.emptyList()
+    );
+    assertTrue("PendingResultBase should be recompiled when PendingResult changes",
+      toRecompile.contains("gw.plugin.geocode.impl.PendingResultBase"));
+  }
+
+  @Test
   public void testJavaChangedTypeNotAddedToRecompileSet() {
     // When a local Java type (e.g. a generated *Internal class) changes alongside a Gosu entity type,
     // the Java type should NOT appear in the recompile set - gosuc cannot compile Java files.

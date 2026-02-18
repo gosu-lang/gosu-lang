@@ -871,6 +871,14 @@ public class GosuCompiler implements IGosuCompiler
       // Inner classes are always compiled together with their outer class (lines 1050-1059),
       // so tracking the outer class dependency is sufficient and avoids redundant entries.
       IType typeToTrack = getOutermostEnclosingType(gosuClass);
+
+      // Resolve parameterized type to its raw generic form so the dep file key is consistent.
+      // e.g. PendingResult<R> (from an implements clause) -> PendingResult
+      if( typeToTrack.isParameterizedType() && typeToTrack.getGenericType() != null )
+      {
+        typeToTrack = typeToTrack.getGenericType();
+      }
+
       IGosuClass gosuTypeToTrack = typeToTrack instanceof IGosuClass ? (IGosuClass)typeToTrack : null;
 
       if( gosuTypeToTrack == null ) {
