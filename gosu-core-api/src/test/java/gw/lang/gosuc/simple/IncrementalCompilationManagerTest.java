@@ -459,6 +459,38 @@ public class IncrementalCompilationManagerTest {
       toRecompile.contains("gw.document.DocumentProduction"));
   }
 
+  @Test
+  public void testIncrementalSaveMergesConsumersRatherThanReplacing() {
+    // Full-compile session: TypeA and TypeB both depend on SharedProducer.
+    // TypeC also depends on SharedProducer.
+    manager.recordTypeDependency("com.example.SharedProducer", "com.example.TypeA");
+    manager.recordTypeDependency("com.example.SharedProducer", "com.example.TypeB");
+    manager.recordTypeDependency("com.example.SharedProducer", "com.example.TypeC");
+    manager.saveDependencyFile();
+
+    // Incremental session: only TypeA is recompiled; it still depends on SharedProducer.
+    // TypeB and TypeC are NOT recompiled -- their relationships must be preserved.
+    IncrementalCompilationManager incrementalManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(), false);
+    incrementalManager.recordTypeDependency("com.example.SharedProducer", "com.example.TypeA");
+    incrementalManager.saveDependencyFile();
+
+    // Reload and verify all three consumers are still present
+    IncrementalCompilationManager verifyManager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Collections.singletonList(tempDir.toAbsolutePath().toString()),
+      Collections.emptyList(), false);
+    Set<String> toRecompile = verifyManager.calculateRecompilationSet(
+      Arrays.asList("com.example.SharedProducer"), Collections.emptyList());
+    assertTrue("TypeA should be recompiled", toRecompile.contains("com.example.TypeA"));
+    assertTrue("TypeB should still be recompiled (consumer relationship must be preserved)",
+      toRecompile.contains("com.example.TypeB"));
+    assertTrue("TypeC should still be recompiled (consumer relationship must be preserved)",
+      toRecompile.contains("com.example.TypeC"));
+  }
+
   /**
    * VERIFICATION TEST: Verify that external Gosu types from JARs have jar: URI scheme paths.
    * This test validates our assumption for the shouldTrackGosuType() implementation.
