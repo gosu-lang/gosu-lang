@@ -107,7 +107,17 @@ public class IncrementalCompilationManager {
    */
   public void saveDependencyFile() {
     try {
-      // Update typeDependencies with current session data, filtering out common types
+      // Collect the set of types recompiled in this session (the consumers in currentUsedBy).
+      // These are the only files whose dependency contributions may have changed.
+      Set<String> recompiledConsumers = new HashSet<>();
+      for (Set<String> consumers : currentUsedBy.values()) {
+        recompiledConsumers.addAll(consumers);
+      }
+
+      // For each producer whose consumers were refreshed this session, rebuild its consumer list:
+      //   1. Retain consumers that were NOT recompiled (their dep data is unchanged).
+      //   2. Add the new consumers recorded in currentUsedBy for this producer.
+      // This preserves existing consumer relationships for types not compiled this session.
       for (Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet()) {
         String typeFqcn = entry.getKey();
 
@@ -116,7 +126,18 @@ public class IncrementalCompilationManager {
           continue;
         }
 
-        List<String> consumers = new ArrayList<>(entry.getValue());
+        // Keep consumers from the loaded dep file that were NOT recompiled this session
+        List<String> existing = typeDependencies.getOrDefault(typeFqcn, Collections.emptyList());
+        Set<String> merged = new HashSet<>();
+        for (String c : existing) {
+          if (!recompiledConsumers.contains(c)) {
+            merged.add(c);
+          }
+        }
+        // Add consumers freshly recorded this session
+        merged.addAll(entry.getValue());
+
+        List<String> consumers = new ArrayList<>(merged);
         Collections.sort(consumers);  // Sort consumer lists for deterministic output
         typeDependencies.put(typeFqcn, consumers);
       }

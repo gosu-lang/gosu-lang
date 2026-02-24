@@ -2145,6 +2145,125 @@ public class IncrementalCompilationEndToEndIT {
       isNewer(afterTimestamps.get("ResultBase.class"), initialTimestamps.get("ResultBase.class")));
   }
 
+  @Test
+  public void testIncrementalSaveMergesConsumersRatherThanReplacing() throws Exception {
+    // Regression test: when only a subset of consumers are recompiled incrementally,
+    // saveDependencyFile() must MERGE the results rather than replace them.
+    // Before the fix, the dep file would only contain entries for the single recompiled
+    // consumer, silently dropping all other consumers of the same producer.
+    //
+    // Scenario:
+    //   SharedProducer.gs  <-- producer
+    //   TypeA.gs, TypeB.gs, TypeC.gs  <-- all three depend on SharedProducer
+    //
+    // After full compile: SharedProducer should list [TypeA, TypeB, TypeC] as consumers.
+    // After incremental compile of TypeA only: SharedProducer must STILL list [TypeA, TypeB, TypeC].
+
+    createSourceFile("example/SharedProducer.gs",
+      "package example\n" +
+      "\n" +
+      "class SharedProducer {\n" +
+      "  function getValue() : String {\n" +
+      "    return \"shared\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/TypeA.gs",
+      "package example\n" +
+      "\n" +
+      "class TypeA {\n" +
+      "  function run() : String {\n" +
+      "    return new SharedProducer().getValue()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/TypeB.gs",
+      "package example\n" +
+      "\n" +
+      "class TypeB {\n" +
+      "  function run() : String {\n" +
+      "    return new SharedProducer().getValue()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/TypeC.gs",
+      "package example\n" +
+      "\n" +
+      "class TypeC {\n" +
+      "  function run() : String {\n" +
+      "    return new SharedProducer().getValue()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/SharedProducer.gs"),
+      new File(srcDir.toFile(), "example/TypeA.gs"),
+      new File(srcDir.toFile(), "example/TypeB.gs"),
+      new File(srcDir.toFile(), "example/TypeC.gs")
+    );
+
+    // Full compile - all four types
+    CompileResult fullResult = compile(allFiles, false);
+    assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
+
+    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterFullCompile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.SharedProducer\": [\n" +
+      "      \"example.TypeA\",\n" +
+      "      \"example.TypeB\",\n" +
+      "      \"example.TypeC\"\n" +
+      "    ],\n" +
+      "    \"example.TypeA\": [],\n" +
+      "    \"example.TypeB\": [],\n" +
+      "    \"example.TypeC\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After full compile, dep file should list all three consumers of SharedProducer",
+      expectedAfterFullCompile, afterFullCompile);
+
+    // Incremental compile - only TypeA changed (add a harmless comment)
+    Files.write(srcDir.resolve("example/TypeA.gs"), (
+      "package example\n" +
+      "\n" +
+      "class TypeA {\n" +
+      "  // updated\n" +
+      "  function run() : String {\n" +
+      "    return new SharedProducer().getValue()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incrementalResult = compile(
+      Arrays.asList(new File(srcDir.toFile(), "example/TypeA.gs")), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.SharedProducer\": [\n" +
+      "      \"example.TypeA\",\n" +
+      "      \"example.TypeB\",\n" +
+      "      \"example.TypeC\"\n" +
+      "    ],\n" +
+      "    \"example.TypeA\": [],\n" +
+      "    \"example.TypeB\": [],\n" +
+      "    \"example.TypeC\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After incremental compile of TypeA only, TypeB and TypeC must still appear as consumers of SharedProducer",
+      expectedAfterIncremental, afterIncremental);
+  }
+
   private static class CompileResult {
     boolean success;
     String error;
