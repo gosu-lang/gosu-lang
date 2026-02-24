@@ -51,7 +51,7 @@ import java.util.StringTokenizer;
 
 import gw.util.concurrent.LocklessLazyVar;
 import manifold.util.JreUtil;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 import manifold.util.ReflectUtil;
 //import sun.misc.URLClassPath;
 
@@ -348,7 +348,7 @@ public class Gosu
 
   public static void init( List<IDirectory> classpath )
   {
-    NecessaryEvilUtil.bypassJava9Security();
+    JdkAccessUtil.muteJava9Warning();
     List<IDirectory> combined = new ArrayList<>();
     if( classpath != null )
     {

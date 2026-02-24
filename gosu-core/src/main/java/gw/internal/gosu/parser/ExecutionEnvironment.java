@@ -61,7 +61,7 @@ import java.util.WeakHashMap;
 import gw.util.OSPlatform;
 import manifold.internal.runtime.Bootstrap;
 import manifold.util.JreUtil;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 
 public class ExecutionEnvironment implements IExecutionEnvironment
 {
@@ -174,7 +174,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
   public void initializeDefaultSingleModule( List<? extends GosuPathEntry> pathEntries, List<IDirectory> backingSourceEntries, String... discretePackages ) {
     _state = TypeSystemState.STARTING;
     try {
-      NecessaryEvilUtil.bypassJava9Security();
+      JdkAccessUtil.muteJava9Warning();
       DefaultSingleModule singleModule = _defaultModule == null ? new DefaultSingleModule( this ) : (DefaultSingleModule)_defaultModule;
       List<IDirectory> allSources = new ArrayList<IDirectory>();
       for( GosuPathEntry pathEntry : pathEntries )

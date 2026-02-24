@@ -5,6 +5,7 @@
 package gw.internal.gosu.ir.compiler.bytecode;
 
 import gw.internal.ext.org.objectweb.asm.Attribute;
+import gw.internal.ext.org.objectweb.asm.ByteVector;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.ClassVisitor;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
@@ -44,6 +45,7 @@ import manifold.util.ReflectUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class IRClassCompiler extends AbstractBytecodeCompiler
@@ -55,7 +57,13 @@ public class IRClassCompiler extends AbstractBytecodeCompiler
 
   private ClassVisitor _cv;
   private IRClass _irClass;
-  private static byte[] _gosuVersion = Gosu.getVersion().toString().getBytes( Charset.forName( "US-ASCII" ) );
+  private static ByteVector _gosuVersion = assignGosuVersion();
+
+  private static ByteVector assignGosuVersion()
+  {
+    byte[] bytes = Gosu.getVersion().toString().getBytes( StandardCharsets.US_ASCII );
+    return new ByteVector( bytes.length ).putByteArray( bytes, 0, bytes.length );
+  }
 
 
   public static byte[] compileClass( IRClass irClass, boolean debug )
