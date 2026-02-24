@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import manifold.internal.host.RuntimeManifoldHost;
 import manifold.internal.javac.JavaParser;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 
 public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 {
@@ -20,7 +20,7 @@ public class GosuRuntimeManifoldHost extends RuntimeManifoldHost
 
   static
   {
-    NecessaryEvilUtil.bypassJava9Security();
+    JdkAccessUtil.muteJava9Warning();
   }
 
   public static GosuRuntimeManifoldHost get()

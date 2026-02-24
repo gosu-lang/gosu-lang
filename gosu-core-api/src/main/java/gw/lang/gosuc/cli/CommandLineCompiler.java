@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import manifold.util.JreUtil;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 
 public class CommandLineCompiler
 {
@@ -54,7 +54,7 @@ public class CommandLineCompiler
       System.exit( 0 );
     }
 
-    NecessaryEvilUtil.bypassJava9Security();
+    JdkAccessUtil.muteJava9Warning();
 
     IGosuCompiler gosuc = new GosuCompiler();
 

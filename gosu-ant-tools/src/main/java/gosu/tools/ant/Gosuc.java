@@ -6,7 +6,7 @@ import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
 import manifold.util.JreUtil;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.Path;
@@ -275,7 +275,7 @@ public class Gosuc extends GosuMatchingTask {
     log.debug("scriptExtensions=" + getScriptExtensions());
     log.debug("_compileClasspath=" + _compileClasspath);
 
-    NecessaryEvilUtil.bypassJava9Security();
+    JdkAccessUtil.muteJava9Warning();
     
     if(isCheckedArithmetic()) {
       System.setProperty("checkedArithmetic", "true");

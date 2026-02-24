@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import manifold.util.NecessaryEvilUtil;
+import manifold.util.JdkAccessUtil;
 
 /*
   To enable "Mark Errors For Gosu Language Test"
@@ -35,7 +35,7 @@ public class RunMe
   {
     EventQueue.invokeLater(
       () -> {
-        NecessaryEvilUtil.bypassJava9Security();
+        JdkAccessUtil.muteJava9Warning();
         LabFrame.loadSettings();
         SplashScreen.instance().setFeedbackText( "Initializing..." );
         LabFrame.create();

@@ -73,9 +73,10 @@ public class GosuCompilerTest extends AbstractCompilerTest {
 
     int numCompilerWarnings = messages.size() - numCompilerErrors;
 
+    StringBuilder sb = new StringBuilder();
     if ( expectedErrors() != numCompilerErrors )
     {
-      System.out.println( numCompilerErrors + " error(s) found:" );
+      sb.append( numCompilerErrors + " error(s) found:\n" );
       for ( CompilerMessage error : messages )
       {
         if ( !error.isError() )
@@ -83,13 +84,13 @@ public class GosuCompilerTest extends AbstractCompilerTest {
           continue;
         }
 
-        System.out.println( "----" );
-        System.out.println( error.getFile() );
-        System.out.println( error.getMessage() );
-        System.out.println( "----" );
+        sb.append( "----\n" )
+        .append( error.getFile() ).append( "\n" )
+        .append( error.getMessage() ).append( "\n" )
+        .append( "----\n" );
       }
 
-      assertEquals( "Wrong number of compilation errors.", expectedErrors(), numCompilerErrors );
+      assertEquals( "Wrong number of compilation errors.\n" + sb, expectedErrors(), numCompilerErrors );
     }
 
     if ( expectedWarnings() != numCompilerWarnings )
