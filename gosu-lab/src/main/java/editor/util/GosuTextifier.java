@@ -1,6 +1,7 @@
 package editor.util;
 
 import gw.internal.ext.org.objectweb.asm.Attribute;
+import gw.internal.ext.org.objectweb.asm.ByteVector;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
 //import gw.internal.ext.org.objectweb.asm.util.Textifiable;
 import gw.internal.ext.org.objectweb.asm.util.Textifier;
@@ -36,7 +37,7 @@ public class GosuTextifier extends Textifier
 
         Field[] fields = aClass.getDeclaredFields();
         ReflectUtil.setAccessible( fields[1] );
-        data = (byte[])fields[1].get( attr );
+        data = (byte[])ReflectUtil.field( (ByteVector)fields[1].get( attr ), "data" ).get();
       }
       catch( Exception e )
       {
