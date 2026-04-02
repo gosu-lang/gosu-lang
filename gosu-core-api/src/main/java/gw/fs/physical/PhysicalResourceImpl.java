@@ -97,6 +97,11 @@ public class PhysicalResourceImpl implements IResource {
   }
 
   @Override
+  public int hashCode() {
+    return _path.hashCode();
+  }
+
+  @Override
   public String toString() {
     return getPath().getFileSystemPathString();
   }

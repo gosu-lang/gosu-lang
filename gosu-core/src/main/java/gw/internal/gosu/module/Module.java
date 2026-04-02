@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -155,6 +156,7 @@ public class Module implements IModule
     extensions.add(".java");
     extensions.add(".xsd");
     extensions.addAll(Arrays.asList(GosuClassTypeLoader.ALL_EXTS));
+    Set<IDirectory> seen = new HashSet<>(roots);
     //noinspection Convert2streamapi
     for (IDirectory root : paths) {
       // roots without manifests are considered source roots
@@ -164,7 +166,7 @@ public class Module implements IModule
               // http://www.coderanch.com/t/69641/BEA-Weblogic/wl-cls-gen-jar-coming
               // So we need to always treat it as containing sources
               root.getName().equals("_wl_cls_gen.jar")) {
-        if( !roots.contains( root ) )
+        if( seen.add( root ) )
         {
           roots.add( root );
         }
@@ -236,14 +238,11 @@ public class Module implements IModule
       return classpath;
     }
 
-    ArrayList<IDirectory> newClasspath = new ArrayList<>();
+    LinkedHashSet<IDirectory> newClasspath = new LinkedHashSet<>();
     for( IDirectory root : classpath )
     {
       //add the root JAR itself first, preserving ordering
-      if( !newClasspath.contains( root ) )
-      {
-        newClasspath.add( root );
-      }
+      newClasspath.add( root );
       if( root instanceof JarFileDirectoryImpl )
       {
         JarFile jarFile = ((JarFileDirectoryImpl)root).getJarFile();
@@ -272,10 +271,7 @@ public class Module implements IModule
                 }
                 File dirOrJar = new File( url.toURI() );
                 IDirectory idir = CommonServices.getFileSystem().getIDirectory( dirOrJar );
-                if( !newClasspath.contains( idir ) )
-                {
-                  newClasspath.add( idir );
-                }
+                newClasspath.add( idir );
               }
             }
           }
@@ -287,7 +283,7 @@ public class Module implements IModule
       }
     }
 
-    return newClasspath;
+    return new ArrayList<>( newClasspath );
   }
 
   @Override

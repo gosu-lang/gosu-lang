@@ -20,6 +20,7 @@ public class ResourcePath {
 
   protected final ResourcePath _parent;
   protected final String _name;
+  private int _hashCode;
 
   protected ResourcePath(ResourcePath parent, String name) {
     if (name == null) {
@@ -246,9 +247,16 @@ public class ResourcePath {
 
   @Override
   public int hashCode() {
-    int result = _parent != null ? _parent.hashCode() : 0;
-    result = 31 * result + (_name != null ? _name.hashCode() : 0);
-    return result;
+    int h = _hashCode;
+    if (h == 0) {
+      h = _parent != null ? _parent.hashCode() : 0;
+      h = 31 * h + (_name != null ? _name.hashCode() : 0);
+      if (h == 0) {
+        h = 1;
+      }
+      _hashCode = h;
+    }
+    return h;
   }
 
   public boolean isChild(ResourcePath path) {
