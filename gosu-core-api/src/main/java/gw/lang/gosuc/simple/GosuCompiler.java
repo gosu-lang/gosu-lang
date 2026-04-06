@@ -515,6 +515,29 @@ public class GosuCompiler implements IGosuCompiler
     return System.currentTimeMillis() - start;
   }
 
+  @Override
+  public long reinitializeGosu( List<String> sourceFolders, List<String> classpath, List<String> backingSourcePath, String outputPath )
+  {
+    final long start = System.currentTimeMillis();
+
+    IExecutionEnvironment execEnv = TypeSystem.getExecutionEnvironment();
+    GosucModule gosucModule = new GosucModule( IExecutionEnvironment.DEFAULT_SINGLE_MODULE_NAME,
+                                               sourceFolders,
+                                               classpath,
+                                               backingSourcePath,
+                                               outputPath,
+                                               Collections.<GosucDependency>emptyList(),
+                                               Collections.<String>emptyList() );
+
+    if( _gosuInitialization == null )
+    {
+      _gosuInitialization = GosuInitialization.instance( execEnv );
+    }
+    _gosuInitialization.reinitializeCompiler( gosucModule );
+
+    return System.currentTimeMillis() - start;
+  }
+
   private static IFileSystem createFileSystemInstance()
   {
     try

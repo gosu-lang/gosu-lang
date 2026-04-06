@@ -101,6 +101,16 @@ public class ClassPath implements IClassPath
     return _cache.getRoot().isLeaf();
   }
 
+  /**
+   * Incrementally add class names from new classpath entries into the existing FqnCache.
+   * Existing entries are not overwritten — new entries only fill gaps.
+   */
+  public void augment(List<IDirectory> newEntries) {
+    for (IDirectory path : newEntries) {
+      addClassNames(path, path, _filter);
+    }
+  }
+
   // ====================== PRIVATE ====================================
 
   private void loadClasspathInfo()

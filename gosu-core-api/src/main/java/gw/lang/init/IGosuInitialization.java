@@ -15,6 +15,7 @@ public interface IGosuInitialization
   void uninitializeRuntime( IExecutionEnvironment execEnv );
 
   void initializeCompiler( IExecutionEnvironment execEnv, GosucModule module );
+  void reinitializeCompiler( IExecutionEnvironment execEnv, GosucModule module );
   void uninitializeCompiler( IExecutionEnvironment execEnv );
 
   void initializeMultipleModules( IExecutionEnvironment execEnv, List<? extends IModule> modules );

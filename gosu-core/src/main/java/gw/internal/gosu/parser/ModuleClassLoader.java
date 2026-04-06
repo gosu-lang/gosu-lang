@@ -106,6 +106,10 @@ public class ModuleClassLoader extends URLClassLoader implements IModuleClassLoa
     return new ModuleClassLoader(urls.toArray(new URL[urls.size()]), parent, module);
   }
 
+  public void addURLs(List<URL> urls) {
+    urls.forEach(super::addURL);
+  }
+
   public void dispose() {
     _module = null;
   }

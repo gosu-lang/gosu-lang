@@ -208,6 +208,60 @@ public class Module implements IModule
   }
 
   /**
+   * Incrementally reconfigure paths when the classpath has only been appended to.
+   * Augments the existing ClassPath FqnCache with only the new entries instead of rebuilding.
+   *
+   * @param classpath            The full new classpath (expanded)
+   * @param sourcePaths          The new source paths
+   * @param backingSourcePaths   The new backing source paths
+   * @param addedClasspathEntries Only the new classpath entries (not yet manifest-expanded)
+   */
+  public void reconfigurePaths( List<IDirectory> classpath, List<IDirectory> sourcePaths,
+                                List<IDirectory> backingSourcePaths, List<IDirectory> addedClasspathEntries )
+  {
+    // Expand manifest Class-Path for new entries
+    List<IDirectory> expandedNew = addFromManifestClassPath( addedClasspathEntries );
+
+    // Expand and set the full classpath
+    classpath = addFromManifestClassPath( classpath );
+    setJavaClassPath( classpath );
+    setBackingSourcePath( backingSourcePaths );
+
+    // Re-scan source roots (cheap — just list assignments)
+    sourcePaths = addFromManifestClassPath( sourcePaths );
+    List<IDirectory> sourceRoots = new ArrayList<>( sourcePaths );
+    Set<String> extensions = new HashSet<>();
+    scanPaths( classpath, extensions, sourceRoots );
+    setSourcePath( sourceRoots );
+
+    // Augment class name cache with only new entries
+    DefaultTypeLoader dtl = getModuleTypeLoader().getTypeLoader( DefaultTypeLoader.class );
+    if( dtl != null )
+    {
+      dtl.augmentClasspath( expandedNew );
+    }
+
+    // Add new URLs to existing ModuleClassLoader
+    ClassLoader cl = _moduleClassLoader;
+    if( cl instanceof ModuleClassLoader )
+    {
+      List<URL> urls = new ArrayList<>();
+      for( IDirectory dir : expandedNew )
+      {
+        try
+        {
+          urls.add( dir.toURI().toURL() );
+        }
+        catch( Exception e )
+        {
+          // skip
+        }
+      }
+      ((ModuleClassLoader)cl).addURLs( urls );
+    }
+  }
+
+  /**
    * <p>This will add items to the Gosu classpath, but only under very specific circumstances.
    * <p>If both of the following conditions are met:
    * <ul>

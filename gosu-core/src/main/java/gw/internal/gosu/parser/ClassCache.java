@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.config.ExecutionMode;
+import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.module.DefaultSingleModule;
 import gw.lang.reflect.java.asm.AsmClass;
@@ -19,6 +20,7 @@ import manifold.util.ReflectUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -292,6 +294,16 @@ public class ClassCache {
 
   public void clearClasspathInfo() {
     _allTypeNamesCache.clear();
+  }
+
+  /**
+   * Incrementally scan new classpath entries into the existing FqnCache.
+   * Preserves all existing cached data; only adds new class names and clears miss markers.
+   */
+  public void augmentClasspath(List<IDirectory> newEntries) {
+    _classPathCache.get().augment(newEntries);
+    _allTypeNamesCache.clear();
+    _classMap.values().removeIf(c -> c == ClassNotFoundMarkerClass.class);
   }
 
   public void remove(String fullyQualifiedName) {

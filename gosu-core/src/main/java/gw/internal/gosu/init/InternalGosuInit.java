@@ -60,6 +60,10 @@ public class InternalGosuInit implements IGosuInitialization
     ((ExecutionEnvironment)execEnv).initializeCompiler(module);
   }
 
+  public void reinitializeCompiler(IExecutionEnvironment execEnv, GosucModule module) {
+    ((ExecutionEnvironment)execEnv).reinitializeCompiler(module);
+  }
+
   public void uninitializeCompiler( IExecutionEnvironment execEnv ) {
     ((ExecutionEnvironment)execEnv).uninitializeCompiler();
   }

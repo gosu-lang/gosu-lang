@@ -359,6 +359,16 @@ public class DefaultTypeLoader extends SimpleTypeLoader implements IExtendedType
     JavaTypes.flushCache();
   }
 
+  /**
+   * Incrementally add new classpath entries without rebuilding the entire ClassPath cache.
+   * Clears miss markers so previously-unresolvable types can be found in the new entries.
+   */
+  public void augmentClasspath(List<IDirectory> newEntries) {
+    _classCache.augmentClasspath(newEntries);
+    clearMisses();
+    _namespaces = null;
+  }
+
   public void clearMisses() {
     Iterator<Map.Entry<String,IJavaClassInfo>> iterator = _classInfoCache.entrySet().iterator();
     while (iterator.hasNext()) {

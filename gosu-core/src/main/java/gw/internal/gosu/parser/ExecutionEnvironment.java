@@ -303,6 +303,60 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     }
   }
 
+  public void reinitializeCompiler( GosucModule newGosucModule ) {
+    if( _state != TypeSystemState.STARTED || _defaultModule == null ) {
+      // Not initialized yet — fall through to full init
+      initializeCompiler( newGosucModule );
+      return;
+    }
+
+    // Retrieve the previous GosucModule from the existing module
+    Object prevNative = _defaultModule.getNativeModule();
+    if( !(prevNative instanceof GosucModule) ) {
+      // Can't diff — do full reinit
+      uninitializeCompiler();
+      initializeCompiler( newGosucModule );
+      return;
+    }
+    GosucModule oldGosucModule = (GosucModule)prevNative;
+
+    // Strategy 1: No-op — identical configuration
+    if( oldGosucModule.equals( newGosucModule ) ) {
+      return;
+    }
+
+    List<String> oldCp = oldGosucModule.getClasspath();
+    List<String> newCp = newGosucModule.getClasspath();
+
+    boolean classpathIsSuperset = newCp.size() >= oldCp.size()
+        && newCp.subList( 0, oldCp.size() ).equals( oldCp );
+
+    if( classpathIsSuperset ) {
+      // Strategy 2 (augment) or Strategy 3 (source-only + augment)
+      List<String> addedCpStrings = newCp.subList( oldCp.size(), newCp.size() );
+      List<IDirectory> addedCpDirs = GosucUtil.toDirectories( addedCpStrings );
+
+      List<IDirectory> fullCp = GosucUtil.toDirectories( newCp );
+      List<IDirectory> sources = GosucUtil.toDirectories( newGosucModule.getAllSourceRoots() );
+      List<IDirectory> backingSources = GosucUtil.toDirectories( newGosucModule.getBackingSourcePath() );
+
+      // Update the native module reference
+      _defaultModule.setNativeModule( newGosucModule );
+
+      // Reconfigure paths incrementally (augments FqnCache with only new entries)
+      ((Module)_defaultModule).reconfigurePaths( fullCp, sources, backingSources, addedCpDirs );
+
+      // Refresh Gosu type loaders to pick up source changes
+      _defaultModule.getModuleTypeLoader().refreshed();
+
+      TypeLoaderAccess.instance().incrementChecksums();
+    } else {
+      // Strategy 4: Full rebuild — classpath removed or reordered
+      uninitializeCompiler();
+      initializeCompiler( newGosucModule );
+    }
+  }
+
   public void uninitializeCompiler() {
     _state = TypeSystemState.STOPPING;
     try {

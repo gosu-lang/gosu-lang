@@ -91,6 +91,15 @@ public class GosuInitialization
     return name -> name.startsWith( "file:" ) ? new File( URI.create( name ) ) : new File( name );
   }
 
+  public void reinitializeCompiler( GosucModule module ) {
+    getGosuInitialization().reinitializeCompiler( _execEnv, module );
+    _initialized = true;
+
+    GosuRuntimeManifoldHost.clear();
+    GosuRuntimeManifoldHost.get().init( module.getAllSourceRoots().stream().map( makeFile() ).collect( Collectors.toList() ),
+      module.getClasspath().stream().filter( p -> !p.startsWith( "jrt:" ) ).map( makeFile() ).collect( Collectors.toList() ) );
+  }
+
   public void uninitializeCompiler() {
     if (!_initialized) {
       throw new IllegalStateException("Illegal attempt to uninitialize Gosu");
