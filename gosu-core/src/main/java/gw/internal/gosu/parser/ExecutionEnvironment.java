@@ -305,7 +305,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
   public void reinitializeCompiler( GosucModule newGosucModule ) {
     if( _state != TypeSystemState.STARTED || _defaultModule == null ) {
-      // Not initialized yet — fall through to full init
+      System.out.println( "Gosu reinit: not yet initialized, performing full init" );
       initializeCompiler( newGosucModule );
       return;
     }
@@ -313,7 +313,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
     // Retrieve the previous GosucModule from the existing module
     Object prevNative = _defaultModule.getNativeModule();
     if( !(prevNative instanceof GosucModule) ) {
-      // Can't diff — do full reinit
+      System.out.println( "Gosu reinit: previous module is not a GosucModule, performing full uninit/reinit" );
       uninitializeCompiler();
       initializeCompiler( newGosucModule );
       return;
@@ -322,6 +322,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
     // Strategy 1: No-op — identical configuration
     if( oldGosucModule.equals( newGosucModule ) ) {
+      System.out.println( "Gosu reinit: no-op (configuration unchanged)" );
       return;
     }
 
@@ -332,7 +333,9 @@ public class ExecutionEnvironment implements IExecutionEnvironment
         && newCp.subList( 0, oldCp.size() ).equals( oldCp );
 
     if( classpathIsSuperset ) {
-      // Strategy 2 (augment) or Strategy 3 (source-only + augment)
+      int addedCount = newCp.size() - oldCp.size();
+      System.out.println( "Gosu reinit: incremental augment (" + addedCount + " classpath entries added)" );
+
       List<String> addedCpStrings = newCp.subList( oldCp.size(), newCp.size() );
       List<IDirectory> addedCpDirs = GosucUtil.toDirectories( addedCpStrings );
 
@@ -351,7 +354,7 @@ public class ExecutionEnvironment implements IExecutionEnvironment
 
       TypeLoaderAccess.instance().incrementChecksums();
     } else {
-      // Strategy 4: Full rebuild — classpath removed or reordered
+      System.out.println( "Gosu reinit: full rebuild (classpath entries removed or reordered, old=" + oldCp.size() + " new=" + newCp.size() + ")" );
       uninitializeCompiler();
       initializeCompiler( newGosucModule );
     }
