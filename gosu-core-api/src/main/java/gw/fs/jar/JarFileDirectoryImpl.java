@@ -29,6 +29,7 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
 
   private File _file;
   private JarFile _jarFile;
+  private ResourcePath _path;
   private Map<String, IResource> _resources;
   private List<IDirectory> _childDirs;
   private List<IFile> _childFiles;
@@ -195,7 +196,12 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
 
   @Override
   public ResourcePath getPath() {
-    return ResourcePath.parse(_file.getAbsolutePath());
+    ResourcePath p = _path;
+    if (p == null) {
+      p = ResourcePath.parse(_file.getAbsolutePath());
+      _path = p;
+    }
+    return p;
   }
 
   @Override
@@ -249,6 +255,11 @@ public class JarFileDirectoryImpl implements IJarFileDirectory {
     } else {
       return false;
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return getPath().hashCode();
   }
 
   @Override
