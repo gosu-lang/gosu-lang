@@ -131,16 +131,7 @@ public class IRClass {
           } else {
             types = new IType[] {boundingType};
           }
-          SignatureVisitor sv;
-          for(int i = types.length-1; i >= 0 ; i--) {
-            if( types[i].isInterface() ) {
-              sv = sw.visitInterfaceBound();
-            }
-            else {
-              sv = sw.visitClassBound();
-            }
-            SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType(types[i]), bGeneric );
-          }
+          emitBounds( sw, types, bGeneric );
         }
         else {
           SignatureVisitor sv = sw.visitClassBound();
@@ -165,6 +156,36 @@ public class IRClass {
     }
     if( bGeneric[0] ) {
       _genericSignature = sw.toString();
+    }
+  }
+
+  // JVM spec: TypeParameter ::= Identifier ClassBound InterfaceBound*
+  // ASM's SignatureWriter.visitClassBound() is a no-op — the ':' that introduces the class
+  // bound is written by visitFormalTypeParameter, so the class bound must be emitted first
+  // (and at most one). Emitting interface bounds first, or a class bound after any interface
+  // bound, produces a malformed signature (e.g. "<P::LI;LC;>" with a missing ':' before LC).
+  public static void emitBounds( SignatureWriter sw, IType[] types, boolean[] bGeneric ) {
+    IType classBound = null;
+    List<IType> interfaceBounds = new ArrayList<>( types.length );
+    for( IType t : types ) {
+      if( t.isInterface() ) {
+        interfaceBounds.add( t );
+      } else if( classBound == null ) {
+        classBound = t;
+      } else {
+        // More than one non-interface bound is not legal, but we keep one and
+        // demote the rest to interface slots to avoid producing garbage — the
+        // parser should have rejected this case earlier.
+        interfaceBounds.add( t );
+      }
+    }
+    if( classBound != null ) {
+      SignatureVisitor sv = sw.visitClassBound();
+      SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType( classBound ), bGeneric );
+    }
+    for( IType iface : interfaceBounds ) {
+      SignatureVisitor sv = sw.visitInterfaceBound();
+      SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType( iface ), bGeneric );
     }
   }
 
