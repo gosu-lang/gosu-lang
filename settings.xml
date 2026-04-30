@@ -17,4 +17,11 @@
       <password>${PUBLISH_WITH_PASSWORD}</password>
     </server>
   </servers>
+  <mirrors>
+    <mirror>
+      <id>internal-artifactory</id>
+      <mirrorOf>*</mirrorOf>
+      <url>${env.MAVEN_CENTRAL_MIRROR_REPOSITORY_URL}</url>
+    </mirror>
+  </mirrors>
 </settings>
