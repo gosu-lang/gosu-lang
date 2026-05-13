@@ -113,6 +113,8 @@ public class GosuCompiler implements IGosuCompiler
         {
           for( String removedType : removedTypes )
           {
+            // TODO: In gradle-pplugin we delete as well: deleteClassFiles(fqcn, getDestinationDirectory().get().getAsFile());
+            // Is this necessary?
             deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
           }
         }
@@ -138,7 +140,7 @@ public class GosuCompiler implements IGosuCompiler
         if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
         {
           sourceFiles.add( matchedFile );
-        }
+        } // TODO: If matchedFile == null -> ERROR?
         else if( options.isVerbose() && matchedFile == null )
         {
           System.out.println( "Warning: Could not find source file for type " + fqcn );
@@ -381,36 +383,6 @@ public class GosuCompiler implements IGosuCompiler
     return true;
   }
 
-  private String extractTypeNameFromPath( String filePath )
-  {
-    try
-    {
-      // Convert file path to type name (e.g., /path/to/example/StringUtil.gs -> example.StringUtil)
-      File file = new File( filePath );
-      String fileName = file.getName();
-
-      // Remove .gs extension
-      if( fileName.endsWith( ".gs" ) )
-      {
-        fileName = fileName.substring( 0, fileName.length() - 3 );
-      }
-
-      // Get the parent directories to construct package name
-      File parent = file.getParentFile();
-      if( parent != null )
-      {
-        String parentName = parent.getName();
-        return parentName + "." + fileName;
-      }
-
-      return fileName;
-    }
-    catch( Exception e )
-    {
-      return null;
-    }
-  }
-
   /**
    * Find a source file that matches the given FQCN from a list of source files.
    * Searches for a file ending with the path pattern derived from the FQCN.
@@ -422,6 +394,11 @@ public class GosuCompiler implements IGosuCompiler
    */
   private String findSourceFileForFqcn( String fqcn, List<String> sourceFiles )
   {
+    // TODO: This seems very inefficient: use a Set o the typesystem to find the file for a given FQCN
+    //       Why do we go from FQCN to file path when just before we called convertSourcePathToFqcn?
+    //       Shall we always use file path in the dependency file?
+    //       We should stop manipulating paths as strings: use a Path/File object (from gosu-core-api or JRE)
+
     // Convert FQCN to expected path pattern (normalize to forward slashes)
     // e.g., "com.example.MyClass" -> "com/example/MyClass"
     String expectedPath = fqcn.replace( '.', '/' );
@@ -563,6 +540,15 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
+  // TODO: Should this method keep track of private dependencies? In a BFS we could stop earlier
+  /*
+  **Why BFS?** Because we need to follow the chain:
+- `ClassA` changed (has new method)
+- `ClassB` uses `ClassA` publicly → needs recompilation
+- `ClassC` uses `ClassB` publicly → needs recompilation
+- `ClassD` uses `ClassB` privately → needs recompilation but stops here
+- `ClassE` uses `ClassD` → does NOT need recompilation (private boundary)
+   */
   private void trackDependencies( IGosuClass gsClass, File sourceFile )
   {
     if( _incrementalManager == null )

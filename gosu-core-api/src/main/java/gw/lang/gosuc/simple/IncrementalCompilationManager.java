@@ -17,12 +17,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -221,6 +216,20 @@ public class IncrementalCompilationManager {
   }
 
   /**
+   * Strips the Gosu file extension from a dot-separated path string used when computing FQCNs.
+   * For example, {@code "com.example.MyRule.gr"} becomes {@code "com.example.MyRule"}.
+   *
+   * @return the input less its Gosu file extension; otherwise return input unchanged if it does not end with a known Gosu extension.
+   */
+  public static String stripExtension( String fqcnWithExtension ) {
+    int dot = fqcnWithExtension.lastIndexOf('.');
+    if (dot != -1 && GosuClassTypeLoader.ALL_EXTS_SET.contains(fqcnWithExtension.substring(dot))) {
+      return fqcnWithExtension.substring(0, dot);
+    }
+    return fqcnWithExtension;
+  }
+
+  /**
    * Convert a Gosu source file path to FQCN.
    * Strips the source root prefix and converts the relative path to a package-qualified name.
    * Example: "/tmp/project/src/main/gosu/com/example/MyClass.gs" -> "com.example.MyClass"
@@ -228,6 +237,7 @@ public class IncrementalCompilationManager {
   private String convertSourcePathToFqcn(String sourcePath) {
     String fqcn = sourcePath;
 
+    // Avoid loops, make sourceRoots a HashMap
     // Strip source root prefix to get relative path
     for (String sourceRoot : sourceRoots) {
       if (fqcn.startsWith(sourceRoot)) {
@@ -240,18 +250,9 @@ public class IncrementalCompilationManager {
       }
     }
 
-    // Remove extension using GosuClassTypeLoader constants (single source of truth)
-    // ALL_EXTS contains: [".gs", ".gsx", ".gsp", ".gst", ".gr", ".grs"]
-    for (String ext : GosuClassTypeLoader.ALL_EXTS) {
-      if (fqcn.endsWith(ext)) {
-        fqcn = fqcn.substring(0, fqcn.length() - ext.length());
-        break;
-      }
-    }
-
     // Convert path separators to dots
     fqcn = fqcn.replace('/', '.').replace('\\', '.');
-
+    fqcn = stripExtension(fqcn);
     return fqcn.isEmpty() ? null : fqcn;
   }
 
@@ -385,68 +386,7 @@ public class IncrementalCompilationManager {
       System.out.println("deleteOutputsForDeletedFiles: no-op in v2 FQCN-based architecture");
     }
   }
-  
-  /**
-   * Scan output directory to find all class files generated from a source file
-   */
-  public Set<String> scanOutputFiles(String sourceFile, File destDir) {
-    Set<String> outputs = new HashSet<>();
-    
 
-    // Convert source file path to expected class file base name
-    String baseName = sourceFile;
-    if (baseName.endsWith(".gs") || baseName.endsWith(".gsx") || baseName.endsWith(".gst")) {
-      baseName = baseName.substring(0, baseName.lastIndexOf('.'));
-    }
-    baseName = baseName.replace('/', '.').replace('\\', '.');
-    
-
-    // Find all class files that match this base name
-    String classFileBase = baseName.replace('.', File.separatorChar);
-    File baseClassFile = new File(destDir, classFileBase + ".class");
-    
-
-    if (baseClassFile.exists()) {
-      // Get relative path from destDir
-      String relativePath = destDir.toPath().relativize(baseClassFile.toPath()).toString();
-      outputs.add(relativePath.replace(File.separatorChar, '/'));
-    }
-    
-    // Look for inner classes and blocks (e.g., MyClass$1.class, MyClass$Block1.class)
-    File parentDir = baseClassFile.getParentFile();
-    if (parentDir != null && parentDir.exists()) {
-      String className = baseClassFile.getName().replace(".class", "");
-      File[] innerClasses = parentDir.listFiles((dir, name) -> 
-        name.startsWith(className + "$") && name.endsWith(".class"));
-      
-      if (innerClasses != null) {
-        for (File innerClass : innerClasses) {
-          String relativePath = destDir.toPath().relativize(innerClass.toPath()).toString();
-          outputs.add(relativePath.replace(File.separatorChar, '/'));
-        }
-      }
-    }
-    
-    return outputs;
-  }
-  
-  /**
-   * Calculate API signature for a type (placeholder for now)
-   * TODO: Implement proper API signature calculation based on public methods/fields
-   */
-  public String calculateApiSignature(String sourceFile) {
-    // For now, return a simple hash of the file content
-    // In a real implementation, this would analyze the AST and hash only public API
-    try {
-      byte[] content = Files.readAllBytes(Paths.get(sourceFile));
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
-      byte[] hash = md.digest(content);
-      return Base64.getEncoder().encodeToString(hash);
-    } catch (IOException | NoSuchAlgorithmException e) {
-      return "";
-    }
-  }
-  
   /**
    * Data structure for JSON serialization.
    * Simplified flat structure: maps producer type FQCN to list of consumer type FQCNs.
