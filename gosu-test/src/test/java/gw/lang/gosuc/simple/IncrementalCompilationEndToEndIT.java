@@ -2380,6 +2380,201 @@ public class IncrementalCompilationEndToEndIT {
       expectedAfterIncremental, afterIncremental);
   }
 
+  @Test
+  public void testStaleConsumerEntryWhenEdgeIsDropped() throws Exception {
+    // Scenario:
+    //   P1.gs, P2.gs    -- two independent producers
+    //   Consumer.gs     -- initially references P1; after edit references P2 instead
+    //
+    // After full compile: P1's consumer list should be [Consumer], P2's should be [].
+    // After incremental compile of Consumer (only Consumer is in -changed-types):
+    //   correct result -> P1: [], P2: [Consumer]
+    //
+    createSourceFile("example/P1.gs",
+      "package example\n" +
+      "\n" +
+      "class P1 {\n" +
+      "  static function greet() : String {\n" +
+      "    return \"hi from P1\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/P2.gs",
+      "package example\n" +
+      "\n" +
+      "class P2 {\n" +
+      "  static function greet() : String {\n" +
+      "    return \"hi from P2\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  function call() : String {\n" +
+      "    return P1.greet()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/P1.gs"),
+      new File(srcDir.toFile(), "example/P2.gs"),
+      new File(srcDir.toFile(), "example/Consumer.gs")
+    );
+
+    // Full compile -- baseline: P1 -> [Consumer], P2 -> [].
+    CompileResult fullResult = compile(allFiles, false);
+    assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
+
+    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterFullCompile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.P1\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.P2\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After full compile, P1 should list Consumer; P2 should be empty",
+      expectedAfterFullCompile, afterFullCompile);
+
+    // Edit Consumer: drop the Consumer->P1 edge, replace with Consumer->P2.
+    Files.write(srcDir.resolve("example/Consumer.gs"), (
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  function call() : String {\n" +
+      "    return P2.greet()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Incremental compile, only Consumer is in -changed-types.
+    CompileResult incrementalResult = compile(
+      Arrays.asList(new File(srcDir.toFile(), "example/Consumer.gs")), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
+
+    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.P1\": [],\n" +
+      "    \"example.P2\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After incremental compile, Consumer no longer references P1, so P1's consumer " +
+      "list must NOT contain Consumer. P2's consumer list must now contain Consumer.",
+      expectedAfterIncremental, afterIncremental);
+  }
+
+  @Test
+  public void testStaleRemovedTypeAsConsumer() throws Exception {
+    // Scenario:
+    //   Hub.gs        -- a leaf producer with no outgoing references
+    //   Spoke.gs      -- references Hub; will be DELETED
+    //   Bystander.gs  -- references Hub; unchanged
+    //
+    // After full compile: Hub -> [Bystander, Spoke].
+    // After incremental compile with Spoke removed:
+    //   Hub -> [Bystander]
+
+    createSourceFile("example/Hub.gs",
+      "package example\n" +
+      "\n" +
+      "class Hub {\n" +
+      "  static function greet() : String {\n" +
+      "    return \"hi from Hub\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/Spoke.gs",
+      "package example\n" +
+      "\n" +
+      "class Spoke {\n" +
+      "  function call() : String {\n" +
+      "    return Hub.greet()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/Bystander.gs",
+      "package example\n" +
+      "\n" +
+      "class Bystander {\n" +
+      "  function call() : String {\n" +
+      "    return Hub.greet()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/Hub.gs"),
+      new File(srcDir.toFile(), "example/Spoke.gs"),
+      new File(srcDir.toFile(), "example/Bystander.gs")
+    );
+
+    // Full compile -- Hub picks up both Bystander and Spoke as consumers.
+    CompileResult fullResult = compile(allFiles, false);
+    assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
+
+    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterFullCompile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Bystander\": [],\n" +
+      "    \"example.Hub\": [\n" +
+      "      \"example.Bystander\",\n" +
+      "      \"example.Spoke\"\n" +
+      "    ],\n" +
+      "    \"example.Spoke\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After full compile, Hub should list both Bystander and Spoke as consumers",
+      expectedAfterFullCompile, afterFullCompile);
+
+    // Delete Spoke.gs from the source tree.
+    Files.delete(srcDir.resolve("example/Spoke.gs"));
+
+    // Incremental compile: nothing in -changed-types, only Spoke in -removed-types.
+    CompileResult incrementalResult = compileWithDeleted(
+      Collections.emptyList(),                                                // no changed files
+      Arrays.asList(new File(srcDir.toFile(), "example/Spoke.gs")),           // Spoke removed
+      true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
+      incrementalResult.success);
+
+    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Bystander\": [],\n" +
+      "    \"example.Hub\": [\n" +
+      "      \"example.Bystander\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After Spoke is removed, Hub's consumer list must NOT contain Spoke. " +
+      "A deleted type cannot be a live consumer of anything; the entry should " +
+      "be stripped from every producer's value list, not only as a key.",
+      expectedAfterIncremental, afterIncremental);
+  }
+
 
   private static class CompileResult {
     boolean success;
