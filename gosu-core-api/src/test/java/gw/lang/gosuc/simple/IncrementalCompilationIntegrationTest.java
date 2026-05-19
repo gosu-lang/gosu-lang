@@ -132,8 +132,8 @@ public class IncrementalCompilationIntegrationTest {
         Collections.emptyList(), false);
 
     Set<String> toRecompile = manager2.calculateRecompilationSet(
-      Arrays.asList("test.BaseClass"),  // Changed types as FQCNs
-      Collections.emptyList()
+      Set.of("test.BaseClass"),  // Changed types as FQCNs
+      Collections.emptySet()
     );
 
     // 5. Verify results - calculateRecompilationSet returns FQCNs
@@ -170,8 +170,8 @@ public class IncrementalCompilationIntegrationTest {
 
     // Calculate recompilation set when interface is removed
     Set<String> toRecompile = manager2.calculateRecompilationSet(
-      Collections.emptyList(),
-      Arrays.asList("test.IMyInterface")  // Removed types as FQCNs
+      Collections.emptySet(),
+      Set.of("test.IMyInterface")  // Removed types as FQCNs
     );
 
     // Verify - both implementations need recompilation
@@ -200,8 +200,8 @@ public class IncrementalCompilationIntegrationTest {
         Collections.emptyList(), false);
 
     Set<String> toRecompile = manager2.calculateRecompilationSet(
-      Arrays.asList("test.LonelyClass"),  // Changed types as FQCNs
-      Collections.emptyList()
+      Set.of("test.LonelyClass"),  // Changed types as FQCNs
+      Collections.emptySet()
     );
 
     // Only the changed file itself should be recompiled
@@ -284,4 +284,5 @@ public class IncrementalCompilationIntegrationTest {
       throw new RuntimeException(e);
     }
   }
-}
+
+  }
