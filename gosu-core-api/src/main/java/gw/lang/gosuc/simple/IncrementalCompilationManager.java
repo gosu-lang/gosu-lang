@@ -17,6 +17,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -171,10 +173,16 @@ public class IncrementalCompilationManager {
         parentDir.mkdirs();
       }
 
+      // Write to a temp file then atomically rename. A crash mid-write would
+      // otherwise leave the dep file truncated, which loadDependencyFile() silently
+      // treats as "no prior state" and erases the entire historical graph.
+      File tmpFile = new File(dependencyFilePath + ".tmp");
       try (Writer writer = new BufferedWriter(
-          new OutputStreamWriter(new FileOutputStream(depFile), StandardCharsets.UTF_8))) {
+          new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8))) {
         gson.toJson(data, writer);
       }
+      Files.move(tmpFile.toPath(), depFile.toPath(),
+                 StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
       if (verbose) {
         System.out.println("Saved dependency data to: " + dependencyFilePath);
