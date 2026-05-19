@@ -199,7 +199,6 @@ public class IncrementalCompilationManager {
    * @param producer The FQCN of the type being used (e.g., "com.example.Interface")
    * @param consumer The FQCN of the type that uses it (e.g., "com.example.Implementation")
    */
-  // TODO: clean this, this method is only used in tests directly.
   public void recordTypeDependency(String producer, String consumer) {
     // Skip self-references (e.g., builder methods returning 'this')
     if (producer.equals(consumer)) {
@@ -235,8 +234,14 @@ public class IncrementalCompilationManager {
   }
 
   /**
-   * Ensure a type is registered in the dependency file, even if it has no consumers.
-   * This is called for every compiled type to maintain a complete registry.
+   * Mark a type as present in this session's dependency tracking. The type will
+   * appear in the dep file on the next {@link #updateDependencyFile(Set, Set)}
+   * call, even if no consumer relationships were recorded for it.
+   *
+   * <p>This is called for every compiled type to maintain a complete registry.
+   * Note: the in-memory side-effect is on {@code currentUsedBy}, not directly on
+   * {@code typeDependencies}; the entry is persisted only when the session's
+   * tracking is merged via {@code updateDependencyFile}.
    *
    * @param typeFqcn The FQCN of the compiled type
    */
