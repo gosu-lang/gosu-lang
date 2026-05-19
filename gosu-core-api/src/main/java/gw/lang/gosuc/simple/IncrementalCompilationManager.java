@@ -3,6 +3,8 @@ package gw.lang.gosuc.simple;
 import gw.fs.IFile;
 import gw.internal.ext.com.google.gson.Gson;
 import gw.internal.ext.com.google.gson.GsonBuilder;
+import gw.internal.ext.com.google.gson.JsonIOException;
+import gw.internal.ext.com.google.gson.JsonSyntaxException;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 
@@ -18,6 +20,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -60,13 +64,22 @@ public class IncrementalCompilationManager {
   private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
   private final Gson gson;
-  private final List<String> sourceRoots;
+  private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
 
   public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
                                        List<String> localJavaTypes, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
-    this.sourceRoots = sourceRoots != null ? sourceRoots : new ArrayList<>();
+    // Canonicalize each source root: absolute-path + normalize collapses ".",
+    // ".." and resolves relative paths against current working dir, so lookups in
+    // convertSourcePathToFqcn don't depend on caller-side path conventions.
+    Set<Path> roots = new HashSet<>();
+    if (sourceRoots != null) {
+      for (String s : sourceRoots) {
+        roots.add(Paths.get(s).toAbsolutePath().normalize());
+      }
+    }
+    this.sourceRoots = roots;
     this.localJavaTypes = localJavaTypes != null ? new HashSet<>(localJavaTypes) : new HashSet<>();
     this.verbose = verbose;
     this.gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -100,7 +113,11 @@ public class IncrementalCompilationManager {
         System.out.println("Dependency file version mismatch, starting fresh");
       }
       return new HashMap<>();
-    } catch (Exception e) {
+    } catch (IOException | JsonIOException | JsonSyntaxException e) {
+      // IOException: opening/closing the reader (e.g. race with file deletion
+      //              between exists() and FileInputStream construction).
+      // JsonIOException: Gson hit a problem reading from the Reader.
+      // JsonSyntaxException: JSON is malformed / not a valid DependencyData.
       System.err.println("Error loading dependency file: " + e.getMessage());
       return new HashMap<>();
     }
@@ -135,7 +152,7 @@ public class IncrementalCompilationManager {
       String refreshedProducer = entry.getKey();
       Set<String> refreshedConsumers = entry.getValue();
 
-      // If not a common types that are used by every Gosu class...
+      // Skip producers that are common types used by every Gosu class.
       if (!COMMON_TYPES_TO_IGNORE.contains(refreshedProducer)) {
          typeDependencies.computeIfAbsent(refreshedProducer, k -> new HashSet<>())
                   .addAll(refreshedConsumers);
@@ -219,6 +236,14 @@ public class IncrementalCompilationManager {
     String consumerFqcn = convertSourcePathToFqcn(consumerSourcePath);
     if (consumerFqcn != null) {
       recordTypeDependency(producerFqcn, consumerFqcn);
+    } else {
+      // TODO: Dropping the dep silently would mean producerFqcn's future changes wouldn't
+      // trigger recompilation of this consumer. Surface the miss so misconfigured
+      // source roots are visible rather than causing stale incremental builds.
+      // FIND A BETTER FIX.
+      System.err.println("WARN: dropping dependency '" + producerFqcn + "' <- '"
+        + consumerSourcePath + "': consumer path is not under any configured "
+        + "source root. Incremental rebuilds may miss this edge.");
     }
   }
 
@@ -228,7 +253,8 @@ public class IncrementalCompilationManager {
    *
    * @param producerFqcn The FQCN of the producer type
    * @return The consumer set (existing or newly created)
-   *///TODO: inline this function?
+   */
+  // TODO: inline this function?
   private Set<String> getOrCreateConsumerSet(String producerFqcn) {
     return currentUsedBy.computeIfAbsent(producerFqcn, k -> new HashSet<>());
   }
@@ -269,25 +295,29 @@ public class IncrementalCompilationManager {
    * Example: "/tmp/project/src/main/gosu/com/example/MyClass.gs" -> "com.example.MyClass"
    */
   private String convertSourcePathToFqcn(String sourcePath) {
-    String fqcn = sourcePath;
+    try {
+      // Canonicalize the input the same way roots were canonicalized at construction
+      // (toAbsolutePath + normalize) so equality holds regardless of how the caller
+      // spelled the path.
+      Path sourceFilePath = Paths.get(sourcePath).toAbsolutePath().normalize();
 
-    // Avoid loops, make sourceRoots a HashMap
-    // Strip source root prefix to get relative path
-    for (String sourceRoot : sourceRoots) {
-      if (fqcn.startsWith(sourceRoot)) {
-        // Strip the source root and any leading separator
-        fqcn = fqcn.substring(sourceRoot.length());
-        if (fqcn.startsWith("/") || fqcn.startsWith("\\")) {
-          fqcn = fqcn.substring(1);
+      // Walk up the file's parents; the deepest parent that's a source root is the
+      // longest matching root by construction. Hash-set lookup is O(1) per step, so
+      // total work is O(path depth), independent of the number of source roots.
+      for (Path candidate = sourceFilePath.getParent();
+           candidate != null;
+           candidate = candidate.getParent()) {
+        if (sourceRoots.contains(candidate)) {
+          String fqcn = candidate.relativize(sourceFilePath).toString()
+            .replace(File.separatorChar, '.');
+          return stripExtension(fqcn);
         }
-        break;
       }
-    }
-
-    // Convert path separators to dots
-    fqcn = fqcn.replace('/', '.').replace('\\', '.');
-    fqcn = stripExtension(fqcn);
-    return fqcn.isEmpty() ? null : fqcn;
+    } catch (IllegalArgumentException e) {
+      // Catches InvalidPathException (Paths.get) and relativize failures (e.g.
+      // mixed absolute/relative inputs or different filesystem roots on Windows).
+      }
+    return null;
   }
 
   /**
@@ -445,7 +475,7 @@ public class IncrementalCompilationManager {
         toRecompile.add(type);
       }
 
-      // Shouldn't this be guaranteed by construction?
+      // TODO: Shouldn't this be guaranteed by construction?
       // assert typeDependencies.get(type) != null : "Expecting at least an empty set";
       Set<String> consumers = typeDependencies.get(type);
       if(consumers != null) {
@@ -464,18 +494,7 @@ public class IncrementalCompilationManager {
     }
     return toRecompile;
   }
-  
-  /**
-   * Delete output files for deleted source files
-   * Note: In v2 FQCN-based architecture, output file deletion is not implemented.
-   * Stale class files will remain but are harmless.
-   */
-  public void deleteOutputsForDeletedFiles(List<String> deletedFiles, String destDir) {
-    // No-op in v2 architecture - FQCN-based tracking doesn't maintain source→output mapping
-    if (verbose) {
-      System.out.println("deleteOutputsForDeletedFiles: no-op in v2 FQCN-based architecture");
-    }
-  }
+
 
   /**
    * Data structure for JSON serialization only. The in-memory representation
