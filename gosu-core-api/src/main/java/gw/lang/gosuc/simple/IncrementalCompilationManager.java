@@ -507,6 +507,6 @@ public class IncrementalCompilationManager {
    */
   private static class DependencyData {
     String version;
-    Map<String, List<String>> consumers = new HashMap<>();
+    Map<String, List<String>> consumers;
   }
 }
