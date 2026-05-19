@@ -54,7 +54,7 @@ public class IncrementalCompilationManager {
   );
 
   private final String dependencyFilePath;
-  private final Map<String, List<String>> typeDependencies;
+  private final Map<String, Set<String>> typeDependencies;
   private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
   private final Gson gson;
@@ -75,7 +75,7 @@ public class IncrementalCompilationManager {
   /**
    * Load existing dependency data from file
    */
-  private Map<String, List<String>> loadDependencyFile() {
+  private Map<String, Set<String>> loadDependencyFile() {
     File depFile = new File(dependencyFilePath);
     if (!depFile.exists()) {
       if (verbose) {
@@ -88,7 +88,11 @@ public class IncrementalCompilationManager {
         new InputStreamReader(new FileInputStream(depFile), StandardCharsets.UTF_8))) {
       DependencyData data = gson.fromJson(reader, DependencyData.class);
       if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.consumers != null) {
-        return data.consumers;
+        Map<String, Set<String>> consumersSet = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : data.consumers.entrySet()) {
+          consumersSet.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
+        return consumersSet;
       }
       if (verbose) {
         System.out.println("Dependency file version mismatch, starting fresh");
@@ -101,48 +105,60 @@ public class IncrementalCompilationManager {
   }
 
   /**
-   * Save dependency data to file
+   * Apply this session's tracked dependencies ({@code currentUsedBy}) to the in-memory
+   * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
+   * Does NOT write to disk. Callers that need persistence should use
+   * {@link #updateDependencyFile(Set, Set)} instead.
+   *
+   * @param typeFqcnsToCompile FQCNs recompiled in this session
+   * @param removedTypes       FQCNs whose source was deleted
    */
-  public void saveDependencyFile() {
+  private void updateDependencies(Set<String> typeFqcnsToCompile, Set<String> removedTypes) {
+    for (String removedType : removedTypes) {
+      typeDependencies.remove(removedType);
+    }
+
+    // For each old producer, remove consumers that have been modified(recompiled) or removed: we cannot assume they are
+    // still consumers due to source file changes.
+    for (Set<String> consumers : typeDependencies.values()) {
+        consumers.removeAll(typeFqcnsToCompile);
+        consumers.removeAll(removedTypes);
+    }
+
+    // currentUsedBy has refreshed producers each one of them pointing to recomputed consumers resulting from the
+    // recompilation of typeFqcnsToCompile.
+    // For each refreshed producer merge its consumers with the ones of the corresponding old producer so that the old
+    // producer is now up to date.
+    for (Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet()) {
+      String refreshedProducer = entry.getKey();
+      Set<String> refreshedConsumers = entry.getValue();
+
+      // If not a common types that are used by every Gosu class...
+      if (!COMMON_TYPES_TO_IGNORE.contains(refreshedProducer)) {
+         typeDependencies.computeIfAbsent(refreshedProducer, k -> new HashSet<>())
+                  .addAll(refreshedConsumers);
+      }
+    }
+    // Content no longer needed and now stale.
+    currentUsedBy.clear();
+  }
+
+  /**
+   * Reconcile the in-memory dependency graph via {@link #updateDependencies} and
+   * persist the result to disk. Keys and consumer lists are sorted before
+   * serialization for deterministic JSON output.
+   */
+  public void updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes) {
+    updateDependencies(typeFqcnsToCompile, removedTypes);
     try {
-      // Collect the set of types recompiled in this session (the consumers in currentUsedBy).
-      // These are the only files whose dependency contributions may have changed.
-      // TODO: are consumers really recompiled?
-      Set<String> recompiledConsumers = new HashSet<>();
-      for (Set<String> consumers : currentUsedBy.values()) {
-        recompiledConsumers.addAll(consumers);
-      }
-
-      // For each producer whose consumers were refreshed this session, rebuild its consumer list:
-      //   1. Retain consumers that were NOT recompiled (their dep data is unchanged).
-      //   2. Add the new consumers recorded in currentUsedBy for this producer.
-      // This preserves existing consumer relationships for types not compiled this session.
-      for (Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet()) {
-        String typeFqcn = entry.getKey();
-
-        // Skip common types that are used by every Gosu class
-        if (COMMON_TYPES_TO_IGNORE.contains(typeFqcn)) {
-          continue;
-        }
-
-        // Keep consumers from the loaded dep file that were NOT recompiled this session
-        List<String> existing = typeDependencies.getOrDefault(typeFqcn, Collections.emptyList());
-        Set<String> merged = new HashSet<>();
-        for (String c : existing) {
-          if (!recompiledConsumers.contains(c)) {
-            merged.add(c);
-          }
-        }
-        // Add consumers freshly recorded this session
-        merged.addAll(entry.getValue());
-
-        List<String> consumers = new ArrayList<>(merged);
-        Collections.sort(consumers);  // Sort consumer lists for deterministic output
-        typeDependencies.put(typeFqcn, consumers);
-      }
-
       // Sort the map by keys before serialization for deterministic output
-      Map<String, List<String>> sortedConsumers = new TreeMap<>(typeDependencies);
+      Map<String, List<String>> sortedConsumers = new TreeMap<>();
+      for (Map.Entry<String, Set<String>> entry : typeDependencies.entrySet()) {
+        String producer = entry.getKey();
+        List<String> consumers = new ArrayList<>(entry.getValue());
+        Collections.sort(consumers);
+        sortedConsumers.put(producer, consumers);
+      }
 
       DependencyData data = new DependencyData();
       data.version = DEPENDENCY_VERSION;
@@ -167,7 +183,7 @@ public class IncrementalCompilationManager {
       System.err.println("Error saving dependency file: " + e.getMessage());
     }
   }
-  
+
   /**
    * Record a type-level dependency.
    * When consumer uses producer, we record that producer is usedBy consumer.
@@ -378,7 +394,7 @@ public class IncrementalCompilationManager {
       referring to source code changes, not yet reflected on the .class files.
       Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
       to be recompiled.
-      Once the toRecompile files are recompiled,  saveDependencyFile update the dependency file to reflect the modified
+      Once the toRecompile files are recompiled, updateDependencyFile updates the dependency file to reflect the modified
       dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
       TODO: Currently typeDependencies[X] gives us a list types that are consumers of X. We could instead have two list
       instead of one:
@@ -417,8 +433,8 @@ public class IncrementalCompilationManager {
       }
 
       // Shouldn't this be guaranteed by construction?
-      // assert typeDependencies.get(type) != null : "Expecting at least an empty list";
-      List<String> consumers = typeDependencies.get(type);
+      // assert typeDependencies.get(type) != null : "Expecting at least an empty set";
+      Set<String> consumers = typeDependencies.get(type);
       if(consumers != null) {
         for (String consumer : consumers) {
           if (!visited.contains(consumer)) {
@@ -428,15 +444,6 @@ public class IncrementalCompilationManager {
         }
       }
 
-    }
-
-    /*
-      Now that the BFS is complete, retire the removed types from the in-memory
-      graph typeDependencies. The on-disk graph is refreshed by saveDependencyFile() after compile.
-      TODO move this removal in saveDependencyFile().
-    */
-    for (String removedType : removedTypes) {
-      typeDependencies.remove(removedType);
     }
 
     if (verbose) {
@@ -458,13 +465,16 @@ public class IncrementalCompilationManager {
   }
 
   /**
-   * Data structure for JSON serialization.
-   * Simplified flat structure: maps producer type FQCN to list of consumer type FQCNs.
-   * Example: "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]
+   * Data structure for JSON serialization only. The in-memory representation
+   * ({@link #typeDependencies}) is {@code Map<String, Set<String>>}; the
+   * {@code List<String>} here is purely the wire format, used so that consumer
+   * lists can be sorted for deterministic JSON output. Conversion happens in
+   * {@link #loadDependencyFile()} and {@link #updateDependencyFile(Set, Set)}.
+   *
+   * <p>Example: {@code "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]}
    */
   private static class DependencyData {
     String version;
-    // Use HashMap for O(1) puts during compilation; will be sorted before serialization
     Map<String, List<String>> consumers = new HashMap<>();
   }
 }

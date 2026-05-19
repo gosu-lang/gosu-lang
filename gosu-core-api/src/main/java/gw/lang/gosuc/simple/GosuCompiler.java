@@ -165,7 +165,7 @@ public class GosuCompiler implements IGosuCompiler
     boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
     if(!thresholdExceeded )
     {
-      _incrementalManager.saveDependencyFile();
+      _incrementalManager.updateDependencyFile(typeFqcnsToCompile, removedTypes);
     }
     return thresholdExceeded;
   }

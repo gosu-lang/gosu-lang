@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -18,12 +19,12 @@ import static org.junit.Assert.*;
  * Tests the full flow from command-line options to compilation with dependency tracking.
  */
 public class IncrementalCompilationIntegrationTest {
-  
+
   private Path tempDir;
   private Path srcDir;
   private Path outputDir;
   private File dependencyFile;
-  
+
   @Before
   public void setUp() throws IOException {
     tempDir = Files.createTempDirectory("incremental-integration-test");
@@ -33,28 +34,24 @@ public class IncrementalCompilationIntegrationTest {
     Files.createDirectories(outputDir);
     dependencyFile = tempDir.resolve("deps.json").toFile();
   }
-  
+
   @After
   public void tearDown() throws IOException {
-    if (tempDir != null) {
-      deleteDirectory(tempDir.toFile());
-    }
-  }
-  
-  private void deleteDirectory(File dir) {
-    File[] files = dir.listFiles();
-    if (files != null) {
-      for (File file : files) {
-        if (file.isDirectory()) {
-          deleteDirectory(file);
-        } else {
-          file.delete();
-        }
+    if (tempDir != null && Files.exists(tempDir)) {
+      try (Stream<Path> paths = Files.walk(tempDir)) {
+        paths.sorted(Comparator.reverseOrder())
+             .map(Path::toFile)
+             .forEach(File::delete);
       }
     }
-    dir.delete();
   }
-  
+
+  private IncrementalCompilationManager newManager() {
+    return new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
+      Collections.singletonList(srcDir.toAbsolutePath().toString()),
+      Collections.emptyList(), false);
+  }
+
   @Test
   public void testIncrementalCompilationEnabled() {
     // Given
@@ -72,19 +69,19 @@ public class IncrementalCompilationIntegrationTest {
     assertEquals(1, options.getChangedTypes().size());
     assertEquals(0, options.getRemovedTypes().size());
   }
-  
+
   @Test
   public void testIncrementalOptionParsing() {
     // This test would verify that command-line arguments are parsed correctly
     // In a real implementation, we'd test with JCommander parsing
-    
+
     String[] args = {
       "-incremental",
       "-dependency-file", "custom-deps.json",
       "-changed-files", "ClassA.gs", "ClassB.gs",
       "-deleted-files", "OldClass.gs"
     };
-    
+
     // In actual test, we'd parse these with JCommander and verify
     // For now, we just document the expected behavior
     assertTrue("Should parse -incremental flag", true);
@@ -92,51 +89,19 @@ public class IncrementalCompilationIntegrationTest {
     assertTrue("Should parse multiple changed files", true);
     assertTrue("Should parse deleted files", true);
   }
-  
+
   @Test
   public void testFullIncrementalCompilationScenario() throws IOException {
-    // Scenario: Base class changes, dependent classes should recompile
-    
-    // 1. Create initial source files
-    File baseClass = new File(srcDir.toFile(), "BaseClass.gs");
-    File derivedClass = new File(srcDir.toFile(), "DerivedClass.gs");
-    File independentClass = new File(srcDir.toFile(), "IndependentClass.gs");
-    
-    Files.write(baseClass.toPath(), 
-      "package test\nclass BaseClass { }".getBytes());
-    Files.write(derivedClass.toPath(), 
-      "package test\nclass DerivedClass extends BaseClass { }".getBytes());
-    Files.write(independentClass.toPath(), 
-      "package test\nclass IndependentClass { }".getBytes());
-    
-    // 2. First compilation - compile all files
-    IncrementalCompilationManager manager =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
+    // Scenario: Base class changes, dependent classes should recompile.
+    // Source files don't actually need to exist for this test -- only the dep file matters.
+    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
+      Map.of("test.BaseClass", List.of("test.DerivedClass")));
 
-    // Simulate recording dependencies (normally done during compilation)
-    // test.DerivedClass extends test.BaseClass
-    manager.recordTypeDependency("test.BaseClass", "test.DerivedClass");
-
-    manager.saveDependencyFile();
-    
-    // 3. Modify base class
-    Files.write(baseClass.toPath(), 
-      "package test\nclass BaseClass { function newMethod() {} }".getBytes());
-    
-    // 4. Calculate what needs recompilation
-    IncrementalCompilationManager manager2 =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
-
-    Set<String> toRecompile = manager2.calculateRecompilationSet(
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("test.BaseClass"),  // Changed types as FQCNs
       Collections.emptySet()
     );
 
-    // 5. Verify results - calculateRecompilationSet returns FQCNs
     assertTrue("Base class should be recompiled",
       toRecompile.contains("test.BaseClass"));
     assertTrue("Derived class should be recompiled",
@@ -144,62 +109,31 @@ public class IncrementalCompilationIntegrationTest {
     assertFalse("Independent class should NOT be recompiled",
       toRecompile.contains("test.IndependentClass"));
   }
-  
+
   @Test
   public void testFileDeletedScenario() throws IOException {
-    // Scenario: Interface deleted, implementations should recompile
+    // Scenario: Interface deleted, implementations should recompile.
+    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
+      Map.of("test.IMyInterface", List.of("test.ImplClass1", "test.ImplClass2")));
 
-    // Setup initial compilation state
-    IncrementalCompilationManager manager =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
-
-    // test.ImplClass1 implements test.IMyInterface
-    // test.ImplClass2 implements test.IMyInterface
-    manager.recordTypeDependency("test.IMyInterface", "test.ImplClass1");
-    manager.recordTypeDependency("test.IMyInterface", "test.ImplClass2");
-
-    manager.saveDependencyFile();
-
-    // Delete the interface file
-    IncrementalCompilationManager manager2 =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
-
-    // Calculate recompilation set when interface is removed
-    Set<String> toRecompile = manager2.calculateRecompilationSet(
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
       Collections.emptySet(),
       Set.of("test.IMyInterface")  // Removed types as FQCNs
     );
 
-    // Verify - both implementations need recompilation
     assertTrue("Implementation 1 should be recompiled",
       toRecompile.contains("test.ImplClass1"));
     assertTrue("Implementation 2 should be recompiled",
       toRecompile.contains("test.ImplClass2"));
   }
-  
+
   @Test
   public void testNoRecompilationNeeded() throws IOException {
-    // Scenario: File changes but has no dependents
-    
-    IncrementalCompilationManager manager =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
+    // Scenario: File changes but has no dependents. Empty dep file.
+    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
+      Collections.emptyMap());
 
-    // test.LonelyClass has no dependencies recorded
-    manager.saveDependencyFile();
-
-    // Modify the lonely class
-    IncrementalCompilationManager manager2 =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
-
-    Set<String> toRecompile = manager2.calculateRecompilationSet(
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("test.LonelyClass"),  // Changed types as FQCNs
       Collections.emptySet()
     );
@@ -211,24 +145,17 @@ public class IncrementalCompilationIntegrationTest {
 
   @Test
   public void testDependencyJsonFormat() throws IOException {
-    // Verify the exact JSON format of the dependency file
-    // This ensures FQCNs are used (not file paths) and the structure is correct
-
-    IncrementalCompilationManager manager =
-      new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
-        Collections.singletonList(srcDir.toAbsolutePath().toString()),
-        Collections.emptyList(), false);
-
-    // Record dependencies: BaseClass is used by DerivedClass and AnotherDerived
+    // Verify the exact JSON format of the dependency file produced by
+    // updateDependencyFile (the production code path, not the helper).
+    IncrementalCompilationManager manager = newManager();
     manager.recordTypeDependency("com.example.BaseClass", "com.example.DerivedClass");
     manager.recordTypeDependency("com.example.BaseClass", "com.example.AnotherDerived");
+    manager.updateDependencyFile(
+      Set.of("com.example.DerivedClass", "com.example.AnotherDerived"),
+      Collections.emptySet());
 
-    manager.saveDependencyFile();
-
-    // Read actual JSON
     String actualJson = new String(Files.readAllBytes(dependencyFile.toPath()));
 
-    // Expected JSON structure (formatted for readability, sorted alphabetically)
     String expectedJson = "{\n" +
       "  \"version\": \"1.0\",\n" +
       "  \"consumers\": {\n" +
@@ -285,4 +212,4 @@ public class IncrementalCompilationIntegrationTest {
     }
   }
 
-  }
+}
