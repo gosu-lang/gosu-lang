@@ -2575,6 +2575,92 @@ public class IncrementalCompilationEndToEndIT {
       expectedAfterIncremental, afterIncremental);
   }
 
+  @Test
+  public void testLeafClassDropsDanglingConsumerEntry() throws Exception {
+    // Scenario:
+    //   P.gs       -- producer with a static method
+    //   LeafX.gs   -- initially calls P.greet(); after edit, returns a literal
+    //
+    // After initial compile: P -> [LeafX].
+    // After incremental compile of LeafX (no outgoing tracked edges):
+    //   P -> []      (LeafX stripped from P's list)
+
+
+    createSourceFile("example/P.gs",
+      "package example\n" +
+      "\n" +
+      "class P {\n" +
+      "  static function greet() : String {\n" +
+      "    return \"hi from P\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    createSourceFile("example/LeafX.gs",
+      "package example\n" +
+      "\n" +
+      "class LeafX {\n" +
+      "  function call() : String {\n" +
+      "    return P.greet()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    List<File> allFiles = Arrays.asList(
+      new File(srcDir.toFile(), "example/P.gs"),
+      new File(srcDir.toFile(), "example/LeafX.gs")
+    );
+
+    // Full compile -- P picks up LeafX as a consumer.
+    CompileResult fullResult = compile(allFiles, false);
+    assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
+
+    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterFullCompile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.LeafX\": [],\n" +
+      "    \"example.P\": [\n" +
+      "      \"example.LeafX\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After full compile, P should list LeafX as its sole consumer",
+      expectedAfterFullCompile, afterFullCompile);
+
+    // Edit LeafX: drop the P reference; new body only returns a literal so
+    // there are no outgoing tracked edges.
+    Files.write(srcDir.resolve("example/LeafX.gs"), (
+      "package example\n" +
+      "\n" +
+      "class LeafX {\n" +
+      "  function call() : String {\n" +
+      "    return \"no longer references P\"\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incrementalResult = compile(
+      Arrays.asList(new File(srcDir.toFile(), "example/LeafX.gs")), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
+      incrementalResult.success);
+
+    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.LeafX\": [],\n" +
+      "    \"example.P\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After LeafX dropped its reference to P, P's consumer list must NOT " +
+      "contain LeafX.",
+      expectedAfterIncremental, afterIncremental);
+  }
+
 
   private static class CompileResult {
     boolean success;
