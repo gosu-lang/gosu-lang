@@ -79,92 +79,95 @@ public class GosuCompiler implements IGosuCompiler
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
-    // Initialize incremental compilation if enabled
-    if( options.isIncremental() )
-    {
-      // Extract source roots from sourcepath for FQCN computation
-      List<String> sourceRoots = new ArrayList<>();
-      String sourcepath = options.getSourcepath();
-      if (sourcepath != null && !sourcepath.isEmpty()) {
-        for (StringTokenizer tok = new StringTokenizer(sourcepath, File.pathSeparator); tok.hasMoreTokens(); ) {
-          sourceRoots.add(tok.nextToken());
-        }
-      }
 
-      _incrementalManager = new IncrementalCompilationManager(
-        options.getDependencyFile(),
-        sourceRoots,
-        options.getLocalJavaTypes(),
-        options.isVerbose() );
-
-      // Get changed and removed type FQCNs from CLI
-      List<String> changedTypes = options.getChangedTypes();
-      List<String> removedTypes = options.getRemovedTypes();
-
-      // Calculate types that need recompilation (returns FQCNs)
-      Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
-        changedTypes, removedTypes );
-
-      // Delete .class files for removed types (prevents stale class files)
-      if( !removedTypes.isEmpty() )
-      {
-        String destDir = options.getDestDir();
-        if( destDir != null && !destDir.isEmpty() )
-        {
-          for( String removedType : removedTypes )
-          {
-            // TODO: In gradle-pplugin we delete as well: deleteClassFiles(fqcn, getDestinationDirectory().get().getAsFile());
-            // Is this necessary?
-            deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
-          }
-        }
-      }
-
-      if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
-      {
-        System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
-        for( String fqcn : typeFqcnsToCompile )
-        {
-          System.out.println( "  - " + fqcn );
-        }
-      }
-
-      // Convert type FQCNs to source file paths
-      List<String> allSourceFiles = getSourceFiles( options );
-      List<String> sourceFiles = new ArrayList<>();
-
-      // Match FQCNs to source files
-      for( String fqcn : typeFqcnsToCompile )
-      {
-        String matchedFile = findSourceFileForFqcn( fqcn, allSourceFiles );
-        if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
-        {
-          sourceFiles.add( matchedFile );
-        } // TODO: If matchedFile == null -> ERROR?
-        else if( options.isVerbose() && matchedFile == null )
-        {
-          System.out.println( "Warning: Could not find source file for type " + fqcn );
-        }
-      }
-      
-      // If still no files to compile in incremental mode, this is likely the first compilation
-      // Compile all source files to build initial dependency data
-      if( sourceFiles.isEmpty() )
-      {
-        sourceFiles = allSourceFiles;
-        if( options.isVerbose() )
-        {
-          System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
-        }
-      }
-
-      return compileFilteredSources( sourceFiles, options, driver );
-    }
-    else
+    if( !options.isIncremental() )
     {
       // Normal compilation - compile all sources
       return compileFilteredSources( getSourceFiles( options ), options, driver );
     }
+
+    // Extract source roots from sourcepath for FQCN computation
+    List<String> sourceRoots = new ArrayList<>();
+    String sourcepath = options.getSourcepath();
+    if (sourcepath != null && !sourcepath.isEmpty()) {
+      for (StringTokenizer tok = new StringTokenizer(sourcepath, File.pathSeparator); tok.hasMoreTokens(); ) {
+        sourceRoots.add(tok.nextToken());
+      }
+    }
+
+    _incrementalManager = new IncrementalCompilationManager(
+      options.getDependencyFile(),
+      sourceRoots,
+      options.getLocalJavaTypes(),
+      options.isVerbose() );
+
+    // Get changed and removed type FQCNs from CLI
+    Set<String> changedTypes = options.getChangedTypes();
+    Set<String> removedTypes = options.getRemovedTypes();
+
+    // Calculate types that need recompilation (returns FQCNs)
+    Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
+      changedTypes, removedTypes );
+
+    // Delete .class files for removed types (prevents stale class files)
+    if( !removedTypes.isEmpty() )
+    {
+      String destDir = options.getDestDir();
+      if( destDir != null && !destDir.isEmpty() )
+      {
+        for( String removedType : removedTypes )
+        {
+          // TODO: In gradle-pplugin we delete as well: deleteClassFiles(fqcn, getDestinationDirectory().get().getAsFile());
+          // Is this necessary?
+          deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
+        }
+      }
+    }
+
+    if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
+    {
+      System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
+      for( String fqcn : typeFqcnsToCompile )
+      {
+        System.out.println( "  - " + fqcn );
+      }
+    }
+
+    // Convert type FQCNs to source file paths
+    List<String> allSourceFiles = getSourceFiles( options );
+    List<String> sourceFiles = new ArrayList<>();
+
+    // Match FQCNs to source files
+    for( String fqcn : typeFqcnsToCompile )
+    {
+      String matchedFile = findSourceFileForFqcn( fqcn, allSourceFiles );
+      if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
+      {
+        sourceFiles.add( matchedFile );
+      } // TODO: If matchedFile == null -> ERROR?
+      else if( options.isVerbose() && matchedFile == null )
+      {
+        System.out.println( "Warning: Could not find source file for type " + fqcn );
+      }
+    }
+
+    // If still no files to compile in incremental mode, this is likely the first compilation
+    // Compile all source files to build initial dependency data
+    if( sourceFiles.isEmpty() )
+    {
+      sourceFiles = allSourceFiles;
+      if( options.isVerbose() )
+      {
+        System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
+      }
+    }
+
+    boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
+    if(!thresholdExceeded )
+    {
+      _incrementalManager.saveDependencyFile();
+    }
+    return thresholdExceeded;
   }
   
   private boolean compileFilteredSources( List<String> sourceFiles, CommandLineOptions options, ICompilerDriver driver )
@@ -200,13 +203,7 @@ public class GosuCompiler implements IGosuCompiler
         thresholdExceeded = true;
       }
     }
-    
-    // Save dependency information if incremental compilation is enabled and the error/warning threshold was not exceeded
-    if( _incrementalManager != null && !thresholdExceeded )
-    {
-      _incrementalManager.saveDependencyFile();
-    }
-    
+
     return thresholdExceeded;
   }
 
@@ -562,6 +559,7 @@ public class GosuCompiler implements IGosuCompiler
     // Ensure this type is registered in dependency file, even if it has no dependencies
     // For inner classes, register only the outermost enclosing type since inner classes
     // are always compiled together with their outer class
+    // TODO what happens if I have two classes in a .gs file? Which one is the ourtermost and will I miss the other?
     IType typeToRegister = getOutermostEnclosingType(gsClass);
     String typeFqcn = typeToRegister.getName();
     _incrementalManager.ensureTypeRegistered(typeFqcn);

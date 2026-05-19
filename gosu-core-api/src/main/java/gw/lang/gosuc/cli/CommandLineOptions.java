@@ -3,9 +3,7 @@ package gw.lang.gosuc.cli;
 import gw.internal.ext.com.beust.jcommander.Parameter;
 import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CommandLineOptions {
 
@@ -138,12 +136,12 @@ public class CommandLineOptions {
   @Parameter(names = "-local-java-types", description = "FQCNs of same-module Java types for selective tracking (path-separator delimited)")
   private String _localJavaTypes;
 
-  public List<String> getChangedTypes() {
-    if (_changedTypes == null || _changedTypes.trim().isEmpty()) {
-      return Collections.emptyList();
+  private Set<String> extractTypesFromStr(String typeList) {
+    if (typeList == null || typeList.trim().isEmpty()) {
+      return Collections.emptySet();
     }
-    List<String> types = new ArrayList<>();
-    for (String type : _changedTypes.split(java.io.File.pathSeparator)) {
+    HashSet<String> types = new HashSet<>();
+    for (String type : typeList.split(java.io.File.pathSeparator)) {
       String trimmed = type.trim();
       if (!trimmed.isEmpty()) {
         types.add(trimmed);
@@ -152,18 +150,12 @@ public class CommandLineOptions {
     return types;
   }
 
-  public List<String> getRemovedTypes() {
-    if (_removedTypes == null || _removedTypes.trim().isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<String> types = new ArrayList<>();
-    for (String type : _removedTypes.split(java.io.File.pathSeparator)) {
-      String trimmed = type.trim();
-      if (!trimmed.isEmpty()) {
-        types.add(trimmed);
-      }
-    }
-    return types;
+  public Set<String> getChangedTypes() {
+    return extractTypesFromStr(_changedTypes);
+  }
+
+  public Set<String> getRemovedTypes() {
+    return extractTypesFromStr(_removedTypes);
   }
 
   public List<String> getLocalJavaTypes() {

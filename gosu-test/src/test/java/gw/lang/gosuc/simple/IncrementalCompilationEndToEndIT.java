@@ -2052,6 +2052,110 @@ public class IncrementalCompilationEndToEndIT {
     System.out.println("✓ Static field initializer dependency tracking works correctly");
   }
 
+  /**
+   * Verifies that calculateRecompilationSet cascades transitively.
+   * A change to ClassA must recompile ClassB (direct consumer of ClassA)
+   * and ClassC (indirect consumer through ClassB.transitive()).
+   */
+  @Test
+  public void testTransitiveDependencyChainCascadesThroughDirectConsumer() throws Exception {
+    // Step 1: Create the chain ClassA <- ClassB <- ClassC, every edge on the
+    // public API. ClassB.transitive() returns ClassA.value()+10; ClassC.entry()
+    // returns ClassB.transitive()+100.
+    File classA = createSourceFile("example/ClassA.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassA {\n" +
+      "  static function value() : int {\n" +
+      "    return 1\n" +
+      "  }\n" +
+      "}"
+    );
+
+    File classB = createSourceFile("example/ClassB.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassB {\n" +
+      "  // Re-exposes ClassA.value() on ClassB's public API\n" +
+      "  static function transitive() : int {\n" +
+      "    return ClassA.value() + 10\n" +
+      "  }\n" +
+      "}"
+    );
+
+    File classC = createSourceFile("example/ClassC.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassC {\n" +
+      "  static function entry() : int {\n" +
+      "    return ClassB.transitive() + 100\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Initial full compilation
+    List<File> allFiles = Arrays.asList(classA, classB, classC);
+    CompileResult initialResult = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + initialResult.error,
+      initialResult.success);
+    assertTrue("Dependency file should be created", dependencyFile.exists());
+
+    // Step 3: Verify both edges of the chain are recorded in the dep file —
+    // this is what the BFS in calculateRecompilationSet walks.
+    String depFileContent = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.ClassA\": [\n" +
+      "      \"example.ClassB\"\n" +
+      "    ],\n" +
+      "    \"example.ClassB\": [\n" +
+      "      \"example.ClassC\"\n" +
+      "    ],\n" +
+      "    \"example.ClassC\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file should record the full ClassA -> ClassB -> ClassC chain",
+      expectedDepFile, depFileContent);
+
+    // Step 4: Record initial timestamps
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 5: Modify ClassA (head of the chain)
+    Files.write(classA.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class ClassA {\n" +
+      "  static function value() : int {\n" +
+      "    return 2  // changed\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 6: Incremental compile, passing only ClassA as the changed input
+    CompileResult incrementalResult = compile(Arrays.asList(classA), true);
+    assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
+      incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 7: ClassA, ClassB AND ClassC are all recompiled — the BFS walks
+    //   {ClassA} -> {ClassB} -> {ClassC}
+    assertTrue("ClassA should be recompiled (head of the chain)",
+      isNewer(afterTimestamps.get("ClassA.class"),
+        initialTimestamps.get("ClassA.class")));
+    assertTrue("ClassB should be recompiled (direct consumer of ClassA)",
+      isNewer(afterTimestamps.get("ClassB.class"),
+        initialTimestamps.get("ClassB.class")));
+    assertTrue("ClassC should be recompiled (transitive consumer through ClassB)",
+      isNewer(afterTimestamps.get("ClassC.class"),
+        initialTimestamps.get("ClassC.class")));
+  }
+
   @Test
   public void testParameterisedInterfaceDepFileKeyIsRawType() throws Exception {
     // Regression test: when a class declares `implements SomeInterface<T>`, the dep file
@@ -2122,7 +2226,17 @@ public class IncrementalCompilationEndToEndIT {
     assertEquals("Dep file must use raw type names (no angle brackets) and track both consumer relationships",
       expectedDeps, actualDeps);
 
-    // Incremental: changing IResult must trigger recompilation of ResultBase
+    // Incremental: changing IResult must trigger recompilation of ResultBase (direct
+    // consumer) and StringResult (transitive consumer through ResultBase).
+    //
+    // The mutation below adds a `static final var FOO : int = 10` to IResult. The
+    // intent is to force IResult's bytecode to change and exercise the transitive
+    // cascade (IResult -> ResultBase -> StringResult) through calculateRecompilationSet's
+    // BFS — not to validate any constant-inlining semantics. Using `static final` is
+    // safe here because Gosu's tracker has no separate inlineable-constants subsystem
+    // (unlike Gradle's Java incremental compiler, which hashes static-final constants
+    // and treats their changes specially): a constant change cascades through the
+    // same producer -> consumer graph as any other declaration change.
     Map<String, FileTime> initialTimestamps = recordTimestamps();
     Thread.sleep(1100);
 
@@ -2130,8 +2244,8 @@ public class IncrementalCompilationEndToEndIT {
       "package example\n" +
       "\n" +
       "interface IResult<T> {\n" +
+      "  static final var FOO : int = 10\n" +
       "  property get Value() : T\n" +
-      "  property get HasValue() : boolean\n" +
       "}"
     ).getBytes());
 
@@ -2141,8 +2255,10 @@ public class IncrementalCompilationEndToEndIT {
       incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
-    assertTrue("ResultBase should be recompiled when IResult changes",
+    assertTrue("ResultBase should be recompiled when IResult changes (direct consumer)",
       isNewer(afterTimestamps.get("ResultBase.class"), initialTimestamps.get("ResultBase.class")));
+    assertTrue("StringResult should be recompiled when IResult changes (transitive consumer through ResultBase)",
+      isNewer(afterTimestamps.get("StringResult.class"), initialTimestamps.get("StringResult.class")));
   }
 
   @Test
@@ -2263,6 +2379,7 @@ public class IncrementalCompilationEndToEndIT {
       "After incremental compile of TypeA only, TypeB and TypeC must still appear as consumers of SharedProducer",
       expectedAfterIncremental, afterIncremental);
   }
+
 
   private static class CompileResult {
     boolean success;

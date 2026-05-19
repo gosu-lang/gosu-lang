@@ -69,8 +69,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Producer"),
-      Collections.emptyList()
+      Set.of("com.example.Producer"),
+      Collections.emptySet()
     );
 
     assertTrue("Consumer should be recompiled when Producer changes",
@@ -91,8 +91,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Collections.emptyList(),
-      Arrays.asList("com.example.Interface")
+      Collections.emptySet(),
+      Set.of("com.example.Interface")
     );
 
     assertTrue("Implementation should be recompiled when Interface is removed",
@@ -113,8 +113,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.C"),
-      Collections.emptyList()
+      Set.of("com.example.C"),
+      Collections.emptySet()
     );
 
     // Only C itself should be recompiled
@@ -145,8 +145,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Producer"),
-      Collections.emptyList()
+      Set.of("com.example.Producer"),
+      Collections.emptySet()
     );
 
     // MyRule should be recompiled when Producer changes
@@ -177,8 +177,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Producer"),
-      Collections.emptyList()
+      Set.of("com.example.Producer"),
+      Collections.emptySet()
     );
 
     // MyRuleSet should be recompiled when Producer changes
@@ -209,8 +209,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("entity.Document"),
-      Collections.emptyList()
+      Set.of("entity.Document"),
+      Collections.emptySet()
     );
 
     // AsyncDocumentStorage should be recompiled when entity.Document changes
@@ -238,8 +238,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Builder"),
-      Collections.emptyList()
+      Set.of("com.example.Builder"),
+      Collections.emptySet()
     );
 
     // Both Builder (changed type) and Consumer (dependent) should be recompiled
@@ -268,8 +268,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.SimplePOGO"),
-      Collections.emptyList()
+      Set.of("com.example.SimplePOGO"),
+      Collections.emptySet()
     );
 
     // SimplePOGO itself should be recompiled (it exists in the dependency file)
@@ -293,8 +293,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Builder"),
-      Collections.emptyList()
+      Set.of("com.example.Builder"),
+      Collections.emptySet()
     );
 
     // Builder should exist in dependency file but with no external consumers
@@ -325,8 +325,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.OuterClass"),
-      Collections.emptyList()
+      Set.of("com.example.OuterClass"),
+      Collections.emptySet()
     );
 
     // Consumer should be recompiled when OuterClass changes
@@ -354,8 +354,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.Outer"),
-      Collections.emptyList()
+      Set.of("com.example.Outer"),
+      Collections.emptySet()
     );
 
     assertTrue("Consumer should be recompiled when Outer changes",
@@ -378,8 +378,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.RegionsUIHelper"),
-      Collections.emptyList()
+      Set.of("com.example.RegionsUIHelper"),
+      Collections.emptySet()
     );
 
     assertTrue("Consumer should be recompiled when RegionsUIHelper changes",
@@ -402,8 +402,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("com.example.OuterClass"),
-      Collections.emptyList()
+      Set.of("com.example.OuterClass"),
+      Collections.emptySet()
     );
 
     assertTrue("Consumer should be recompiled when OuterClass changes",
@@ -425,8 +425,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("gw.plugin.geocode.impl.PendingResult"),
-      Collections.emptyList()
+      Set.of("gw.plugin.geocode.impl.PendingResult"),
+      Collections.emptySet()
     );
     assertTrue("PendingResultBase should be recompiled when PendingResult changes",
       toRecompile.contains("gw.plugin.geocode.impl.PendingResultBase"));
@@ -447,8 +447,8 @@ public class IncrementalCompilationManagerTest {
       false);
 
     Set<String> toRecompile = newManager.calculateRecompilationSet(
-      Arrays.asList("entity.Document", "com.guidewire._generated.entity.DocumentInternal"),
-      Collections.emptyList()
+      Set.of("entity.Document", "com.guidewire._generated.entity.DocumentInternal"),
+      Collections.emptySet()
     );
 
     assertFalse("Java type DocumentInternal should NOT be in the recompile set",
@@ -483,7 +483,7 @@ public class IncrementalCompilationManagerTest {
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
       Collections.emptyList(), false);
     Set<String> toRecompile = verifyManager.calculateRecompilationSet(
-      Arrays.asList("com.example.SharedProducer"), Collections.emptyList());
+      Set.of("com.example.SharedProducer"), Collections.emptySet());
     assertTrue("TypeA should be recompiled", toRecompile.contains("com.example.TypeA"));
     assertTrue("TypeB should still be recompiled (consumer relationship must be preserved)",
       toRecompile.contains("com.example.TypeB"));

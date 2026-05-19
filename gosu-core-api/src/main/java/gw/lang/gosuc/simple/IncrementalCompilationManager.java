@@ -17,6 +17,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Queue;
 import java.util.TreeMap;
 
 /**
@@ -42,6 +44,7 @@ public class IncrementalCompilationManager {
    * These types are part of the core runtime and unlikely to change. If they do change,
    * classpath ABI changes would trigger a full recompilation anyway.
    */
+  //TODO  Should we skip these in trackDependencies()?
   private static final Set<String> COMMON_TYPES_TO_IGNORE = Set.of(
     "_proxy_.gw.lang.reflect.gs.IGosuObject",  // Internal Gosu proxy interface
     "gw.lang.reflect.IType",                    // Gosu reflection API
@@ -96,7 +99,7 @@ public class IncrementalCompilationManager {
       return new HashMap<>();
     }
   }
-  
+
   /**
    * Save dependency data to file
    */
@@ -104,6 +107,7 @@ public class IncrementalCompilationManager {
     try {
       // Collect the set of types recompiled in this session (the consumers in currentUsedBy).
       // These are the only files whose dependency contributions may have changed.
+      // TODO: are consumers really recompiled?
       Set<String> recompiledConsumers = new HashSet<>();
       for (Set<String> consumers : currentUsedBy.values()) {
         recompiledConsumers.addAll(consumers);
@@ -171,6 +175,7 @@ public class IncrementalCompilationManager {
    * @param producer The FQCN of the type being used (e.g., "com.example.Interface")
    * @param consumer The FQCN of the type that uses it (e.g., "com.example.Implementation")
    */
+  // TODO: clean this, this method is only used in tests directly.
   public void recordTypeDependency(String producer, String consumer) {
     // Skip self-references (e.g., builder methods returning 'this')
     if (producer.equals(consumer)) {
@@ -200,7 +205,7 @@ public class IncrementalCompilationManager {
    *
    * @param producerFqcn The FQCN of the producer type
    * @return The consumer set (existing or newly created)
-   */
+   *///TODO: inline this function?
   private Set<String> getOrCreateConsumerSet(String producerFqcn) {
     return currentUsedBy.computeIfAbsent(producerFqcn, k -> new HashSet<>());
   }
@@ -329,49 +334,114 @@ public class IncrementalCompilationManager {
     return true;
   }
 
+
   /**
-   * Calculate which types need recompilation based on changed/removed types.
+   * Compute the set of Gosu types that need to be recompiled given a set of changed
+   * and removed types.
    *
-   * @param changedTypes List of changed type FQCNs (Java + Gosu)
-   * @param removedTypes List of removed type FQCNs (Java + Gosu)
-   * @return Set of type FQCNs that need recompilation (Gosu types only)
+   * Walks the reverse-dependency graph ({@code typeDependencies}) breadth-first starting
+   * from the union of changed and removed types, collecting every Gosu consumer reachable
+   * along the way. Java types in {@code localJavaTypes} are walked through to find their
+   * Gosu consumers but excluded from the result (gosuc cannot recompile Java sources).
+   * Removed types are excluded from the result themselves (their source files are gone),
+   * though their downstream consumers are not.
+   *
+   * @param changedTypes types whose source was modified; the changed types themselves
+   *                     (if Gosu) plus all transitive Gosu consumers are returned
+   * @param removedTypes types whose source was deleted; the removed types themselves
+   *                     are NOT returned, but their transitive Gosu consumers are
+   * @return the FQCNs of Gosu types that need recompilation
    */
-  public Set<String> calculateRecompilationSet(List<String> changedTypes, List<String> removedTypes) {
+  public Set<String> calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes) {
     Set<String> toRecompile = new HashSet<>();
+    Set<String> visited = new HashSet<>();
+    Queue<String> worklist = new ArrayDeque<>();
 
-    // Add Gosu types that changed (Java types are already compiled, we only recompile their consumers)
+    // Seed the worklist with the union of changed and removed types.
     for (String changedType : changedTypes) {
-      // Only add if it's a Gosu type (not a known local Java type) - gosuc cannot compile Java files
-      if (!localJavaTypes.contains(changedType)) {
-        toRecompile.add(changedType);
+      if (!visited.contains(changedType)) {
+        visited.add(changedType);
+        worklist.add(changedType);
       }
     }
-
-    // Find consumers of changed types
-    for (String changedType : changedTypes) {
-      List<String> consumers = typeDependencies.get(changedType);
-      if (consumers != null) {
-        toRecompile.addAll(consumers);
-        if (verbose) {
-          System.out.println("Type " + changedType + " is used by: " + consumers);
-        }
-      }
-    }
-
-    // Find consumers of removed types
     for (String removedType : removedTypes) {
-      List<String> consumers = typeDependencies.get(removedType);
-      if (consumers != null) {
-        toRecompile.addAll(consumers);
-        if (verbose) {
-          System.out.println("Removed type " + removedType + " was used by: " + consumers);
+      if (!visited.contains(removedType)) {
+        visited.add(removedType);
+        worklist.add(removedType);
+      }
+    }
+
+    /*
+      Note that the typeDependencies[X] give you all the types that consume/refer to X: if X is modified all types in
+      typeDependencies[X] must be recompiled.
+      This map reflects the status of the previously compiled .class files. The changedTypes/removedTypes are
+      referring to source code changes, not yet reflected on the .class files.
+      Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
+      to be recompiled.
+      Once the toRecompile files are recompiled,  saveDependencyFile update the dependency file to reflect the modified
+      dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
+      TODO: Currently typeDependencies[X] gives us a list types that are consumers of X. We could instead have two list
+      instead of one:
+      1. privateConsumers: list of types that are consumers of X but they refer to X only through private members or
+         constructs that are never part of the consumer ABI (method bodies).
+      2. publicConsumers: list of types that are consumers of X but they refer to X from a non-private "location".
+      With this information we can improve the BFS below, we do need to add to toRecompile all privateConsumers of X
+      (i.e. typeDependencies[X].privateConsumers, let's call them Y and Z), but we can skip adding Y and Z consumers (i.e.
+      typeDependencies[Y] and typeDependencies[Z]) to the worklist: Y and Z reference X in private locations (ex.
+      method body) so Y and Z consumers cannot see this dependency and so they cannot be affected.
+
+      OR BETTER, if we had a hash of the ABI of X, we must recompile X if its source changed, but we can avoid
+      recompiling any direct/indirect consumer of X (typeDependencies[X]) if the ABI hash stayed the same after the
+      recompilation. Using a hash we don't need to keep two lists of privateConsumers and publicConsumers.
+      Note that we need to:
+        - build the infra to hash the ABI. We can augment the gosu backend to record the ABI of the compiling type as
+          a data structure to be then normalized (sorted) and emitted as string to be hashed.
+        - compile as we execute "calculateRecompilationSet" so that we can obtain the new hashes. So instead of building
+          a set of files to be compiled we compile on the fly.
+          CHECK:
+          For this to work before running 'calculateRecompilationSet'
+          we need to compile all changedTypes in one batch. This is needed so that mutual dependencies among changedTypes
+          resolve correctly via sources and not via stale .class files. Subsequent BFS iterations can compile their
+          worklist type individually, since by then every type that type references has either been recompiled this
+          build or is an unchanged class on disk.
+          This might not be needed (gosuc does not look at .class files) as long as all sources can be found while
+          compiling one source file. Add a test to virify this.
+    */
+    while(!worklist.isEmpty()) {
+      String type = worklist.remove();
+
+      // Only add if it's a Gosu type (not a known local Java type, java types are already compiled) and
+      // it is not a removed type (no file to compile).
+      if (!localJavaTypes.contains(type) && !removedTypes.contains(type)) {
+        toRecompile.add(type);
+      }
+
+      // Shouldn't this be guaranteed by construction?
+      // assert typeDependencies.get(type) != null : "Expecting at least an empty list";
+      List<String> consumers = typeDependencies.get(type);
+      if(consumers != null) {
+        for (String consumer : consumers) {
+          if (!visited.contains(consumer)) {
+            visited.add(consumer);
+            worklist.add(consumer);
+          }
         }
       }
 
-      // Remove from dependency tracking
+    }
+
+    /*
+      Now that the BFS is complete, retire the removed types from the in-memory
+      graph typeDependencies. The on-disk graph is refreshed by saveDependencyFile() after compile.
+      TODO move this removal in saveDependencyFile().
+    */
+    for (String removedType : removedTypes) {
       typeDependencies.remove(removedType);
     }
 
+    if (verbose) {
+        System.out.println("Recompiling: " + toRecompile);
+    }
     return toRecompile;
   }
   
