@@ -368,6 +368,49 @@ public class IncrementalCompilationManagerTest {
       toRecompile.contains("com.example.TypeC"));
   }
 
+  @Test
+  public void testNestedSourceRootsResolveLongestPrefix() throws IOException {
+    Path outerRoot = tempDir.resolve("outer");
+    Path innerRoot = outerRoot.resolve("inner");
+    Path innerFile = innerRoot.resolve("com/example/MyClass.gs");
+    Files.createDirectories(innerFile.getParent());
+    Files.createFile(innerFile);
+
+    // Configure the manager with BOTH roots, deliberately listing the shallower
+    // root first so any naive "iterate in declaration order" would pick the
+    // wrong one.
+    IncrementalCompilationManager manager = new IncrementalCompilationManager(
+      dependencyFile.getAbsolutePath(),
+      Arrays.asList(
+        outerRoot.toAbsolutePath().toString(),    // shallow root, declared first
+        innerRoot.toAbsolutePath().toString()     // deeper root, the correct match
+      ),
+      Collections.emptyList(), false);
+
+    manager.recordTypeDependencyFromSourcePath(
+      innerFile.toAbsolutePath().toString(),
+      "example.Producer"
+    );
+    manager.updateDependencyFile(
+      Set.of("com.example.MyClass"), Collections.emptySet());
+
+    // Reload and verify which FQCN was recorded as the consumer of Producer.
+    // The dep file's BFS only knows FQCNs, so we use calculateRecompilationSet
+    // as an observable proxy.
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
+      Set.of("example.Producer"), Collections.emptySet());
+
+    // Longest-prefix match against the deeper root: outer/inner/ strips to
+    // com/example/MyClass.gs -> com.example.MyClass.
+    // If the shallow root won, the FQCN would be inner.com.example.MyClass.
+    assertTrue("Longest-prefix match should produce 'com.example.MyClass'. " +
+      "Recompile set: " + toRecompile,
+      toRecompile.contains("com.example.MyClass"));
+    assertFalse("FQCN should not include the 'inner' segment that would come from " +
+      "a shallow-root match. Recompile set: " + toRecompile,
+      toRecompile.contains("inner.com.example.MyClass"));
+  }
+
   /**
    * VERIFICATION TEST: Verify that external Gosu types from JARs have jar: URI scheme paths.
    * This test validates our assumption for the shouldTrackGosuType() implementation.
