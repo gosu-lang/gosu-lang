@@ -490,10 +490,6 @@ public class IncrementalCompilationEndToEndIT {
     assertFalse("Enhancement .class should be deleted from output", Files.exists(enhancementClassFile));
     assertFalse("Enhancement .gsx source should be deleted from output", Files.exists(enhancementSourceFile));
 
-    // Step 9: Implementation files should still exist (compilation failed but wasn't deleted)
-    assertTrue("Implementation .class should still exist", Files.exists(implClassFile));
-    assertTrue("Implementation .gs should still exist", Files.exists(implSourceFile));
-
     System.out.println("✓ Source file deletion works correctly - both .class and source files removed");
   }
 
@@ -2659,6 +2655,123 @@ public class IncrementalCompilationEndToEndIT {
       "After LeafX dropped its reference to P, P's consumer list must NOT " +
       "contain LeafX.",
       expectedAfterIncremental, afterIncremental);
+  }
+
+  @Test
+  public void testStaleInnerClassNotDeletedAfterRemoval() throws Exception {
+    // Scenario:
+    //   Outer.gs initially contains an inner class Inner.
+    //   After initial compile: example/Outer.class + example/Outer$Inner.class.
+    //   Edit Outer.gs to REMOVE the inner class.
+    //   After incremental compile of Outer.gs:
+    //     only example/Outer.class on disk.
+
+
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"inner\" }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(outerFile), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path outerClassFile = outputDir.resolve("example/Outer.class");
+    Path innerClassFile = outputDir.resolve("example/Outer$Inner.class");
+    assertTrue("precondition: Outer.class should exist after initial compile",
+      Files.exists(outerClassFile));
+    assertTrue("precondition: Outer$Inner.class should exist after initial compile",
+      Files.exists(innerClassFile));
+
+    Thread.sleep(1100);
+
+    // Modify Outer.gs to REMOVE the inner class entirely.
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  function outer() : String { return \"outer with no inner\" }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    // Outer.class is rewritten (sanity).
+    assertTrue("Outer.class should still exist after incremental compile",
+      Files.exists(outerClassFile));
+
+    assertFalse(
+      "Outer$Inner.class should be deleted when the inner class is removed from Outer.gs.",
+      Files.exists(innerClassFile));
+  }
+
+  @Test
+  public void testSourceFilePresentInOutputAfterFullAndIncrementalCompile() throws Exception {
+    // gosuc copies Gosu source files into the output directory alongside their
+    // .class files (the deleteClassFile path also deletes the source copy --
+    // see testSourceFileDeletionOnTypeRemoval). This test pins the inverse
+    // invariant: for sources that ARE compiled (initially and after modification),
+    // the source copy in the output dir must be present and reflect the latest
+    // content.
+
+    String initialBody =
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function greet() : String { return \"initial\" }\n" +
+      "}";
+    File myType = createSourceFile("example/MyType.gs", initialBody);
+
+    // Full compile -- the source should land in the output dir alongside .class.
+    CompileResult initial = compile(Arrays.asList(myType), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path classInOutput = outputDir.resolve("example/MyType.class");
+    Path sourceInOutput = outputDir.resolve("example/MyType.gs");
+
+    assertTrue("After full compile, MyType.class should exist in output",
+      Files.exists(classInOutput));
+    assertTrue("After full compile, MyType.gs source copy should exist in output",
+      Files.exists(sourceInOutput));
+    assertEquals(
+      "After full compile, the source copy in output should match the source on disk",
+      initialBody,
+      new String(Files.readAllBytes(sourceInOutput), StandardCharsets.UTF_8));
+
+    Thread.sleep(1100);
+
+    // Modify the source.
+    String modifiedBody =
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function greet() : String { return \"modified\" }\n" +
+      "  function newMethod() : int { return 42 }\n" +
+      "}";
+    Files.write(myType.toPath(), modifiedBody.getBytes());
+
+    // Incremental compile -- source copy must remain (and reflect new content).
+    CompileResult incr = compile(Arrays.asList(myType), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("After incremental compile, MyType.class should still exist in output",
+      Files.exists(classInOutput));
+    assertTrue(
+      "After incremental compile, MyType.gs source copy must still exist in output. " +
+      "If this fails, the recompile path deleted the source copy without re-copying " +
+      "it",
+      Files.exists(sourceInOutput));
+    assertEquals(
+      "After incremental compile, the source copy in output should reflect the " +
+      "modified content (not the original).",
+      modifiedBody,
+      new String(Files.readAllBytes(sourceInOutput), StandardCharsets.UTF_8));
   }
 
 

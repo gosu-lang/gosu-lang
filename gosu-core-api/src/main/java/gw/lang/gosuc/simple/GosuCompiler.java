@@ -109,20 +109,12 @@ public class GosuCompiler implements IGosuCompiler
     Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
       changedTypes, removedTypes );
 
-    // Delete .class files for removed types (prevents stale class files)
-    if( !removedTypes.isEmpty() )
-    {
-      String destDir = options.getDestDir();
-      if( destDir != null && !destDir.isEmpty() )
-      {
-        for( String removedType : removedTypes )
-        {
-          // TODO: In gradle-pplugin we delete as well: deleteClassFiles(fqcn, getDestinationDirectory().get().getAsFile());
-          // Is this necessary?
-          deleteClassFile( removedType, new File( destDir ), options.isVerbose() );
-        }
-      }
-    }
+    // Prevents stale class/source files.
+    Set<String> toDelete = new HashSet<>(removedTypes);
+    toDelete.addAll(typeFqcnsToCompile);
+    // TODO: Non-transactional: deletion happens before the compiler runs. If compile then fails, the deleted
+    // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
+    deleteClassAndSourceFiles(toDelete, options.getDestDir(), options.isVerbose());
 
     if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
     {
@@ -420,14 +412,45 @@ public class GosuCompiler implements IGosuCompiler
   }
 
   /**
-   * Delete .class files for a removed type, including inner/anonymous classes.
-   * This prevents stale class files from remaining in the output directory.
+   * Delete each type's outputs from {@code destDir}: the main {@code <fqcn>.class},
+   * all inner / anonymous outputs ({@code <fqcn>$*.class}), and the source-file
+   * copy (any known Gosu extension).
    *
-   * @param fqcn The fully-qualified class name of the removed type
+   * <p>Called before incremental compile for both removed types (cleanup) and
+   * about-to-be-recompiled types -- the latter is what keeps auxiliary outputs
+   * from going stale. A modified source whose new version emits fewer inner /
+   * block classes than before would otherwise leave the old ones orphaned,
+   * since the compiler only writes (not deletes) outputs. See
+   * {@link #deleteClassFile(String, File, boolean)} for the per-FQCN details.
+   *
+   * <p>No-op if {@code fqcns} is empty or {@code destDir} is null / blank.
+   *
+   * @param fqcns    FQCNs whose outputs should be deleted
+   * @param destDir  output directory (e.g. {@code build/classes/gosu/main})
+   * @param verbose  if true, log each deletion
+   */
+  private void deleteClassAndSourceFiles(Set<String> fqcns, String destDir, boolean verbose )
+  {
+    if( !fqcns.isEmpty() && destDir != null && !destDir.isEmpty())
+    {
+      File dest = new File( destDir );
+      for( String fqcn : fqcns )
+      {
+        deleteClassFile( fqcn, dest, verbose );
+        deleteSourceFile(fqcn, dest, verbose);
+      }
+    }
+  }
+
+
+  /**
+   * Delete the .class file and any inner/anonymous outputs for the given type.
+   *
+   * @param fqcn The fully-qualified class name of the type to clean up
    * @param outputDir The output directory containing compiled .class files
    * @param verbose Whether to log deletion operations
    */
-  private void deleteClassFile( String fqcn, File outputDir, boolean verbose )
+  private void deleteClassFile(String fqcn, File outputDir, boolean verbose )
   {
     // Convert FQCN to file path: com.example.Foo -> com/example/Foo.class
     String relativePath = fqcn.replace( '.', File.separatorChar );
@@ -488,9 +511,6 @@ public class GosuCompiler implements IGosuCompiler
         }
       }
     }
-
-    // Delete source files for all known Gosu extensions
-    deleteSourceFiles(fqcn, outputDir, verbose);
   }
 
   /**
@@ -505,7 +525,7 @@ public class GosuCompiler implements IGosuCompiler
    * @param outputDir The output directory containing source files
    * @param verbose Whether to log deletion operations
    */
-  private void deleteSourceFiles(String fqcn, File outputDir, boolean verbose) {
+  private void deleteSourceFile(String fqcn, File outputDir, boolean verbose) {
     // Use official list from GosuClassTypeLoader: .gs, .gsx, .gsp, .gst, .gr, .grs
     String[] extensions = gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS;
 
