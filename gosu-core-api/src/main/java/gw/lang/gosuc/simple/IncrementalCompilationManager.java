@@ -45,20 +45,6 @@ public class IncrementalCompilationManager {
 
   private static final String DEPENDENCY_VERSION = "1.0";  // Still in alpha, keep at 1.x
 
-  /**
-   * Common types that are used by every Gosu class and can be safely ignored in dependency tracking.
-   * These types are part of the core runtime and unlikely to change. If they do change,
-   * classpath ABI changes would trigger a full recompilation anyway.
-   */
-  //TODO  Should we skip these in trackDependencies()?
-  private static final Set<String> COMMON_TYPES_TO_IGNORE = Set.of(
-    "_proxy_.gw.lang.reflect.gs.IGosuObject",  // Internal Gosu proxy interface
-    "gw.lang.reflect.IType",                    // Gosu reflection API
-    "java.lang.Object",                         // Base class of everything
-    "java.lang.Class<java.lang.Object>",        // Reflection class
-    "java.lang.String"                          // Used everywhere, very stable API
-  );
-
   private final String dependencyFilePath;
   private final Map<String, Set<String>> typeDependencies;
   private final Map<String, Set<String>> currentUsedBy;
@@ -152,11 +138,7 @@ public class IncrementalCompilationManager {
       String refreshedProducer = entry.getKey();
       Set<String> refreshedConsumers = entry.getValue();
 
-      // Skip producers that are common types used by every Gosu class.
-      if (!COMMON_TYPES_TO_IGNORE.contains(refreshedProducer)) {
-         typeDependencies.computeIfAbsent(refreshedProducer, k -> new HashSet<>())
-                  .addAll(refreshedConsumers);
-      }
+      typeDependencies.computeIfAbsent(refreshedProducer, k -> new HashSet<>()).addAll(refreshedConsumers);
     }
     // Content no longer needed and now stale.
     currentUsedBy.clear();
@@ -290,9 +272,12 @@ public class IncrementalCompilationManager {
   }
 
   /**
-   * Convert a Gosu source file path to FQCN.
+   * Convert a Gosu source file path to FQCN. The sourcePath must start from 'sourceRoots'.
    * Strips the source root prefix and converts the relative path to a package-qualified name.
    * Example: "/tmp/project/src/main/gosu/com/example/MyClass.gs" -> "com.example.MyClass"
+   *
+   * @param sourcePath a Gosu source file path originating from 'sourceRoots'.
+   * @return the corresponding FQCN, if any, null otherwise.
    */
   private String convertSourcePathToFqcn(String sourcePath) {
     try {
@@ -328,11 +313,6 @@ public class IncrementalCompilationManager {
    * @return true if the type should be tracked, false otherwise
    */
   public boolean shouldTrackJavaType(String javaTypeFqcn) {
-    // If no whitelist provided, track everything (backward compatible)
-    if (localJavaTypes.isEmpty()) {
-      return true;
-    }
-
     // Only track if in the local Java types whitelist
     return localJavaTypes.contains(javaTypeFqcn);
   }
@@ -340,9 +320,10 @@ public class IncrementalCompilationManager {
   /**
    * Determine if a Gosu type should be tracked in the dependency graph.
    *
-   * Auto-detects based on source file URI scheme:
-   * - Local types: Filesystem paths (e.g., /home/user/project/src/main/gosu/MyClass.gs)
-   * - External types: JAR paths with jar: scheme (e.g., jar:file:///.../lib.jar!/MyClass.gs)
+   * A type is considered local iff its source file lives under one of the
+   * configured source roots. JAR-packaged Gosu types (whatever URI/path
+   * format the runtime presents them as) are filtered because their paths
+   * don't resolve to a source-root-relative FQCN.
    *
    * Note: Gosu packages source files into JARs (unconventional), so external types
    * have source files too, but with jar: URI scheme instead of filesystem paths.
@@ -363,24 +344,11 @@ public class IncrementalCompilationManager {
       return false;
     }
 
-    // Check if source file is from a JAR
-    // Local sources: /path/to/project/src/main/gosu/com/example/MyClass.gs
-    // External sources can be:
-    //   - jar:file:///.gradle/caches/.../lib.jar!/com/example/MyClass.gs (URI scheme)
-    //   - /path/to/repository/.../lib.jar/com/example/MyClass.gs (Unix)
-    //   - C:\path\to\repository\...\lib.jar\com\example\MyClass.gs (Windows)
-    String sourceFilePath = sourceFiles[0].getPath().getPathString();
-
-    // Check for JAR paths - jar: URI scheme or .jar followed by path separator
-    boolean isFromJar = sourceFilePath.startsWith("jar:") ||
-                        sourceFilePath.contains(".jar/") ||
-                        sourceFilePath.contains(".jar\\") ||
-                        sourceFilePath.contains(".jar!");
-
-    if (isFromJar) {
+     String sourceFilePath = sourceFiles[0].getPath().getPathString();
+    if (convertSourcePathToFqcn(sourceFilePath) == null) {
       if (verbose) {
         System.out.println("Gosu type " + gosuTypeFqcn +
-                          " is from JAR (" + sourceFilePath + "), skipping");
+                " is not under any configured source root (" + sourceFilePath + "), skipping");
       }
       return false;
     }

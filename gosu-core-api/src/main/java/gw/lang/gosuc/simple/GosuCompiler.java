@@ -557,15 +557,54 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
-  // TODO: Should this method keep track of private dependencies? In a BFS we could stop earlier
   /*
-  **Why BFS?** Because we need to follow the chain:
-- `ClassA` changed (has new method)
-- `ClassB` uses `ClassA` publicly → needs recompilation
-- `ClassC` uses `ClassB` publicly → needs recompilation
-- `ClassD` uses `ClassB` privately → needs recompilation but stops here
-- `ClassE` uses `ClassD` → does NOT need recompilation (private boundary)
-   */
+     Recording strategy.
+
+     Walks gsClass's immediate features (supertype, interfaces, fields,
+     methods, uses statements, AST elements) and records, for each, the
+     types they reference. trackTypeDependency then unpacks each type
+     expression -- array components and parameterized type arguments --
+     and the AST visitor descends into the whole class statement subtree.
+     Both descents are DFS-shaped.
+
+     Compound type unpacking, concretely. For a field declared
+
+         var foo : List<Map<String, Foo>>
+
+     the recorded edges (all with gsClass as the consumer) are:
+
+         List<Map<String, Foo>>  ->  gsClass
+         Map<String, Foo>        ->  gsClass
+         String                  ->  gsClass
+         Foo                     ->  gsClass
+
+     Each component is a real dependency: changing the name of any one
+     of them would invalidate gsClass's bytecode (the generic-signature
+     attribute references each by name), so each gets its own edge.
+
+     What is NOT done here: following class-to-class chains. Suppose
+     gsClass declares
+
+         var x : A
+
+     and A's own source (compiled separately, in A.gs) contains
+
+         var y : B
+
+     We record gsClass -> A here, but NOT gsClass -> B. B is A's
+     internal business; gsClass doesn't see it from its own source.
+     The edge B -> A was recorded when A was compiled, in that
+     separate invocation of trackDependencies(A, ...). If B later
+     changes, the inverse-graph BFS in
+     IncrementalCompilationManager.calculateRecompilationSet reaches
+     gsClass transitively via the graph it has already built:
+     B's consumers include A, and A's consumers include gsClass.
+
+     The single-hop discipline at the class level keeps the per-compile
+     work bounded. The transitive cascade is the BFS's job, driven by
+     the edges recorded across all prior compiles, not by re-walking
+     class hierarchies at edge-recording time.
+  */
   private void trackDependencies( IGosuClass gsClass, File sourceFile )
   {
     if( _incrementalManager == null )
@@ -863,8 +902,9 @@ public class GosuCompiler implements IGosuCompiler
         // Record: sourcePath (consumer) depends on producerFqcn (Java type)
         _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
       }
-
-      return;  // Don't recurse into Java type internals
+      // Don't recurse into Java compound-types java.util.List<MyGosuType>.
+      // MyGosuType will be found by trackDependenciesFromAST.
+      return;
     }
     // Track Gosu-to-Gosu type dependencies
     else if( type instanceof IGosuClass )

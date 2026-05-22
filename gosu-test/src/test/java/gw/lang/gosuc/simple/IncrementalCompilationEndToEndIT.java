@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.internal.ext.org.objectweb.asm.tree.AnnotationNode;
+import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
+
 import static org.junit.Assert.*;
 
 /**
@@ -674,7 +678,7 @@ public class IncrementalCompilationEndToEndIT {
         if (!result.success) {
           result.error = errStream.toString() + outStream.toString();
         }
-        
+
         // Count compiled files from output
         String output = outStream.toString();
         if (incremental && output.contains("Incremental compilation: recompiling")) {
@@ -2772,6 +2776,678 @@ public class IncrementalCompilationEndToEndIT {
       "modified content (not the original).",
       modifiedBody,
       new String(Files.readAllBytes(sourceInOutput), StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void testJavaJreTypeNotRecordedInDepGraph() throws Exception {
+    // Pins that Java types outside the project's javaClassesDir whitelist are
+    // not recorded as dep-graph edges. With no -local-java-types passed here,
+    // localJavaTypes is empty and shouldTrackJavaType returns false for every
+    // Java type — including java.lang.String, which is referenced four times
+    // in the consumer below.
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _name : String = \"world\"\n" +
+      "\n" +
+      "  static function greet(input : String) : String {\n" +
+      "    return \"Hello, \" + input\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult result = compile(Arrays.asList(consumer), false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+    assertTrue("Dependency file should exist after compile", dependencyFile.exists());
+
+    String depFileContents = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+
+    assertFalse(
+      "java.lang.String must not appear in the dep graph. It is a JRE type, " +
+      "not a local-project Java type, and edges to it would never be queried " +
+      "by the incremental BFS. Dep file was:\n" + depFileContents,
+      depFileContents.contains("java.lang.String"));
+  }
+
+  @Test
+  public void testGosuTypeNotFromSrcRootsNotRecordedInDepGraph() throws Exception {
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "uses gw.util.AutoMap\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  function processMap(m : AutoMap<String, String>) : String {\n" +
+      "    return \"result\"\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult result = compile(Arrays.asList(consumer), false);
+    assertTrue("Initial compilation should succeed: " + result.error, result.success);
+    assertTrue("Dependency file should exist after compile", dependencyFile.exists());
+
+    String depFileContents = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+
+    assertFalse(
+      "gw.util.AutoMap must not appear in the dep graph. It is a Gosu type " +
+      "defined in gosu-core-api, not a local source file. Dep file was:\n" + depFileContents,
+      depFileContents.contains("gw.util.AutoMap"));
+  }
+
+  @Test
+  public void testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange() throws Exception {
+    // Pins whether trackTypeDependency walks type parameters of parameterized
+    // Java types. A Gosu class with a field of type List<MyType>, where
+    // MyType is a local Gosu type, must be recompiled when MyType changes.
+
+    File myType = createSourceFile("example/MyType.gs",
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "uses java.util.List\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _items : List<MyType> = null\n" +
+      "}"
+    );
+
+    // Initial compile of both.
+    CompileResult initial = compile(Arrays.asList(myType, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path myTypeClass = outputDir.resolve("example/MyType.class");
+    assertTrue("precondition: Consumer.class should exist after initial compile",
+      Files.exists(consumerClass));
+    assertTrue("precondition: MyType.class should exist after initial compile",
+      Files.exists(myTypeClass));
+
+    String actualDepsInitial = new String(
+            Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+            "{\n" +
+                    "  \"version\": \"1.0\",\n" +
+                    "  \"consumers\": {\n" +
+                    "    \"example.Consumer\": [],\n" +
+                    "    \"example.MyType\": [\n" +
+                    "      \"example.Consumer\"\n" +
+                    "    ]\n" +
+                    "  }\n" +
+                    "}";
+    assertEquals(
+            "Dep file after initial compile should record MyType -> Consumer.",
+            expectedDeps, actualDepsInitial);
+
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
+
+    Thread.sleep(1100);
+
+    // Modify MyType: add a new public method (ABI change).
+    Files.write(myType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "  function age() : int { return 42 }\n" +
+      "}"
+    ).getBytes());
+
+    // Incremental compile: only MyType is signaled as changed.
+    CompileResult incr = compile(Arrays.asList(myType), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    // Sanity: MyType itself recompiled.
+    FileTime newMyTypeTime = getFileModificationTime(myTypeClass);
+    assertTrue("MyType.class should have been rewritten by the incremental compile",
+      newMyTypeTime.toMillis() > initialMyTypeTime.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when MyType changes (its field is " +
+      "List<MyType>).",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+
+    String actualDeps = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.MyType\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep graph after incremental compile should record MyType -> Consumer.",
+      expectedDeps, actualDeps);
+  }
+
+  @Test
+  public void testGosuFieldOfArrayOfGosuTypeRecompilesOnComponentChange() throws Exception {
+    // Sibling to testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange,
+    // but with an array form rather than a parameterized form.
+    File myType = createSourceFile("example/MyType.gs",
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _items : MyType[] = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(myType, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.MyType\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record MyType -> Consumer for the " +
+      "array-typed field.",
+      expectedDeps, actualDepsInitial);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path myTypeClass = outputDir.resolve("example/MyType.class");
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
+
+    Thread.sleep(1100);
+
+    Files.write(myType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "  function age() : int { return 42 }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(myType), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("MyType.class should have been rewritten by the incremental compile",
+      getFileModificationTime(myTypeClass).toMillis() > initialMyTypeTime.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when MyType changes (its field is " +
+      "MyType[]).",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+  }
+
+  @Test
+  public void testGosuFieldOfParameterizedGosuTypeRecompilesOnTypeParamChange() throws Exception {
+    // Sibling to testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange,
+    // but the parameterized container is a local Gosu class rather than a
+    // Java one.
+
+    File container = createSourceFile("example/Container.gs",
+      "package example\n" +
+      "\n" +
+      "class Container<T> {\n" +
+      "  var _value : T = null\n" +
+      "}"
+    );
+
+    File myType = createSourceFile("example/MyType.gs",
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _holder : Container<MyType> = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(container, myType, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Container\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.MyType\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record both Container -> Consumer " +
+      "(outer parameterized type) and MyType -> Consumer (its type parameter).",
+      expectedDeps, actualDepsInitial);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path myTypeClass = outputDir.resolve("example/MyType.class");
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
+
+    Thread.sleep(1100);
+
+    Files.write(myType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "  function age() : int { return 42 }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(myType), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("MyType.class should have been rewritten by the incremental compile",
+      getFileModificationTime(myTypeClass).toMillis() > initialMyTypeTime.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when MyType changes (its field is " +
+      "Container<MyType>, where Container is a local Gosu generic class).",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+  }
+
+  @Test
+  public void testClassLiteralInsideAnnotationArgValueRecompilesConsumer() throws Exception {
+    File schemaAnno = createSourceFile("example/Schema.gs",
+      "package example\n" +
+      "uses java.lang.annotation.ElementType\n" +
+      "uses java.lang.annotation.Target\n" +
+      "uses java.lang.annotation.Retention\n" +
+      "uses java.lang.annotation.RetentionPolicy\n" +
+      "\n" +
+      "@Target({ElementType.TYPE})\n" +
+      "@Retention(RetentionPolicy.RUNTIME)\n" +
+      "annotation Schema {\n" +
+      "  function type() : Class\n" +
+      "}"
+    );
+
+    File myType = createSourceFile("example/MyType.gs",
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    // Consumer's ONLY reference to MyType is the class literal inside the
+    // annotation argument. No `uses`, no body usage, no field/method type.
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "@Schema(MyType)\n" +
+      "class Consumer {\n" +
+      "  function id() : String { return \"consumer\" }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(schemaAnno, myType, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.MyType\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Schema\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record both Schema -> Consumer " +
+      "(the annotation type itself) and MyType -> Consumer (the class literal " +
+      "inside the annotation argument value).",
+      expectedDeps, actualDepsInitial);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path myTypeClass = outputDir.resolve("example/MyType.class");
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
+
+    Thread.sleep(1100);
+
+    Files.write(myType.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class MyType {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "  function age() : int { return 42 }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(myType), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("MyType.class should have been rewritten by the incremental compile",
+      getFileModificationTime(myTypeClass).toMillis() > initialMyTypeTime.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when MyType changes -- MyType is " +
+      "referenced as a class literal inside @Schema(type = MyType).",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+  }
+
+  @Test
+  public void testConstantInAnnotationArgValueDoesNotMaskDependency() throws Exception {
+    // Pins that compile-time constants are NOT inlined too early during
+    // dep tracking. The annotation argument is the arithmetic expression
+    // `A.FOO + 12` that references a `final` field on class A. If Gosu's
+    // parser/codegen folds this to a literal value (24) BEFORE the AST
+    // walker records dependencies, the edge A -> Consumer is lost.
+    //
+    // Behaviorally: when A.FOO's value is changed, the dep graph must
+    // still trigger Consumer's recompile so its annotation gets the new
+    // folded value. If A.FOO is inlined too early, Consumer is not
+    // recompiled and its bytecode keeps the old folded value baked in.
+
+    File a = createSourceFile("example/A.gs",
+      "package example\n" +
+      "\n" +
+      "class A {\n" +
+      "  public static final var FOO : int = 12\n" +
+      "}"
+    );
+
+    File myAnno = createSourceFile("example/MyAnno.gs",
+      "package example\n" +
+      "uses java.lang.annotation.ElementType\n" +
+      "uses java.lang.annotation.Target\n" +
+      "uses java.lang.annotation.Retention\n" +
+      "uses java.lang.annotation.RetentionPolicy\n" +
+      "\n" +
+      "@Target({ElementType.TYPE})\n" +
+      "@Retention(RetentionPolicy.RUNTIME)\n" +
+      "annotation MyAnno {\n" +
+      "  function value() : int\n" +
+      "}"
+    );
+
+    // Consumer's ONLY reference to A is via the member access A.FOO inside
+    // the annotation expression. No `uses A`, no field/method of type A.
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "@MyAnno(A.FOO + 12)\n" +
+      "class Consumer {\n" +
+      "  function id() : String { return \"consumer\" }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(a, myAnno, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.A\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.MyAnno\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record A -> Consumer via the " +
+      "member access A.FOO inside the annotation arg expression. If the A edge " +
+      "is missing, Gosu is folding the constant expression A.FOO + 12 to a " +
+      "literal before the AST walker records the dependency -- Consumer's " +
+      "annotation bytecode would then have the stale folded value baked in " +
+      "whenever A.FOO changes.",
+      expectedDeps, actualDepsInitial);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path aClass = outputDir.resolve("example/A.class");
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialAClass = getFileModificationTime(aClass);
+
+    // Bytecode check (initial state): confirm gosuc folded A.FOO + 12 = 24
+    // into Consumer's @MyAnno value. JVM annotation members can only hold
+    // constants, so seeing a literal 24 here proves the folder ran on the
+    // expression at compile time.
+    int valueInitial = readIntAnnotationMember(consumerClass, "Lexample/MyAnno;", "value");
+    assertEquals(
+      "Consumer.class's @MyAnno(A.FOO + 12) should be folded to 12 + 12 = 24 " +
+      "after the initial compile.",
+      24, valueInitial);
+
+    Thread.sleep(1100);
+
+    Files.write(a.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class A {\n" +
+      "  public static final var FOO : int = 99\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(a), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("A.class should have been rewritten by the incremental compile",
+      getFileModificationTime(aClass).toMillis() > initialAClass.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when A.FOO's value changes as we don't track ABI changes yet (a " +
+              "change in FOO value should not be a ABI change, so this test will fail whe we implement ABI checking)",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+
+    // Bytecode check: confirm that gosuc folds the constant expression
+    // `A.FOO + 12` at compile time. The folded value is what lives in
+    // Consumer.class's @MyAnno annotation attribute -- there is no runtime
+    // re-evaluation, the bytecode just contains an int literal.
+    //
+    // This is what makes the dep edge A -> Consumer load-bearing: without
+    // it, A.FOO changing from 12 to 99 would leave Consumer's bytecode
+    // permanently stuck on the stale folded value 24 (since Consumer's
+    // source itself never changes). With the edge in place, Consumer
+    // recompiles, the folder re-runs with FOO = 99, and 111 lands in the
+    // annotation.
+    //
+    // After the incremental compile above, FOO = 99, so the freshly
+    // folded value must be 99 + 12 = 111. If this assertion fails with
+    // value = 24, Consumer wasn't actually recompiled (or was recompiled
+    // before reading the new A.gs, which would be a different bug).
+    int valueAfter = readIntAnnotationMember(consumerClass, "Lexample/MyAnno;", "value");
+    assertEquals(
+      "Consumer.class's @MyAnno(value = A.FOO + 12) should be folded to 99 + 12 = 111 " +
+      "after the incremental recompile picks up A.FOO = 99. " +
+      "Seeing the folded literal in the bytecode (not the unfolded member-access AST) " +
+      "confirms gosuc performs constant folding for annotation arg expressions.",
+      111, valueAfter);
+  }
+
+  /**
+   * Reads {@code classFile} as JVM bytecode and returns the integer value of
+   * a runtime-visible annotation member.
+   *
+   * @param classFile  path to a {@code .class} file on disk
+   * @param annoDesc   bytecode descriptor of the annotation type, e.g.
+   *                   {@code "Lexample/MyAnno;"}
+   * @param memberName the annotation member whose value to extract, e.g.
+   *                   {@code "value"}
+   * @return the int value the compiler emitted into the annotation
+   * @throws AssertionError if the annotation or member isn't present, or if
+   *                        the member's value isn't an {@code Integer}
+   */
+  private static int readIntAnnotationMember(Path classFile, String annoDesc, String memberName)
+      throws IOException {
+    byte[] classBytes = Files.readAllBytes(classFile);
+    ClassReader reader = new ClassReader(classBytes);
+    ClassNode classNode = new ClassNode();
+    reader.accept(classNode, 0);
+
+    if (classNode.visibleAnnotations != null) {
+      for (AnnotationNode anno : classNode.visibleAnnotations) {
+        if (annoDesc.equals(anno.desc) && anno.values != null) {
+          // anno.values is a flat alternating list: name1, value1, name2, value2, ...
+          for (int i = 0; i + 1 < anno.values.size(); i += 2) {
+            Object name = anno.values.get(i);
+            if (memberName.equals(name)) {
+              Object value = anno.values.get(i + 1);
+              if (!(value instanceof Integer)) {
+                throw new AssertionError(
+                  "Annotation member " + annoDesc + "." + memberName +
+                  " in " + classFile + " has non-Integer value: " +
+                  (value == null ? "null" : value.getClass().getName() + " = " + value));
+              }
+              return (Integer) value;
+            }
+          }
+        }
+      }
+    }
+    throw new AssertionError(
+      "Could not find annotation " + annoDesc + " with member '" + memberName +
+      "' on class file " + classFile);
+  }
+
+  @Test
+  public void testTopLevelAnnotationChangeDoesNotOverRecompileUnrelatedSources() throws Exception {
+    File myAnno = createSourceFile("example/MyAnno.gs",
+      "package example\n" +
+      "uses java.lang.annotation.ElementType\n" +
+      "uses java.lang.annotation.Target\n" +
+      "uses java.lang.annotation.Retention\n" +
+      "uses java.lang.annotation.RetentionPolicy\n" +
+      "\n" +
+      "@Target({ElementType.TYPE})\n" +
+      "@Retention(RetentionPolicy.RUNTIME)\n" +
+      "annotation MyAnno {\n" +
+      "  function tag() : String\n" +
+      "}"
+    );
+
+    File annotatedConsumer = createSourceFile("example/AnnotatedConsumer.gs",
+      "package example\n" +
+      "\n" +
+      "@MyAnno(\"v1\")\n" +
+      "class AnnotatedConsumer {\n" +
+      "  function id() : String { return \"annotated\" }\n" +
+      "}"
+    );
+
+    // UnrelatedConsumer does NOT reference MyAnno or AnnotatedConsumer.
+    File unrelatedConsumer = createSourceFile("example/UnrelatedConsumer.gs",
+      "package example\n" +
+      "\n" +
+      "class UnrelatedConsumer {\n" +
+      "  function id() : String { return \"unrelated\" }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(myAnno, annotatedConsumer, unrelatedConsumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.AnnotatedConsumer\": [],\n" +
+      "    \"example.MyAnno\": [\n" +
+      "      \"example.AnnotatedConsumer\"\n" +
+      "    ],\n" +
+      "    \"example.UnrelatedConsumer\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record only MyAnno -> " +
+      "AnnotatedConsumer. UnrelatedConsumer must not appear as a consumer " +
+      "of MyAnno (it has no annotation reference).",
+      expectedDeps, actualDepsInitial);
+
+    Path annotatedClass = outputDir.resolve("example/AnnotatedConsumer.class");
+    Path unrelatedClass = outputDir.resolve("example/UnrelatedConsumer.class");
+    Path annoClass = outputDir.resolve("example/MyAnno.class");
+    FileTime initialAnnotatedTime = getFileModificationTime(annotatedClass);
+    FileTime initialUnrelatedTime = getFileModificationTime(unrelatedClass);
+    FileTime initialAnnoTime = getFileModificationTime(annoClass);
+
+    Thread.sleep(1100);
+
+    // Modify MyAnno: rename attribute (ABI change).
+    Files.write(myAnno.toPath(), (
+      "package example\n" +
+      "uses java.lang.annotation.ElementType\n" +
+      "uses java.lang.annotation.Target\n" +
+      "uses java.lang.annotation.Retention\n" +
+      "uses java.lang.annotation.RetentionPolicy\n" +
+      "\n" +
+      "@Target({ElementType.TYPE})\n" +
+      "@Retention(RetentionPolicy.RUNTIME)\n" +
+      "annotation MyAnno {\n" +
+      "  function tagNew() : String\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(myAnno), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("MyAnno.class should have been rewritten",
+      getFileModificationTime(annoClass).toMillis() > initialAnnoTime.toMillis());
+
+    assertTrue(
+      "AnnotatedConsumer.class should be recompiled (it carries @MyAnno).",
+      getFileModificationTime(annotatedClass).toMillis() > initialAnnotatedTime.toMillis());
+
+    assertEquals(
+      "UnrelatedConsumer.class must NOT be recompiled when only MyAnno " +
+      "changes.",
+      initialUnrelatedTime.toMillis(),
+      getFileModificationTime(unrelatedClass).toMillis());
   }
 
 
