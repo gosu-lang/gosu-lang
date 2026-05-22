@@ -133,7 +133,8 @@ public class CommandLineOptions {
   @Parameter(names = "-removed-types", description = "Removed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
   private String _removedTypes;
 
-  @Parameter(names = "-local-java-types", description = "FQCNs of same-module Java types for selective tracking (path-separator delimited)")
+  @Parameter(names = "-local-java-types", description = "FQCNs of same-module Java types for selective tracking (path-separator delimited), " +
+                                                        "an empty string (or no flag) means no Java types will be tracked")
   private String _localJavaTypes;
 
   private Set<String> extractTypesFromStr(String typeList) {
