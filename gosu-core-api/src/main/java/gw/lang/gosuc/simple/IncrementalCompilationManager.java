@@ -52,6 +52,7 @@ public class IncrementalCompilationManager {
   private final Gson gson;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
+  private final Map<String, Boolean> shouldTrackGosuCache;
 
   public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
                                        List<String> localJavaTypes, boolean verbose) {
@@ -71,6 +72,7 @@ public class IncrementalCompilationManager {
     this.gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     this.typeDependencies = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
+    this.shouldTrackGosuCache = new HashMap<>();
   }
   
   /**
@@ -328,10 +330,18 @@ public class IncrementalCompilationManager {
    * Note: Gosu packages source files into JARs (unconventional), so external types
    * have source files too, but with jar: URI scheme instead of filesystem paths.
    *
+   * Results are memoized per manager instance; the verbose log line for any
+   * given FQCN appears once, on first lookup.
+   *
    * @param gosuType The IGosuClass to check
    * @return true if the type should be tracked (local source), false otherwise (external JAR)
    */
   public boolean shouldTrackGosuType(IGosuClass gosuType) {
+    return shouldTrackGosuCache.computeIfAbsent(gosuType.getName(),
+        fqcn -> computeShouldTrackGosuType(gosuType));
+  }
+
+  private boolean computeShouldTrackGosuType(IGosuClass gosuType) {
     String gosuTypeFqcn = gosuType.getName();
 
     // Check if type has source files
@@ -343,16 +353,14 @@ public class IncrementalCompilationManager {
       }
       return false;
     }
-
-     String sourceFilePath = sourceFiles[0].getPath().getPathString();
+    String sourceFilePath = sourceFiles[0].getPath().getPathString();
     if (convertSourcePathToFqcn(sourceFilePath) == null) {
       if (verbose) {
         System.out.println("Gosu type " + gosuTypeFqcn +
-                " is not under any configured source root (" + sourceFilePath + "), skipping");
+            " is not under any configured source root (" + sourceFilePath + "), skipping");
       }
       return false;
     }
-
     // Filesystem path = local source
     if (verbose) {
       System.out.println("Gosu type " + gosuTypeFqcn +
