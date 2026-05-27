@@ -2156,6 +2156,121 @@ public class IncrementalCompilationEndToEndIT {
         initialTimestamps.get("ClassC.class")));
   }
 
+  /**
+   * Same chain shape as testTransitiveDependencyChainCascadesThroughDirectConsumer
+   * but with one extra edge closing it into a cycle: ClassA depends on ClassC, so
+   * the producer/consumer graph becomes ClassA -> ClassB -> ClassC -> ClassA.
+   *
+   * Verifies that calculateRecompilationSet's BFS:
+   *  - terminates instead of looping forever on the cycle (visited-set tracking)
+   *  - still pulls every member of the cycle into the recompile set when any one
+   *    is the changed seed.
+   */
+  @Test
+  public void testCyclicDependencyChainRecompilesAllMembersAndTerminates() throws Exception {
+    // Step 1: Build the 3-node cycle in the producer/consumer graph:
+    //   ClassB consumes ClassA  (ClassB.transitive() calls ClassA.value())
+    //   ClassC consumes ClassB  (ClassC.entry() calls ClassB.transitive())
+    //   ClassA consumes ClassC  (ClassA.value() reads ClassC.helper) <- closes the cycle
+
+    File classA = createSourceFile("example/ClassA.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassA {\n" +
+      "  static function value() : int {\n" +
+      "    return ClassC.helper()  // forward reference closes the cycle\n" +
+      "  }\n" +
+      "}"
+    );
+
+    File classB = createSourceFile("example/ClassB.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassB {\n" +
+      "  static function transitive() : int {\n" +
+      "    return ClassA.value() + 10\n" +
+      "  }\n" +
+      "}"
+    );
+
+    File classC = createSourceFile("example/ClassC.gs",
+      "package example\n" +
+      "\n" +
+      "class ClassC {\n" +
+      "  static function helper() : int { return 999 }\n" +
+      "  static function entry() : int {\n" +
+      "    return ClassB.transitive() + 100\n" +
+      "  }\n" +
+      "}"
+    );
+
+    // Step 2: Initial full compilation
+    List<File> allFiles = Arrays.asList(classA, classB, classC);
+    CompileResult initialResult = compile(allFiles, false);
+    assertTrue("Initial compilation should succeed: " + initialResult.error,
+      initialResult.success);
+    assertTrue("Dependency file should be created", dependencyFile.exists());
+
+    // Step 3: Verify all three cycle edges are recorded in the dep file. Every
+    // class has exactly one consumer (the next link in the cycle).
+    String depFileContent = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.ClassA\": [\n" +
+      "      \"example.ClassB\"\n" +
+      "    ],\n" +
+      "    \"example.ClassB\": [\n" +
+      "      \"example.ClassC\"\n" +
+      "    ],\n" +
+      "    \"example.ClassC\": [\n" +
+      "      \"example.ClassA\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file should record the full ClassA -> ClassB -> ClassC -> ClassA cycle",
+      expectedDepFile, depFileContent);
+
+    // Step 4: Record initial timestamps
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(1100);
+
+    // Step 5: Modify ClassA (entry point into the cycle)
+    Files.write(classA.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class ClassA {\n" +
+      "  static function value() : int {\n" +
+      "    return ClassC.helper() + 1  // changed\n" +
+      "  }\n" +
+      "}"
+    ).getBytes());
+
+    // Step 6: Incremental compile, passing only ClassA as the changed input.
+    // The BFS walks {ClassA} -> {ClassB} -> {ClassC} -> {ClassA, already
+    // visited, skipped}. Without cycle detection this would loop forever.
+    CompileResult incrementalResult = compile(Arrays.asList(classA), true);
+    assertTrue("Incremental compilation should succeed and the BFS should terminate on the cycle: "
+      + incrementalResult.error, incrementalResult.success);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    // Step 7: All three classes are recompiled. The cycle is fully traversed
+    // exactly once thanks to visited-set tracking in calculateRecompilationSet.
+    assertTrue("ClassA should be recompiled (the changed seed)",
+      isNewer(afterTimestamps.get("ClassA.class"),
+        initialTimestamps.get("ClassA.class")));
+    assertTrue("ClassB should be recompiled (direct consumer of ClassA)",
+      isNewer(afterTimestamps.get("ClassB.class"),
+        initialTimestamps.get("ClassB.class")));
+    assertTrue("ClassC should be recompiled (reached after one full lap around the cycle: A -> B -> C)",
+      isNewer(afterTimestamps.get("ClassC.class"),
+        initialTimestamps.get("ClassC.class")));
+  }
+
   @Test
   public void testParameterisedInterfaceDepFileKeyIsRawType() throws Exception {
     // Regression test: when a class declares `implements SomeInterface<T>`, the dep file
