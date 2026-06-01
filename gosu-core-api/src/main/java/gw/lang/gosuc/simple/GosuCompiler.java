@@ -347,7 +347,7 @@ public class GosuCompiler implements IGosuCompiler
           // Track dependencies if incremental compilation is enabled (v2 FQCN-based architecture)
           if( _incrementalManager != null )
           {
-            trackDependencies( (IGosuClass)type, sourceFile );
+            trackDependencies( (IGosuClass)type );
           }
         }
       }
@@ -383,8 +383,7 @@ public class GosuCompiler implements IGosuCompiler
    */
   private String findSourceFileForFqcn( String fqcn, List<String> sourceFiles )
   {
-    // TODO: This seems very inefficient: use a Set o the typesystem to find the file for a given FQCN
-    //       Why do we go from FQCN to file path when just before we called convertSourcePathToFqcn?
+    // TODO: This seems very inefficient: use a Set or the typesystem to find the file for a given FQCN
     //       Shall we always use file path in the dependency file?
     //       We should stop manipulating paths as strings: use a Path/File object (from gosu-core-api or JRE)
 
@@ -605,14 +604,9 @@ public class GosuCompiler implements IGosuCompiler
      the edges recorded across all prior compiles, not by re-walking
      class hierarchies at edge-recording time.
   */
-  private void trackDependencies( IGosuClass gsClass, File sourceFile )
+  private void trackDependencies( IGosuClass gsClass )
   {
-    if( _incrementalManager == null )
-    {
-      return;
-    }
-
-    String sourcePath = sourceFile.getAbsolutePath();
+    String consumerFqcn = gsClass.getName();
     Set<IType> trackedTypes = new HashSet<>();
 
     // Ensure this type is registered in dependency file, even if it has no dependencies
@@ -630,7 +624,7 @@ public class GosuCompiler implements IGosuCompiler
       IType enhancedType = enhancement.getEnhancedType();
       if( enhancedType != null )
       {
-        trackTypeDependency( sourcePath, enhancedType, trackedTypes );
+        trackTypeDependency( consumerFqcn, enhancedType, trackedTypes );
       }
     }
 
@@ -638,7 +632,7 @@ public class GosuCompiler implements IGosuCompiler
     IType supertype = gsClass.getSupertype();
     if( supertype != null && supertype instanceof IGosuClass )
     {
-      trackTypeDependency( sourcePath, supertype, trackedTypes );
+      trackTypeDependency( consumerFqcn, supertype, trackedTypes );
     }
     
     // Track interface dependencies
@@ -646,7 +640,7 @@ public class GosuCompiler implements IGosuCompiler
     {
       if( iface instanceof IGosuClass )
       {
-        trackTypeDependency( sourcePath, iface, trackedTypes );
+        trackTypeDependency( consumerFqcn, iface, trackedTypes );
       }
     }
 
@@ -658,7 +652,7 @@ public class GosuCompiler implements IGosuCompiler
         if( propInfo instanceof gw.lang.reflect.IPropertyInfo )
         {
           IType fieldType = ((gw.lang.reflect.IPropertyInfo)propInfo).getFeatureType();
-          trackTypeDependency( sourcePath, fieldType, trackedTypes );
+          trackTypeDependency( consumerFqcn, fieldType, trackedTypes );
         }
       }
     }
@@ -674,7 +668,7 @@ public class GosuCompiler implements IGosuCompiler
 
           // Track return type
           IType returnType = method.getReturnType();
-          trackTypeDependency( sourcePath, returnType, trackedTypes );
+          trackTypeDependency( consumerFqcn, returnType, trackedTypes );
 
           // Track parameter types
           gw.lang.reflect.IParameterInfo[] params = method.getParameters();
@@ -682,7 +676,7 @@ public class GosuCompiler implements IGosuCompiler
           {
             for( gw.lang.reflect.IParameterInfo param : params )
             {
-              trackTypeDependency( sourcePath, param.getFeatureType(), trackedTypes );
+              trackTypeDependency( consumerFqcn, param.getFeatureType(), trackedTypes );
             }
           }
         }
@@ -702,7 +696,7 @@ public class GosuCompiler implements IGosuCompiler
             IType usedType = TypeSystem.getByFullNameIfValid( typeUseName );
             if( usedType != null )
             {
-              trackTypeDependency( sourcePath, usedType, trackedTypes );
+              trackTypeDependency( consumerFqcn, usedType, trackedTypes );
             }
           }
           catch( Exception e )
@@ -716,7 +710,7 @@ public class GosuCompiler implements IGosuCompiler
     // Enhanced dependency tracking - traverse AST for method calls
     try
     {
-      trackDependenciesFromAST( gsClass, sourcePath, trackedTypes );
+      trackDependenciesFromAST( gsClass, consumerFqcn, trackedTypes );
     }
     catch( Exception e )
     {
@@ -724,7 +718,7 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
-  private void trackDependenciesFromAST( IGosuClass gsClass, String sourcePath, Set<IType> trackedTypes )
+  private void trackDependenciesFromAST( IGosuClass gsClass, String consumerFqcn, Set<IType> trackedTypes )
   {
     try
     {
@@ -735,7 +729,7 @@ public class GosuCompiler implements IGosuCompiler
         classStmt.visit( element -> {
           try
           {
-            trackDependenciesFromElement( element, sourcePath, trackedTypes );
+            trackDependenciesFromElement( element, consumerFqcn, trackedTypes );
           }
           catch( Exception e )
           {
@@ -752,7 +746,7 @@ public class GosuCompiler implements IGosuCompiler
     }
   }
 
-  private void trackDependenciesFromElement( IParsedElement element, String sourcePath, Set<IType> trackedTypes )
+  private void trackDependenciesFromElement( IParsedElement element, String consumerFqcn, Set<IType> trackedTypes )
   {
     // Check for method call expressions - track both the method owner and return type
     if( element instanceof gw.lang.parser.expressions.IMethodCallExpression )
@@ -767,7 +761,7 @@ public class GosuCompiler implements IGosuCompiler
         IType ownerType = funcSymbol.getType();
         if( ownerType != null )
         {
-          trackTypeDependency( sourcePath, ownerType, trackedTypes );
+          trackTypeDependency( consumerFqcn, ownerType, trackedTypes );
         }
         
         // Check if this method call is from an enhancement
@@ -782,7 +776,7 @@ public class GosuCompiler implements IGosuCompiler
             // If the declaring type is different from the owner type, it might be an enhancement method
             if( declaringType != null && declaringType != ownerType && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
             {
-              trackTypeDependency( sourcePath, declaringType, trackedTypes );
+              trackTypeDependency( consumerFqcn, declaringType, trackedTypes );
             }
           }
         }
@@ -796,7 +790,7 @@ public class GosuCompiler implements IGosuCompiler
       IType returnType = methodCall.getType();
       if( returnType != null )
       {
-        trackTypeDependency( sourcePath, returnType, trackedTypes );
+        trackTypeDependency( consumerFqcn, returnType, trackedTypes );
       }
     }
 
@@ -809,7 +803,7 @@ public class GosuCompiler implements IGosuCompiler
       IType rootType = memberAccess.getRootType();
       if( rootType != null )
       {
-        trackTypeDependency( sourcePath, rootType, trackedTypes );
+        trackTypeDependency( consumerFqcn, rootType, trackedTypes );
       }
       
       // Check if this member access is from an enhancement (like person.FullName)
@@ -823,7 +817,7 @@ public class GosuCompiler implements IGosuCompiler
           // If the declaring type is an enhancement, track it
           if( declaringType != null && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
           {
-            trackTypeDependency( sourcePath, declaringType, trackedTypes );
+            trackTypeDependency( consumerFqcn, declaringType, trackedTypes );
           }
         }
       }
@@ -842,7 +836,7 @@ public class GosuCompiler implements IGosuCompiler
       IType referencedType = typeLiteral.getType().getType();
       if( referencedType != null )
       {
-        trackTypeDependency( sourcePath, referencedType, trackedTypes );
+        trackTypeDependency( consumerFqcn, referencedType, trackedTypes );
       }
     }
   }
@@ -875,7 +869,7 @@ public class GosuCompiler implements IGosuCompiler
     return outermost;
   }
 
-  private void trackTypeDependency( String sourcePath, IType type, Set<IType> trackedTypes )
+  private void trackTypeDependency( String consumerFqcn, IType type, Set<IType> trackedTypes )
   {
     if( type == null || trackedTypes.contains( type ) )
     {
@@ -899,8 +893,7 @@ public class GosuCompiler implements IGosuCompiler
       // Only track if this is a same-module Java type (not JRE or JAR dependencies)
       if( _incrementalManager.shouldTrackJavaType( producerFqcn ) )
       {
-        // Record: sourcePath (consumer) depends on producerFqcn (Java type)
-        _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+        _incrementalManager.recordTypeDependency( producerFqcn, consumerFqcn);
       }
       // Don't recurse into Java compound-types java.util.List<MyGosuType>.
       // MyGosuType will be found by trackDependenciesFromAST.
@@ -932,14 +925,14 @@ public class GosuCompiler implements IGosuCompiler
       // Only track if this is a local Gosu type (not from external JAR)
       if( _incrementalManager.shouldTrackGosuType( gosuTypeToTrack ) ) {
         String producerFqcn = typeToTrack.getName();
-        _incrementalManager.recordTypeDependencyFromSourcePath( sourcePath, producerFqcn );
+        _incrementalManager.recordTypeDependency( producerFqcn, consumerFqcn );
       }
     }
     
     // Also track array component types
     if( type.isArray() )
     {
-      trackTypeDependency( sourcePath, type.getComponentType(), trackedTypes );
+      trackTypeDependency( consumerFqcn, type.getComponentType(), trackedTypes );
     }
 
     // Track parameterized type arguments
@@ -950,7 +943,7 @@ public class GosuCompiler implements IGosuCompiler
       {
         for( IType typeParam : typeParams )
         {
-          trackTypeDependency( sourcePath, typeParam, trackedTypes );
+          trackTypeDependency( consumerFqcn, typeParam, trackedTypes );
         }
       }
     }

@@ -38,8 +38,7 @@ public class IncrementalCompilationEndToEndIT {
   private Path srcDir;
   private Path outputDir;
   private File dependencyFile;
-  private GosuCompiler compiler;
-  
+
   @Before
   public void setUp() throws IOException {
     tempDir = Files.createTempDirectory("incremental-e2e-test");
@@ -48,9 +47,6 @@ public class IncrementalCompilationEndToEndIT {
     Files.createDirectories(srcDir);
     Files.createDirectories(outputDir);
     dependencyFile = tempDir.resolve("deps.json").toFile();
-    
-    // Initialize compiler with test configuration
-    compiler = new GosuCompiler();
   }
   
   @After

@@ -103,82 +103,6 @@ public class IncrementalCompilationManagerTest {
     assertFalse("B should NOT be recompiled", toRecompile.contains("com.example.B"));
   }
 
-  @Test
-  public void testRecordTypeDependencyFromSourcePath_GosuRule() throws IOException {
-    // This test exercises the source-path -> FQCN conversion done inside the
-    // manager, so a local manager is used to drive the production code path
-    // rather than the dep-file helper.
-    Path ruleFile = tempDir.resolve("com/example/MyRule.gr");
-    Files.createDirectories(ruleFile.getParent());
-    Files.createFile(ruleFile);
-
-    IncrementalCompilationManager manager = newManager();
-    manager.recordTypeDependencyFromSourcePath(
-      ruleFile.toAbsolutePath().toString(),
-      "com.example.Producer"
-    );
-    manager.updateDependencyFile(Set.of("com.example.MyRule"), Collections.emptySet());
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of("com.example.Producer"),
-      Collections.emptySet()
-    );
-
-    // MyRule should be recompiled when Producer changes
-    // This verifies the FQCN was stored as "com.example.MyRule", not "com.example.MyRule.gr"
-    assertTrue("MyRule should be recompiled when Producer changes",
-      toRecompile.contains("com.example.MyRule"));
-  }
-
-  @Test
-  public void testRecordTypeDependencyFromSourcePath_GosuRuleSet() throws IOException {
-    Path ruleSetFile = tempDir.resolve("com/example/MyRuleSet.grs");
-    Files.createDirectories(ruleSetFile.getParent());
-    Files.createFile(ruleSetFile);
-
-    IncrementalCompilationManager manager = newManager();
-    manager.recordTypeDependencyFromSourcePath(
-      ruleSetFile.toAbsolutePath().toString(),
-      "com.example.Producer"
-    );
-    manager.updateDependencyFile(Set.of("com.example.MyRuleSet"), Collections.emptySet());
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of("com.example.Producer"),
-      Collections.emptySet()
-    );
-
-    // MyRuleSet should be recompiled when Producer changes
-    // This verifies the FQCN was stored as "com.example.MyRuleSet", not "com.example.MyRuleSet.grs"
-    assertTrue("MyRuleSet should be recompiled when Producer changes",
-      toRecompile.contains("com.example.MyRuleSet"));
-  }
-
-  @Test
-  public void testRecordTypeDependencyFromSourcePath_NestedRule() throws IOException {
-    Path nestedRuleFile = tempDir.resolve("rules/EventMessage/EventFired_dir/AsyncDocument_dir/AsyncDocumentStorage.gr");
-    Files.createDirectories(nestedRuleFile.getParent());
-    Files.createFile(nestedRuleFile);
-
-    String nestedFqcn = "rules.EventMessage.EventFired_dir.AsyncDocument_dir.AsyncDocumentStorage";
-
-    IncrementalCompilationManager manager = newManager();
-    manager.recordTypeDependencyFromSourcePath(
-      nestedRuleFile.toAbsolutePath().toString(),
-      "entity.Document"
-    );
-    manager.updateDependencyFile(Set.of(nestedFqcn), Collections.emptySet());
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of("entity.Document"),
-      Collections.emptySet()
-    );
-
-    // AsyncDocumentStorage should be recompiled when entity.Document changes
-    // This verifies the FQCN was stored with the full package path
-    assertTrue("AsyncDocumentStorage should be recompiled when entity.Document changes",
-      toRecompile.contains(nestedFqcn));
-  }
 
   @Test //TODO recheck
   public void testSelfReferencesAreNotRecorded() {
@@ -387,9 +311,9 @@ public class IncrementalCompilationManagerTest {
       ),
       Collections.emptyList(), false);
 
-    manager.recordTypeDependencyFromSourcePath(
-      innerFile.toAbsolutePath().toString(),
-      "example.Producer"
+    manager.recordTypeDependency(
+            "example.Producer",
+            "com.example.MyClass"
     );
     manager.updateDependencyFile(
       Set.of("com.example.MyClass"), Collections.emptySet());

@@ -209,29 +209,6 @@ public class IncrementalCompilationManager {
   }
 
   /**
-   * Record a type dependency where the consumer is identified by source path.
-   * The consumer source path will be converted to FQCN, then recorded as depending on the producer.
-   *
-   * @param consumerSourcePath The source path of the consumer file (will be converted to FQCN)
-   * @param producerFqcn The FQCN of the producer type (Java or Gosu)
-   */
-  public void recordTypeDependencyFromSourcePath(String consumerSourcePath, String producerFqcn) {
-    // Convert consumer source path to FQCN
-    String consumerFqcn = convertSourcePathToFqcn(consumerSourcePath);
-    if (consumerFqcn != null) {
-      recordTypeDependency(producerFqcn, consumerFqcn);
-    } else {
-      // TODO: Dropping the dep silently would mean producerFqcn's future changes wouldn't
-      // trigger recompilation of this consumer. Surface the miss so misconfigured
-      // source roots are visible rather than causing stale incremental builds.
-      // FIND A BETTER FIX.
-      System.err.println("WARN: dropping dependency '" + producerFqcn + "' <- '"
-        + consumerSourcePath + "': consumer path is not under any configured "
-        + "source root. Incremental rebuilds may miss this edge.");
-    }
-  }
-
-  /**
    * Get the consumer set for a producer type, creating it if necessary.
    * This is the single source of truth for initializing consumer sets.
    *
