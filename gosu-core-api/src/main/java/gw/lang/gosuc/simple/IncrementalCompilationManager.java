@@ -284,6 +284,30 @@ public class IncrementalCompilationManager {
     return null;
   }
 
+  /** Build a mapping between a source file and the FQCN of the outermost class contained in it.
+   * Inner classes are not populated in the mapping.
+   * @param Gosu source paths with any valid extension (ex. gs, gsp, ...)
+   * @return A mapping FQCN to Source File Path.
+   */
+  public Map<String, String> buildFqcnToSourcePath(List<String> sourcePaths) {
+    HashMap<String, String> fqcnToPath = new HashMap<>(sourcePaths.size());
+    for (String sourceFile : sourcePaths) {
+      String fqcn = convertSourcePathToFqcn(sourceFile);
+      if(fqcn == null) {
+        // sourcePaths should be by construction rooted in the sourceRoots so convertSourcePathToFqcn
+        // should never fail.
+        throw new AssertionError("Failed converting " + sourceFile + " to a FQCN");
+      }
+      String previousPath = fqcnToPath.put(fqcn, sourceFile);
+      if(previousPath != null) {
+        // FQCNs should be unique and there should be only one source file that contains their definition.
+        throw new AssertionError("FQCN " + fqcn + " maps to multiple source files: " + previousPath + " and " + sourceFile);
+      }
+    }
+    return fqcnToPath;
+  }
+
+
   /**
    * Determine if a Java type should be tracked in the dependency graph.
    * Only track same-module Java types (from javaClassesDir), not JRE stdlib or JAR dependencies.
