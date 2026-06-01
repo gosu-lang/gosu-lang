@@ -42,14 +42,7 @@ import java.lang.reflect.Constructor;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
@@ -127,31 +120,42 @@ public class GosuCompiler implements IGosuCompiler
 
     // Convert type FQCNs to source file paths
     List<String> allSourceFiles = getSourceFiles( options );
-    List<String> sourceFiles = new ArrayList<>();
+    //TODO test allSourceFiles with gosu programs which contains multiple public classes.
+    Map<String, String> fqcnToPath = _incrementalManager.buildFqcnToSourcePath(allSourceFiles);
+
+    List<String> sourceFiles;
+    Set<String> sourceFilesToCompile = new HashSet<>();
 
     // Match FQCNs to source files
     for( String fqcn : typeFqcnsToCompile )
     {
-      String matchedFile = findSourceFileForFqcn( fqcn, allSourceFiles );
-      if( matchedFile != null && !sourceFiles.contains( matchedFile ) )
+      // TODO handle inner classes (anonymous or not) and blocks. We should strip anything
+      //  after the $ before accessing the fqcnToPath map.
+      String sourceFile = fqcnToPath.get(fqcn);
+      if( sourceFile == null )
       {
-        sourceFiles.add( matchedFile );
-      } // TODO: If matchedFile == null -> ERROR?
-      else if( options.isVerbose() && matchedFile == null )
-      {
-        System.out.println( "Warning: Could not find source file for type " + fqcn );
+        // TODO: This should only happen if the dep graph carries stale entries in pathological situations, ex:
+        //  - a previously-recorded Gosu consumer whose .gs file was deleted outside the Gradle change-set Gradle
+        //    reported.
+        //  - a dep file that survived an aborted compile.
+        // Probably it will be better to do a full rebuild instead of failing hard and log.
+        throw new AssertionError( "Could not find source file for type " + fqcn );
       }
+      // Inner classes can map to the same sourceFile, using a set will avoid duplicates.
+      sourceFilesToCompile.add(sourceFile);
     }
 
     // If still no files to compile in incremental mode, this is likely the first compilation
     // Compile all source files to build initial dependency data
-    if( sourceFiles.isEmpty() )
+    if( sourceFilesToCompile.isEmpty() )
     {
       sourceFiles = allSourceFiles;
       if( options.isVerbose() )
       {
         System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
       }
+    } else {
+      sourceFiles = new ArrayList<>(sourceFilesToCompile);
     }
 
     boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
@@ -370,44 +374,6 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     return true;
-  }
-
-  /**
-   * Find a source file that matches the given FQCN from a list of source files.
-   * Searches for a file ending with the path pattern derived from the FQCN.
-   * Example: For FQCN "com.example.MyClass", finds a file ending with "com/example/MyClass.gs"
-   *
-   * @param fqcn The fully-qualified class name to search for
-   * @param sourceFiles List of source file paths to search
-   * @return The matching source file path, or null if not found
-   */
-  private String findSourceFileForFqcn( String fqcn, List<String> sourceFiles )
-  {
-    // TODO: This seems very inefficient: use a Set or the typesystem to find the file for a given FQCN
-    //       Shall we always use file path in the dependency file?
-    //       We should stop manipulating paths as strings: use a Path/File object (from gosu-core-api or JRE)
-
-    // Convert FQCN to expected path pattern (normalize to forward slashes)
-    // e.g., "com.example.MyClass" -> "com/example/MyClass"
-    String expectedPath = fqcn.replace( '.', '/' );
-
-    for( String sourceFile : sourceFiles )
-    {
-      // Normalize source file path to forward slashes for comparison
-      String normalizedSourceFile = sourceFile.replace( '\\', '/' );
-
-      // Check if the source file ends with the expected path (with any Gosu extension)
-      // Use GosuClassTypeLoader.ALL_EXTS for single source of truth (includes .gs, .gsx, .gst, .gsp, .gr, .grs)
-      for( String ext : gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS )
-      {
-        if( normalizedSourceFile.endsWith( expectedPath + ext ) )
-        {
-          return sourceFile; // Return original path (not normalized)
-        }
-      }
-    }
-
-    return null;
   }
 
   /**
@@ -1231,70 +1197,4 @@ public class GosuCompiler implements IGosuCompiler
     return CommonServices.getPlatformHelper().isPathIgnored( sourceFile );
   }
 
-  /**
-   * Wrapper compiler driver that tracks output files for incremental compilation
-   */
-  private static class OutputTrackingCompilerDriver implements ICompilerDriver
-  {
-    private final ICompilerDriver delegate;
-    private final File sourceFile;
-    private final Set<String> outputFiles;
-    private final String destDir;
-
-    public OutputTrackingCompilerDriver( ICompilerDriver delegate, File sourceFile, Set<String> outputFiles )
-    {
-      this.delegate = delegate;
-      this.sourceFile = sourceFile;
-      this.outputFiles = outputFiles;
-
-      // Get the destination directory from the TypeSystem
-      IDirectory moduleOutputDirectory = TypeSystem.getGlobalModule().getOutputPath();
-      this.destDir = moduleOutputDirectory != null ?
-        moduleOutputDirectory.getPath().getFileSystemPathString() : null;
-    }
-
-    @Override
-    public void sendCompileIssue( File file, int category, long offset, long line, long column, String message )
-    {
-      delegate.sendCompileIssue( file, category, offset, line, column, message );
-    }
-
-    @Override
-    public void registerOutput( File srcFile, File outputFile )
-    {
-      delegate.registerOutput( srcFile, outputFile );
-
-      // Track the output file relative to the destination directory
-      if( srcFile.equals( sourceFile ) && destDir != null )
-      {
-        File destDirFile = new File( destDir );
-        String relativePath = destDirFile.toPath().relativize( outputFile.toPath() ).toString();
-        outputFiles.add( relativePath.replace( File.separatorChar, '/' ) );
-      }
-    }
-
-    @Override
-    public boolean isIncludeWarnings()
-    {
-      return delegate.isIncludeWarnings();
-    }
-
-    @Override
-    public boolean hasErrors()
-    {
-      return delegate.hasErrors();
-    }
-
-    @Override
-    public List<String> getErrors()
-    {
-      return delegate.getErrors();
-    }
-
-    @Override
-    public List<String> getWarnings()
-    {
-      return delegate.getWarnings();
-    }
-  }
 }
