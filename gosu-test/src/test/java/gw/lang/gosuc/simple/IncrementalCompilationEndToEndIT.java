@@ -69,7 +69,8 @@ public class IncrementalCompilationEndToEndIT {
     }
     dir.delete();
   }
-  
+
+
   @Test
   public void testIncrementalCompilationWithTimestamps() throws Exception {
     // Step 1: Create initial source files with dependencies
@@ -343,11 +344,11 @@ public class IncrementalCompilationEndToEndIT {
     
     // Verify: BaseClass and both derived classes should be recompiled
     assertTrue("BaseClass should be recompiled",
-      isNewer(afterTimestamps.get("BaseClass.class"), initialTimestamps.get("BaseClass.class")));
+      afterTimestamps.get("BaseClass.class").toMillis() > initialTimestamps.get("BaseClass.class").toMillis());
     assertTrue("DerivedClass1 should be recompiled",
-      isNewer(afterTimestamps.get("DerivedClass1.class"), initialTimestamps.get("DerivedClass1.class")));
+      afterTimestamps.get("DerivedClass1.class").toMillis() > initialTimestamps.get("DerivedClass1.class").toMillis());
     assertTrue("DerivedClass2 should be recompiled",
-      isNewer(afterTimestamps.get("DerivedClass2.class"), initialTimestamps.get("DerivedClass2.class")));
+      afterTimestamps.get("DerivedClass2.class").toMillis() > initialTimestamps.get("DerivedClass2.class").toMillis());
     
     // Interface and unrelated class should NOT be recompiled
     assertEquals("IEntity should not be recompiled",
@@ -357,7 +358,9 @@ public class IncrementalCompilationEndToEndIT {
     
     assertEquals("Should compile 3 files", 3, incrementalResult.filesCompiled);
   }
-  
+
+
+
   @Test
   public void testIncrementalCompilationWithDeletedFile() throws Exception {
     // Create files with dependencies
@@ -489,8 +492,6 @@ public class IncrementalCompilationEndToEndIT {
     assertFalse("Interface .gs source should be deleted from output", Files.exists(interfaceSourceFile));
     assertFalse("Enhancement .class should be deleted from output", Files.exists(enhancementClassFile));
     assertFalse("Enhancement .gsx source should be deleted from output", Files.exists(enhancementSourceFile));
-
-    System.out.println("✓ Source file deletion works correctly - both .class and source files removed");
   }
 
   @Test
@@ -545,7 +546,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Only Class2 should be recompiled
     assertTrue("Class2 should be recompiled",
-      isNewer(afterTimestamps.get("Class2.class"), initialTimestamps.get("Class2.class")));
+      afterTimestamps.get("Class2.class").toMillis() > initialTimestamps.get("Class2.class").toMillis());
     assertEquals("Class1 should not be recompiled",
       initialTimestamps.get("Class1.class"), afterTimestamps.get("Class1.class"));
     assertEquals("Class3 should not be recompiled",
@@ -679,7 +680,7 @@ public class IncrementalCompilationEndToEndIT {
         String output = outStream.toString();
         if (incremental && output.contains("Incremental compilation: recompiling")) {
           // Parse the number of types from output (v2 uses "types" not "files")
-          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("recompiling (\\d+) types");
+          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("recompiling (\\d+) source files");
           java.util.regex.Matcher matcher = pattern.matcher(output);
           if (matcher.find()) {
             result.filesCompiled = Integer.parseInt(matcher.group(1));
@@ -848,22 +849,7 @@ public class IncrementalCompilationEndToEndIT {
     
     return result;
   }
-  
-  private void touchClassFile(String sourcePath) throws IOException {
-    // Convert source path to class file path
-    String className = sourcePath.substring(sourcePath.lastIndexOf("/") + 1);
-    className = className.replace(".gs", ".class");
-    
-    Path classFilePath = outputDir.resolve("example").resolve(className);
-    Files.createDirectories(classFilePath.getParent());
-    
-    if (!Files.exists(classFilePath)) {
-      Files.createFile(classFilePath);
-    } else {
-      Files.setLastModifiedTime(classFilePath, FileTime.from(System.currentTimeMillis(), TimeUnit.MILLISECONDS));
-    }
-  }
-  
+
   private FileTime getFileModificationTime(Path path) throws IOException {
     if (!Files.exists(path)) {
       return FileTime.from(0L, TimeUnit.MILLISECONDS);
@@ -886,14 +872,7 @@ public class IncrementalCompilationEndToEndIT {
       });
     return timestamps;
   }
-  
-  private boolean isNewer(FileTime t1, FileTime t2) {
-    if (t1 == null || t2 == null) {
-      return false;
-    }
-    return t1.compareTo(t2) > 0;
-  }
-  
+
   @Test
   public void testIncrementalCompilationWithGosuExtensions() throws Exception {
     // Step 1: Create a base class that will be enhanced
@@ -960,8 +939,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Step 5: Verify dependency tracking in JSON file
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
-    System.out.println("Dependency file content: " + depsContent);
-    
+
     // Check that PersonEnhancement depends on Person (v2 format uses FQCNs)
     assertTrue("PersonEnhancement should depend on Person",
       depsContent.contains("example.PersonEnhancement") &&
@@ -1008,20 +986,15 @@ public class IncrementalCompilationEndToEndIT {
     
     // PersonEnhancement.class should be newer (the file we changed)
     assertTrue("PersonEnhancement.class should be recompiled",
-      isNewer(newTimestamps.get("PersonEnhancement.class"), 
-              initialTimestamps.get("PersonEnhancement.class")));
+      newTimestamps.get("PersonEnhancement.class").toMillis() > initialTimestamps.get("PersonEnhancement.class").toMillis());
     
     // UserService.class should be newer (uses enhancement methods)
     assertTrue("UserService.class should be recompiled due to enhancement change",
-      isNewer(newTimestamps.get("UserService.class"), 
-              initialTimestamps.get("UserService.class")));
+      newTimestamps.get("UserService.class").toMillis() > initialTimestamps.get("UserService.class").toMillis());
     
     // Person.class should NOT be newer (base class unchanged)
     assertFalse("Person.class should NOT be recompiled",
-      isNewer(newTimestamps.get("Person.class"), 
-              initialTimestamps.get("Person.class")));
-              
-    System.out.println("✓ Extension dependency tracking works correctly");
+      newTimestamps.get("Person.class").toMillis() > initialTimestamps.get("Person.class").toMillis());
   }
   
   @Test
@@ -1065,8 +1038,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Read and parse dependency JSON
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()));
-    System.out.println("Dependency JSON: " + depsContent);
-    
+
     // Debug: Check what's actually in the JSON (v2 uses FQCNs, not file paths)
     System.out.println("=== DETAILED JSON ANALYSIS ===");
     System.out.println("Contains example.VehicleEnhancement: " + depsContent.contains("example.VehicleEnhancement"));
@@ -1082,8 +1054,6 @@ public class IncrementalCompilationEndToEndIT {
       System.out.println("- Vehicle present: " + hasVehicle);
       fail("Enhancement should depend on enhanced type. JSON content: " + depsContent);
     }
-      
-    System.out.println("✓ Enhancement dependencies properly recorded in JSON");
   }
 
   @Test
@@ -1135,9 +1105,7 @@ public class IncrementalCompilationEndToEndIT {
       .filter(name -> name.startsWith("BlockExample$block_"))
       .count();
     assertTrue("Should have generated multiple block inner classes", blockClassCount >= 4);
-    
-    System.out.println("✓ Initial compilation created " + blockClassCount + " block inner classes");
-    
+
     // Step 4: Modify a block and test incremental compilation
     modifySourceFile(blockFile,
       "var blk = \\-> \"simple\"",
@@ -1152,19 +1120,15 @@ public class IncrementalCompilationEndToEndIT {
     
     // Main class should be newer
     assertTrue("BlockExample.class should be recompiled",
-      isNewer(newTimestamps.get("BlockExample.class"), 
-              initialTimestamps.get("BlockExample.class")));
+      newTimestamps.get("BlockExample.class").toMillis() > initialTimestamps.get("BlockExample.class").toMillis());
     
     // All block classes should be newer
     for (String className : initialTimestamps.keySet()) {
       if (className.startsWith("BlockExample$block_")) {
         assertTrue("Block class " + className + " should be recompiled",
-          isNewer(newTimestamps.get(className), 
-                  initialTimestamps.get(className)));
+          newTimestamps.get(className).toMillis() > initialTimestamps.get(className).toMillis());
       }
     }
-    
-    System.out.println("✓ Block incremental compilation works correctly");
   }
 
   @Test
@@ -1215,19 +1179,15 @@ public class IncrementalCompilationEndToEndIT {
     
     // Step 5: Verify that BlockUser and its block classes were recompiled due to dependency
     assertTrue("BlockUser.class should be recompiled due to dependency on BlockUtil",
-      isNewer(newTimestamps.get("BlockUser.class"), 
-              initialTimestamps.get("BlockUser.class")));
+      newTimestamps.get("BlockUser.class").toMillis() > initialTimestamps.get("BlockUser.class").toMillis());
     
     // Block inner classes should also be recompiled
     for (String className : initialTimestamps.keySet()) {
       if (className.startsWith("BlockUser$block_")) {
         assertTrue("Block class " + className + " should be recompiled due to dependency",
-          isNewer(newTimestamps.get(className), 
-                  initialTimestamps.get(className)));
+          newTimestamps.get(className).toMillis() > initialTimestamps.get(className).toMillis());
       }
     }
-    
-    System.out.println("✓ Block dependency tracking works correctly");
   }
 
   @Test
@@ -1268,24 +1228,37 @@ public class IncrementalCompilationEndToEndIT {
     // Verify exact dependency JSON structure
     String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
 
-    // V2 architecture: type dependencies (FQCN -> list of consumer FQCNs)
-    // OutputTrackingTest uses BlockUtil, so BlockUtil should list OutputTrackingTest in its usedBy array
-    // Note: All types are registered (even with empty arrays) to ensure proper tracking
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.BlockUtil\": [\n" +
-      "      \"example.OutputTrackingTest\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest\": []\n" +
-      "  }\n" +
-      "}";
+       "  \"version\": \"1.0\",\n" +
+       "  \"consumers\": {\n" +
+       "    \"example.BlockUtil\": [\n" +
+       "      \"example.OutputTrackingTest$block_1_\",\n" +
+       "      \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
+       "    ],\n" +
+       "    \"example.OutputTrackingTest\": [\n" +
+       "      \"example.OutputTrackingTest$block_0_\",\n" +
+       "      \"example.OutputTrackingTest$block_1_\",\n" +
+       "      \"example.OutputTrackingTest$block_2_\"\n" +
+       "    ],\n" +
+       "    \"example.OutputTrackingTest$block_0_\": [\n" +
+       "      \"example.OutputTrackingTest\"\n" +
+       "    ],\n" +
+       "    \"example.OutputTrackingTest$block_1_\": [\n" +
+       "      \"example.OutputTrackingTest\"\n" +
+       "    ],\n" +
+       "    \"example.OutputTrackingTest$block_2_\": [\n" +
+       "      \"example.OutputTrackingTest\",\n" +
+       "      \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
+       "    ],\n" +
+       "    \"example.OutputTrackingTest$block_2_$block_0_\": [\n" +
+       "      \"example.OutputTrackingTest$block_2_\"\n" +
+       "    ]\n" +
+       "  }\n" +
+       "}";
 
     assertEquals("Dependency file should track BlockUtil -> OutputTrackingTest dependency",
       expectedDeps, actualDeps);
-
-    System.out.println("✓ Block dependency tracking works correctly");
   }
 
   @Test
@@ -1344,9 +1317,7 @@ public class IncrementalCompilationEndToEndIT {
       .filter(name -> name.startsWith("FunctionTypeExample$block_"))
       .count();
     assertTrue("Should have generated multiple block inner classes for function types", blockClassCount >= 4);
-    
-    System.out.println("✓ Initial compilation created " + blockClassCount + " block inner classes for function types");
-    
+
     // Step 4: Modify a function type usage and test incremental compilation
     modifySourceFile(functionTypeFile,
       "return \\-> \"Hello World\"",
@@ -1361,19 +1332,15 @@ public class IncrementalCompilationEndToEndIT {
     
     // Main class should be newer
     assertTrue("FunctionTypeExample.class should be recompiled",
-      isNewer(newTimestamps.get("FunctionTypeExample.class"), 
-              initialTimestamps.get("FunctionTypeExample.class")));
+      newTimestamps.get("FunctionTypeExample.class").toMillis() > initialTimestamps.get("FunctionTypeExample.class").toMillis());
     
     // All block classes should be newer
     for (String className : initialTimestamps.keySet()) {
       if (className.startsWith("FunctionTypeExample$block_")) {
         assertTrue("Block class " + className + " should be recompiled",
-          isNewer(newTimestamps.get(className), 
-                  initialTimestamps.get(className)));
+          newTimestamps.get(className).toMillis() > initialTimestamps.get(className).toMillis());
       }
     }
-    
-    System.out.println("✓ Function type block incremental compilation works correctly");
   }
   
   private void modifySourceFile(File file, String oldContent, String newContent) throws IOException {
@@ -1426,14 +1393,12 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
-    System.out.println("Dependency file content:\n" + depsContent);
 
-    // Should contain example.Outer but NOT example.Outer.Inner or example.Outer$Inner
     assertTrue("Dependency file should contain Outer class",
       depsContent.contains("example.Outer"));
     assertFalse("Dependency file should NOT contain inner class entry with dot",
       depsContent.contains("example.Outer.Inner"));
-    assertFalse("Dependency file should NOT contain inner class entry with dollar",
+    assertTrue("Dependency file should contain inner class entry with dollar",
       depsContent.contains("example.Outer$Inner"));
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1473,13 +1438,11 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 7: Verify consumer was recompiled
     assertTrue("Outer.class should be recompiled",
-      isNewer(afterTimestamps.get("Outer.class"), initialTimestamps.get("Outer.class")));
-    assertTrue("Inner class file should exist",
-      initialTimestamps.keySet().stream().anyMatch(name -> name.startsWith("Outer$Inner")));
+      afterTimestamps.get("Outer.class").toMillis() > initialTimestamps.get("Outer.class").toMillis());
+    assertTrue("Inner should be recompiled",
+      afterTimestamps.get("Outer$Inner.class").toMillis() > initialTimestamps.get("Outer$Inner.class").toMillis());
     assertTrue("Consumer should be recompiled due to outer class change",
-      isNewer(afterTimestamps.get("InnerClassConsumer.class"), initialTimestamps.get("InnerClassConsumer.class")));
-
-    System.out.println("✓ Inner class dependency tracking works correctly");
+      afterTimestamps.get("InnerClassConsumer.class").toMillis() > initialTimestamps.get("InnerClassConsumer.class").toMillis());
   }
 
   @Test
@@ -1522,17 +1485,15 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Verify dependency file has only "RegionsUIHelper" entry
     String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
-    System.out.println("Dependency file content:\n" + depsContent);
 
     assertTrue("Dependency file should contain RegionsUIHelper",
       depsContent.contains("example.RegionsUIHelper"));
-    // The dependency file uses FQCNs, and inner types use $ in bytecode
-    // So we should NOT see RegionsUIHelper.SearchOn or RegionsUIHelper$SearchOn as separate entries
+
     boolean hasInnerEnumWithDot = depsContent.contains("\"example.RegionsUIHelper.SearchOn\"");
     boolean hasInnerEnumWithDollar = depsContent.contains("\"example.RegionsUIHelper$SearchOn\"");
     assertFalse("Dependency file should NOT contain inner enum entry with dot notation: " + depsContent,
       hasInnerEnumWithDot);
-    assertFalse("Dependency file should NOT contain inner enum entry with dollar notation: " + depsContent,
+    assertTrue("Dependency file should contain inner enum entry with dollar notation: " + depsContent,
       hasInnerEnumWithDollar);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1564,11 +1525,11 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 7: Verify consumer was recompiled
     assertTrue("RegionsUIHelper should be recompiled",
-      isNewer(afterTimestamps.get("RegionsUIHelper.class"), initialTimestamps.get("RegionsUIHelper.class")));
+      afterTimestamps.get("RegionsUIHelper.class").toMillis() > initialTimestamps.get("RegionsUIHelper.class").toMillis());
+    assertTrue("RegionsUIHelper$SearchOn should be recompiled",
+            afterTimestamps.get("RegionsUIHelper$SearchOn.class").toMillis() > initialTimestamps.get("RegionsUIHelper$SearchOn.class").toMillis());
     assertTrue("Consumer should be recompiled due to outer class change",
-      isNewer(afterTimestamps.get("RegionsPageExpressions.class"), initialTimestamps.get("RegionsPageExpressions.class")));
-
-    System.out.println("✓ Inner enum dependency tracking works correctly - RegionsUIHelper.SearchOn scenario");
+      afterTimestamps.get("RegionsPageExpressions.class").toMillis() > initialTimestamps.get("RegionsPageExpressions.class").toMillis());
   }
 
   @Test
@@ -1629,11 +1590,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 6: Verify FeatureUser was recompiled due to feature literal dependency
     assertTrue("StringUtil should be recompiled",
-      isNewer(afterTimestamps.get("StringUtil.class"), initialTimestamps.get("StringUtil.class")));
+      afterTimestamps.get("StringUtil.class").toMillis() > initialTimestamps.get("StringUtil.class").toMillis());
     assertTrue("FeatureUser should be recompiled due to feature literal dependency",
-      isNewer(afterTimestamps.get("FeatureUser.class"), initialTimestamps.get("FeatureUser.class")));
-
-    System.out.println("✓ Feature literal dependency tracking works correctly");
+      afterTimestamps.get("FeatureUser.class").toMillis() > initialTimestamps.get("FeatureUser.class").toMillis());
   }
 
   @Test
@@ -1710,11 +1669,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 6: Verify CastUser was recompiled due to cast dependency
     assertTrue("CustomType should be recompiled",
-      isNewer(afterTimestamps.get("CustomType.class"), initialTimestamps.get("CustomType.class")));
+      afterTimestamps.get("CustomType.class").toMillis() > initialTimestamps.get("CustomType.class").toMillis());
     assertTrue("CastUser should be recompiled due to type cast dependency",
-      isNewer(afterTimestamps.get("CastUser.class"), initialTimestamps.get("CastUser.class")));
-
-    System.out.println("✓ Type cast dependency tracking works correctly");
+      afterTimestamps.get("CastUser.class").toMillis() > initialTimestamps.get("CastUser.class").toMillis());
   }
 
   @Test
@@ -1794,11 +1751,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 6: Verify TypeTester was recompiled due to typeis dependency
     assertTrue("TestableType should be recompiled",
-      isNewer(afterTimestamps.get("TestableType.class"), initialTimestamps.get("TestableType.class")));
+      afterTimestamps.get("TestableType.class").toMillis() > initialTimestamps.get("TestableType.class").toMillis());
     assertTrue("TypeTester should be recompiled due to typeis dependency",
-      isNewer(afterTimestamps.get("TypeTester.class"), initialTimestamps.get("TypeTester.class")));
-
-    System.out.println("✓ Type test (typeis) dependency tracking works correctly");
+      afterTimestamps.get("TypeTester.class").toMillis() > initialTimestamps.get("TypeTester.class").toMillis());
   }
 
   @Test
@@ -1888,11 +1843,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 6: Verify ExceptionHandler was recompiled due to catch clause dependency
     assertTrue("CustomException should be recompiled",
-      isNewer(afterTimestamps.get("CustomException.class"), initialTimestamps.get("CustomException.class")));
+      afterTimestamps.get("CustomException.class").toMillis() > initialTimestamps.get("CustomException.class").toMillis());
     assertTrue("ExceptionHandler should be recompiled due to catch clause dependency",
-      isNewer(afterTimestamps.get("ExceptionHandler.class"), initialTimestamps.get("ExceptionHandler.class")));
-
-    System.out.println("✓ Exception catch clause dependency tracking works correctly");
+      afterTimestamps.get("ExceptionHandler.class").toMillis() > initialTimestamps.get("ExceptionHandler.class").toMillis());
   }
 
   @Test
@@ -1965,11 +1918,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 7: Verify DelegateUser was identified for recompilation due to delegate dependency
     assertTrue("IMyInterface should be recompiled",
-      isNewer(afterTimestamps.get("IMyInterface.class"), initialTimestamps.get("IMyInterface.class")));
+      afterTimestamps.get("IMyInterface.class").toMillis() > initialTimestamps.get("IMyInterface.class").toMillis());
     assertTrue("DelegateUser should be recompiled due to delegate dependency",
-      isNewer(afterTimestamps.get("DelegateUser.class"), initialTimestamps.get("DelegateUser.class")));
-
-    System.out.println("✓ Delegate statement dependency tracking works correctly");
+      afterTimestamps.get("DelegateUser.class").toMillis() > initialTimestamps.get("DelegateUser.class").toMillis());
   }
 
   @Test
@@ -2041,11 +1992,9 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 6: Verify StaticUser was recompiled (should already work via method call tracking)
     assertTrue("Factory should be recompiled",
-      isNewer(afterTimestamps.get("Factory.class"), initialTimestamps.get("Factory.class")));
+      afterTimestamps.get("Factory.class").toMillis() > initialTimestamps.get("Factory.class").toMillis());
     assertTrue("StaticUser should be recompiled due to static initializer dependency",
-      isNewer(afterTimestamps.get("StaticUser.class"), initialTimestamps.get("StaticUser.class")));
-
-    System.out.println("✓ Static field initializer dependency tracking works correctly");
+      afterTimestamps.get("StaticUser.class").toMillis() > initialTimestamps.get("StaticUser.class").toMillis());
   }
 
   /**
@@ -2142,14 +2091,11 @@ public class IncrementalCompilationEndToEndIT {
     // Step 7: ClassA, ClassB AND ClassC are all recompiled — the BFS walks
     //   {ClassA} -> {ClassB} -> {ClassC}
     assertTrue("ClassA should be recompiled (head of the chain)",
-      isNewer(afterTimestamps.get("ClassA.class"),
-        initialTimestamps.get("ClassA.class")));
+      afterTimestamps.get("ClassA.class").toMillis() > initialTimestamps.get("ClassA.class").toMillis());
     assertTrue("ClassB should be recompiled (direct consumer of ClassA)",
-      isNewer(afterTimestamps.get("ClassB.class"),
-        initialTimestamps.get("ClassB.class")));
+      afterTimestamps.get("ClassB.class").toMillis() > initialTimestamps.get("ClassB.class").toMillis());
     assertTrue("ClassC should be recompiled (transitive consumer through ClassB)",
-      isNewer(afterTimestamps.get("ClassC.class"),
-        initialTimestamps.get("ClassC.class")));
+      afterTimestamps.get("ClassC.class").toMillis() > initialTimestamps.get("ClassC.class").toMillis());
   }
 
   /**
@@ -2257,14 +2203,11 @@ public class IncrementalCompilationEndToEndIT {
     // Step 7: All three classes are recompiled. The cycle is fully traversed
     // exactly once thanks to visited-set tracking in calculateRecompilationSet.
     assertTrue("ClassA should be recompiled (the changed seed)",
-      isNewer(afterTimestamps.get("ClassA.class"),
-        initialTimestamps.get("ClassA.class")));
+      afterTimestamps.get("ClassA.class").toMillis() > initialTimestamps.get("ClassA.class").toMillis());
     assertTrue("ClassB should be recompiled (direct consumer of ClassA)",
-      isNewer(afterTimestamps.get("ClassB.class"),
-        initialTimestamps.get("ClassB.class")));
+      afterTimestamps.get("ClassB.class").toMillis() > initialTimestamps.get("ClassB.class").toMillis());
     assertTrue("ClassC should be recompiled (reached after one full lap around the cycle: A -> B -> C)",
-      isNewer(afterTimestamps.get("ClassC.class"),
-        initialTimestamps.get("ClassC.class")));
+      afterTimestamps.get("ClassC.class").toMillis() > initialTimestamps.get("ClassC.class").toMillis());
   }
 
   @Test
@@ -2367,9 +2310,9 @@ public class IncrementalCompilationEndToEndIT {
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
     assertTrue("ResultBase should be recompiled when IResult changes (direct consumer)",
-      isNewer(afterTimestamps.get("ResultBase.class"), initialTimestamps.get("ResultBase.class")));
+      afterTimestamps.get("ResultBase.class").toMillis() > initialTimestamps.get("ResultBase.class").toMillis());
     assertTrue("StringResult should be recompiled when IResult changes (transitive consumer through ResultBase)",
-      isNewer(afterTimestamps.get("StringResult.class"), initialTimestamps.get("StringResult.class")));
+      afterTimestamps.get("StringResult.class").toMillis() > initialTimestamps.get("StringResult.class").toMillis());
   }
 
   @Test
@@ -3561,6 +3504,509 @@ public class IncrementalCompilationEndToEndIT {
       getFileModificationTime(unrelatedClass).toMillis());
   }
 
+  @Test
+  public void testMemberClassChangeRecompilesConsumerWithExpectedDepFile() throws Exception {
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"v1\" }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _inner : Outer.Inner = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(outerFile, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path outerClass = outputDir.resolve("example/Outer.class");
+    Path innerClass = outputDir.resolve("example/Outer$Inner.class");
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    assertTrue("precondition: Outer.class should exist", Files.exists(outerClass));
+    assertTrue("precondition: Outer$Inner.class should exist", Files.exists(innerClass));
+    assertTrue("precondition: Consumer.class should exist", Files.exists(consumerClass));
+
+    // Bytecode analysis produces four edges:
+    //   - Outer -> Consumer            (Consumer's field type pulls in Outer)
+    //   - Outer$Inner -> Consumer      (Consumer's field type pulls in Outer$Inner)
+    //   - Outer -> Outer$Inner         (Inner's synthetic this$0 outer-instance ref)
+    //   - Outer$Inner -> Outer         (Outer's InnerClasses attribute / refs to Inner)
+    // The bidirectional Outer <-> Outer$Inner edges are real bytecode-level
+    // references, not redundancy -- ClassDependenciesVisitor records them
+    // when it scans the .class files post-compile.
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Outer\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer$Inner\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$Inner\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, dep file should record both the consumer edges " +
+      "(Outer -> Consumer and Outer$Inner -> Consumer from Consumer's field) " +
+      "and the bidirectional parent <-> member edges (Outer <-> Outer$Inner " +
+      "from synthetic this$0 + InnerClasses attribute in the post-compile " +
+      "bytecode walk).",
+      expectedDeps, actualDepsInitial);
+
+    FileTime initialOuterTime = getFileModificationTime(outerClass);
+    FileTime initialInnerTime = getFileModificationTime(innerClass);
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+
+    Thread.sleep(1100);
+
+    // ABI change to Inner: add a new public method.
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"v1\" }\n" +
+      "    function added() : int { return 7 }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Outer.class should be rewritten after incremental compile",
+      getFileModificationTime(outerClass).toMillis() > initialOuterTime.toMillis());
+    assertTrue("Outer$Inner.class should be rewritten after incremental compile",
+      getFileModificationTime(innerClass).toMillis() > initialInnerTime.toMillis());
+    assertTrue(
+      "Consumer.class should be recompiled when Outer.Inner changes (its field " +
+      "is typed Outer.Inner).",
+      getFileModificationTime(consumerClass).toMillis() > initialConsumerTime.toMillis());
+
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "Dep file after incremental compile should still record both " +
+      "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
+      expectedDeps, actualDepsAfter);
+  }
+
+  @Test
+  public void testAnonymousClassChangeRecompilesConsumerWithExpectedDepFile() throws Exception {
+    File util = createSourceFile("example/Util.gs",
+      "package example\n" +
+      "\n" +
+      "class Util {\n" +
+      "  static function greet() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "uses java.lang.Runnable\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  function makeRunner() : Runnable {\n" +
+      "    var f = \\-> Util.greet() \n" +
+      "    return new Runnable() {\n" +
+      "      override function run() {\n" +
+      "        print(Util.greet())\n" +
+      "      }\n" +
+      "    }\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(util, outerFile), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path utilClass = outputDir.resolve("example/Util.class");
+    Path outerClass = outputDir.resolve("example/Outer.class");
+    Path blockClass = outputDir.resolve("example/Outer$block_0_.class");
+    Path anonClass = outputDir.resolve("example/Outer$AnonymouS__1.class");
+    assertTrue("precondition: Util.class should exist", Files.exists(utilClass));
+    assertTrue("precondition: Outer.class should exist", Files.exists(outerClass));
+    assertTrue("precondition: Outer$block_0_ should exist", Files.exists(blockClass));
+    assertTrue(
+      "precondition: Outer$AnonymouS__1.class should exist",
+      Files.exists(anonClass));
+
+    // Note on the expected shape of "example.Util"'s consumer list:
+    //
+    // Util is referenced ONLY from inside the block body (`var f = \-> Util.greet()`)
+    // and the anonymous class body (`print(Util.greet())`). Each of those bodies
+    // compiles to its own .class file -- Outer$block_0_.class and
+    // Outer$AnonymouS__1.class -- and the bytecode reference to Util lives in
+    // those, not in Outer.class itself (verifiable with `javap -v Outer.class`:
+    // Util does not appear in Outer's constant pool).
+    String expectedDeps =
+      "{\n" +
+       "  \"version\": \"1.0\",\n" +
+       "  \"consumers\": {\n" +
+       "    \"example.Outer\": [\n" +
+       "      \"example.Outer$AnonymouS__1\",\n" +
+       "      \"example.Outer$block_0_\"\n" +
+       "    ],\n" +
+       "    \"example.Outer$AnonymouS__1\": [\n" +
+       "      \"example.Outer\"\n" +
+       "    ],\n" +
+       "    \"example.Outer$block_0_\": [\n" +
+       "      \"example.Outer\"\n" +
+       "    ],\n" +
+       "    \"example.Util\": [\n" +
+       "      \"example.Outer$AnonymouS__1\",\n" +
+       "      \"example.Outer$block_0_\"\n" +
+       "    ]\n" +
+       "  }\n" +
+       "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, dep file should match the expected one",
+      expectedDeps, actualDepsInitial);
+
+    FileTime initialUtilTime = getFileModificationTime(utilClass);
+    FileTime initialOuterTime = getFileModificationTime(outerClass);
+    FileTime initialAnonTime = getFileModificationTime(anonClass);
+
+    Thread.sleep(1100);
+
+    // ABI change to Util: add a new public static method (changes Util.class's
+    // API surface, not just its method bodies).
+    Files.write(util.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Util {\n" +
+      "  static function greet() : String { return \"v1\" }\n" +
+      "  static function added() : int { return 7 }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(util), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Util.class should be rewritten",
+      getFileModificationTime(utilClass).toMillis() > initialUtilTime.toMillis());
+    assertTrue(
+      "Outer.class should be recompiled",
+      getFileModificationTime(outerClass).toMillis() > initialOuterTime.toMillis());
+    assertTrue(
+      "Outer$block_0_.class should be recompiled",
+      getFileModificationTime(blockClass).toMillis() > initialAnonTime.toMillis());
+    assertTrue(
+      "Outer$AnonymouS__1.class should be recompiled",
+      getFileModificationTime(anonClass).toMillis() > initialAnonTime.toMillis());
+
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "Dep file after incremental compile should still record the same edges " +
+      "(no drift).",
+      expectedDeps, actualDepsAfter);
+  }
+
+  @Test
+  public void testClassInsideAnonymousChangeRecompilesConsumerWithExpectedDepFile() throws Exception {
+    File util = createSourceFile("example/Util.gs",
+      "package example\n" +
+      "\n" +
+      "class Util {\n" +
+      "  static function greet() : String { return \"v1\" }\n" +
+      "}"
+    );
+
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "uses java.lang.Runnable\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  function makeRunner() : Runnable {\n" +
+      "    return new Runnable() {\n" +
+      "      override function run() {\n" +
+      "        var f = \\-> Util.greet()\n" +
+      "        print(f())\n" +
+      "      }\n" +
+      "    }\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(util, outerFile), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path utilClass = outputDir.resolve("example/Util.class");
+    Path outerClass = outputDir.resolve("example/Outer.class");
+    Path anonClass = outputDir.resolve("example/Outer$AnonymouS__0.class");
+    Path innerBlockClass = outputDir.resolve("example/Outer$AnonymouS__0$block_0_.class");
+    assertTrue("precondition: Util.class should exist", Files.exists(utilClass));
+    assertTrue("precondition: Outer.class should exist", Files.exists(outerClass));
+    assertTrue(
+      "precondition: Outer$AnonymouS__0.class should exist (the anonymous " +
+      "Runnable artifact)",
+      Files.exists(anonClass));
+    assertTrue(
+      "precondition: Outer$AnonymouS__0$block_0_.class should exist (Gosu's " +
+      "class-inside-anonymous artifact)",
+      Files.exists(innerBlockClass));
+
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Outer\": [\n" +
+      "      \"example.Outer$AnonymouS__0\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$AnonymouS__0\": [\n" +
+      "      \"example.Outer\",\n" +
+      "      \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$AnonymouS__0$block_0_\": [\n" +
+      "      \"example.Outer$AnonymouS__0\"\n" +
+      "    ],\n" +
+      "    \"example.Util\": [\n" +
+      "      \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, dep file should match the expected one",
+      expectedDeps, actualDepsInitial);
+
+    FileTime initialUtilTime = getFileModificationTime(utilClass);
+    FileTime initialOuterTime = getFileModificationTime(outerClass);
+    FileTime initialAnonTime = getFileModificationTime(anonClass);
+    FileTime initialInnerBlockTime = getFileModificationTime(innerBlockClass);
+
+    Thread.sleep(1100);
+
+    // ABI change to Util: add a new public static method (changes Util.class's
+    // API surface, not just its method bodies).
+    Files.write(util.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Util {\n" +
+      "  static function greet() : String { return \"v1\" }\n" +
+      "  static function added() : int { return 7 }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(util), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Util.class should be rewritten",
+      getFileModificationTime(utilClass).toMillis() > initialUtilTime.toMillis());
+    assertTrue(
+      "Outer.class should be recompiled (co-derives from Outer.gs).",
+      getFileModificationTime(outerClass).toMillis() > initialOuterTime.toMillis());
+    assertTrue(
+      "Outer$AnonymouS__0.class should be recompiled (co-derives from Outer.gs).",
+      getFileModificationTime(anonClass).toMillis() > initialAnonTime.toMillis());
+    assertTrue(
+      "Outer$AnonymouS__0$block_0_.class should be recompiled (the innermost " +
+      "block is the actual referrer of Util).",
+      getFileModificationTime(innerBlockClass).toMillis() > initialInnerBlockTime.toMillis());
+
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "Dep file after incremental compile should still record the same edges " +
+      "(no drift).",
+      expectedDeps, actualDepsAfter);
+  }
+
+  @Test
+  public void testIncrementalCompileOfClassWithDollarInName() throws Exception {
+    // Pins that a Gosu source whose class name contains '$' (legal in JVM
+    // identifiers, allowed by Gosu) is tracked correctly by the incremental
+    // compiler. The hazard: the dep file uses bytecode-style FQCNs where '$'
+    // separates an enclosing class from its inner class, and the FQCN-to-source
+    // resolver in getGosuFilePathFromFqcn must distinguish "'$' as separator
+    // for an inner class" from "'$' as part of the outer class name".
+
+    File outerFile = createSourceFile("example/Outer$Class.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer$Class {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"v1\" }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _inner : Outer$Class.Inner = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Arrays.asList(outerFile, consumer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path outerClass = outputDir.resolve("example/Outer$Class.class");
+    Path innerClass = outputDir.resolve("example/Outer$Class$Inner.class");
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    assertTrue("precondition: Outer$Class.class should exist", Files.exists(outerClass));
+    assertTrue("precondition: Outer$Class$Inner.class should exist", Files.exists(innerClass));
+    assertTrue("precondition: Consumer.class should exist", Files.exists(consumerClass));
+
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Outer$Class\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer$Class$Inner\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$Class$Inner\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer$Class\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, the dep file should record both the consumer " +
+      "edges (Outer$Class -> Consumer and Outer$Class$Inner -> Consumer from " +
+      "Consumer's field) and the bidirectional parent <-> member edges " +
+      "(Outer$Class <-> Outer$Class$Inner) -- same shape as the no-'$' case.",
+      expectedDeps, actualDepsInitial);
+
+    FileTime initialOuterTime = getFileModificationTime(outerClass);
+    FileTime initialInnerTime = getFileModificationTime(innerClass);
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+
+    Thread.sleep(1100);
+
+    // ABI change to Inner: add a new public method.
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer$Class {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"v1\" }\n" +
+      "    function added() : int { return 7 }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Outer$Class.class should be rewritten after incremental compile",
+      getFileModificationTime(outerClass).toMillis() > initialOuterTime.toMillis());
+    assertTrue("Outer$Class$Inner.class should be rewritten after incremental compile",
+      getFileModificationTime(innerClass).toMillis() > initialInnerTime.toMillis());
+    assertTrue(
+      "Consumer.class should be recompiled when Outer$Class.Inner changes",
+      getFileModificationTime(consumerClass).toMillis() > initialConsumerTime.toMillis());
+
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "Dep file after incremental compile should still record the same edges " +
+      "(no drift).",
+      expectedDeps, actualDepsAfter);
+  }
+
+  @Test
+  public void testIncrementalCompileOfNewlyAddedTypeDoesNotNpe() throws Exception {
+    // Bug pin: calculateRecompilationSet's BFS reads typeDependencies.get(type)
+    // and iterates the result directly, so it relies on every seed FQCN
+    // (changedTypes + removedTypes) having an entry in typeDependencies. For
+    // a net-new source file added between builds, the new FQCN has no entry
+    // in the previous run's dep file, so typeDependencies.get(newFqcn) returns
+    // null and the for-each NPEs.
+
+    // Step 1: initial compile of a single producer. This populates the dep
+    // file with an entry for example.Producer but not for anything else.
+    File producer = createSourceFile("example/Producer.gs",
+      "package example\n" +
+      "\n" +
+      "class Producer {\n" +
+      "  function value() : String { return \"v1\" }\n" +
+      "}"
+    );
+    CompileResult initial = compile(Arrays.asList(producer), false);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+    assertTrue("precondition: Producer.class should exist",
+      Files.exists(outputDir.resolve("example/Producer.class")));
+    assertTrue("precondition: dep file should be created on initial compile",
+      dependencyFile.exists());
+
+    String expectedDepFile = "{\n" +
+            "  \"version\": \"1.0\",\n" +
+            "  \"consumers\": {\n" +
+            "    \"example.Producer\": []\n" +
+            "  }\n" +
+            "}";
+
+    assertTrue("Expected dep file must match the generated one",
+            expectedDepFile.equals(Files.readString(dependencyFile.toPath())));
+    Thread.sleep(1100);
+
+    // Step 2: add a brand new source file that has no relationship to
+    // anything in the existing dep graph. example.NewType is NOT in
+    // typeDependencies (it wasn't a producer in the initial compile).
+    File newType = createSourceFile("example/NewType.gs",
+      "package example\n" +
+      "\n" +
+      "class NewType {\n" +
+      "  function greet() : String { return \"hello\" }\n" +
+      "}"
+    );
+
+    // Step 3: incremental compile passing only the new file. changedTypes
+    // contains example.NewType -- the BFS will pull it from the worklist
+    // and look it up in typeDependencies, which is where the NPE happened
+    // without the fix.
+    CompileResult incr = compile(Arrays.asList(newType), true);
+    assertTrue(
+      "Incremental compilation of a brand-new source file must succeed.\n\nCompile error was:\n" + incr.error,
+      incr.success);
+
+    assertTrue(
+      "NewType.class should be produced by the incremental compile of the " +
+      "newly-added source.",
+      Files.exists(outputDir.resolve("example/NewType.class")));
+
+    // The dep file should now record example.NewType (with an empty consumer
+    // list since nothing references it). This documents that the pre-populate
+    // doesn't pollute the persisted graph.
+
+    expectedDepFile = "{\n" +
+            "  \"version\": \"1.0\",\n" +
+            "  \"consumers\": {\n" +
+            "    \"example.NewType\": [],\n" +
+            "    \"example.Producer\": []\n" +
+            "  }\n" +
+            "}";
+    assertTrue("Expected dep file must match the generated one",
+            expectedDepFile.equals(Files.readString(dependencyFile.toPath())));
+  }
 
   private static class CompileResult {
     boolean success;
