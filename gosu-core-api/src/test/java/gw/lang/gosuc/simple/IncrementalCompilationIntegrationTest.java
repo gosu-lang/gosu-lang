@@ -49,7 +49,7 @@ public class IncrementalCompilationIntegrationTest {
   private IncrementalCompilationManager newManager() {
     return new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
       Collections.singletonList(srcDir.toAbsolutePath().toString()),
-      Collections.emptyList(), false);
+      Collections.emptyList(), false, Collections.emptyList());
   }
 
   @Test
@@ -95,7 +95,8 @@ public class IncrementalCompilationIntegrationTest {
     // Scenario: Base class changes, dependent classes should recompile.
     // Source files don't actually need to exist for this test -- only the dep file matters.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("test.BaseClass", List.of("test.DerivedClass")));
+      Map.of("test.BaseClass", List.of("test.DerivedClass"),
+              "test.DerivedClass", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("test.BaseClass"),  // Changed types as FQCNs
@@ -114,7 +115,9 @@ public class IncrementalCompilationIntegrationTest {
   public void testFileDeletedScenario() throws IOException {
     // Scenario: Interface deleted, implementations should recompile.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("test.IMyInterface", List.of("test.ImplClass1", "test.ImplClass2")));
+      Map.of("test.IMyInterface", List.of("test.ImplClass1", "test.ImplClass2"),
+              "test.ImplClass1", Collections.emptyList(),
+              "test.ImplClass2", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Collections.emptySet(),
@@ -131,7 +134,7 @@ public class IncrementalCompilationIntegrationTest {
   public void testNoRecompilationNeeded() throws IOException {
     // Scenario: File changes but has no dependents. Empty dep file.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Collections.emptyMap());
+            Map.of("test.LonelyClass", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("test.LonelyClass"),  // Changed types as FQCNs

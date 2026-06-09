@@ -92,11 +92,15 @@ public class CommandLineCompiler
     }
 
     gosuc.initializeGosu( sourcepath, classpath, options.getDestDir() );
-
-    boolean thresholdExceeded = gosuc.compile( options, driver );
-
-    gosuc.uninitializeGosu();
-    
+    boolean thresholdExceeded;
+    try
+    {
+      thresholdExceeded = gosuc.compile( options, driver );
+    }
+    finally
+    {
+      gosuc.uninitializeGosu();
+    }
     return thresholdExceeded;
   }
 

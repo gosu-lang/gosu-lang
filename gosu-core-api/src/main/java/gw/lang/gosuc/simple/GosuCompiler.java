@@ -16,7 +16,6 @@ import gw.lang.javac.SourceJavaFileObject;
 import gw.lang.parser.GosuParserFactory;
 import gw.lang.parser.ICoercionManager;
 import gw.lang.parser.IParseIssue;
-import gw.lang.parser.IFunctionSymbol;
 import gw.lang.parser.IParsedElement;
 import gw.lang.parser.exceptions.ParseWarning;
 import gw.lang.parser.statements.IClassFileStatement;
@@ -87,12 +86,12 @@ public class GosuCompiler implements IGosuCompiler
         sourceRoots.add(tok.nextToken());
       }
     }
-
+    List<String> allSourceFiles = getSourceFiles( options );
     _incrementalManager = new IncrementalCompilationManager(
       options.getDependencyFile(),
       sourceRoots,
       options.getLocalJavaTypes(),
-      options.isVerbose() );
+      options.isVerbose() , allSourceFiles);
 
     // Get changed and removed type FQCNs from CLI
     Set<String> changedTypes = options.getChangedTypes();
@@ -109,37 +108,22 @@ public class GosuCompiler implements IGosuCompiler
     // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
     deleteClassAndSourceFiles(toDelete, options.getDestDir(), options.isVerbose());
 
-    if( options.isVerbose() && !typeFqcnsToCompile.isEmpty() )
-    {
-      System.out.println( "Incremental compilation: recompiling " + typeFqcnsToCompile.size() + " types" );
-      for( String fqcn : typeFqcnsToCompile )
-      {
-        System.out.println( "  - " + fqcn );
-      }
-    }
-
-    // Convert type FQCNs to source file paths
-    List<String> allSourceFiles = getSourceFiles( options );
     //TODO test allSourceFiles with gosu programs which contains multiple public classes.
-    Map<String, String> fqcnToPath = _incrementalManager.buildFqcnToSourcePath(allSourceFiles);
-
     List<String> sourceFiles;
     Set<String> sourceFilesToCompile = new HashSet<>();
 
     // Match FQCNs to source files
     for( String fqcn : typeFqcnsToCompile )
     {
-      // TODO handle inner classes (anonymous or not) and blocks. We should strip anything
-      //  after the $ before accessing the fqcnToPath map.
-      String sourceFile = fqcnToPath.get(fqcn);
+      String sourceFile = _incrementalManager.getGosuFilePathFromFqcn(fqcn);
       if( sourceFile == null )
       {
         // TODO: This should only happen if the dep graph carries stale entries in pathological situations, ex:
         //  - a previously-recorded Gosu consumer whose .gs file was deleted outside the Gradle change-set Gradle
         //    reported.
         //  - a dep file that survived an aborted compile.
-        // Probably it will be better to do a full rebuild instead of failing hard and log.
-        throw new AssertionError( "Could not find source file for type " + fqcn );
+        // Probably it will be better to do a full rebuild instead of failing hard.
+        throw new IllegalStateException( "Could not find source file for type " + fqcn );
       }
       // Inner classes can map to the same sourceFile, using a set will avoid duplicates.
       sourceFilesToCompile.add(sourceFile);
@@ -156,6 +140,14 @@ public class GosuCompiler implements IGosuCompiler
       }
     } else {
       sourceFiles = new ArrayList<>(sourceFilesToCompile);
+      if( options.isVerbose() )
+      {
+        System.out.println( "Incremental compilation: recompiling " + sourceFilesToCompile.size() + " source files" );
+        for( String fqcn : sourceFilesToCompile )
+        {
+          System.out.println( "  - " + fqcn );
+        }
+      }
     }
 
     boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
@@ -347,12 +339,6 @@ public class GosuCompiler implements IGosuCompiler
         if( type.isValid() )
         {
           createGosuOutputFiles( (IGosuClass)type, driver );
-
-          // Track dependencies if incremental compilation is enabled (v2 FQCN-based architecture)
-          if( _incrementalManager != null )
-          {
-            trackDependencies( (IGosuClass)type );
-          }
         }
       }
       catch( CompilerDriverException ex )
@@ -518,399 +504,6 @@ public class GosuCompiler implements IGosuCompiler
         }
       } else {
         System.err.println("Warning: Failed to delete source file: " + sourceFile);
-      }
-    }
-  }
-
-  /*
-     Recording strategy.
-
-     Walks gsClass's immediate features (supertype, interfaces, fields,
-     methods, uses statements, AST elements) and records, for each, the
-     types they reference. trackTypeDependency then unpacks each type
-     expression -- array components and parameterized type arguments --
-     and the AST visitor descends into the whole class statement subtree.
-     Both descents are DFS-shaped.
-
-     Compound type unpacking, concretely. For a field declared
-
-         var foo : List<Map<String, Foo>>
-
-     the recorded edges (all with gsClass as the consumer) are:
-
-         List<Map<String, Foo>>  ->  gsClass
-         Map<String, Foo>        ->  gsClass
-         String                  ->  gsClass
-         Foo                     ->  gsClass
-
-     Each component is a real dependency: changing the name of any one
-     of them would invalidate gsClass's bytecode (the generic-signature
-     attribute references each by name), so each gets its own edge.
-
-     What is NOT done here: following class-to-class chains. Suppose
-     gsClass declares
-
-         var x : A
-
-     and A's own source (compiled separately, in A.gs) contains
-
-         var y : B
-
-     We record gsClass -> A here, but NOT gsClass -> B. B is A's
-     internal business; gsClass doesn't see it from its own source.
-     The edge B -> A was recorded when A was compiled, in that
-     separate invocation of trackDependencies(A, ...). If B later
-     changes, the inverse-graph BFS in
-     IncrementalCompilationManager.calculateRecompilationSet reaches
-     gsClass transitively via the graph it has already built:
-     B's consumers include A, and A's consumers include gsClass.
-
-     The single-hop discipline at the class level keeps the per-compile
-     work bounded. The transitive cascade is the BFS's job, driven by
-     the edges recorded across all prior compiles, not by re-walking
-     class hierarchies at edge-recording time.
-  */
-  private void trackDependencies( IGosuClass gsClass )
-  {
-    String consumerFqcn = gsClass.getName();
-    Set<IType> trackedTypes = new HashSet<>();
-
-    // Ensure this type is registered in dependency file, even if it has no dependencies
-    // For inner classes, register only the outermost enclosing type since inner classes
-    // are always compiled together with their outer class
-    // TODO what happens if I have two classes in a .gs file? Which one is the ourtermost and will I miss the other?
-    IType typeToRegister = getOutermostEnclosingType(gsClass);
-    String typeFqcn = typeToRegister.getName();
-    _incrementalManager.ensureTypeRegistered(typeFqcn);
-
-    // Track enhancement dependency - if this is an enhancement, track the enhanced type
-    if( gsClass instanceof gw.lang.reflect.gs.IGosuEnhancement )
-    {
-      gw.lang.reflect.gs.IGosuEnhancement enhancement = (gw.lang.reflect.gs.IGosuEnhancement)gsClass;
-      IType enhancedType = enhancement.getEnhancedType();
-      if( enhancedType != null )
-      {
-        trackTypeDependency( consumerFqcn, enhancedType, trackedTypes );
-      }
-    }
-
-    // Track superclass dependency
-    IType supertype = gsClass.getSupertype();
-    if( supertype != null && supertype instanceof IGosuClass )
-    {
-      trackTypeDependency( consumerFqcn, supertype, trackedTypes );
-    }
-    
-    // Track interface dependencies
-    for( IType iface : gsClass.getInterfaces() )
-    {
-      if( iface instanceof IGosuClass )
-      {
-        trackTypeDependency( consumerFqcn, iface, trackedTypes );
-      }
-    }
-
-    // Track field type dependencies
-    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getProperties() != null )
-    {
-      for( Object propInfo : gsClass.getTypeInfo().getProperties() )
-      {
-        if( propInfo instanceof gw.lang.reflect.IPropertyInfo )
-        {
-          IType fieldType = ((gw.lang.reflect.IPropertyInfo)propInfo).getFeatureType();
-          trackTypeDependency( consumerFqcn, fieldType, trackedTypes );
-        }
-      }
-    }
-
-    // Track method parameter and return type dependencies
-    if( gsClass.getTypeInfo() != null && gsClass.getTypeInfo().getMethods() != null )
-    {
-      for( Object methodInfo : gsClass.getTypeInfo().getMethods() )
-      {
-        if( methodInfo instanceof gw.lang.reflect.IMethodInfo )
-        {
-          gw.lang.reflect.IMethodInfo method = (gw.lang.reflect.IMethodInfo)methodInfo;
-
-          // Track return type
-          IType returnType = method.getReturnType();
-          trackTypeDependency( consumerFqcn, returnType, trackedTypes );
-
-          // Track parameter types
-          gw.lang.reflect.IParameterInfo[] params = method.getParameters();
-          if( params != null )
-          {
-            for( gw.lang.reflect.IParameterInfo param : params )
-            {
-              trackTypeDependency( consumerFqcn, param.getFeatureType(), trackedTypes );
-            }
-          }
-        }
-      }
-    }
-
-    // Track types from uses statements
-    if( gsClass.getTypeUsesMap() != null )
-    {
-      Set<String> typeUses = gsClass.getTypeUsesMap().getTypeUses();
-      if( typeUses != null )
-      {
-        for( String typeUseName : typeUses )
-        {
-          try
-          {
-            IType usedType = TypeSystem.getByFullNameIfValid( typeUseName );
-            if( usedType != null )
-            {
-              trackTypeDependency( consumerFqcn, usedType, trackedTypes );
-            }
-          }
-          catch( Exception e )
-          {
-            // Ignore type resolution errors for uses statements
-          }
-        }
-      }
-    }
-
-    // Enhanced dependency tracking - traverse AST for method calls
-    try
-    {
-      trackDependenciesFromAST( gsClass, consumerFqcn, trackedTypes );
-    }
-    catch( Exception e )
-    {
-      // Ignore AST traversal errors to avoid breaking compilation
-    }
-  }
-
-  private void trackDependenciesFromAST( IGosuClass gsClass, String consumerFqcn, Set<IType> trackedTypes )
-  {
-    try
-    {
-      IClassStatement classStmt = gsClass.getClassStatementWithoutCompile();
-      if( classStmt != null )
-      {
-
-        classStmt.visit( element -> {
-          try
-          {
-            trackDependenciesFromElement( element, consumerFqcn, trackedTypes );
-          }
-          catch( Exception e )
-          {
-            // Ignore individual element processing errors
-          }
-        });
-      }
-      else
-      {
-      }
-    }
-    catch( Exception e )
-    {
-    }
-  }
-
-  private void trackDependenciesFromElement( IParsedElement element, String consumerFqcn, Set<IType> trackedTypes )
-  {
-    // Check for method call expressions - track both the method owner and return type
-    if( element instanceof gw.lang.parser.expressions.IMethodCallExpression )
-    {
-      gw.lang.parser.expressions.IMethodCallExpression methodCall =
-        (gw.lang.parser.expressions.IMethodCallExpression)element;
-
-      // Track the function symbol's type (this is the declaring class for static methods)
-      IFunctionSymbol funcSymbol = methodCall.getFunctionSymbol();
-      if( funcSymbol != null )
-      {
-        IType ownerType = funcSymbol.getType();
-        if( ownerType != null )
-        {
-          trackTypeDependency( consumerFqcn, ownerType, trackedTypes );
-        }
-        
-        // Check if this method call is from an enhancement
-        // Enhancement methods have the enhancement type as their declaring type
-        try
-        {
-          if( funcSymbol instanceof gw.lang.reflect.IMethodInfo )
-          {
-            gw.lang.reflect.IMethodInfo methodInfo = (gw.lang.reflect.IMethodInfo)funcSymbol;
-            IType declaringType = methodInfo.getOwnersType();
-            
-            // If the declaring type is different from the owner type, it might be an enhancement method
-            if( declaringType != null && declaringType != ownerType && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
-            {
-              trackTypeDependency( consumerFqcn, declaringType, trackedTypes );
-            }
-          }
-        }
-        catch( Exception e )
-        {
-          // Ignore errors in enhancement detection to avoid breaking compilation
-        }
-      }
-
-      // Also track the return type
-      IType returnType = methodCall.getType();
-      if( returnType != null )
-      {
-        trackTypeDependency( consumerFqcn, returnType, trackedTypes );
-      }
-    }
-
-    // Check for member access expressions (like StringUtil.capitalize or StringUtil.CONSTANT)
-    if( element instanceof gw.lang.parser.expressions.IMemberAccessExpression )
-    {
-      gw.lang.parser.expressions.IMemberAccessExpression memberAccess =
-        (gw.lang.parser.expressions.IMemberAccessExpression)element;
-
-      IType rootType = memberAccess.getRootType();
-      if( rootType != null )
-      {
-        trackTypeDependency( consumerFqcn, rootType, trackedTypes );
-      }
-      
-      // Check if this member access is from an enhancement (like person.FullName)
-      try
-      {
-        gw.lang.reflect.IPropertyInfo propInfo = memberAccess.getPropertyInfo();
-        if( propInfo != null )
-        {
-          IType declaringType = propInfo.getOwnersType();
-          
-          // If the declaring type is an enhancement, track it
-          if( declaringType != null && declaringType instanceof gw.lang.reflect.gs.IGosuEnhancement )
-          {
-            trackTypeDependency( consumerFqcn, declaringType, trackedTypes );
-          }
-        }
-      }
-      catch( Exception e )
-      {
-        // Ignore errors in enhancement detection to avoid breaking compilation
-      }
-    }
-
-    // Track type literal references
-    if( element instanceof gw.lang.parser.expressions.ITypeLiteralExpression )
-    {
-      gw.lang.parser.expressions.ITypeLiteralExpression typeLiteral =
-        (gw.lang.parser.expressions.ITypeLiteralExpression)element;
-
-      IType referencedType = typeLiteral.getType().getType();
-      if( referencedType != null )
-      {
-        trackTypeDependency( consumerFqcn, referencedType, trackedTypes );
-      }
-    }
-  }
-
-  /**
-   * Returns the outermost enclosing type for inner classes, or the type itself if it's a top-level type.
-   * Inner classes are always compiled together with their outer class, so for dependency tracking
-   * we only need to track the outermost type.
-   *
-   * @param type The type to check
-   * @return The outermost enclosing type, or the type itself if it's not an inner class
-   */
-  private IType getOutermostEnclosingType( IType type )
-  {
-    if( !(type instanceof IGosuClass) )
-    {
-      return type;
-    }
-
-    IType outermost = type;
-    while( outermost instanceof IGosuClass )
-    {
-      IType enclosingType = ((IGosuClass)outermost).getEnclosingTypeReference();
-      if( enclosingType == null )
-      {
-        break;  // Found outermost type
-      }
-      outermost = enclosingType;
-    }
-    return outermost;
-  }
-
-  private void trackTypeDependency( String consumerFqcn, IType type, Set<IType> trackedTypes )
-  {
-    if( type == null || trackedTypes.contains( type ) )
-    {
-      return;
-    }
-
-    // Skip primitive types only
-    if( type.isPrimitive() )
-    {
-      return;
-    }
-
-    trackedTypes.add( type );
-
-    // Track Java type dependencies
-    if( type instanceof IJavaType )
-    {
-      IJavaType javaType = (IJavaType)type;
-      String producerFqcn = javaType.getName();
-
-      // Only track if this is a same-module Java type (not JRE or JAR dependencies)
-      if( _incrementalManager.shouldTrackJavaType( producerFqcn ) )
-      {
-        _incrementalManager.recordTypeDependency( producerFqcn, consumerFqcn);
-      }
-      // Don't recurse into Java compound-types java.util.List<MyGosuType>.
-      // MyGosuType will be found by trackDependenciesFromAST.
-      return;
-    }
-    // Track Gosu-to-Gosu type dependencies
-    else if( type instanceof IGosuClass )
-    {
-      IGosuClass gosuClass = (IGosuClass)type;
-
-      // For inner classes, track dependency on outermost enclosing type only.
-      // Inner classes are always compiled together with their outer class (lines 1050-1059),
-      // so tracking the outer class dependency is sufficient and avoids redundant entries.
-      IType typeToTrack = getOutermostEnclosingType(gosuClass);
-
-      // Resolve parameterized type to its raw generic form so the dep file key is consistent.
-      // e.g. PendingResult<R> (from an implements clause) -> PendingResult
-      if( typeToTrack.isParameterizedType() && typeToTrack.getGenericType() != null )
-      {
-        typeToTrack = typeToTrack.getGenericType();
-      }
-
-      IGosuClass gosuTypeToTrack = typeToTrack instanceof IGosuClass ? (IGosuClass)typeToTrack : null;
-
-      if( gosuTypeToTrack == null ) {
-        return;  // Not a Gosu class (shouldn't happen, but defensive)
-      }
-
-      // Only track if this is a local Gosu type (not from external JAR)
-      if( _incrementalManager.shouldTrackGosuType( gosuTypeToTrack ) ) {
-        String producerFqcn = typeToTrack.getName();
-        _incrementalManager.recordTypeDependency( producerFqcn, consumerFqcn );
-      }
-    }
-    
-    // Also track array component types
-    if( type.isArray() )
-    {
-      trackTypeDependency( consumerFqcn, type.getComponentType(), trackedTypes );
-    }
-
-    // Track parameterized type arguments
-    if( type.isParameterizedType() )
-    {
-      IType[] typeParams = type.getTypeParameters();
-      if( typeParams != null )
-      {
-        for( IType typeParam : typeParams )
-        {
-          trackTypeDependency( consumerFqcn, typeParam, trackedTypes );
-        }
       }
     }
   }
@@ -1100,6 +693,11 @@ public class GosuCompiler implements IGosuCompiler
     {
       out.write( bytes );
       driver.registerOutput( _compilingSourceFile, outputFile );
+    }
+    // Track dependencies if incremental compilation is enabled.
+    if( _incrementalManager != null )
+    {
+       _incrementalManager.trackDependencies(bytes, gosuClass);
     }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {

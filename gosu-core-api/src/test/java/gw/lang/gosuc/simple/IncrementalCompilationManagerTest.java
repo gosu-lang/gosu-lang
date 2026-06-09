@@ -55,13 +55,14 @@ public class IncrementalCompilationManagerTest {
       dependencyFile.getAbsolutePath(),
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
       localJavaTypes,
-      false);
+      false, Collections.emptyList());
   }
 
   @Test
   public void testRecordTypeDependency() {
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.Producer", List.of("com.example.Consumer")));
+      Map.of("com.example.Producer", List.of("com.example.Consumer"),
+              "com.example.Consumer", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.Producer"),
@@ -75,7 +76,8 @@ public class IncrementalCompilationManagerTest {
   @Test
   public void testCalculateRecompilationSetWithRemovedType() {
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.Interface", List.of("com.example.Implementation")));
+      Map.of("com.example.Interface", List.of("com.example.Implementation"),
+              "com.example.Implementation", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Collections.emptySet(),
@@ -90,7 +92,9 @@ public class IncrementalCompilationManagerTest {
   public void testNoRecompilationForUnrelatedChanges() {
     // B depends on A; C is independent.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.A", List.of("com.example.B")));
+      Map.of("com.example.A", List.of("com.example.B"),
+            "com.example.B", Collections.emptyList(),
+              "com.example.C", Collections.emptyList() ));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.C"),
@@ -109,6 +113,7 @@ public class IncrementalCompilationManagerTest {
     // Self-references inside recordTypeDependency are filtered out -- documenting
     // that production behavior here requires a local manager.
     IncrementalCompilationManager manager = newManager();
+    manager.getOrCreateConsumerSet("com.example.Consumer");
     manager.recordTypeDependency("com.example.Builder", "com.example.Builder");  // skipped
     manager.recordTypeDependency("com.example.Builder", "com.example.Consumer"); // recorded
     manager.updateDependencyFile(Set.of("com.example.Consumer"), Collections.emptySet());
@@ -146,7 +151,7 @@ public class IncrementalCompilationManagerTest {
   public void testSelfReferencingTypeRegisteredWithEmptyArray() {
     // Register type and add only self-reference
     IncrementalCompilationManager manager = newManager();
-    manager.ensureTypeRegistered("com.example.Builder");
+    manager.getOrCreateConsumerSet("com.example.Builder");
     manager.recordTypeDependency("com.example.Builder", "com.example.Builder");
     manager.updateDependencyFile(Set.of("com.example.Builder"), Collections.emptySet());
 
@@ -168,7 +173,8 @@ public class IncrementalCompilationManagerTest {
   public void testInnerClassDependencyRecordsOuterClass() {
     // The dep file contains only the outer class entry, not "OuterClass.InnerClass".
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.OuterClass", List.of("com.example.Consumer")));
+      Map.of("com.example.OuterClass", List.of("com.example.Consumer"),
+              "com.example.Consumer", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.OuterClass"),
@@ -185,7 +191,8 @@ public class IncrementalCompilationManagerTest {
   public void testNestedInnerClassDependencyRecordsOutermostClass() {
     // Outer.Inner.InnerInner -> only "Outer" is tracked.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.Outer", List.of("com.example.Consumer")));
+      Map.of("com.example.Outer", List.of("com.example.Consumer"),
+              "com.example.Consumer", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.Outer"),
@@ -200,7 +207,8 @@ public class IncrementalCompilationManagerTest {
   public void testInnerEnumDependencyRecordsOuterClass() {
     // OuterClass.InnerEnum -> only "OuterClass" is tracked.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.RegionsUIHelper", List.of("com.example.Consumer")));
+      Map.of("com.example.RegionsUIHelper", List.of("com.example.Consumer"),
+              "com.example.Consumer", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.RegionsUIHelper"),
@@ -215,7 +223,8 @@ public class IncrementalCompilationManagerTest {
   public void testStaticNestedClassDependencyRecordsOuterClass() {
     // OuterClass.StaticNested -> only "OuterClass" is tracked.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("com.example.OuterClass", List.of("com.example.Consumer")));
+      Map.of("com.example.OuterClass", List.of("com.example.Consumer"),
+              "com.example.Consumer", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("com.example.OuterClass"),
@@ -233,7 +242,8 @@ public class IncrementalCompilationManagerTest {
     // calling recordTypeDependency, so the dep file always stores raw names.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
       Map.of("gw.plugin.geocode.impl.PendingResult",
-             List.of("gw.plugin.geocode.impl.PendingResultBase")));
+             List.of("gw.plugin.geocode.impl.PendingResultBase"),
+              "gw.plugin.geocode.impl.PendingResultBase", Collections.emptyList()));
 
     Set<String> toRecompile = newManager().calculateRecompilationSet(
       Set.of("gw.plugin.geocode.impl.PendingResult"),
@@ -250,7 +260,9 @@ public class IncrementalCompilationManagerTest {
     // Its Gosu consumers should still be found and recompiled.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
       Map.of("com.guidewire._generated.entity.DocumentInternal",
-             List.of("gw.document.DocumentProduction")));
+             List.of("gw.document.DocumentProduction"),
+              "gw.document.DocumentProduction", Collections.emptyList(),
+              "entity.Document", Collections.emptyList()));
 
     Set<String> toRecompile = newManager(
       Arrays.asList("com.guidewire._generated.entity.DocumentInternal")
@@ -272,7 +284,10 @@ public class IncrementalCompilationManagerTest {
     // Seed an initial state where TypeA, TypeB, TypeC all depend on SharedProducer.
     IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
       Map.of("com.example.SharedProducer",
-             List.of("com.example.TypeA", "com.example.TypeB", "com.example.TypeC")));
+             List.of("com.example.TypeA", "com.example.TypeB", "com.example.TypeC"),
+              "com.example.TypeA", Collections.emptyList(),
+              "com.example.TypeB", Collections.emptyList(),
+              "com.example.TypeC", Collections.emptyList()));
 
     // Incremental session: only TypeA is recompiled; it still depends on SharedProducer.
     // TypeB and TypeC are NOT recompiled -- their relationships must be preserved.
@@ -309,8 +324,9 @@ public class IncrementalCompilationManagerTest {
         outerRoot.toAbsolutePath().toString(),    // shallow root, declared first
         innerRoot.toAbsolutePath().toString()     // deeper root, the correct match
       ),
-      Collections.emptyList(), false);
+      Collections.emptyList(), false, Collections.emptyList());
 
+    manager.getOrCreateConsumerSet("com.example.MyClass");
     manager.recordTypeDependency(
             "example.Producer",
             "com.example.MyClass"
