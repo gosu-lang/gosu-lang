@@ -181,7 +181,7 @@ public class IncrementalCompilationEndToEndIT {
       baseEntity, user, product, userService, productService, independentUtil
     );
     
-    CompileResult initialResult = compile(allSourceFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     if (!initialResult.success) {
       System.err.println("Initial compilation failed with error: " + initialResult.error);
     }
@@ -229,7 +229,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Step 4: Incremental compilation - only compile changed files
     List<File> changedFiles = Arrays.asList(user);
-    CompileResult incrementalResult = compile(changedFiles, true);
+    CompileResult incrementalResult = compile(changedFiles);
     assertTrue("Incremental compilation should succeed", incrementalResult.success);
     
     // Step 5: Verify timestamps
@@ -313,7 +313,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Initial compilation
     List<File> allFiles = Arrays.asList(myInterface, baseClass, derived1, derived2, unrelated);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -337,7 +337,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
     
     // Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(baseClass), true);
+    CompileResult incrementalResult = compile(Arrays.asList(baseClass));
     assertTrue("Incremental compilation should succeed", incrementalResult.success);
     
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -396,7 +396,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Initial compilation
     List<File> allFiles = Arrays.asList(util, consumer1, consumer2);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
     // Delete StringUtil
@@ -407,8 +407,7 @@ public class IncrementalCompilationEndToEndIT {
     // Incremental compilation with deleted file
     CompileResult incrementalResult = compileWithDeleted(
       Collections.emptyList(), 
-      Arrays.asList(util),
-      true
+      Arrays.asList(util)
     );
     
     // Should fail because Consumer1 and Consumer2 depend on deleted StringUtil
@@ -455,7 +454,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Initial compilation
     List<File> allFiles = Arrays.asList(myInterface, implementation, enhancement);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
 
     // Step 5: Verify that both .class and source files exist in output
@@ -480,8 +479,7 @@ public class IncrementalCompilationEndToEndIT {
     // Step 7: Incremental compilation with deleted files
     CompileResult incrementalResult = compileWithDeleted(
       Collections.emptyList(),
-      Arrays.asList(myInterface, enhancement),
-      true
+      Arrays.asList(myInterface, enhancement)
     );
 
     // Should fail because implementation depends on deleted interface
@@ -520,7 +518,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Initial compilation
     List<File> allFiles = Arrays.asList(class1, class2, class3);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -539,7 +537,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
     
     // Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(class2), true);
+    CompileResult incrementalResult = compile(Arrays.asList(class2));
     assertTrue("Incremental compilation should succeed", incrementalResult.success);
     
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -590,109 +588,122 @@ public class IncrementalCompilationEndToEndIT {
     // Replace path separators with dots
     return pathStr.replace(File.separatorChar, '.');
   }
-  
-  private CompileResult compile(List<File> sourceFiles, boolean incremental) {
+
+  /**
+   * Compile the project. Always runs gosuc in incremental mode against
+   * {@link #dependencyFile}; the source set passed to the compiler is the
+   * full Gosu tree under {@link #srcDir}. {@code changedFiles} only drives
+   * the {@code -changed-types} flag - pass an empty list on the initial
+   * compile and the changed file(s) on subsequent ones.
+   * {@code deletedFiles} only drives the {@code -removed-types} flag.
+   */
+  private CompileResult compileWithDeleted(List<File> changedFiles, List<File> deletedFiles) {
     CompileResult result = new CompileResult();
-    
+
     try {
       // Build command line arguments for gosuc
       List<String> args = new ArrayList<>();
-      
+
       // Add classpath
       args.add("-classpath");
       args.add(System.getProperty("java.class.path"));
-      
+
       // Add output directory
       args.add("-d");
       args.add(outputDir.toFile().getAbsolutePath());
-      
+
       // Add source path
       args.add("-sourcepath");
       args.add(srcDir.toFile().getAbsolutePath());
-      
+
       // Enable verbose mode for debugging
       args.add("-verbose");
-      
-      if (incremental) {
-        // Enable incremental compilation
-        args.add("-incremental");
-        args.add("-dependency-file");
-        args.add(dependencyFile.getAbsolutePath());
 
-        // Add changed types (as FQCNs, path-separator delimited)
-        if (!sourceFiles.isEmpty()) {
-          List<String> changedTypes = new ArrayList<>();
-          for (File f : sourceFiles) {
-            changedTypes.add(fileToFqcn(f));
-          }
-          args.add("-changed-types");
-          args.add(String.join(File.pathSeparator, changedTypes));
-        }
+      // Always incremental. On the first call the dep file is absent and
+      // gosuc falls back to a full rebuild of the positional sources,
+      // populating the dep file as a side effect.
+      args.add("-incremental");
+      args.add("-dependency-file");
+      args.add(dependencyFile.getAbsolutePath());
 
-        // For incremental compilation, provide all source files but indicate which ones changed
-        // The compiler will determine which files to recompile based on the changed types and dependencies
-        List<File> allSourceFiles = new ArrayList<>();
-        Files.walk(srcDir)
-            .filter(this::isGosuSourceFile)
-            .forEach(path -> allSourceFiles.add(path.toFile()));
-
-        for (File f : allSourceFiles) {
-          args.add(f.getAbsolutePath());
+      // Add changed types (as FQCNs, path-separator delimited) when supplied.
+      if (!changedFiles.isEmpty()) {
+        List<String> changedTypes = new ArrayList<>();
+        for (File f : changedFiles) {
+          changedTypes.add(fileToFqcn(f));
         }
-      } else {
-        // For initial compilation, use incremental mode to create dependency file
-        args.add("-incremental");
-        args.add("-dependency-file");
-        args.add(dependencyFile.getAbsolutePath());
-        
-        // Add all source files
-        for (File f : sourceFiles) {
-          args.add(f.getAbsolutePath());
-        }
+        args.add("-changed-types");
+        args.add(String.join(File.pathSeparator, changedTypes));
       }
-      
+
+      // Add removed types (as FQCNs, path-separator delimited) when supplied.
+      if (!deletedFiles.isEmpty()) {
+        List<String> removedTypes = new ArrayList<>();
+        for (File f : deletedFiles) {
+          removedTypes.add(fileToFqcn(f));
+        }
+        args.add("-removed-types");
+        args.add(String.join(File.pathSeparator, removedTypes));
+      }
+
+      // Always pass the full Gosu source tree positionally so the compiler
+      // can resolve references regardless of which files actually need to
+      // be recompiled this round.
+      List<File> allSourceFiles = new ArrayList<>();
+      Files.walk(srcDir)
+              .filter(this::isGosuSourceFile)
+              .forEach(path -> allSourceFiles.add(path.toFile()));
+
+      for (File f : allSourceFiles) {
+        args.add(f.getAbsolutePath());
+      }
+
       // Execute gosuc compiler using the new testable method
       String[] argsArray = args.toArray(new String[0]);
-      
+
       // Debug: Print command line arguments
-      System.out.println("Incremental: " + incremental);
       System.out.println("Command line args: " + String.join(" ", argsArray));
-      
+
       // Capture output
-      java.io.ByteArrayOutputStream outStream = new java.io.ByteArrayOutputStream();
-      java.io.ByteArrayOutputStream errStream = new java.io.ByteArrayOutputStream();
-      java.io.PrintStream originalOut = System.out;
-      java.io.PrintStream originalErr = System.err;
-      
+      ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+      ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+      PrintStream originalOut = System.out;
+      PrintStream originalErr = System.err;
+
       try {
-        System.setOut(new java.io.PrintStream(outStream));
-        System.setErr(new java.io.PrintStream(errStream));
-        
+        System.setOut(new PrintStream(outStream));
+        System.setErr(new PrintStream(errStream));
+
         // Call the new runCompiler method that doesn't call System.exit()
         int exitCode = gw.lang.gosuc.cli.CommandLineCompiler.runCompiler(argsArray);
-        
+
         result.success = (exitCode == 0);
         if (!result.success) {
           result.error = errStream.toString() + outStream.toString();
         }
 
-        // Count compiled files from output
+        // Count compiled files from gosuc's verbose output. GosuCompiler
+        // always emits one of these two lines (we always pass -verbose):
+        //   "Initial incremental compilation: compiling all N source files"
+        //   "Incremental compilation: recompiling N source files"
+        // If neither matches, the contract has been broken upstream and
+        // we'd rather fail loudly than silently report 0 files compiled.
         String output = outStream.toString();
-        if (incremental && output.contains("Incremental compilation: recompiling")) {
-          // Parse the number of types from output (v2 uses "types" not "files")
-          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("recompiling (\\d+) source files");
-          java.util.regex.Matcher matcher = pattern.matcher(output);
-          if (matcher.find()) {
-            result.filesCompiled = Integer.parseInt(matcher.group(1));
-          }
-        } else if (!incremental) {
-          result.filesCompiled = sourceFiles.size();
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "(?:compiling all|recompiling) (\\d+) source files");
+        java.util.regex.Matcher matcher = pattern.matcher(output);
+        if (!matcher.find()) {
+          throw new IllegalStateException(
+                  "Could not parse compiled-files count from gosuc output - expected one of " +
+                          "\"Initial incremental compilation: compiling all N source files\" or " +
+                          "\"Incremental compilation: recompiling N source files\". Output was:\n" + output);
         }
-        
+        result.filesCompiled = Integer.parseInt(matcher.group(1));
+
       } finally {
         System.setOut(originalOut);
         System.setErr(originalErr);
-        
+
         // Print compiler output for debugging
         String outputStr = outStream.toString();
         String errorStr = errStream.toString();
@@ -702,7 +713,7 @@ public class IncrementalCompilationEndToEndIT {
         if (!errorStr.isEmpty()) {
           System.err.println("Compiler errors: " + errorStr);
         }
-        
+
         // Debug: Check dependency file contents
         if (dependencyFile.exists()) {
           try {
@@ -713,141 +724,18 @@ public class IncrementalCompilationEndToEndIT {
           }
         }
       }
-      
+
     } catch (Exception e) {
       result.success = false;
       result.error = "Compilation failed: " + e.getMessage();
       e.printStackTrace();
     }
-    
+
     return result;
   }
-  
-  // Test implementation of ICompilerDriver to capture output
-  private static class TestCompilerDriver implements gw.lang.gosuc.simple.ICompilerDriver {
-    private int errorCount = 0;
-    private int warningCount = 0;
-    private List<String> messages = new ArrayList<>();
-    private Map<File, File> outputFiles = new HashMap<>();
-    
-    @Override
-    public void sendCompileIssue(File file, int category, long offset, long line, long column, String message) {
-      if (category == ERROR) {
-        errorCount++;
-        messages.add("ERROR: " + file.getName() + ":" + line + ":" + column + " - " + message);
-      } else if (category == WARNING) {
-        warningCount++;
-        messages.add("WARNING: " + file.getName() + ":" + line + ":" + column + " - " + message);
-      }
-    }
-    
-    @Override
-    public void registerOutput(File sourceFile, File outputFile) {
-      outputFiles.put(sourceFile, outputFile);
-    }
-    
-    public int getErrorCount() { return errorCount; }
-    public int getWarningCount() { return warningCount; }
-    public List<String> getMessages() { return messages; }
-    public Map<File, File> getOutputFiles() { return outputFiles; }
-  }
-  
-  private CompileResult compileWithDeleted(List<File> changedFiles, List<File> deletedFiles, boolean incremental) {
-    CompileResult result = new CompileResult();
-    
-    try {
-      // Build command line arguments for gosuc
-      List<String> args = new ArrayList<>();
-      
-      // Add classpath
-      args.add("-classpath");
-      args.add(System.getProperty("java.class.path"));
-      
-      // Add output directory
-      args.add("-d");
-      args.add(outputDir.toFile().getAbsolutePath());
-      
-      // Add source path
-      args.add("-sourcepath");
-      args.add(srcDir.toFile().getAbsolutePath());
-      
-      // Enable verbose mode for debugging
-      args.add("-verbose");
-      
-      if (incremental) {
-        // Enable incremental compilation
-        args.add("-incremental");
-        args.add("-dependency-file");
-        args.add(dependencyFile.getAbsolutePath());
 
-        // Add changed types (as FQCNs, path-separator delimited)
-        if (!changedFiles.isEmpty()) {
-          List<String> changedTypes = new ArrayList<>();
-          for (File f : changedFiles) {
-            changedTypes.add(fileToFqcn(f));
-          }
-          args.add("-changed-types");
-          args.add(String.join(File.pathSeparator, changedTypes));
-        }
-
-        // Add removed types (as FQCNs, path-separator delimited)
-        if (!deletedFiles.isEmpty()) {
-          List<String> removedTypes = new ArrayList<>();
-          for (File f : deletedFiles) {
-            removedTypes.add(fileToFqcn(f));
-          }
-          args.add("-removed-types");
-          args.add(String.join(File.pathSeparator, removedTypes));
-        }
-        
-        // For incremental compilation, provide remaining source files
-        List<File> remainingSourceFiles = new ArrayList<>();
-        Files.walk(srcDir)
-            .filter(this::isGosuSourceFile)
-            .forEach(path -> remainingSourceFiles.add(path.toFile()));
-
-        for (File f : remainingSourceFiles) {
-          args.add(f.getAbsolutePath());
-        }
-      }
-      
-      System.out.println("Incremental: " + incremental);
-      System.out.println("Command line args: " + String.join(" ", args));
-      
-      // Capture stdout to see compiler output  
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      PrintStream originalOut = System.out;
-      System.setOut(new PrintStream(outputStream));
-      
-      int exitCode;
-      try {
-        // Execute the compiler using CommandLineCompiler
-        exitCode = gw.lang.gosuc.cli.CommandLineCompiler.runCompiler(args.toArray(new String[0]));
-      } finally {
-        System.setOut(originalOut);
-      }
-      
-      String compilerOutput = outputStream.toString();
-      System.out.println("Compiler output: " + compilerOutput);
-      
-      result.success = (exitCode == 0);
-      if (!result.success) {
-        result.error = "Compilation failed with exit code " + exitCode;
-        if (!compilerOutput.isEmpty()) {
-          result.error += "\n" + compilerOutput;
-        }
-      }
-      
-      // Count compiled files (approximation)
-      result.filesCompiled = changedFiles.size();
-      
-    } catch (Exception e) {
-      result.success = false;
-      result.error = "Compilation failed: " + e.getMessage();
-      e.printStackTrace();
-    }
-    
-    return result;
+  private CompileResult compile(List<File> changedFiles) {
+    return compileWithDeleted(changedFiles, Collections.emptyList());
   }
 
   private FileTime getFileModificationTime(Path path) throws IOException {
@@ -934,7 +822,7 @@ public class IncrementalCompilationEndToEndIT {
     // Step 4: Initial compilation
     System.out.println("\n=== Initial compilation with extensions ===");
     List<File> allFiles = Arrays.asList(person, personEnhancement, userService);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     
     // Step 5: Verify dependency tracking in JSON file
@@ -978,7 +866,7 @@ public class IncrementalCompilationEndToEndIT {
     
     // Step 8: Incremental compilation - changing enhancement should recompile dependent files
     System.out.println("\n=== Incremental compilation after enhancement change ===");
-    result = compile(Arrays.asList(personEnhancement), true);
+    result = compile(Arrays.asList(personEnhancement));
     assertTrue("Incremental compilation should succeed: " + result.error, result.success);
     
     // Step 9: Verify that files using the enhancement were recompiled
@@ -1033,7 +921,7 @@ public class IncrementalCompilationEndToEndIT {
       new File(srcDir.toFile(), "example/Vehicle.gs"),
       new File(srcDir.toFile(), "example/VehicleEnhancement.gsx")
     );
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Compilation should succeed: " + result.error, result.success);
     
     // Read and parse dependency JSON
@@ -1089,7 +977,7 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Step 2: Initial compilation
-    CompileResult result = compile(Arrays.asList(blockFile), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", result.success);
     
     // Step 3: Check that all block inner classes were created
@@ -1112,7 +1000,7 @@ public class IncrementalCompilationEndToEndIT {
       "var blk = \\-> \"modified simple\""
     );
     
-    result = compile(Arrays.asList(blockFile), true);
+    result = compile(Arrays.asList(blockFile));
     assertTrue("Incremental compilation should succeed", result.success);
     
     // Step 5: Verify all block classes were recompiled
@@ -1161,7 +1049,7 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Step 3: Initial compilation
-    CompileResult result = compile(Arrays.asList(utilClass, blockUser), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", result.success);
     
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1172,7 +1060,7 @@ public class IncrementalCompilationEndToEndIT {
       "return s.toUpperCase()"
     );
     
-    result = compile(Arrays.asList(utilClass), true);
+    result = compile(Arrays.asList(utilClass));
     assertTrue("Incremental compilation should succeed", result.success);
     
     Map<String, FileTime> newTimestamps = recordTimestamps();
@@ -1222,7 +1110,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult result = compile(Arrays.asList(utilFile, blockFile), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Compilation should succeed", result.success);
 
     // Verify exact dependency JSON structure
@@ -1301,7 +1189,7 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Step 2: Initial compilation
-    CompileResult result = compile(Arrays.asList(functionTypeFile), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", result.success);
     
     // Step 3: Check that all block inner classes were created
@@ -1324,7 +1212,7 @@ public class IncrementalCompilationEndToEndIT {
       "return \\-> \"Hello Modified World\""
     );
     
-    result = compile(Arrays.asList(functionTypeFile), true);
+    result = compile(Arrays.asList(functionTypeFile));
     assertTrue("Incremental compilation should succeed", result.success);
     
     // Step 5: Verify all block classes were recompiled
@@ -1388,7 +1276,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(outerFile, consumer);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
@@ -1431,7 +1319,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 6: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(outerFile), true);
+    CompileResult incrementalResult = compile(Arrays.asList(outerFile));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1480,7 +1368,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(outerFile, consumer);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     // Step 4: Verify dependency file has only "RegionsUIHelper" entry
@@ -1518,7 +1406,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 6: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(outerFile), true);
+    CompileResult incrementalResult = compile(Arrays.asList(outerFile));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1561,7 +1449,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(stringUtil, featureUser);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1583,7 +1471,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 5: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(stringUtil), true);
+    CompileResult incrementalResult = compile(Arrays.asList(stringUtil));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1634,7 +1522,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(customType, castUser);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1662,7 +1550,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 5: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(customType), true);
+    CompileResult incrementalResult = compile(Arrays.asList(customType));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1715,7 +1603,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(testableType, typeTester);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1744,7 +1632,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 5: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(testableType), true);
+    CompileResult incrementalResult = compile(Arrays.asList(testableType));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1805,7 +1693,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(customException, exceptionHandler);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1836,7 +1724,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 5: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(customException), true);
+    CompileResult incrementalResult = compile(Arrays.asList(customException));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -1892,7 +1780,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Initial compilation
     List<File> allFiles = Arrays.asList(myInterface, implementation, delegateUser);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1910,7 +1798,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 6: Incremental compilation (will fail due to missing implementation, but should still track dependency)
-    CompileResult incrementalResult = compile(Arrays.asList(myInterface), true);
+    CompileResult incrementalResult = compile(Arrays.asList(myInterface));
     // Note: This may fail because MyImplementation doesn't implement the new method
     // But we're testing that DelegateUser is identified as needing recompilation
 
@@ -1959,7 +1847,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Initial compilation
     List<File> allFiles = Arrays.asList(factory, staticUser);
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
@@ -1985,7 +1873,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 5: Incremental compilation
-    CompileResult incrementalResult = compile(Arrays.asList(factory), true);
+    CompileResult incrementalResult = compile(Arrays.asList(factory));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -2040,7 +1928,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 2: Initial full compilation
     List<File> allFiles = Arrays.asList(classA, classB, classC);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initialResult.error,
       initialResult.success);
     assertTrue("Dependency file should be created", dependencyFile.exists());
@@ -2082,7 +1970,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Step 6: Incremental compile, passing only ClassA as the changed input
-    CompileResult incrementalResult = compile(Arrays.asList(classA), true);
+    CompileResult incrementalResult = compile(Arrays.asList(classA));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
@@ -2148,7 +2036,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 2: Initial full compilation
     List<File> allFiles = Arrays.asList(classA, classB, classC);
-    CompileResult initialResult = compile(allFiles, false);
+    CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initialResult.error,
       initialResult.success);
     assertTrue("Dependency file should be created", dependencyFile.exists());
@@ -2194,7 +2082,7 @@ public class IncrementalCompilationEndToEndIT {
     // Step 6: Incremental compile, passing only ClassA as the changed input.
     // The BFS walks {ClassA} -> {ClassB} -> {ClassC} -> {ClassA, already
     // visited, skipped}. Without cycle detection this would loop forever.
-    CompileResult incrementalResult = compile(Arrays.asList(classA), true);
+    CompileResult incrementalResult = compile(Arrays.asList(classA));
     assertTrue("Incremental compilation should succeed and the BFS should terminate on the cycle: "
       + incrementalResult.error, incrementalResult.success);
 
@@ -2260,7 +2148,7 @@ public class IncrementalCompilationEndToEndIT {
       new File(srcDir.toFile(), "example/ResultBase.gs"),
       new File(srcDir.toFile(), "example/StringResult.gs")
     );
-    CompileResult result = compile(allFiles, false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2304,7 +2192,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     CompileResult incrementalResult = compile(
-      Arrays.asList(new File(srcDir.toFile(), "example/IResult.gs")), true);
+      Arrays.asList(new File(srcDir.toFile(), "example/IResult.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
@@ -2377,7 +2265,7 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Full compile - all four types
-    CompileResult fullResult = compile(allFiles, false);
+    CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2411,7 +2299,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     CompileResult incrementalResult = compile(
-      Arrays.asList(new File(srcDir.toFile(), "example/TypeA.gs")), true);
+      Arrays.asList(new File(srcDir.toFile(), "example/TypeA.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2481,7 +2369,7 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Full compile -- baseline: P1 -> [Consumer], P2 -> [].
-    CompileResult fullResult = compile(allFiles, false);
+    CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2512,7 +2400,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Incremental compile, only Consumer is in -changed-types.
     CompileResult incrementalResult = compile(
-      Arrays.asList(new File(srcDir.toFile(), "example/Consumer.gs")), true);
+      Arrays.asList(new File(srcDir.toFile(), "example/Consumer.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2581,7 +2469,7 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Full compile -- Hub picks up both Bystander and Spoke as consumers.
-    CompileResult fullResult = compile(allFiles, false);
+    CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2606,8 +2494,8 @@ public class IncrementalCompilationEndToEndIT {
     // Incremental compile: nothing in -changed-types, only Spoke in -removed-types.
     CompileResult incrementalResult = compileWithDeleted(
       Collections.emptyList(),                                                // no changed files
-      Arrays.asList(new File(srcDir.toFile(), "example/Spoke.gs")),           // Spoke removed
-      true);
+      Arrays.asList(new File(srcDir.toFile(), "example/Spoke.gs"))           // Spoke removed
+      );
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
@@ -2666,7 +2554,7 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Full compile -- P picks up LeafX as a consumer.
-    CompileResult fullResult = compile(allFiles, false);
+    CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
@@ -2696,7 +2584,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     CompileResult incrementalResult = compile(
-      Arrays.asList(new File(srcDir.toFile(), "example/LeafX.gs")), true);
+      Arrays.asList(new File(srcDir.toFile(), "example/LeafX.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
@@ -2736,7 +2624,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(outerFile), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path outerClassFile = outputDir.resolve("example/Outer.class");
@@ -2757,7 +2645,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    CompileResult incr = compile(Arrays.asList(outerFile));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     // Outer.class is rewritten (sanity).
@@ -2787,7 +2675,7 @@ public class IncrementalCompilationEndToEndIT {
     File myType = createSourceFile("example/MyType.gs", initialBody);
 
     // Full compile -- the source should land in the output dir alongside .class.
-    CompileResult initial = compile(Arrays.asList(myType), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path classInOutput = outputDir.resolve("example/MyType.class");
@@ -2815,7 +2703,7 @@ public class IncrementalCompilationEndToEndIT {
     Files.write(myType.toPath(), modifiedBody.getBytes());
 
     // Incremental compile -- source copy must remain (and reflect new content).
-    CompileResult incr = compile(Arrays.asList(myType), true);
+    CompileResult incr = compile(Arrays.asList(myType));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("After incremental compile, MyType.class should still exist in output",
@@ -2851,7 +2739,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult result = compile(Arrays.asList(consumer), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     assertTrue("Dependency file should exist after compile", dependencyFile.exists());
 
@@ -2878,7 +2766,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult result = compile(Arrays.asList(consumer), false);
+    CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     assertTrue("Dependency file should exist after compile", dependencyFile.exists());
 
@@ -2893,11 +2781,7 @@ public class IncrementalCompilationEndToEndIT {
 
   @Test
   public void testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange() throws Exception {
-    // Pins whether trackTypeDependency walks type parameters of parameterized
-    // Java types. A Gosu class with a field of type List<MyType>, where
-    // MyType is a local Gosu type, must be recompiled when MyType changes.
-
-    File myType = createSourceFile("example/MyType.gs",
+     File myType = createSourceFile("example/MyType.gs",
       "package example\n" +
       "\n" +
       "class MyType {\n" +
@@ -2915,7 +2799,7 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Initial compile of both.
-    CompileResult initial = compile(Arrays.asList(myType, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path consumerClass = outputDir.resolve("example/Consumer.class");
@@ -2957,7 +2841,7 @@ public class IncrementalCompilationEndToEndIT {
     ).getBytes());
 
     // Incremental compile: only MyType is signaled as changed.
-    CompileResult incr = compile(Arrays.asList(myType), true);
+    CompileResult incr = compile(Arrays.asList(myType));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     // Sanity: MyType itself recompiled.
@@ -2973,25 +2857,13 @@ public class IncrementalCompilationEndToEndIT {
 
     String actualDeps = new String(
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"1.0\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.MyType\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
-      "  }\n" +
-      "}";
     assertEquals(
-      "Dep graph after incremental compile should record MyType -> Consumer.",
+      "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps);
   }
 
   @Test
   public void testGosuFieldOfArrayOfGosuTypeRecompilesOnComponentChange() throws Exception {
-    // Sibling to testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange,
-    // but with an array form rather than a parameterized form.
     File myType = createSourceFile("example/MyType.gs",
       "package example\n" +
       "\n" +
@@ -3008,7 +2880,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(myType, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     String actualDepsInitial = new String(
@@ -3044,7 +2916,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(myType), true);
+    CompileResult incr = compile(Arrays.asList(myType));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("MyType.class should have been rewritten by the incremental compile",
@@ -3059,10 +2931,6 @@ public class IncrementalCompilationEndToEndIT {
 
   @Test
   public void testGosuFieldOfParameterizedGosuTypeRecompilesOnTypeParamChange() throws Exception {
-    // Sibling to testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange,
-    // but the parameterized container is a local Gosu class rather than a
-    // Java one.
-
     File container = createSourceFile("example/Container.gs",
       "package example\n" +
       "\n" +
@@ -3087,7 +2955,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(container, myType, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     String actualDepsInitial = new String(
@@ -3111,8 +2979,10 @@ public class IncrementalCompilationEndToEndIT {
       expectedDeps, actualDepsInitial);
 
     Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path containerClass = outputDir.resolve("example/Container.class");
     Path myTypeClass = outputDir.resolve("example/MyType.class");
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialContainerTime = getFileModificationTime(containerClass);
     FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
 
     Thread.sleep(1100);
@@ -3126,7 +2996,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(myType), true);
+    CompileResult incr = compile(Arrays.asList(myType));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("MyType.class should have been rewritten by the incremental compile",
@@ -3137,6 +3007,154 @@ public class IncrementalCompilationEndToEndIT {
       "Consumer.class should be recompiled when MyType changes (its field is " +
       "Container<MyType>, where Container is a local Gosu generic class).",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+
+    FileTime newContainerTime = getFileModificationTime(containerClass);
+    assertTrue("Container.class should not be recompiled.",
+      newContainerTime.toMillis() == initialContainerTime.toMillis());
+  }
+
+  @Test
+  public void testGosuMethodBodyInstantiatingParameterizedGosuTypeRecompilesOnTypeParamChange() throws Exception {
+    File container = createSourceFile("example/Container.gs",
+      "package example\n" +
+      "\n" +
+      "class Container<T> {\n" +
+      "  function size() : int { return 1 }\n" +
+      "}"
+    );
+
+    File data = createSourceFile("example/Data.gs",
+      "package example\n" +
+      "\n" +
+      "class Data {\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  function consume() : int {\n" +
+      "    return new Container<Data>().size()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Collections.emptyList());
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"1.0\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Container\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Data\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file after initial compile should record both Container -> Consumer " +
+      "(instantiated parameterized type) and Data -> Consumer (its type parameter).",
+      expectedDeps, actualDepsInitial);
+
+    Path consumerClass = outputDir.resolve("example/Consumer.class");
+    Path dataClass = outputDir.resolve("example/Data.class");
+    FileTime initialConsumerTime = getFileModificationTime(consumerClass);
+    FileTime initialDataTime = getFileModificationTime(dataClass);
+    FileTime initialDepTime = getFileModificationTime(dependencyFile.toPath());
+
+    Thread.sleep(1100);
+
+    Files.write(data.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Data {\n" +
+      "  function name() : String { return \"v1\" }\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(data));
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Data.class should have been rewritten by the incremental compile",
+      getFileModificationTime(dataClass).toMillis() > initialDataTime.toMillis());
+
+    FileTime newConsumerTime = getFileModificationTime(consumerClass);
+    assertTrue(
+      "Consumer.class should be recompiled when Data changes (its method body " +
+      "instantiates Container<Data>, where Container is a local Gosu generic class).",
+      newConsumerTime.toMillis() > initialConsumerTime.toMillis());
+
+    FileTime newDepTime = getFileModificationTime(dependencyFile.toPath());
+    assertTrue(
+      "Dependency file must be rewritten on a successful incremental compile.",
+      newDepTime.toMillis() > initialDepTime.toMillis());
+  }
+
+  @Test
+  public void testGosuMethodBodyInstantiatingParameterizedGosuTypeFailsCompilationOnTypeParamDeletion() throws Exception {
+    // Sibling to testGosuMethodBodyInstantiatingParameterizedGosuTypeRecompilesOnTypeParamChange:
+    // same Container/Data/Consumer setup, but instead of editing Data we
+    // delete it. Consumer's method body still references Container<Data>,
+    // so the incremental recompile of Consumer must fail to resolve Data
+    // and the overall compile must report a failure.
+
+    File container = createSourceFile("example/Container.gs",
+      "package example\n" +
+      "\n" +
+      "class Container<T> {\n" +
+      "  function size() : int { return 1 }\n" +
+      "}"
+    );
+
+    File data = createSourceFile("example/Data.gs",
+      "package example\n" +
+      "\n" +
+      "class Data {\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  function consume() : int {\n" +
+      "    return new Container<Data>().size()\n" +
+      "  }\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Collections.emptyList());
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+    FileTime initialDepTime = getFileModificationTime(dependencyFile.toPath());
+
+    Path dataClass = outputDir.resolve("example/Data.class");
+    assertTrue("Data.class should exist before deletion", Files.exists(dataClass));
+
+    // Delete the Data source from the filesystem.
+    Files.delete(data.toPath());
+
+    CompileResult incr = compileWithDeleted(
+      Collections.emptyList(),
+      Arrays.asList(data)
+    );
+
+    FileTime lastDepTime = getFileModificationTime(dependencyFile.toPath());
+    assertFalse(
+      "Compilation should fail: Consumer's method body still references " +
+      "Container<Data>, but Data has been deleted.",
+      incr.success);
+
+    // Stale Data.class should have been swept by the deletion-driven cleanup.
+    assertFalse("Data.class should be removed from the output dir", Files.exists(dataClass));
+    assertEquals("Dependency file must be unmodified in case of a compilation error",
+      initialDepTime, lastDepTime);
   }
 
   @Test
@@ -3174,7 +3192,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(schemaAnno, myType, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     String actualDepsInitial = new String(
@@ -3214,7 +3232,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(myType), true);
+    CompileResult incr = compile(Arrays.asList(myType));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("MyType.class should have been rewritten by the incremental compile",
@@ -3273,7 +3291,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(a, myAnno, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     String actualDepsInitial = new String(
@@ -3325,7 +3343,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(a), true);
+    CompileResult incr = compile(Arrays.asList(a));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("A.class should have been rewritten by the incremental compile",
@@ -3441,7 +3459,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(myAnno, annotatedConsumer, unrelatedConsumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     String actualDepsInitial = new String(
@@ -3487,7 +3505,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(myAnno), true);
+    CompileResult incr = compile(Arrays.asList(myAnno));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("MyAnno.class should have been rewritten",
@@ -3525,7 +3543,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(outerFile, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path outerClass = outputDir.resolve("example/Outer.class");
@@ -3587,7 +3605,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    CompileResult incr = compile(Arrays.asList(outerFile));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("Outer.class should be rewritten after incremental compile",
@@ -3633,7 +3651,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(util, outerFile), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path utilClass = outputDir.resolve("example/Util.class");
@@ -3698,7 +3716,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(util), true);
+    CompileResult incr = compile(Arrays.asList(util));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("Util.class should be rewritten",
@@ -3747,7 +3765,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(util, outerFile), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path utilClass = outputDir.resolve("example/Util.class");
@@ -3808,7 +3826,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(util), true);
+    CompileResult incr = compile(Arrays.asList(util));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("Util.class should be rewritten",
@@ -3860,7 +3878,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    CompileResult initial = compile(Arrays.asList(outerFile, consumer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
     Path outerClass = outputDir.resolve("example/Outer$Class.class");
@@ -3913,7 +3931,7 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     ).getBytes());
 
-    CompileResult incr = compile(Arrays.asList(outerFile), true);
+    CompileResult incr = compile(Arrays.asList(outerFile));
     assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
 
     assertTrue("Outer$Class.class should be rewritten after incremental compile",
@@ -3950,7 +3968,7 @@ public class IncrementalCompilationEndToEndIT {
       "  function value() : String { return \"v1\" }\n" +
       "}"
     );
-    CompileResult initial = compile(Arrays.asList(producer), false);
+    CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
     assertTrue("precondition: Producer.class should exist",
       Files.exists(outputDir.resolve("example/Producer.class")));
@@ -3983,7 +4001,7 @@ public class IncrementalCompilationEndToEndIT {
     // contains example.NewType -- the BFS will pull it from the worklist
     // and look it up in typeDependencies, which is where the NPE happened
     // without the fix.
-    CompileResult incr = compile(Arrays.asList(newType), true);
+    CompileResult incr = compile(Arrays.asList(newType));
     assertTrue(
       "Incremental compilation of a brand-new source file must succeed.\n\nCompile error was:\n" + incr.error,
       incr.success);
