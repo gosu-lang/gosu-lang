@@ -151,7 +151,7 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
-    if(!thresholdExceeded )
+    if(!driver.hasErrors())
     {
       _incrementalManager.updateDependencyFile(typeFqcnsToCompile, removedTypes);
     }
@@ -178,18 +178,12 @@ public class GosuCompiler implements IGosuCompiler
     
     if( !gosuFiles.isEmpty() )
     {
-      if( compileGosuSources( options, driver, gosuFiles ) )
-      {
-        thresholdExceeded = true;
-      }
+      thresholdExceeded = compileGosuSources( options, driver, gosuFiles );
     }
 
     if( !javaFiles.isEmpty() )
     {
-      if( compileJavaSources( options, driver, javaFiles ) )
-      {
-        thresholdExceeded = true;
-      }
+      thresholdExceeded = compileJavaSources( options, driver, javaFiles );
     }
 
     return thresholdExceeded;
