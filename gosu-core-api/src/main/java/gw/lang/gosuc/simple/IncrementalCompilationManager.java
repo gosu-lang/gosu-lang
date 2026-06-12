@@ -38,7 +38,7 @@ import java.util.*;
  */
 public class IncrementalCompilationManager {
 
-  private static final String DEPENDENCY_VERSION = "1.0";  // Still in alpha, keep at 1.x
+  public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
 
   private final String dependencyFilePath;
   private final Map<String, Set<String>> typeDependencies;

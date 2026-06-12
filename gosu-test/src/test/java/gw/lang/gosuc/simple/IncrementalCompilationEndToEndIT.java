@@ -25,6 +25,7 @@ import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.tree.AnnotationNode;
 import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
 
+import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
 import static org.junit.Assert.*;
 
 /**
@@ -1118,7 +1119,7 @@ public class IncrementalCompilationEndToEndIT {
 
     String expectedDeps =
       "{\n" +
-       "  \"version\": \"1.0\",\n" +
+       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
        "  \"consumers\": {\n" +
        "    \"example.BlockUtil\": [\n" +
        "      \"example.OutputTrackingTest$block_1_\",\n" +
@@ -1939,7 +1940,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDepFile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.ClassA\": [\n" +
       "      \"example.ClassB\"\n" +
@@ -2047,7 +2048,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDepFile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.ClassA\": [\n" +
       "      \"example.ClassB\"\n" +
@@ -2154,7 +2155,7 @@ public class IncrementalCompilationEndToEndIT {
     String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.IResult\": [\n" +
       "      \"example.ResultBase\"\n" +
@@ -2271,7 +2272,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterFullCompile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.SharedProducer\": [\n" +
       "      \"example.TypeA\",\n" +
@@ -2305,7 +2306,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterIncremental =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.SharedProducer\": [\n" +
       "      \"example.TypeA\",\n" +
@@ -2375,7 +2376,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterFullCompile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.P1\": [\n" +
@@ -2406,7 +2407,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterIncremental =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.P1\": [],\n" +
@@ -2475,7 +2476,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterFullCompile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Bystander\": [],\n" +
       "    \"example.Hub\": [\n" +
@@ -2502,7 +2503,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterIncremental =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Bystander\": [],\n" +
       "    \"example.Hub\": [\n" +
@@ -2560,7 +2561,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterFullCompile =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.LeafX\": [],\n" +
       "    \"example.P\": [\n" +
@@ -2591,7 +2592,7 @@ public class IncrementalCompilationEndToEndIT {
     String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedAfterIncremental =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.LeafX\": [],\n" +
       "    \"example.P\": []\n" +
@@ -2813,7 +2814,7 @@ public class IncrementalCompilationEndToEndIT {
             Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
             "{\n" +
-                    "  \"version\": \"1.0\",\n" +
+                    "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
                     "  \"consumers\": {\n" +
                     "    \"example.Consumer\": [],\n" +
                     "    \"example.MyType\": [\n" +
@@ -2887,7 +2888,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.MyType\": [\n" +
@@ -2962,7 +2963,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.Container\": [\n" +
@@ -3047,7 +3048,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.Container\": [\n" +
@@ -3199,7 +3200,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.MyType\": [\n" +
@@ -3298,7 +3299,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.A\": [\n" +
       "      \"example.Consumer\"\n" +
@@ -3466,7 +3467,7 @@ public class IncrementalCompilationEndToEndIT {
       Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.AnnotatedConsumer\": [],\n" +
       "    \"example.MyAnno\": [\n" +
@@ -3563,7 +3564,7 @@ public class IncrementalCompilationEndToEndIT {
     // when it scans the .class files post-compile.
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.Outer\": [\n" +
@@ -3675,7 +3676,7 @@ public class IncrementalCompilationEndToEndIT {
     // Util does not appear in Outer's constant pool).
     String expectedDeps =
       "{\n" +
-       "  \"version\": \"1.0\",\n" +
+       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
        "  \"consumers\": {\n" +
        "    \"example.Outer\": [\n" +
        "      \"example.Outer$AnonymouS__1\",\n" +
@@ -3785,7 +3786,7 @@ public class IncrementalCompilationEndToEndIT {
 
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Outer\": [\n" +
       "      \"example.Outer$AnonymouS__0\"\n" +
@@ -3890,7 +3891,7 @@ public class IncrementalCompilationEndToEndIT {
 
     String expectedDeps =
       "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"example.Consumer\": [],\n" +
       "    \"example.Outer$Class\": [\n" +
@@ -3976,7 +3977,7 @@ public class IncrementalCompilationEndToEndIT {
       dependencyFile.exists());
 
     String expectedDepFile = "{\n" +
-            "  \"version\": \"1.0\",\n" +
+            "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
             "  \"consumers\": {\n" +
             "    \"example.Producer\": []\n" +
             "  }\n" +
@@ -4016,7 +4017,7 @@ public class IncrementalCompilationEndToEndIT {
     // doesn't pollute the persisted graph.
 
     expectedDepFile = "{\n" +
-            "  \"version\": \"1.0\",\n" +
+            "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
             "  \"consumers\": {\n" +
             "    \"example.NewType\": [],\n" +
             "    \"example.Producer\": []\n" +

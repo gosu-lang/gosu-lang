@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
 import static org.junit.Assert.*;
 
 /**
@@ -160,7 +161,7 @@ public class IncrementalCompilationIntegrationTest {
     String actualJson = new String(Files.readAllBytes(dependencyFile.toPath()));
 
     String expectedJson = "{\n" +
-      "  \"version\": \"1.0\",\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
       "    \"com.example.BaseClass\": [\n" +
       "      \"com.example.AnotherDerived\",\n" +
