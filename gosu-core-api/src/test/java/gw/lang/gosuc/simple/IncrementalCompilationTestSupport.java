@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
+
 final class IncrementalCompilationTestSupport {
   private IncrementalCompilationTestSupport() {}
 
@@ -31,7 +33,7 @@ final class IncrementalCompilationTestSupport {
     Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
     Map<String, Object> root = new LinkedHashMap<>();
-    root.put("version", "1.0");
+    root.put("version", DEPENDENCY_VERSION);
 
     Map<String, List<String>> sortedConsumers = new TreeMap<>();
     for (Map.Entry<String, List<String>> entry : producerToConsumers.entrySet()) {
