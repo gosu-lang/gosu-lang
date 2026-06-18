@@ -414,13 +414,14 @@ public class Gosu
 
   public static GosuVersion getVersion()
   {
-    InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
+    /*InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
     if( in == null )
     {
       return new GosuVersion( 0, 0 );
     }
     Reader reader = StreamUtil.getInputStreamReader( in );
-    return GosuVersion.parse( reader );
+    return GosuVersion.parse( reader );*/
+    return new GosuVersion(1,18,7);
   }
 
   public static File getCurrentProgram()
