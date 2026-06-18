@@ -34,7 +34,8 @@ import static org.junit.Assert.*;
  * and verifies that only affected files are recompiled (unchanged files keep their timestamps).
  */
 public class IncrementalCompilationEndToEndIT {
-  
+
+  private static final long SLEEP_MS = 200;
   private Path tempDir;
   private Path srcDir;
   private Path outputDir;
@@ -199,7 +200,7 @@ public class IncrementalCompilationEndToEndIT {
     initialTimestamps.put("IndependentUtil.class", getFileModificationTime(outputDir.resolve("example/IndependentUtil.class")));
     
     // Wait a bit to ensure timestamp differences
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
     
     // Step 3: Modify User class (add a new method)
     Files.write(user.toPath(), (
@@ -318,7 +319,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed", initialResult.success);
     
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
     
     // Modify base class - add a new protected method
     Files.write(baseClass.toPath(), (
@@ -523,7 +524,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed", initialResult.success);
     
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
     
     // Modify only Class2
     Files.write(class2.toPath(), (
@@ -1291,7 +1292,7 @@ public class IncrementalCompilationEndToEndIT {
       depsContent.contains("example.Outer$Inner"));
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 5: Modify outer class
     Files.write(outerFile.toPath(), (
@@ -1386,7 +1387,7 @@ public class IncrementalCompilationEndToEndIT {
       hasInnerEnumWithDollar);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 5: Modify outer class (add enum value)
     Files.write(outerFile.toPath(), (
@@ -1454,7 +1455,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 4: Modify StringUtil (add method to trigger recompilation)
     Files.write(stringUtil.toPath(), (
@@ -1527,7 +1528,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 4: Modify CustomType (add method)
     Files.write(customType.toPath(), (
@@ -1608,7 +1609,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 4: Modify TestableType
     Files.write(testableType.toPath(), (
@@ -1698,7 +1699,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 4: Modify CustomException (add field)
     Files.write(customException.toPath(), (
@@ -1785,7 +1786,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 5: Modify IMyInterface (add method)
     Files.write(myInterface.toPath(), (
@@ -1852,7 +1853,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 4: Modify Factory.create() return type (not just implementation)
     Files.write(factory.toPath(), (
@@ -1957,7 +1958,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Record initial timestamps
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 5: Modify ClassA (head of the chain)
     Files.write(classA.toPath(), (
@@ -2067,7 +2068,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 4: Record initial timestamps
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 5: Modify ClassA (entry point into the cycle)
     Files.write(classA.toPath(), (
@@ -2181,7 +2182,7 @@ public class IncrementalCompilationEndToEndIT {
     // and treats their changes specially): a constant change cascades through the
     // same producer -> consumer graph as any other declaration change.
     Map<String, FileTime> initialTimestamps = recordTimestamps();
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(srcDir.resolve("example/IResult.gs"), (
       "package example\n" +
@@ -2635,7 +2636,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("precondition: Outer$Inner.class should exist after initial compile",
       Files.exists(innerClassFile));
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Modify Outer.gs to REMOVE the inner class entirely.
     Files.write(outerFile.toPath(), (
@@ -2656,6 +2657,237 @@ public class IncrementalCompilationEndToEndIT {
     assertFalse(
       "Outer$Inner.class should be deleted when the inner class is removed from Outer.gs.",
       Files.exists(innerClassFile));
+  }
+
+  @Test
+  public void testInnerClassRemovalRecordsExpectedDepFileAndDeletesStaleClassFile() throws Exception {
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"inner\" }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _inner : Outer.Inner = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Collections.emptyList());
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path outerClassFile = outputDir.resolve("example/Outer.class");
+    Path innerClassFile = outputDir.resolve("example/Outer$Inner.class");
+    Path consumerClassFile = outputDir.resolve("example/Consumer.class");
+    assertTrue("precondition: Outer.class should exist after initial compile",
+      Files.exists(outerClassFile));
+    assertTrue("precondition: Outer$Inner.class should exist after initial compile",
+      Files.exists(innerClassFile));
+    assertTrue("precondition: Consumer.class should exist after initial compile",
+      Files.exists(consumerClassFile));
+
+    String expectedDepsInitial =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Outer\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer$Inner\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$Inner\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, dep file should record the bidirectional " +
+      "Outer <-> Outer$Inner edges plus Consumer as a consumer of both " +
+      "(Consumer's field type Outer.Inner pulls Outer and Outer$Inner " +
+      "into its bytecode constant pool).",
+      expectedDepsInitial, actualDepsInitial);
+
+    Thread.sleep(SLEEP_MS);
+
+    // Modify Outer.gs to REMOVE the inner class entirely.
+    Files.write(outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  function outer() : String { return \"outer with no inner\" }\n" +
+      "}"
+    ).getBytes());
+
+    // Modify Consumer.gs to drop the Inner reference so it still compiles.
+    Files.write(consumer.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _outer : Outer = null\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compile(Arrays.asList(outerFile, consumer));
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertTrue("Outer.class should still exist after incremental compile",
+      Files.exists(outerClassFile));
+    assertFalse(
+      "Outer$Inner.class should be deleted when the inner class is removed from Outer.gs.",
+      Files.exists(innerClassFile));
+    assertTrue("Consumer.class should still exist after incremental compile",
+      Files.exists(consumerClassFile));
+
+    // Note on the "after" dep file shape:
+    //   - Outer's consumer list contains only the live consumer Consumer.
+    //     The old Outer$Inner -> Outer edge (Outer$Inner consumed Outer
+    //     via its synthetic this$0 in the old bytecode) is gone:
+    //     Outer$Inner.class no longer exists on disk, so the post-compile
+    //     walk produces no edge from it.
+    //   - Outer$Inner is fully stripped from the dep file. The post-compile
+    //     sweep in GosuCompile.compile detects that Outer$Inner is in
+    //     typeFqcnsToCompile (BFS pulled it in) but its .class is no longer
+    //     on disk after the rebuild, so it joins effectivelyRemoved and
+    //     updateDependencyFile drops it as both key and value.
+    String expectedDepsAfter =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Outer\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After Inner is removed (and Consumer adapts), Outer's consumer list " +
+      "contains only Consumer. Outer$Inner is fully stripped from the dep " +
+      "file: the post-compile sweep adds it to effectivelyRemoved when its " +
+      ".class isn't found on disk after the rebuild.",
+      expectedDepsAfter, actualDepsAfter);
+  }
+
+  @Test
+  public void testOuterSourceRemovalRecordsExpectedDepFileAndDeletesStaleClassFiles() throws Exception {
+    File outerFile = createSourceFile("example/Outer.gs",
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    function inner() : String { return \"inner\" }\n" +
+      "  }\n" +
+      "  function outer() : String { return \"outer\" }\n" +
+      "}"
+    );
+
+    File consumer = createSourceFile("example/Consumer.gs",
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _inner : Outer.Inner = null\n" +
+      "}"
+    );
+
+    CompileResult initial = compile(Collections.emptyList());
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path outerClassFile = outputDir.resolve("example/Outer.class");
+    Path innerClassFile = outputDir.resolve("example/Outer$Inner.class");
+    Path outerSourceCopy = outputDir.resolve("example/Outer.gs");
+    Path consumerClassFile = outputDir.resolve("example/Consumer.class");
+    assertTrue("precondition: Outer.class should exist after initial compile",
+      Files.exists(outerClassFile));
+    assertTrue("precondition: Outer$Inner.class should exist after initial compile",
+      Files.exists(innerClassFile));
+    assertTrue("precondition: Outer.gs source copy should exist in output after initial compile",
+      Files.exists(outerSourceCopy));
+    assertTrue("precondition: Consumer.class should exist after initial compile",
+      Files.exists(consumerClassFile));
+
+    String expectedDepsInitial =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Outer\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer$Inner\"\n" +
+      "    ],\n" +
+      "    \"example.Outer$Inner\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Outer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After initial compile, dep file should record the bidirectional " +
+      "Outer <-> Outer$Inner edges plus Consumer as a consumer of both.",
+      expectedDepsInitial, actualDepsInitial);
+
+    Thread.sleep(SLEEP_MS);
+
+    // Delete Outer.gs from the source tree.
+    Files.delete(outerFile.toPath());
+
+    // Rewrite Consumer.gs to not reference Outer or Outer$Inner -- otherwise
+    // the incremental compile would fail because the types are gone.
+    Files.write(consumer.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Consumer {\n" +
+      "  var _name : String = \"\"\n" +
+      "}"
+    ).getBytes());
+
+    CompileResult incr = compileWithDeleted(
+      Arrays.asList(consumer),
+      Arrays.asList(outerFile)
+    );
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    assertFalse(
+      "Outer.class should be deleted when Outer.gs is removed.",
+      Files.exists(outerClassFile));
+    assertFalse(
+      "Outer$Inner.class should also be deleted when Outer.gs (its enclosing source) is removed.",
+      Files.exists(innerClassFile));
+    assertFalse(
+      "Outer.gs source copy in the output dir should also be deleted.",
+      Files.exists(outerSourceCopy));
+    assertTrue("Consumer.class should still exist after the incremental compile",
+      Files.exists(consumerClassFile));
+
+    String expectedDepsAfter =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": []\n" +
+      "  }\n" +
+      "}";
+    String actualDepsAfter = new String(
+      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    assertEquals(
+      "After Outer.gs is removed, the dep file contains only Consumer. " +
+      "Outer is stripped (it was in removedTypes -- key and value purge). " +
+      "Outer$Inner is also stripped: the post-compile sweep in " +
+      "GosuCompile.compile detects that its .class is no longer on disk " +
+      "and adds it to effectivelyRemoved, so updateDependencyFile drops " +
+      "it as both key and value too.",
+      expectedDepsAfter, actualDepsAfter);
   }
 
   @Test
@@ -2691,7 +2923,7 @@ public class IncrementalCompilationEndToEndIT {
       initialBody,
       new String(Files.readAllBytes(sourceInOutput), StandardCharsets.UTF_8));
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Modify the source.
     String modifiedBody =
@@ -2829,7 +3061,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
     FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Modify MyType: add a new public method (ABI change).
     Files.write(myType.toPath(), (
@@ -2906,7 +3138,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
     FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(myType.toPath(), (
       "package example\n" +
@@ -2986,7 +3218,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialContainerTime = getFileModificationTime(containerClass);
     FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(myType.toPath(), (
       "package example\n" +
@@ -3070,7 +3302,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialDataTime = getFileModificationTime(dataClass);
     FileTime initialDepTime = getFileModificationTime(dependencyFile.toPath());
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(data.toPath(), (
       "package example\n" +
@@ -3222,7 +3454,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
     FileTime initialMyTypeTime = getFileModificationTime(myTypeClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(myType.toPath(), (
       "package example\n" +
@@ -3334,7 +3566,7 @@ public class IncrementalCompilationEndToEndIT {
       "after the initial compile.",
       24, valueInitial);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     Files.write(a.toPath(), (
       "package example\n" +
@@ -3489,7 +3721,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialUnrelatedTime = getFileModificationTime(unrelatedClass);
     FileTime initialAnnoTime = getFileModificationTime(annoClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Modify MyAnno: rename attribute (ABI change).
     Files.write(myAnno.toPath(), (
@@ -3591,7 +3823,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialInnerTime = getFileModificationTime(innerClass);
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // ABI change to Inner: add a new public method.
     Files.write(outerFile.toPath(), (
@@ -3704,7 +3936,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialOuterTime = getFileModificationTime(outerClass);
     FileTime initialAnonTime = getFileModificationTime(anonClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // ABI change to Util: add a new public static method (changes Util.class's
     // API surface, not just its method bodies).
@@ -3814,7 +4046,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialAnonTime = getFileModificationTime(anonClass);
     FileTime initialInnerBlockTime = getFileModificationTime(innerBlockClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // ABI change to Util: add a new public static method (changes Util.class's
     // API surface, not just its method bodies).
@@ -3917,7 +4149,7 @@ public class IncrementalCompilationEndToEndIT {
     FileTime initialInnerTime = getFileModificationTime(innerClass);
     FileTime initialConsumerTime = getFileModificationTime(consumerClass);
 
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // ABI change to Inner: add a new public method.
     Files.write(outerFile.toPath(), (
@@ -3985,7 +4217,7 @@ public class IncrementalCompilationEndToEndIT {
 
     assertTrue("Expected dep file must match the generated one",
             expectedDepFile.equals(Files.readString(dependencyFile.toPath())));
-    Thread.sleep(1100);
+    Thread.sleep(SLEEP_MS);
 
     // Step 2: add a brand new source file that has no relationship to
     // anything in the existing dep graph. example.NewType is NOT in

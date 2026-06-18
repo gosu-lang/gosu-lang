@@ -122,7 +122,18 @@ public class GosuCompiler implements IGosuCompiler
         //  - a previously-recorded Gosu consumer whose .gs file was deleted outside the Gradle change-set Gradle
         //    reported.
         //  - a dep file that survived an aborted compile.
-        // Probably it will be better to do a full rebuild instead of failing hard.
+
+        // Handle stale inner classes.
+        // This can happen when Outer.gs contains an Outer class and an Inner one. When we delete Outer.gs and do an
+        // incremental compilation, we still find a stale producer Outer$Inner in dep file after calling
+        // calculateRecompilationSet().
+        // See testOuterSourceRemovalRecordsExpectedDepFileAndDeletesStaleClassFiles().
+        if ( fqcn.contains("$") ) {
+          continue;
+        }
+
+        // TODO Probably it will be better to do a full rebuild instead of failing hard, but for now we want to debug
+        // this failure when it happens.
         throw new IllegalStateException( "Could not find source file for type " + fqcn );
       }
       // Inner classes can map to the same sourceFile, using a set will avoid duplicates.
@@ -153,7 +164,20 @@ public class GosuCompiler implements IGosuCompiler
     boolean thresholdExceeded =  compileFilteredSources( sourceFiles, options, driver );
     if(!driver.hasErrors())
     {
-      _incrementalManager.updateDependencyFile(typeFqcnsToCompile, removedTypes);
+      File destDir = new File(options.getDestDir());
+      Set<String> effectivelyRemoved = new HashSet<>(removedTypes);
+      for (String fqcn : typeFqcnsToCompile) {
+        if (fqcn.contains("$")) {
+          // If FQCN is an inner class and that inner class was deleted (the outer is part of removedTypes or the outer
+          // source code no longer contains the inner), we need to add it to effectivelyRemoved so
+          // that updateDependencyFile will correctly remove the inner class from the dep file as consumer and
+          // producer.
+          if (!classFileFor(destDir, fqcn).exists()) {
+            effectivelyRemoved.add(fqcn);
+          }
+        }
+      }
+      _incrementalManager.updateDependencyFile(typeFqcnsToCompile, effectivelyRemoved);
     }
     return thresholdExceeded;
   }
@@ -357,16 +381,17 @@ public class GosuCompiler implements IGosuCompiler
   }
 
   /**
-   * Delete each type's outputs from {@code destDir}: the main {@code <fqcn>.class},
-   * all inner / anonymous outputs ({@code <fqcn>$*.class}), and the source-file
-   * copy (any known Gosu extension).
+   * Delete each type's outputs from {@code destDir}: the {@code <fqcn>.class}
+   * file and the source-file copy (any known Gosu extension).
    *
    * <p>Called before incremental compile for both removed types (cleanup) and
-   * about-to-be-recompiled types -- the latter is what keeps auxiliary outputs
-   * from going stale. A modified source whose new version emits fewer inner /
-   * block classes than before would otherwise leave the old ones orphaned,
-   * since the compiler only writes (not deletes) outputs. See
-   * {@link #deleteClassFile(String, File, boolean)} for the per-FQCN details.
+   * about-to-be-recompiled types. Nested compiled units (inner / anonymous /
+   * block classes) are not handled specially here: BFS in
+   * {@link IncrementalCompilationManager#calculateRecompilationSet} reliably
+   * pulls every nested FQCN into {@code typeFqcnsToCompile} via the
+   * bidirectional bytecode edges recorded from each nested class's
+   * {@code InnerClasses} attribute, so each nested FQCN ends up in this
+   * method's input set and has its {@code .class} file deleted directly.
    *
    * <p>No-op if {@code fqcns} is empty or {@code destDir} is null / blank.
    *
@@ -389,7 +414,16 @@ public class GosuCompiler implements IGosuCompiler
 
 
   /**
-   * Delete the .class file and any inner/anonymous outputs for the given type.
+   * Resolve the {@code .class} file path for {@code fqcn} under {@code outputDir}.
+   * Example: {@code outputDir=build/classes/gosu/main} and
+   * {@code fqcn=com.example.Foo} -> {@code build/classes/gosu/main/com/example/Foo.class}.
+   */
+  private static File classFileFor(File outputDir, String fqcn) {
+    return new File(outputDir, fqcn.replace('.', File.separatorChar) + ".class");
+  }
+
+  /**
+   * Delete the .class file for the given type.
    *
    * @param fqcn The fully-qualified class name of the type to clean up
    * @param outputDir The output directory containing compiled .class files
@@ -397,9 +431,7 @@ public class GosuCompiler implements IGosuCompiler
    */
   private void deleteClassFile(String fqcn, File outputDir, boolean verbose )
   {
-    // Convert FQCN to file path: com.example.Foo -> com/example/Foo.class
-    String relativePath = fqcn.replace( '.', File.separatorChar );
-    File mainClassFile = new File( outputDir, relativePath + ".class" );
+    File mainClassFile = classFileFor(outputDir, fqcn);
 
     if( verbose )
     {
@@ -409,7 +441,6 @@ public class GosuCompiler implements IGosuCompiler
       System.out.println( "  File exists: " + mainClassFile.exists() );
     }
 
-    // Delete main class file
     if( mainClassFile.exists() )
     {
       if( mainClassFile.delete() )
@@ -427,34 +458,6 @@ public class GosuCompiler implements IGosuCompiler
     else if( verbose )
     {
       System.out.println( "Class file does not exist (may have already been deleted): " + mainClassFile );
-    }
-
-    // Delete inner/anonymous classes (Foo$*.class)
-    File parentDir = mainClassFile.getParentFile();
-    if( parentDir != null && parentDir.exists() )
-    {
-      String className = mainClassFile.getName().replace( ".class", "" );
-      File[] innerClasses = parentDir.listFiles( (dir, name) ->
-        name.startsWith( className + "$" ) && name.endsWith( ".class" )
-      );
-
-      if( innerClasses != null )
-      {
-        for( File innerClass : innerClasses )
-        {
-          if( innerClass.delete() )
-          {
-            if( verbose )
-            {
-              System.out.println( "Deleted stale inner class file: " + innerClass );
-            }
-          }
-          else
-          {
-            System.err.println( "Warning: Failed to delete inner class file: " + innerClass );
-          }
-        }
-      }
     }
   }
 
