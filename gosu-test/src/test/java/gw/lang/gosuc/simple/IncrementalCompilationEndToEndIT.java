@@ -179,10 +179,6 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Step 2: Initial compilation - compile all files
-    List<File> allSourceFiles = Arrays.asList(
-      baseEntity, user, product, userService, productService, independentUtil
-    );
-    
     CompileResult initialResult = compile(Collections.emptyList());
     if (!initialResult.success) {
       System.err.println("Initial compilation failed with error: " + initialResult.error);
@@ -314,7 +310,6 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Initial compilation
-    List<File> allFiles = Arrays.asList(myInterface, baseClass, derived1, derived2, unrelated);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
@@ -397,7 +392,6 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Initial compilation
-    List<File> allFiles = Arrays.asList(util, consumer1, consumer2);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
@@ -455,7 +449,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 4: Initial compilation
-    List<File> allFiles = Arrays.asList(myInterface, implementation, enhancement);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
 
@@ -519,7 +512,6 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Initial compilation
-    List<File> allFiles = Arrays.asList(class1, class2, class3);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed", initialResult.success);
     
@@ -823,7 +815,6 @@ public class IncrementalCompilationEndToEndIT {
     
     // Step 4: Initial compilation
     System.out.println("\n=== Initial compilation with extensions ===");
-    List<File> allFiles = Arrays.asList(person, personEnhancement, userService);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     
@@ -919,10 +910,6 @@ public class IncrementalCompilationEndToEndIT {
     );
     
     // Compile
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/Vehicle.gs"),
-      new File(srcDir.toFile(), "example/VehicleEnhancement.gsx")
-    );
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Compilation should succeed: " + result.error, result.success);
     
@@ -1116,7 +1103,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Compilation should succeed", result.success);
 
     // Verify exact dependency JSON structure
-    String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDeps = Files.readString(dependencyFile.toPath()).trim();
 
     String expectedDeps =
       "{\n" +
@@ -1277,12 +1264,11 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(outerFile, consumer);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
-    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    String depsContent = Files.readString(dependencyFile.toPath());
 
     assertTrue("Dependency file should contain Outer class",
       depsContent.contains("example.Outer"));
@@ -1369,12 +1355,11 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(outerFile, consumer);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
     // Step 4: Verify dependency file has only "RegionsUIHelper" entry
-    String depsContent = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    String depsContent = Files.readString(dependencyFile.toPath());
 
     assertTrue("Dependency file should contain RegionsUIHelper",
       depsContent.contains("example.RegionsUIHelper"));
@@ -1450,7 +1435,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(stringUtil, featureUser);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1523,7 +1507,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(customType, castUser);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1604,7 +1587,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(testableType, typeTester);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1694,7 +1676,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(customException, exceptionHandler);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1781,7 +1762,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 4: Initial compilation
-    List<File> allFiles = Arrays.asList(myInterface, implementation, delegateUser);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1848,7 +1828,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 3: Initial compilation
-    List<File> allFiles = Arrays.asList(factory, staticUser);
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
@@ -1929,7 +1908,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 2: Initial full compilation
-    List<File> allFiles = Arrays.asList(classA, classB, classC);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initialResult.error,
       initialResult.success);
@@ -1937,8 +1915,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Verify both edges of the chain are recorded in the dep file —
     // this is what the BFS in calculateRecompilationSet walks.
-    String depFileContent = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String depFileContent = Files.readString(dependencyFile.toPath()).trim();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2037,7 +2014,6 @@ public class IncrementalCompilationEndToEndIT {
     );
 
     // Step 2: Initial full compilation
-    List<File> allFiles = Arrays.asList(classA, classB, classC);
     CompileResult initialResult = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initialResult.error,
       initialResult.success);
@@ -2045,8 +2021,7 @@ public class IncrementalCompilationEndToEndIT {
 
     // Step 3: Verify all three cycle edges are recorded in the dep file. Every
     // class has exactly one consumer (the next link in the cycle).
-    String depFileContent = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String depFileContent = Files.readString(dependencyFile.toPath()).trim();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2145,15 +2120,10 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/IResult.gs"),
-      new File(srcDir.toFile(), "example/ResultBase.gs"),
-      new File(srcDir.toFile(), "example/StringResult.gs")
-    );
     CompileResult result = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
 
-    String actualDeps = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDeps = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2259,18 +2229,11 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/SharedProducer.gs"),
-      new File(srcDir.toFile(), "example/TypeA.gs"),
-      new File(srcDir.toFile(), "example/TypeB.gs"),
-      new File(srcDir.toFile(), "example/TypeC.gs")
-    );
-
     // Full compile - all four types
     CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
-    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterFullCompile = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2304,7 +2267,7 @@ public class IncrementalCompilationEndToEndIT {
       Arrays.asList(new File(srcDir.toFile(), "example/TypeA.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
-    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterIncremental = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2364,17 +2327,11 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/P1.gs"),
-      new File(srcDir.toFile(), "example/P2.gs"),
-      new File(srcDir.toFile(), "example/Consumer.gs")
-    );
-
     // Full compile -- baseline: P1 -> [Consumer], P2 -> [].
     CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
-    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterFullCompile = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2405,7 +2362,7 @@ public class IncrementalCompilationEndToEndIT {
       Arrays.asList(new File(srcDir.toFile(), "example/Consumer.gs")));
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success);
 
-    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterIncremental = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2464,17 +2421,11 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/Hub.gs"),
-      new File(srcDir.toFile(), "example/Spoke.gs"),
-      new File(srcDir.toFile(), "example/Bystander.gs")
-    );
-
     // Full compile -- Hub picks up both Bystander and Spoke as consumers.
     CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
-    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterFullCompile = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2501,7 +2452,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
-    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterIncremental = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2550,16 +2501,11 @@ public class IncrementalCompilationEndToEndIT {
       "}"
     );
 
-    List<File> allFiles = Arrays.asList(
-      new File(srcDir.toFile(), "example/P.gs"),
-      new File(srcDir.toFile(), "example/LeafX.gs")
-    );
-
     // Full compile -- P picks up LeafX as a consumer.
     CompileResult fullResult = compile(Collections.emptyList());
     assertTrue("Full compilation should succeed: " + fullResult.error, fullResult.success);
 
-    String afterFullCompile = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterFullCompile = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2590,7 +2536,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Incremental compilation should succeed: " + incrementalResult.error,
       incrementalResult.success);
 
-    String afterIncremental = new String(Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String afterIncremental = Files.readString(dependencyFile.toPath()).trim();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2708,8 +2654,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both " +
@@ -2769,8 +2714,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After Inner is removed (and Consumer adapts), Outer's consumer list " +
       "contains only Consumer. Outer$Inner is fully stripped from the dep " +
@@ -2831,8 +2775,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both.",
@@ -2878,8 +2821,7 @@ public class IncrementalCompilationEndToEndIT {
       "    \"example.Consumer\": []\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After Outer.gs is removed, the dep file contains only Consumer. " +
       "Outer is stripped (it was in removedTypes -- key and value purge). " +
@@ -2976,8 +2918,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     assertTrue("Dependency file should exist after compile", dependencyFile.exists());
 
-    String depFileContents = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    String depFileContents = Files.readString(dependencyFile.toPath());
 
     assertFalse(
       "java.lang.String must not appear in the dep graph. It is a JRE type, " +
@@ -3003,8 +2944,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Initial compilation should succeed: " + result.error, result.success);
     assertTrue("Dependency file should exist after compile", dependencyFile.exists());
 
-    String depFileContents = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8);
+    String depFileContents = Files.readString(dependencyFile.toPath());
 
     assertFalse(
       "gw.util.AutoMap must not appear in the dep graph. It is a Gosu type " +
@@ -3088,8 +3028,7 @@ public class IncrementalCompilationEndToEndIT {
       "List<MyType>).",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis());
 
-    String actualDeps = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDeps = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps);
@@ -3116,8 +3055,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3191,8 +3129,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3276,8 +3213,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3428,8 +3364,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3527,8 +3462,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3695,8 +3629,7 @@ public class IncrementalCompilationEndToEndIT {
     CompileResult initial = compile(Collections.emptyList());
     assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3809,8 +3742,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, dep file should record both the consumer edges " +
       "(Outer -> Consumer and Outer$Inner -> Consumer from Consumer's field) " +
@@ -3850,8 +3782,7 @@ public class IncrementalCompilationEndToEndIT {
       "is typed Outer.Inner).",
       getFileModificationTime(consumerClass).toMillis() > initialConsumerTime.toMillis());
 
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "Dep file after incremental compile should still record both " +
       "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
@@ -3926,8 +3857,7 @@ public class IncrementalCompilationEndToEndIT {
        "    ]\n" +
        "  }\n" +
        "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial);
@@ -3964,8 +3894,7 @@ public class IncrementalCompilationEndToEndIT {
       "Outer$AnonymouS__1.class should be recompiled",
       getFileModificationTime(anonClass).toMillis() > initialAnonTime.toMillis());
 
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4035,8 +3964,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial);
@@ -4075,8 +4003,7 @@ public class IncrementalCompilationEndToEndIT {
       "block is the actual referrer of Util).",
       getFileModificationTime(innerBlockClass).toMillis() > initialInnerBlockTime.toMillis());
 
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4136,8 +4063,7 @@ public class IncrementalCompilationEndToEndIT {
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsInitial = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "After initial compile, the dep file should record both the consumer " +
       "edges (Outer$Class -> Consumer and Outer$Class$Inner -> Consumer from " +
@@ -4175,8 +4101,7 @@ public class IncrementalCompilationEndToEndIT {
       "Consumer.class should be recompiled when Outer$Class.Inner changes",
       getFileModificationTime(consumerClass).toMillis() > initialConsumerTime.toMillis());
 
-    String actualDepsAfter = new String(
-      Files.readAllBytes(dependencyFile.toPath()), StandardCharsets.UTF_8).trim();
+    String actualDepsAfter = Files.readString(dependencyFile.toPath()).trim();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
