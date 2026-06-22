@@ -414,6 +414,7 @@ public class Gosu
 
   public static GosuVersion getVersion()
   {
+    // TODO: REVERT ME
     /*InputStream in = Gosu.class.getClassLoader().getResourceAsStream( GosuVersion.RESOURCE_PATH );
     if( in == null )
     {
