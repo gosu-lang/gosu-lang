@@ -39,7 +39,7 @@ import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
  * <p>The split is deliberate: each phase covers cases the other misses, and the
  * constant-pool scan is fast enough that the redundancy isn't a perf concern.
  */
-public class DependenciesClassVisitor extends ClassVisitor {
+class DependenciesClassVisitor extends ClassVisitor {
     private static final int CONSTANT_CLASS_TAG = 7;
     private static final int ASM_API_VERSION = Opcodes.ASM5;
 

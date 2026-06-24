@@ -108,7 +108,6 @@ public class GosuCompiler implements IGosuCompiler
     // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
     deleteClassAndSourceFiles(toDelete, options.getDestDir(), options.isVerbose());
 
-    //TODO test allSourceFiles with gosu programs which contains multiple public classes.
     List<String> sourceFiles;
     Set<String> sourceFilesToCompile = new HashSet<>();
 
