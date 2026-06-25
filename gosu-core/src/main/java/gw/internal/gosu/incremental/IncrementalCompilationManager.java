@@ -1,10 +1,11 @@
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import gw.internal.ext.com.google.gson.Gson;
 import gw.internal.ext.com.google.gson.GsonBuilder;
 import gw.internal.ext.com.google.gson.JsonIOException;
 import gw.internal.ext.com.google.gson.JsonSyntaxException;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.lang.IIncrementalCompilationManager;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.statements.IClassStatement;
 import gw.lang.reflect.IType;
@@ -36,8 +37,7 @@ import java.util.*;
  * - Dependencies between source files  
  * - API signatures for detecting breaking changes
  */
-public class IncrementalCompilationManager {
-
+public class IncrementalCompilationManager implements IIncrementalCompilationManager{
   public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
 
   private final String dependencyFilePath;
@@ -50,7 +50,7 @@ public class IncrementalCompilationManager {
   private final Map<String, String> gosuFqcnToSourcePath;
 
   public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
-                                       List<String> localJavaTypes, boolean verbose, List<String> allSourceFiles) {
+                                       List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
     // Canonicalize each source root: absolute-path + normalize collapses ".",
     // ".." and resolves relative paths against current working dir, so lookups in
@@ -70,23 +70,7 @@ public class IncrementalCompilationManager {
     this.gosuFqcnToSourcePath = buildGosuFqcnToSourcePath(allSourceFiles);
   }
 
-  /**
-   * Record the single-hop dependency edges produced when {@code gosuClass} is
-   * compiled to the given bytecode.
-   *
-   * <p>Runs the two-phase walk over {@code bytes} via {@link DependenciesClassVisitor}
-   * (constant-pool scan in the constructor + structural {@code ClassVisitor} callbacks
-   * via {@code accept}), then a narrow AST pass via {@link #trackTypeliteralsFromAST}
-   * for references that don't make it into bytecode.
-   *
-   * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades
-   * are computed lazily in {@link #calculateRecompilationSet(Set, Set)} by walking
-   * the resulting graph.
-   *
-   * @param bytes      compiled bytecode for {@code gosuClass}
-   * @param gosuClass  the type whose dependencies are being recorded; used as the
-   *                   consumer side of every edge produced by this call
-   */
+  @Override
   public void trackDependencies(byte[] bytes, IGosuClass gosuClass) {
     ClassReader reader = new ClassReader(bytes);
     DependenciesClassVisitor visitor = new DependenciesClassVisitor(reader, this);
@@ -301,11 +285,7 @@ public class IncrementalCompilationManager {
     currentUsedBy.clear();
   }
 
-  /**
-   * Reconcile the in-memory dependency graph via {@link #updateDependencies} and
-   * persist the result to disk. Keys and consumer lists are sorted before
-   * serialization for deterministic JSON output.
-   */
+  @Override
   public void updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes) {
     updateDependencies(typeFqcnsToCompile, removedTypes);
     try {
@@ -479,20 +459,7 @@ public class IncrementalCompilationManager {
     return getGosuFilePathFromFqcn(fqcn) != null || localJavaTypes.contains(fqcn);
   }
 
-  /**
-   * Returns the source file path for {@code fqcn} if it names a known local Gosu
-   * type, or {@code null} otherwise.
-   *
-   * <p>For inner-class and block FQCNs (those containing {@code $}), looks up
-   * the outermost enclosing type -- inner classes don't have their own source
-   * files. For example, {@code "example.Outer$Inner"} and
-   * {@code "example.Outer$AnonymouS__0$block_0_"} both resolve to the path of
-   * {@code Outer.gs}.
-   *
-   * <p>Callers should treat {@code null} as "not a local Gosu type" -- it may
-   * be a Java type (see {@link #shouldTrackType}), a JRE class, a JAR-packaged
-   * dependency, or simply unknown.
-   */
+  @Override
   public String getGosuFilePathFromFqcn(String fqcn) {
     // Fast path.
     String filePath = gosuFqcnToSourcePath.get(fqcn);
@@ -515,23 +482,7 @@ public class IncrementalCompilationManager {
     return filePath;
   }
 
-  /**
-   * Compute the set of Gosu types that need to be recompiled given a set of changed
-   * and removed types.
-   *
-   * Walks the reverse-dependency graph ({@code typeDependencies}) breadth-first starting
-   * from the union of changed and removed types, collecting every Gosu consumer reachable
-   * along the way. Java types in {@code localJavaTypes} are walked through to find their
-   * Gosu consumers but excluded from the result (gosuc cannot recompile Java sources).
-   * Removed types are excluded from the result themselves (their source files are gone),
-   * though their downstream consumers are not.
-   *
-   * @param changedTypes types whose source was modified; the changed types themselves
-   *                     (if Gosu) plus all transitive Gosu consumers are returned
-   * @param removedTypes types whose source was deleted; the removed types themselves
-   *                     are NOT returned, but their transitive Gosu consumers are
-   * @return the FQCNs of Gosu types that need recompilation
-   */
+  @Override
   public Set<String> calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes) {
     Set<String> toRecompile = new HashSet<>();
     Set<String> visited = new HashSet<>();

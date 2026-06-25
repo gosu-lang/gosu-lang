@@ -2,7 +2,7 @@
  * Copyright 2026 Guidewire Software, Inc.
  */
 
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import gw.internal.ext.org.objectweb.asm.*;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureReader;

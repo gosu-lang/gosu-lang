@@ -8,6 +8,8 @@ import gw.config.Registry;
 import gw.fs.FileFactory;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
+import gw.lang.GosuShop;
+import gw.lang.IIncrementalCompilationManager;
 import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
@@ -66,7 +68,7 @@ public class GosuCompiler implements IGosuCompiler
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
-  protected IncrementalCompilationManager _incrementalManager;
+  protected IIncrementalCompilationManager _incrementalManager;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
@@ -86,12 +88,9 @@ public class GosuCompiler implements IGosuCompiler
         sourceRoots.add(tok.nextToken());
       }
     }
-    List<String> allSourceFiles = getSourceFiles( options );
-    _incrementalManager = new IncrementalCompilationManager(
-      options.getDependencyFile(),
-      sourceRoots,
-      options.getLocalJavaTypes(),
-      options.isVerbose() , allSourceFiles);
+    List<String> allSourceFiles = getSourceFiles(options);
+    _incrementalManager = GosuShop.createIncrementalCompilationManager(options.getDependencyFile(), sourceRoots,
+            options.getLocalJavaTypes(), allSourceFiles, options.isVerbose());
 
     // Get changed and removed type FQCNs from CLI
     Set<String> changedTypes = options.getChangedTypes();
@@ -180,7 +179,7 @@ public class GosuCompiler implements IGosuCompiler
     }
     return thresholdExceeded;
   }
-  
+
   private boolean compileFilteredSources( List<String> sourceFiles, CommandLineOptions options, ICompilerDriver driver )
   {
     List<String> gosuFiles = new ArrayList<>();
@@ -198,7 +197,7 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     boolean thresholdExceeded = false;
-    
+
     if( !gosuFiles.isEmpty() )
     {
       thresholdExceeded = compileGosuSources( options, driver, gosuFiles );
@@ -386,7 +385,7 @@ public class GosuCompiler implements IGosuCompiler
    * <p>Called before incremental compile for both removed types (cleanup) and
    * about-to-be-recompiled types. Nested compiled units (inner / anonymous /
    * block classes) are not handled specially here: BFS in
-   * {@link IncrementalCompilationManager#calculateRecompilationSet} reliably
+   * {@link IIncrementalCompilationManager#calculateRecompilationSet} reliably
    * pulls every nested FQCN into {@code typeFqcnsToCompile} via the
    * bidirectional bytecode edges recorded from each nested class's
    * {@code InnerClasses} attribute, so each nested FQCN ends up in this

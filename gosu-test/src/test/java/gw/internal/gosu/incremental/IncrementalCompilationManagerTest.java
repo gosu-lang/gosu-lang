@@ -1,4 +1,4 @@
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import org.junit.After;
 import org.junit.Before;
@@ -54,8 +54,7 @@ public class IncrementalCompilationManagerTest {
     return new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
       Collections.singletonList(tempDir.toAbsolutePath().toString()),
-      localJavaTypes,
-      false, Collections.emptyList());
+      localJavaTypes, Collections.emptyList(), false);
   }
 
   @Test
@@ -324,7 +323,7 @@ public class IncrementalCompilationManagerTest {
         outerRoot.toAbsolutePath().toString(),    // shallow root, declared first
         innerRoot.toAbsolutePath().toString()     // deeper root, the correct match
       ),
-      Collections.emptyList(), false, Collections.emptyList());
+      Collections.emptyList(), Collections.emptyList(), false);
 
     manager.getOrCreateConsumerSet("com.example.MyClass");
     manager.recordTypeDependency(

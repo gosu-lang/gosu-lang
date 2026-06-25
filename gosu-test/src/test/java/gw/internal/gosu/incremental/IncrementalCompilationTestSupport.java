@@ -1,4 +1,4 @@
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import gw.internal.ext.com.google.gson.Gson;
 import gw.internal.ext.com.google.gson.GsonBuilder;
@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
+import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
+
 
 final class IncrementalCompilationTestSupport {
   private IncrementalCompilationTestSupport() {}

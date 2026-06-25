@@ -1,4 +1,4 @@
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import gw.lang.gosuc.cli.CommandLineOptions;
 import org.junit.After;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
+import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
 import static org.junit.Assert.*;
 
 /**
@@ -50,7 +50,7 @@ public class IncrementalCompilationIntegrationTest {
   private IncrementalCompilationManager newManager() {
     return new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
       Collections.singletonList(srcDir.toAbsolutePath().toString()),
-      Collections.emptyList(), false, Collections.emptyList());
+      Collections.emptyList(), Collections.emptyList(), false);
   }
 
   @Test

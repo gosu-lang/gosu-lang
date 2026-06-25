@@ -468,4 +468,9 @@ public class GosuShop
   {
     return CommonServices.getGosuIndustrialPark().generateJavaStub( gsClass );
   }
+
+  public static IIncrementalCompilationManager createIncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
+                                                                     List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
+    return CommonServices.getGosuIndustrialPark().createIncrementalCompilationManager(dependencyFilePath, sourceRoots, localJavaTypes, allSourceFiles, verbose);
+  }
 }

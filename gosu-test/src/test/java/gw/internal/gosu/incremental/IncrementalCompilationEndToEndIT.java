@@ -1,4 +1,4 @@
-package gw.lang.gosuc.simple;
+package gw.internal.gosu.incremental;
 
 import org.junit.After;
 import org.junit.Before;
@@ -25,7 +25,7 @@ import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.tree.AnnotationNode;
 import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
 
-import static gw.lang.gosuc.simple.IncrementalCompilationManager.DEPENDENCY_VERSION;
+import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
 import static org.junit.Assert.*;
 
 /**
