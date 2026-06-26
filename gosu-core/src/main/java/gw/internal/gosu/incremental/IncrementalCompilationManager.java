@@ -1,9 +1,7 @@
 package gw.internal.gosu.incremental;
 
-import gw.internal.ext.com.google.gson.Gson;
-import gw.internal.ext.com.google.gson.GsonBuilder;
-import gw.internal.ext.com.google.gson.JsonIOException;
-import gw.internal.ext.com.google.gson.JsonSyntaxException;
+import gw.internal.ext.com.google.gson.stream.JsonReader;
+import gw.internal.ext.com.google.gson.stream.JsonWriter;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.lang.IIncrementalCompilationManager;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
@@ -13,16 +11,8 @@ import gw.lang.reflect.gs.GosuClassTypeLoader;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.IJavaType;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,11 +30,14 @@ import java.util.*;
 public class IncrementalCompilationManager implements IIncrementalCompilationManager{
   public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
 
+  // Dep-file field names, shared by the reader and the writer so the two cannot drift.
+  private static final String FIELD_VERSION = "version";
+  private static final String FIELD_CONSUMERS = "consumers";
+
   private final String dependencyFilePath;
   private final Map<String, Set<String>> typeDependencies;
   private final Map<String, Set<String>> currentUsedBy;
   private final boolean verbose;
-  private final Gson gson;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
   private final Map<String, String> gosuFqcnToSourcePath;
@@ -64,7 +57,6 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     this.sourceRoots = roots;
     this.localJavaTypes = localJavaTypes != null ? new HashSet<>(localJavaTypes) : new HashSet<>();
     this.verbose = verbose;
-    this.gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     this.typeDependencies = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
     this.gosuFqcnToSourcePath = buildGosuFqcnToSourcePath(allSourceFiles);
@@ -226,28 +218,60 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       return new HashMap<>();
     }
 
-    try (Reader reader = new BufferedReader(
-        new InputStreamReader(new FileInputStream(depFile), StandardCharsets.UTF_8))) {
-      DependencyData data = gson.fromJson(reader, DependencyData.class);
-      if (data != null && DEPENDENCY_VERSION.equals(data.version) && data.consumers != null) {
-        Map<String, Set<String>> consumersSet = new HashMap<>();
-        for (Map.Entry<String, List<String>> entry : data.consumers.entrySet()) {
-          consumersSet.put(entry.getKey(), new HashSet<>(entry.getValue()));
+    try (JsonReader reader = new JsonReader(
+        Files.newBufferedReader(depFile.toPath(), StandardCharsets.UTF_8))) {
+      String version = null;
+      Map<String, Set<String>> consumersSet = null;
+
+      reader.beginObject();
+      while (reader.hasNext()) {
+        switch (reader.nextName()) {
+          case FIELD_VERSION:
+            version = reader.nextString();
+            break;
+          case FIELD_CONSUMERS:
+            consumersSet = readConsumers(reader);
+            break;
+          default:
+            reader.skipValue();
         }
+      }
+      reader.endObject();
+
+      if (DEPENDENCY_VERSION.equals(version) && consumersSet != null) {
         return consumersSet;
       }
       if (verbose) {
         System.out.println("Dependency file version mismatch, starting fresh");
       }
       return new HashMap<>();
-    } catch (IOException | JsonIOException | JsonSyntaxException e) {
-      // IOException: opening/closing the reader (e.g. race with file deletion
-      //              between exists() and FileInputStream construction).
-      // JsonIOException: Gson hit a problem reading from the Reader.
-      // JsonSyntaxException: JSON is malformed / not a valid DependencyData.
+    } catch (IOException | IllegalStateException e) {
       System.err.println("Error loading dependency file: " + e.getMessage());
       return new HashMap<>();
     }
+  }
+
+  /**
+   * Read the {@code consumers} object (producer FQCN -&gt; array of consumer FQCNs) from
+   * {@code reader}, which must be positioned just before the object's opening brace.
+   * Consumes the matching closing brace. Producer sets are stored as {@link HashSet}s
+   * (order is irrelevant in memory; the writer sorts on flush).
+   */
+  private static Map<String, Set<String>> readConsumers(JsonReader reader) throws IOException {
+    Map<String, Set<String>> consumersSet = new HashMap<>();
+    reader.beginObject();
+    while (reader.hasNext()) {
+      String producer = reader.nextName();
+      Set<String> consumers = new HashSet<>();
+      reader.beginArray();
+      while (reader.hasNext()) {
+        consumers.add(reader.nextString());
+      }
+      reader.endArray();
+      consumersSet.put(producer, consumers);
+    }
+    reader.endObject();
+    return consumersSet;
   }
 
   /**
@@ -289,19 +313,6 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   public void updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes) {
     updateDependencies(typeFqcnsToCompile, removedTypes);
     try {
-      // Sort the map by keys before serialization for deterministic output
-      Map<String, List<String>> sortedConsumers = new TreeMap<>();
-      for (Map.Entry<String, Set<String>> entry : typeDependencies.entrySet()) {
-        String producer = entry.getKey();
-        List<String> consumers = new ArrayList<>(entry.getValue());
-        Collections.sort(consumers);
-        sortedConsumers.put(producer, consumers);
-      }
-
-      DependencyData data = new DependencyData();
-      data.version = DEPENDENCY_VERSION;
-      data.consumers = sortedConsumers;
-
       // Ensure directory exists
       File depFile = new File(dependencyFilePath);
       File parentDir = depFile.getParentFile();
@@ -313,9 +324,28 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       // otherwise leave the dep file truncated, which loadDependencyFile() silently
       // treats as "no prior state" and erases the entire historical graph.
       File tmpFile = new File(dependencyFilePath + ".tmp");
-      try (Writer writer = new BufferedWriter(
-          new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8))) {
-        gson.toJson(data, writer);
+      try (JsonWriter writer = new JsonWriter(
+          Files.newBufferedWriter(tmpFile.toPath(), StandardCharsets.UTF_8))) {
+        writer.setHtmlSafe(false);
+        writer.setIndent("  ");
+
+        writer.beginObject();
+        writer.name(FIELD_VERSION).value(DEPENDENCY_VERSION);
+        writer.name(FIELD_CONSUMERS).beginObject();
+        // Sort keys and consumer lists for deterministic, cache-stable output.
+        for (Map.Entry<String, Set<String>> entry : new TreeMap<>(typeDependencies).entrySet()) {
+          String producer = entry.getKey();
+          writer.name(producer);
+          writer.beginArray();
+          List<String> consumers = new ArrayList<>(entry.getValue());
+          Collections.sort(consumers);
+          for (String consumer : consumers) {
+            writer.value(consumer);
+          }
+          writer.endArray();
+        }
+        writer.endObject();
+        writer.endObject();
       }
       Files.move(tmpFile.toPath(), depFile.toPath(),
                  StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -545,20 +575,5 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       System.out.println("Recompiling: " + toRecompile);
     }
     return toRecompile;
-  }
-
-
-  /**
-   * Data structure for JSON serialization only. The in-memory representation
-   * ({@link #typeDependencies}) is {@code Map<String, Set<String>>}; the
-   * {@code List<String>} here is purely the wire format, used so that consumer
-   * lists can be sorted for deterministic JSON output. Conversion happens in
-   * {@link #loadDependencyFile()} and {@link #updateDependencyFile(Set, Set)}.
-   *
-   * <p>Example: {@code "com.example.Interface" -> ["com.example.ImplA", "com.example.ImplB"]}
-   */
-  private static class DependencyData {
-    String version;
-    Map<String, List<String>> consumers;
   }
 }
