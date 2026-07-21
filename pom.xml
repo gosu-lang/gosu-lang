@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.18.8-luca-inc-alpha-10-SNAPSHOT</version>
+    <version>1.18.8-luca-inc-alpha-11-SNAPSHOT</version>
     <relativePath>gosu-parent</relativePath>
   </parent>
   <artifactId>gosu-proj</artifactId>
@@ -12,9 +12,15 @@
 
   <name>Gosu :: Project Aggregator</name>
 
+  <!--
+    SCM block must be explicitly defined here even though gosu-parent has one.
+    Maven automatically appends the child artifactId to inherited SCM URLs, which would
+    result in https://github.com/gosu-lang/gosu-lang.git/gosu-proj/ (incorrect).
+    Defining it here prevents that behavior and ensures the correct repository URL is used.
+  -->
   <scm>
     <developerConnection>scm:git:https://github.com/gosu-lang/gosu-lang.git</developerConnection>
-    <tag>rel/1.18.8</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <modules>

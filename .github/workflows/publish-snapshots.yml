@@ -10,6 +10,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Ensure release branch
+        run: |
+          if [[ "${GITHUB_REF_NAME}" != rel/* ]]; then
+            echo "❌ Manual runs allowed only on rel/* branches"
+            exit 1
+          fi
+
       - name: Set up Java (Amazon Corretto 11)
         uses: actions/setup-java@v4
         with:
@@ -42,7 +49,7 @@ jobs:
 
       - name: Publish snapshot to Maven Central
         if: steps.check-perms.outputs.can-publish == 'true'
-        run: mvn deploy -Pcentral -Dmaven.main.skip=true -Dmaven.resources.skip=true -Dmaven.test.skip=true -s $GITHUB_WORKSPACE/settings.xml -B
+        run: mvn deploy -Pcentral -Dmaven.test.skip=true -s $GITHUB_WORKSPACE/settings.xml -B
         env:
           SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
           SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
