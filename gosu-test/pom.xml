@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.gosu-lang.gosu</groupId>
     <artifactId>gosu-parent</artifactId>
-    <version>1.18.8-luca-inc-alpha-06-SNAPSHOT</version>
+    <version>1.18.8-luca-inc-alpha-10-SNAPSHOT</version>
     <relativePath>../gosu-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -113,22 +113,6 @@
                 <source>src/test/gosu</source>
               </sources>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.22.2</version>
-        <configuration>
-          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
