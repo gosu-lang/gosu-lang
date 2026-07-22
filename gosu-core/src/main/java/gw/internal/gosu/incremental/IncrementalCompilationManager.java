@@ -532,14 +532,14 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       if (!visited.contains(changedType)) {
         visited.add(changedType);
         worklist.add(changedType);
-        typeDependencies.putIfAbsent(changedType, Collections.emptySet());
+        typeDependencies.putIfAbsent(changedType, new HashSet<>());
       }
     }
     for (String removedType : removedTypes) {
       if (!visited.contains(removedType)) {
         visited.add(removedType);
         worklist.add(removedType);
-        typeDependencies.putIfAbsent(removedType, Collections.emptySet());
+        typeDependencies.putIfAbsent(removedType, new HashSet<>());
       }
     }
 
