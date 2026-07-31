@@ -67,8 +67,7 @@ public class CommandLineOptions {
    * @return true if '-verbose' was specified on the command line
    */
   public boolean isVerbose() {
-    // TODO: REVERT ME
-    return true;
+    return _verbose;
   }
 
   @Parameter(names = "-version", description = "Version information")
