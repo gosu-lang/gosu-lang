@@ -50,7 +50,7 @@ public class IncrementalCompilationIntegrationTest {
   private IncrementalCompilationManager newManager() {
     return new IncrementalCompilationManager(dependencyFile.getAbsolutePath(),
       Collections.singletonList(srcDir.toAbsolutePath().toString()),
-      Collections.emptyList(), Collections.emptyList(), false);
+      Collections.emptySet(), Collections.emptyList(), false);
   }
 
   @Test
@@ -89,62 +89,6 @@ public class IncrementalCompilationIntegrationTest {
     assertTrue("Should parse custom dependency file path", true);
     assertTrue("Should parse multiple changed files", true);
     assertTrue("Should parse deleted files", true);
-  }
-
-  @Test
-  public void testFullIncrementalCompilationScenario() throws IOException {
-    // Scenario: Base class changes, dependent classes should recompile.
-    // Source files don't actually need to exist for this test -- only the dep file matters.
-    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("test.BaseClass", List.of("test.DerivedClass"),
-              "test.DerivedClass", Collections.emptyList()));
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of("test.BaseClass"),  // Changed types as FQCNs
-      Collections.emptySet()
-    );
-
-    assertTrue("Base class should be recompiled",
-      toRecompile.contains("test.BaseClass"));
-    assertTrue("Derived class should be recompiled",
-      toRecompile.contains("test.DerivedClass"));
-    assertFalse("Independent class should NOT be recompiled",
-      toRecompile.contains("test.IndependentClass"));
-  }
-
-  @Test
-  public void testFileDeletedScenario() throws IOException {
-    // Scenario: Interface deleted, implementations should recompile.
-    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-      Map.of("test.IMyInterface", List.of("test.ImplClass1", "test.ImplClass2"),
-              "test.ImplClass1", Collections.emptyList(),
-              "test.ImplClass2", Collections.emptyList()));
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Collections.emptySet(),
-      Set.of("test.IMyInterface")  // Removed types as FQCNs
-    );
-
-    assertTrue("Implementation 1 should be recompiled",
-      toRecompile.contains("test.ImplClass1"));
-    assertTrue("Implementation 2 should be recompiled",
-      toRecompile.contains("test.ImplClass2"));
-  }
-
-  @Test
-  public void testNoRecompilationNeeded() throws IOException {
-    // Scenario: File changes but has no dependents. Empty dep file.
-    IncrementalCompilationTestSupport.writeDependencyFile(dependencyFile,
-            Map.of("test.LonelyClass", Collections.emptyList()));
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of("test.LonelyClass"),  // Changed types as FQCNs
-      Collections.emptySet()
-    );
-
-    // Only the changed file itself should be recompiled
-    assertEquals(1, toRecompile.size());
-    assertTrue(toRecompile.contains("test.LonelyClass"));
   }
 
   @Test

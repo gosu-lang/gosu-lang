@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import gw.internal.ext.org.objectweb.asm.ClassReader;
@@ -592,15 +593,37 @@ public class IncrementalCompilationEndToEndIT {
    * {@code deletedFiles} only drives the {@code -removed-types} flag.
    */
   private CompileResult compileWithDeleted(List<File> changedFiles, List<File> deletedFiles) {
+    List<String> changedFqcns = new ArrayList<>();
+    for (File f : changedFiles) {
+      changedFqcns.add(fileToFqcn(f));
+    }
+    List<String> removedFqcns = new ArrayList<>();
+    for (File f : deletedFiles) {
+      removedFqcns.add(fileToFqcn(f));
+    }
+    return runIncrementalCompile(changedFqcns, removedFqcns, Collections.emptyList(), Collections.emptySet());
+  }
+
+  /**
+   * Run gosuc incrementally with explicit FQCN change sets. Unlike {@link #compileWithDeleted}, the
+   * changed and removed types are given as raw FQCNs -- so a type with no {@code .gs} source (e.g. a
+   * local Java type) can be reported changed -- and callers may add extra classpath entries and a set of
+   * local-Java-type FQCNs ({@code -local-java-types}). Passing empty extras reproduces
+   * {@code compileWithDeleted} exactly.
+   */
+  private CompileResult runIncrementalCompile(List<String> changedFqcns, List<String> removedFqcns,
+                                              List<String> extraClasspath, Set<String> localJavaTypes) {
     CompileResult result = new CompileResult();
 
     try {
-      // Build command line arguments for gosuc
       List<String> args = new ArrayList<>();
 
-      // Add classpath
+      // Classpath: the test runtime classpath plus any extra entries (e.g. a dir of compiled Java classes).
+      List<String> classpath = new ArrayList<>();
+      classpath.add(System.getProperty("java.class.path"));
+      classpath.addAll(extraClasspath);
       args.add("-classpath");
-      args.add(System.getProperty("java.class.path"));
+      args.add(String.join(File.pathSeparator, classpath));
 
       // Add output directory
       args.add("-d");
@@ -620,24 +643,19 @@ public class IncrementalCompilationEndToEndIT {
       args.add("-dependency-file");
       args.add(dependencyFile.getAbsolutePath());
 
-      // Add changed types (as FQCNs, path-separator delimited) when supplied.
-      if (!changedFiles.isEmpty()) {
-        List<String> changedTypes = new ArrayList<>();
-        for (File f : changedFiles) {
-          changedTypes.add(fileToFqcn(f));
-        }
+      if (!changedFqcns.isEmpty()) {
         args.add("-changed-types");
-        args.add(String.join(File.pathSeparator, changedTypes));
+        args.add(String.join(File.pathSeparator, changedFqcns));
       }
 
-      // Add removed types (as FQCNs, path-separator delimited) when supplied.
-      if (!deletedFiles.isEmpty()) {
-        List<String> removedTypes = new ArrayList<>();
-        for (File f : deletedFiles) {
-          removedTypes.add(fileToFqcn(f));
-        }
+      if (!removedFqcns.isEmpty()) {
         args.add("-removed-types");
-        args.add(String.join(File.pathSeparator, removedTypes));
+        args.add(String.join(File.pathSeparator, removedFqcns));
+      }
+
+      if (!localJavaTypes.isEmpty()) {
+        args.add("-local-java-types");
+        args.add(String.join(File.pathSeparator, localJavaTypes));
       }
 
       // Always pass the full Gosu source tree positionally so the compiler
@@ -684,13 +702,13 @@ public class IncrementalCompilationEndToEndIT {
         // we'd rather fail loudly than silently report 0 files compiled.
         String output = outStream.toString();
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-                "(?:compiling all|recompiling) (\\d+) source files");
+                "(?:compiling all|recompiled) (\\d+) source files");
         java.util.regex.Matcher matcher = pattern.matcher(output);
         if (!matcher.find()) {
           throw new IllegalStateException(
                   "Could not parse compiled-files count from gosuc output - expected one of " +
                           "\"Initial incremental compilation: compiling all N source files\" or " +
-                          "\"Incremental compilation: recompiling N source files\". Output was:\n" + output);
+                          "\"Incremental compilation: recompiled N source files\". Output was:\n" + output);
         }
         result.filesCompiled = Integer.parseInt(matcher.group(1));
 
@@ -726,6 +744,30 @@ public class IncrementalCompilationEndToEndIT {
     }
 
     return result;
+  }
+
+  /**
+   * Write and javac-compile a fresh Java type into {@code classesOutDir}. Used to model a same-module
+   * Java class that a Gosu source references (a local Java type), without depending on any class already
+   * on the test classpath.
+   */
+  private void compileDummyJavaType(String fqcn, String javaSource, Path classesOutDir) throws IOException {
+    Path javaSrcDir = tempDir.resolve("javaSrc");
+    Path javaFile = javaSrcDir.resolve(fqcn.replace('.', '/') + ".java");
+    Files.createDirectories(javaFile.getParent());
+    Files.write(javaFile, javaSource.getBytes(StandardCharsets.UTF_8));
+    Files.createDirectories(classesOutDir);
+
+    javax.tools.JavaCompiler compiler = javax.tools.ToolProvider.getSystemJavaCompiler();
+    if (compiler == null) {
+      throw new IllegalStateException("No system Java compiler available (tests must run on a JDK)");
+    }
+    int rc = compiler.run(null, null, null,
+      "-d", classesOutDir.toAbsolutePath().toString(),
+      javaFile.toAbsolutePath().toString());
+    if (rc != 0) {
+      throw new IllegalStateException("Failed to compile dummy Java type " + fqcn);
+    }
   }
 
   private CompileResult compile(List<File> changedFiles) {
@@ -1867,7 +1909,7 @@ public class IncrementalCompilationEndToEndIT {
   }
 
   /**
-   * Verifies that calculateRecompilationSet cascades transitively.
+   * Verifies that the driver's reverse-dependency walk cascades transitively.
    * A change to ClassA must recompile ClassB (direct consumer of ClassA)
    * and ClassC (indirect consumer through ClassB.transitive()).
    */
@@ -1914,7 +1956,7 @@ public class IncrementalCompilationEndToEndIT {
     assertTrue("Dependency file should be created", dependencyFile.exists());
 
     // Step 3: Verify both edges of the chain are recorded in the dep file —
-    // this is what the BFS in calculateRecompilationSet walks.
+    // this is what the driver's reverse-dependency BFS walks.
     String depFileContent = Files.readString(dependencyFile.toPath()).trim();
     String expectedDepFile =
       "{\n" +
@@ -1970,7 +2012,7 @@ public class IncrementalCompilationEndToEndIT {
    * but with one extra edge closing it into a cycle: ClassA depends on ClassC, so
    * the producer/consumer graph becomes ClassA -> ClassB -> ClassC -> ClassA.
    *
-   * Verifies that calculateRecompilationSet's BFS:
+   * Verifies that the driver's reverse-dependency BFS:
    *  - terminates instead of looping forever on the cycle (visited-set tracking)
    *  - still pulls every member of the cycle into the recompile set when any one
    *    is the changed seed.
@@ -2066,7 +2108,7 @@ public class IncrementalCompilationEndToEndIT {
     Map<String, FileTime> afterTimestamps = recordTimestamps();
 
     // Step 7: All three classes are recompiled. The cycle is fully traversed
-    // exactly once thanks to visited-set tracking in calculateRecompilationSet.
+    // exactly once thanks to visited-set tracking in the driver's BFS.
     assertTrue("ClassA should be recompiled (the changed seed)",
       afterTimestamps.get("ClassA.class").toMillis() > initialTimestamps.get("ClassA.class").toMillis());
     assertTrue("ClassB should be recompiled (direct consumer of ClassA)",
@@ -2145,7 +2187,7 @@ public class IncrementalCompilationEndToEndIT {
     //
     // The mutation below adds a `static final var FOO : int = 10` to IResult. The
     // intent is to force IResult's bytecode to change and exercise the transitive
-    // cascade (IResult -> ResultBase -> StringResult) through calculateRecompilationSet's
+    // cascade (IResult -> ResultBase -> StringResult) through the driver's reverse-dependency
     // BFS — not to validate any constant-inlining semantics. Using `static final` is
     // safe here because Gosu's tracker has no separate inlineable-constants subsystem
     // (unlike Gradle's Java incremental compiler, which hashes static-final constants
@@ -2549,6 +2591,158 @@ public class IncrementalCompilationEndToEndIT {
       "After LeafX dropped its reference to P, P's consumer list must NOT " +
       "contain LeafX.",
       expectedAfterIncremental, afterIncremental);
+  }
+
+  @Test
+  public void testRemovingLeafWithNoConsumersCompilesNothingWhenDepFileExists() throws Exception {
+    // Alpha and Beta are fully independent: neither references the other, and nothing references Beta.
+    // After the initial full compile the dep file EXISTS. Removing Beta yields an EMPTY recompile set --
+    // Beta is excluded as a removed type and has no consumers to cascade to. Because the dep file already
+    // exists, the driver takes the incremental path and must recompile NOTHING; it must NOT fall back to a
+    // full "compile all" rebuild.
+    File alpha = createSourceFile("example/Alpha.gs",
+      "package example\n" +
+      "\n" +
+      "class Alpha {\n" +
+      "  function a() : String { return \"a\" }\n" +
+      "}"
+    );
+
+    File beta = createSourceFile("example/Beta.gs",
+      "package example\n" +
+      "\n" +
+      "class Beta {\n" +
+      "  function b() : String { return \"b\" }\n" +
+      "}"
+    );
+
+    // Initial full compile: creates the dep file; both leaves recorded with no consumers.
+    CompileResult initial = compile(Collections.emptyList());
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    Path alphaClass = outputDir.resolve("example/Alpha.class");
+    Path betaClass = outputDir.resolve("example/Beta.class");
+    assertTrue("precondition: Alpha.class should exist after initial compile", Files.exists(alphaClass));
+    assertTrue("precondition: Beta.class should exist after initial compile", Files.exists(betaClass));
+    assertTrue("precondition: dep file should exist after initial compile", dependencyFile.exists());
+
+    // After the initial full compile both leaves are recorded as producers with no consumers.
+    String expectedDepsAfterInitial =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Alpha\": [],\n" +
+      "    \"example.Beta\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After initial compile, dep file should list Alpha and Beta, each with no consumers",
+      expectedDepsAfterInitial, Files.readString(dependencyFile.toPath()).trim());
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep(SLEEP_MS);
+
+    // Remove Beta -- a leaf with no consumers -> empty recompile set, dep file present.
+    Files.delete(beta.toPath());
+    CompileResult incr = compileWithDeleted(Collections.emptyList(), Arrays.asList(beta));
+    assertTrue("Incremental compilation should succeed: " + incr.error, incr.success);
+
+    // KEY assertion: nothing is recompiled. The old empty-set -> compile-all fallback would report 1 (Alpha).
+    assertEquals("Removing a leaf with no consumers must recompile nothing (no compile-all fallback)",
+      0, incr.filesCompiled);
+
+    // Beta's output is cleaned; Alpha's is untouched (corroborates the 0-file count).
+    assertFalse("Beta.class should be deleted when Beta.gs is removed", Files.exists(betaClass));
+    assertTrue("Alpha.class should still exist", Files.exists(alphaClass));
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertEquals("Alpha must not be recompiled",
+      initialTimestamps.get("Alpha.class"), afterTimestamps.get("Alpha.class"));
+
+    // Dep file: Beta purged as a producer; only Alpha remains.
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Alpha\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After removing leaf Beta, dep file should contain only Alpha",
+      expectedDeps, Files.readString(dependencyFile.toPath()).trim());
+  }
+
+  @Test
+  public void testChangedLocalJavaTypeCascadesToGosuConsumerButIsNotCompiled() throws Exception {
+    // A Gosu type references a same-module Java type. When that Java type is reported changed on an
+    // incremental build (and listed in -local-java-types), gosuc must recompile the Gosu consumer but must
+    // NOT attempt to compile the Java type (gosuc cannot compile Java), and must not fail.
+    //
+    // This exercises both halves of the local-Java-type handling:
+    //  - the manager records the edge DummyJava -> GosuConsumer only if shouldTrackType() accepts the Java
+    //    type via localJavaTypes (otherwise there is no edge, and the cascade below would not fire), and
+    //  - the driver excludes the changed Java type from the recompile set: it is seeded and cascaded
+    //    through, but never compiled, and does not throw on its absent .gs source.
+
+    // A fresh, same-module Java type compiled into its own classes dir (added to the classpath below).
+    Path javaClassesDir = tempDir.resolve("javaClasses");
+    compileDummyJavaType("com.example.DummyJava",
+      "package com.example;\n" +
+      "public class DummyJava {\n" +
+      "  public String hello() { return \"hi\"; }\n" +
+      "}",
+      javaClassesDir);
+
+    // A Gosu consumer that references the Java type.
+    createSourceFile("example/GosuConsumer.gs",
+      "package example\n" +
+      "uses com.example.DummyJava\n" +
+      "\n" +
+      "class GosuConsumer {\n" +
+      "  var _dummy : DummyJava = new DummyJava()\n" +
+      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of("com.example.DummyJava");
+    List<String> extraClasspath = List.of(javaClassesDir.toAbsolutePath().toString());
+
+    // Initial compile builds the dep graph, recording DummyJava -> [GosuConsumer].
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes);
+    assertTrue("Initial compilation should succeed: " + initial.error, initial.success);
+
+    // Golden dep file.
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"com.example.DummyJava\": [\n" +
+      "      \"example.GosuConsumer\"\n" +
+      "    ],\n" +
+      "    \"example.GosuConsumer\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals("After initial compile, the dep file should record DummyJava -> [GosuConsumer]",
+      expectedDeps, Files.readString(dependencyFile.toPath()).trim());
+
+    // Incremental: DummyJava reported changed (and still flagged as a local Java type). Capture the Gosu
+    // consumer's .class timestamp first so we can assert it is actually recompiled.
+    Path dummyJavaClassInGosuOutput = outputDir.resolve("com/example/DummyJava.class");
+    Map<String, FileTime> beforeTimestamps = recordTimestamps();
+    Thread.sleep(SLEEP_MS);
+
+    CompileResult incr = runIncrementalCompile(
+      List.of("com.example.DummyJava"), Collections.emptyList(), extraClasspath, localJavaTypes);
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    assertTrue("Incremental compile should succeed -- the Java type is excluded, its consumer recompiles: "
+      + incr.error, incr.success);
+    // If shouldTrackType had NOT recorded the edge, filesCompiled would be 0 (no cascade). If the driver had
+    // NOT excluded the Java type, it would throw on the type's absent .gs source (success == false).
+    assertEquals("Only the Gosu consumer should be recompiled -- not the Java type", 1, incr.filesCompiled);
+    assertTrue("Gosu consumer should be recompiled (its .class timestamp must advance)",
+      afterTimestamps.get("GosuConsumer.class").toMillis()
+        > beforeTimestamps.get("GosuConsumer.class").toMillis());
+    assertFalse("gosuc must not write a .class for the local Java type",
+      Files.exists(dummyJavaClassInGosuOutput));
   }
 
   @Test
@@ -4110,12 +4304,11 @@ public class IncrementalCompilationEndToEndIT {
 
   @Test
   public void testIncrementalCompileOfNewlyAddedTypeDoesNotNpe() throws Exception {
-    // Bug pin: calculateRecompilationSet's BFS reads typeDependencies.get(type)
-    // and iterates the result directly, so it relies on every seed FQCN
-    // (changedTypes + removedTypes) having an entry in typeDependencies. For
-    // a net-new source file added between builds, the new FQCN has no entry
-    // in the previous run's dep file, so typeDependencies.get(newFqcn) returns
-    // null and the for-each NPEs.
+    // Bug pin: the driver's reverse-dependency BFS reads each seed FQCN's consumers via
+    // _incrementalManager.getConsumersFor(type) and iterates the result. A net-new source file
+    // added between builds (changedTypes + removedTypes) has no entry in the previous run's dep
+    // file, so getConsumersFor must return a non-null (empty) set for it -- otherwise the
+    // for-each would NPE.
 
     // Step 1: initial compile of a single producer. This populates the dep
     // file with an entry for example.Producer but not for anything else.

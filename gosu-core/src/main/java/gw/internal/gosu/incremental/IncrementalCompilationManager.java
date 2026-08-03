@@ -43,7 +43,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   private final Map<String, String> gosuFqcnToSourcePath;
 
   public IncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
-                                       List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
+                                       Set<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
     this.dependencyFilePath = dependencyFilePath;
     // Canonicalize each source root: absolute-path + normalize collapses ".",
     // ".." and resolves relative paths against current working dir, so lookups in
@@ -55,7 +55,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
     }
     this.sourceRoots = roots;
-    this.localJavaTypes = localJavaTypes != null ? new HashSet<>(localJavaTypes) : new HashSet<>();
+    this.localJavaTypes = localJavaTypes;
     this.verbose = verbose;
     this.typeDependencies = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
@@ -513,67 +513,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   @Override
-  public Set<String> calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes) {
-    Set<String> toRecompile = new HashSet<>();
-    Set<String> visited = new HashSet<>();
-    Queue<String> worklist = new ArrayDeque<>();
-
-    // Seed the worklist with the union of changed and removed types.
-    //
-    // Pre-populate typeDependencies with an empty consumer set for any seed
-    // FQCN that doesn't already have an entry. The BFS body below reads
-    // typeDependencies.get(type) and iterates it directly (no null guard).
-    // A net-new source file added since the last build, or a changed-types
-    // entry from a freshly-deleted dep file, would otherwise NPE here.
-    // After this loop, typeDependencies.get(seed) is guaranteed non-null for
-    // every seed in the worklist; new edges discovered as the BFS visits a
-    // seed are still appended through the normal recordTypeDependency path.
-    for (String changedType : changedTypes) {
-      if (!visited.contains(changedType)) {
-        visited.add(changedType);
-        worklist.add(changedType);
-        typeDependencies.putIfAbsent(changedType, new HashSet<>());
-      }
-    }
-    for (String removedType : removedTypes) {
-      if (!visited.contains(removedType)) {
-        visited.add(removedType);
-        worklist.add(removedType);
-        typeDependencies.putIfAbsent(removedType, new HashSet<>());
-      }
-    }
-
-    /*
-      Note that the typeDependencies[X] give you all the types that consume/refer to X: if X is modified all types in
-      typeDependencies[X] must be recompiled.
-      This map reflects the status of the previously compiled .class files. The changedTypes/removedTypes are
-      referring to source code changes, not yet reflected on the .class files.
-      Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
-      to be recompiled.
-      Once the toRecompile files are recompiled, updateDependencyFile updates the dependency file to reflect the modified
-      dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
-    */
-    while (!worklist.isEmpty()) {
-      String type = worklist.remove();
-
-      // Only add if it's a Gosu type (not a known local Java type, java types are already compiled) and
-      // it is not a removed type (no file to compile).
-      if (!localJavaTypes.contains(type) && !removedTypes.contains(type)) {
-        toRecompile.add(type);
-      }
-
-      Set<String> consumers = typeDependencies.get(type);
-      for (String consumer : consumers) {
-        if (!visited.contains(consumer)) {
-          visited.add(consumer);
-          worklist.add(consumer);
-        }
-      }
-    }
-
-    if (verbose) {
-      System.out.println("Recompiling: " + toRecompile);
-    }
-    return toRecompile;
+  public Set<String> getConsumersFor(String fqcn) {
+      return typeDependencies.computeIfAbsent(fqcn, k -> new HashSet<>());
   }
 }

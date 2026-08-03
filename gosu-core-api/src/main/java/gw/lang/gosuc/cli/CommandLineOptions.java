@@ -160,11 +160,11 @@ public class CommandLineOptions {
     return extractTypesFromStr(_removedTypes);
   }
 
-  public List<String> getLocalJavaTypes() {
+  public Set<String> getLocalJavaTypes() {
     if (_localJavaTypes == null || _localJavaTypes.trim().isEmpty()) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
-    List<String> types = new ArrayList<>();
+    Set<String> types = new HashSet<>();
     for (String type : _localJavaTypes.split(java.io.File.pathSeparator)) {
       String trimmed = type.trim();
       if (!trimmed.isEmpty()) {

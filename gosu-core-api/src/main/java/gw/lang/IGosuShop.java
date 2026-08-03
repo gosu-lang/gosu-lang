@@ -63,6 +63,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 
 public interface IGosuShop extends IService
 {
@@ -172,5 +173,5 @@ public interface IGosuShop extends IService
   String generateJavaStub( IGosuClass gsClass );
 
   IIncrementalCompilationManager createIncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
-                                                                     List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose);
+                                                                     Set<String> localJavaTypes, List<String> allSourceFiles, boolean verbose);
 }

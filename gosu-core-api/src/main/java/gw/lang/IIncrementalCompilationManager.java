@@ -6,6 +6,7 @@ import java.util.Set;
 
 public interface IIncrementalCompilationManager {
 
+
     /**
      * Record the single-hop dependency edges produced when {@code gosuClass} is
      * compiled to the given bytecode.
@@ -16,8 +17,8 @@ public interface IIncrementalCompilationManager {
      * for references that don't make it into bytecode.
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades
-     * are computed lazily in {@link #calculateRecompilationSet(Set, Set)} by walking
-     * the resulting graph.
+     * are computed lazily by the incremental compile driver, which walks the resulting
+     * graph via {@link #getConsumersFor(String)}.
      *
      * @param bytes     compiled bytecode for {@code gosuClass}
      * @param gosuClass the type whose dependencies are being recorded; used as the
@@ -50,21 +51,16 @@ public interface IIncrementalCompilationManager {
     String getGosuFilePathFromFqcn(String fqcn);
 
     /**
-     * Compute the set of Gosu types that need to be recompiled given a set of changed
-     * and removed types.
-     * <p>
-     * Walks the reverse-dependency graph ({@code typeDependencies}) breadth-first starting
-     * from the union of changed and removed types, collecting every Gosu consumer reachable
-     * along the way. Java types in {@code localJavaTypes} are walked through to find their
-     * Gosu consumers but excluded from the result (gosuc cannot recompile Java sources).
-     * Removed types are excluded from the result themselves (their source files are gone),
-     * though their downstream consumers are not.
+     * Return the consumers recorded for {@code fqcn} in the previously-persisted dependency graph --
+     * every type that must be recompiled if {@code fqcn} changes -- or an empty set if {@code fqcn} has
+     * no recorded entry (e.g. a net-new type).
      *
-     * @param changedTypes types whose source was modified; the changed types themselves
-     *                     (if Gosu) plus all transitive Gosu consumers are returned
-     * @param removedTypes types whose source was deleted; the removed types themselves
-     *                     are NOT returned, but their transitive Gosu consumers are
-     * @return the FQCNs of Gosu types that need recompilation
+     * <p>Reflects the graph as loaded at construction; edges recorded during the current build via
+     * {@link #trackDependencies(byte[], IGosuClass)} are not visible here until
+     * {@link #updateDependencyFile(Set, Set)} reconciles them.
+     *
+     * <p>Used by the incremental driver to walk the reverse-dependency graph while interleaving
+     * compilation.
      */
-    Set<String> calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes);
+    Set<String> getConsumersFor(String fqcn);
 }

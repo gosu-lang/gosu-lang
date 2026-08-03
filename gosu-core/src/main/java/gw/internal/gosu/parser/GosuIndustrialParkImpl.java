@@ -89,6 +89,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 
 /**
  */
@@ -416,7 +417,7 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
 
   @Override
   public IIncrementalCompilationManager createIncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
-                                                                            List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
+                                                                            Set<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
     return new IncrementalCompilationManager(dependencyFilePath, sourceRoots, localJavaTypes, allSourceFiles, verbose);
   }
 }
