@@ -5,31 +5,35 @@ import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
 import java.util.*;
 
-public class CommandLineOptions {
+public class CommandLineOptions
+{
 
   // using String parameter types with arity = 0 will suppress the annoying 'Default: false' help output
 
   @Parameter(names = {"-ca", "-checkedArithmetic"}, description = "Compile with checked arithmetic")
   private boolean _checkedarithmetic;
 
-    /**
+  /**
    * @return true if '-ca' or '-checkedArithmetic' was specified on the command line
    */
-  public boolean isCheckedArithmetic() {
+  public boolean isCheckedArithmetic()
+  {
     return _checkedarithmetic;
   }
 
   @Parameter(names = {"-cp", "-classpath"}, description = "Specify where to find user class files")
   private String _classpath;
 
-  public String getClasspath() {
+  public String getClasspath()
+  {
     return _classpath == null ? "" : _classpath;
   }
 
   @Parameter(names = "-d", description = "Specify where to place generated class files")
   private String _destDir;
 
-  public String getDestDir() {
+  public String getDestDir()
+  {
     return _destDir == null ? "" : _destDir;
   }
 
@@ -39,7 +43,8 @@ public class CommandLineOptions {
   /**
    * @return true if '-help' was specified on the command line
    */
-  public boolean isHelp() {
+  public boolean isHelp()
+  {
     return _help;
   }
 
@@ -49,14 +54,16 @@ public class CommandLineOptions {
   /**
    * @return true if '-nowarn' was specified on the command line
    */
-  public boolean isNoWarn() {
+  public boolean isNoWarn()
+  {
     return _nowarn;
   }
 
   @Parameter(names = "-sourcepath", description = "Specify where to find input source files")
   private String _sourcepath;
 
-  public String getSourcepath() {
+  public String getSourcepath()
+  {
     return _sourcepath == null ? "" : _sourcepath;
   }
 
@@ -66,7 +73,8 @@ public class CommandLineOptions {
   /**
    * @return true if '-verbose' was specified on the command line
    */
-  public boolean isVerbose() {
+  public boolean isVerbose()
+  {
     // TODO: REVERT ME
     return true;
   }
@@ -77,17 +85,21 @@ public class CommandLineOptions {
   /**
    * @return true if '-version' was specified on the command line
    */
-  public boolean isVersion() {
+  public boolean isVersion()
+  {
     return _version;
   }
 
   @Parameter(description = "<source files>")
   private List<String> _srcFiles = new ArrayList<>();
 
-  public List<String> getSourceFiles() {
+  public List<String> getSourceFiles()
+  {
     return _srcFiles;
   }
-  public void setSourceFiles( List<String> srcFiles ) {
+
+  public void setSourceFiles( List<String> srcFiles )
+  {
     _srcFiles = srcFiles;
   }
 
@@ -97,7 +109,8 @@ public class CommandLineOptions {
   /**
    * @return maximum error threshold. Defaults to 1,000.
    */
-  public int getMaxErrs() {
+  public int getMaxErrs()
+  {
     return _maxerrs;
   }
 
@@ -107,7 +120,8 @@ public class CommandLineOptions {
   /**
    * @return maximum warning threshold. Defaults to Integer.MAX_VALUE.
    */
-  public int getMaxWarns() {
+  public int getMaxWarns()
+  {
     return _maxwarns;
   }
 
@@ -117,14 +131,16 @@ public class CommandLineOptions {
   /**
    * @return true if '-incremental' was specified on the command line
    */
-  public boolean isIncremental() {
+  public boolean isIncremental()
+  {
     return _incremental;
   }
 
   @Parameter(names = "-dependency-file", description = "Path to dependency tracking file for incremental compilation")
   private String _dependencyFile;
 
-  public String getDependencyFile() {
+  public String getDependencyFile()
+  {
     return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
   }
 
@@ -138,37 +154,47 @@ public class CommandLineOptions {
                                                         "an empty string (or no flag) means no Java types will be tracked")
   private String _localJavaTypes;
 
-  private Set<String> extractTypesFromStr(String typeList) {
-    if (typeList == null || typeList.trim().isEmpty()) {
+  private Set<String> extractTypesFromStr( String typeList )
+  {
+    if( typeList == null || typeList.trim().isEmpty() )
+    {
       return Collections.emptySet();
     }
     HashSet<String> types = new HashSet<>();
-    for (String type : typeList.split(java.io.File.pathSeparator)) {
+    for( String type : typeList.split( java.io.File.pathSeparator ) )
+    {
       String trimmed = type.trim();
-      if (!trimmed.isEmpty()) {
-        types.add(trimmed);
+      if( !trimmed.isEmpty() )
+      {
+        types.add( trimmed );
       }
     }
     return types;
   }
 
-  public Set<String> getChangedTypes() {
-    return extractTypesFromStr(_changedTypes);
+  public Set<String> getChangedTypes()
+  {
+    return extractTypesFromStr( _changedTypes );
   }
 
-  public Set<String> getRemovedTypes() {
-    return extractTypesFromStr(_removedTypes);
+  public Set<String> getRemovedTypes()
+  {
+    return extractTypesFromStr( _removedTypes );
   }
 
-  public Set<String> getLocalJavaTypes() {
-    if (_localJavaTypes == null || _localJavaTypes.trim().isEmpty()) {
+  public Set<String> getLocalJavaTypes()
+  {
+    if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
+    {
       return Collections.emptySet();
     }
     Set<String> types = new HashSet<>();
-    for (String type : _localJavaTypes.split(java.io.File.pathSeparator)) {
+    for( String type : _localJavaTypes.split( java.io.File.pathSeparator ) )
+    {
       String trimmed = type.trim();
-      if (!trimmed.isEmpty()) {
-        types.add(trimmed);
+      if( !trimmed.isEmpty() )
+      {
+        types.add( trimmed );
       }
     }
     return types;
