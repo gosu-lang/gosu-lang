@@ -7,6 +7,7 @@ import gw.lang.gosuc.simple.GosuCompiler;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ public class CommandLineCompiler
 
   /**
    * Run the compiler without calling System.exit(), suitable for testing
+   *
    * @param args command line arguments
    * @return exit code (0 for success, non-zero for failure)
    */
@@ -73,8 +75,8 @@ public class CommandLineCompiler
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll( Arrays.stream( options.getClasspath().split( File.pathSeparator ) )
-      .map( e -> new File( e ).getAbsoluteFile().toURI().toString() )
-      .collect( Collectors.toList() ) );
+                        .map( e -> new File( e ).getAbsoluteFile().toURI().toString() )
+                        .collect( Collectors.toList() ) );
     if( JreUtil.isJava8() )
     {
       classpath.addAll( GosucUtil.getJreJars() );
@@ -108,7 +110,6 @@ public class CommandLineCompiler
    * @param warnings List of warnings
    * @param errors   List of errors
    * @param isNoWarn true if warnings are disabled
-   *
    * @return true if compilation resulted in errors, false otherwise
    */
   private static boolean summarize( List<String> warnings, List<String> errors, boolean isNoWarn )

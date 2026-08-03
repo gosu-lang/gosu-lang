@@ -19,8 +19,11 @@ import java.util.TreeMap;
 import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
 
 
-final class IncrementalCompilationTestSupport {
-  private IncrementalCompilationTestSupport() {}
+final class IncrementalCompilationTestSupport
+{
+  private IncrementalCompilationTestSupport()
+  {
+  }
 
   /**
    * Test-only helper: write a dependency JSON file directly, bypassing the
@@ -30,29 +33,35 @@ final class IncrementalCompilationTestSupport {
    * {@code updateDependencyFile} produces: keys and consumer lists are sorted
    * for deterministic JSON.
    */
-  static void writeDependencyFile(File depFile, Map<String, List<String>> producerToConsumers) {
+  static void writeDependencyFile( File depFile, Map<String, List<String>> producerToConsumers )
+  {
     Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
     Map<String, Object> root = new LinkedHashMap<>();
-    root.put("version", DEPENDENCY_VERSION);
+    root.put( "version", DEPENDENCY_VERSION );
 
     Map<String, List<String>> sortedConsumers = new TreeMap<>();
-    for (Map.Entry<String, List<String>> entry : producerToConsumers.entrySet()) {
-      List<String> consumers = new ArrayList<>(entry.getValue());
-      Collections.sort(consumers);
-      sortedConsumers.put(entry.getKey(), consumers);
+    for( Map.Entry<String, List<String>> entry : producerToConsumers.entrySet() )
+    {
+      List<String> consumers = new ArrayList<>( entry.getValue() );
+      Collections.sort( consumers );
+      sortedConsumers.put( entry.getKey(), consumers );
     }
-    root.put("consumers", sortedConsumers);
+    root.put( "consumers", sortedConsumers );
 
     File parent = depFile.getParentFile();
-    if (parent != null) {
+    if( parent != null )
+    {
       parent.mkdirs();
     }
-    try (Writer w = new BufferedWriter(new OutputStreamWriter(
-        new FileOutputStream(depFile), StandardCharsets.UTF_8))) {
-      gson.toJson(root, w);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    try (Writer w = new BufferedWriter( new OutputStreamWriter(
+      new FileOutputStream( depFile ), StandardCharsets.UTF_8 ) ))
+    {
+      gson.toJson( root, w );
+    }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
     }
   }
 }
