@@ -3,7 +3,13 @@ package gw.lang.gosuc.cli;
 import gw.internal.ext.com.beust.jcommander.Parameter;
 import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 
 public class CommandLineOptions
 {
@@ -159,7 +165,7 @@ public class CommandLineOptions
     {
       return Collections.emptySet();
     }
-    HashSet<String> types = new HashSet<>();
+    HashSet<String> types = new LinkedHashSet<>();
     for( String type : typeList.split( java.io.File.pathSeparator ) )
     {
       String trimmed = type.trim();

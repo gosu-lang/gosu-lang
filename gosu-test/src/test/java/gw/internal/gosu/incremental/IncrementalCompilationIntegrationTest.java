@@ -1,19 +1,24 @@
 package gw.internal.gosu.incremental;
 
 import gw.lang.gosuc.cli.CommandLineOptions;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for incremental compilation feature.
@@ -22,34 +27,20 @@ import static org.junit.Assert.*;
 public class IncrementalCompilationIntegrationTest
 {
 
-  private Path tempDir;
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
   private Path srcDir;
-  private Path outputDir;
   private File dependencyFile;
 
   @Before
   public void setUp() throws IOException
   {
-    tempDir = Files.createTempDirectory( "incremental-integration-test" );
-    srcDir = tempDir.resolve( "src" );
-    outputDir = tempDir.resolve( "output" );
+    Path tempDirPath = tempFolder.getRoot().toPath();
+    srcDir = tempDirPath.resolve( "src" );
+    Path outputDir = tempDirPath.resolve( "output" );
     Files.createDirectories( srcDir );
     Files.createDirectories( outputDir );
-    dependencyFile = tempDir.resolve( "deps.json" ).toFile();
-  }
-
-  @After
-  public void tearDown() throws IOException
-  {
-    if( tempDir != null && Files.exists( tempDir ) )
-    {
-      try (Stream<Path> paths = Files.walk( tempDir ))
-      {
-        paths.sorted( Comparator.reverseOrder() )
-          .map( Path::toFile )
-          .forEach( File::delete );
-      }
-    }
+    dependencyFile = tempDirPath.resolve( "deps.json" ).toFile();
   }
 
   private IncrementalCompilationManager newManager()

@@ -1,8 +1,9 @@
 package gw.internal.gosu.incremental;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,11 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -26,28 +25,15 @@ import static org.junit.Assert.assertTrue;
 public class IncrementalCompilationManagerTest
 {
 
-  private Path tempDir;
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
   private File dependencyFile;
 
   @Before
   public void setUp() throws IOException
   {
-    tempDir = Files.createTempDirectory( "incremental-test" );
-    dependencyFile = new File( tempDir.toFile(), "test-deps.json" );
-  }
-
-  @After
-  public void tearDown() throws IOException
-  {
-    if( tempDir != null && Files.exists( tempDir ) )
-    {
-      try (Stream<Path> paths = Files.walk( tempDir ))
-      {
-        paths.sorted( Comparator.reverseOrder() )
-          .map( Path::toFile )
-          .forEach( File::delete );
-      }
-    }
+    Path tempDirPath = tempFolder.getRoot().toPath();
+    dependencyFile = new File( tempDirPath.toFile(), "test-deps.json" );
   }
 
   /**
@@ -62,7 +48,7 @@ public class IncrementalCompilationManagerTest
   {
     return new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
-      Collections.singletonList( tempDir.toAbsolutePath().toString() ),
+      Collections.singletonList( tempFolder.getRoot().toPath().toAbsolutePath().toString() ),
       localJavaTypes, Collections.emptyList(), false );
   }
 
@@ -331,7 +317,7 @@ public class IncrementalCompilationManagerTest
   @Test
   public void testNestedSourceRootsResolveLongestPrefix() throws IOException
   {
-    Path outerRoot = tempDir.resolve( "outer" );
+    Path outerRoot = tempFolder.getRoot().toPath().resolve( "outer" );
     Path innerRoot = outerRoot.resolve( "inner" );
     Path innerFile = innerRoot.resolve( "com/example/MyClass.gs" );
     Files.createDirectories( innerFile.getParent() );

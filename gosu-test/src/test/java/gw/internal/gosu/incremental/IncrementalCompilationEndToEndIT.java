@@ -1,7 +1,7 @@
 package gw.internal.gosu.incremental;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -24,9 +24,13 @@ import java.util.concurrent.TimeUnit;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.tree.AnnotationNode;
 import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
+import org.junit.rules.TemporaryFolder;
 
 import static gw.internal.gosu.incremental.IncrementalCompilationManager.DEPENDENCY_VERSION;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * End-to-end integration test for incremental compilation.
@@ -37,7 +41,9 @@ public class IncrementalCompilationEndToEndIT
 {
 
   private static final long SLEEP_MS = 200;
-  private Path tempDir;
+
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
   private Path srcDir;
   private Path outputDir;
   private File dependencyFile;
@@ -45,41 +51,12 @@ public class IncrementalCompilationEndToEndIT
   @Before
   public void setUp() throws IOException
   {
-    tempDir = Files.createTempDirectory( "incremental-e2e-test" );
-    srcDir = tempDir.resolve( "src" );
-    outputDir = tempDir.resolve( "output" );
+    Path tempDirPath = tempFolder.getRoot().toPath();
+    srcDir = tempDirPath.resolve( "src" );
+    outputDir = tempDirPath.resolve( "output" );
     Files.createDirectories( srcDir );
     Files.createDirectories( outputDir );
-    dependencyFile = tempDir.resolve( "deps.json" ).toFile();
-  }
-
-  @After
-  public void tearDown() throws IOException
-  {
-    if( tempDir != null )
-    {
-      deleteDirectory( tempDir.toFile() );
-    }
-  }
-
-  private void deleteDirectory( File dir )
-  {
-    File[] files = dir.listFiles();
-    if( files != null )
-    {
-      for( File file : files )
-      {
-        if( file.isDirectory() )
-        {
-          deleteDirectory( file );
-        }
-        else
-        {
-          file.delete();
-        }
-      }
-    }
-    dir.delete();
+    dependencyFile = tempDirPath.resolve( "deps.json" ).toFile();
   }
 
 
