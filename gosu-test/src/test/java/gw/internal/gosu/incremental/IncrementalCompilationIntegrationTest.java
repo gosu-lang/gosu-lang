@@ -103,11 +103,14 @@ public class IncrementalCompilationIntegrationTest
 
     String expectedJson = "{\n" +
                           "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-                          "  \"consumers\": {\n" +
-                          "    \"com.example.BaseClass\": [\n" +
-                          "      \"com.example.AnotherDerived\",\n" +
-                          "      \"com.example.DerivedClass\"\n" +
-                          "    ]\n" +
+                          "  \"dep_graph\": {\n" +
+                          "    \"com.example.BaseClass\": {\n" +
+                          "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+                          "      \"consumers\": [\n" +
+                          "        \"com.example.AnotherDerived\",\n" +
+                          "        \"com.example.DerivedClass\"\n" +
+                          "      ]\n" +
+                          "    }\n" +
                           "  }\n" +
                           "}";
 

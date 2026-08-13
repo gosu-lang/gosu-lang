@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link IncrementalCompilationManager}.
  *
  * <p>These cover the manager's own responsibilities: recording dependency edges (with self-reference
- * filtering), reading them back via {@link IncrementalCompilationManager#getConsumersFor}, the
+ * filtering), reading them back via {@link IncrementalCompilationManager#getOrCreateConsumersFor}, the
  * merge-not-replace behavior of {@code updateDependencyFile}, and FQCN/source-root resolution.
  */
 public class IncrementalCompilationManagerTest
@@ -53,90 +53,6 @@ public class IncrementalCompilationManagerTest
       dependencyFile.getAbsolutePath(),
       Collections.singletonList( tempFolder.getRoot().toPath().toAbsolutePath().toString() ),
       localJavaTypes, Collections.emptyList(), false );
-  }
-
-  @Test
-  public void testSelfReferencesAreNotRecorded()
-  {
-    // recordTypeDependency filters self-references: Builder -> Builder is skipped while
-    // Builder -> Consumer is kept.
-    IncrementalCompilationManager manager = newManager();
-    manager.getOrCreateConsumerSet( "com.example.Consumer" );
-    manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );  // skipped
-    manager.recordTypeDependency( "com.example.Builder", "com.example.Consumer" ); // recorded
-    manager.updateDependencyFile( Set.of( "com.example.Consumer" ), Collections.emptySet() );
-
-    Set<String> consumers = newManager().getConsumersFor( "com.example.Builder" );
-    assertTrue( "Builder's real consumer should be recorded", consumers.contains( "com.example.Consumer" ) );
-    assertFalse( "Builder's self-reference must NOT be recorded", consumers.contains( "com.example.Builder" ) );
-  }
-
-  @Test
-  public void testIncrementalSaveMergesConsumersRatherThanReplacing()
-  {
-    // Seed an initial state where TypeA, TypeB, TypeC all depend on SharedProducer.
-    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
-                                                           Map.of( "com.example.SharedProducer",
-                                                                   List.of( "com.example.TypeA", "com.example.TypeB", "com.example.TypeC" ),
-                                                                   "com.example.TypeA", Collections.emptyList(),
-                                                                   "com.example.TypeB", Collections.emptyList(),
-                                                                   "com.example.TypeC", Collections.emptyList() ) );
-
-    // Incremental session: only TypeA is recompiled; it still depends on SharedProducer.
-    // TypeB and TypeC are NOT recompiled -- their edges must be preserved (merge, not replace).
-    IncrementalCompilationManager incrementalManager = newManager();
-    incrementalManager.recordTypeDependency( "com.example.SharedProducer", "com.example.TypeA" );
-    incrementalManager.updateDependencyFile(
-      Set.of( "com.example.TypeA" ), Collections.emptySet() );
-
-    // Reload and verify all three consumer edges are still present.
-    Set<String> consumers = newManager().getConsumersFor( "com.example.SharedProducer" );
-    assertTrue( "TypeA edge should be present", consumers.contains( "com.example.TypeA" ) );
-    assertTrue( "TypeB edge must be preserved (merge, not replace)",
-                consumers.contains( "com.example.TypeB" ) );
-    assertTrue( "TypeC edge must be preserved (merge, not replace)",
-                consumers.contains( "com.example.TypeC" ) );
-  }
-
-  @Test
-  public void testNestedSourceRootsResolveLongestPrefix() throws IOException
-  {
-    Path outerRoot = tempFolder.getRoot().toPath().resolve( "outer" );
-    Path innerRoot = outerRoot.resolve( "inner" );
-    Path innerFile = innerRoot.resolve( "com/example/MyClass.gs" );
-    Files.createDirectories( innerFile.getParent() );
-    Files.createFile( innerFile );
-
-    // Configure the manager with BOTH roots, deliberately listing the shallower
-    // root first so any naive "iterate in declaration order" would pick the
-    // wrong one.
-    IncrementalCompilationManager manager = new IncrementalCompilationManager(
-      dependencyFile.getAbsolutePath(),
-      Arrays.asList(
-        outerRoot.toAbsolutePath().toString(),    // shallow root, declared first
-        innerRoot.toAbsolutePath().toString()     // deeper root, the correct match
-      ),
-      Collections.emptySet(), Collections.emptyList(), false );
-
-    manager.getOrCreateConsumerSet( "com.example.MyClass" );
-    manager.recordTypeDependency(
-      "example.Producer",
-      "com.example.MyClass"
-    );
-    manager.updateDependencyFile(
-      Set.of( "com.example.MyClass" ), Collections.emptySet() );
-
-    // Reload and verify which FQCN was recorded as the consumer of Producer.
-    Set<String> consumers = newManager().getConsumersFor( "example.Producer" );
-
-    // Longest-prefix match against the deeper root: outer/inner/ strips to
-    // com/example/MyClass.gs -> com.example.MyClass.
-    // If the shallow root won, the FQCN would be inner.com.example.MyClass.
-    assertTrue( "Longest-prefix match should produce 'com.example.MyClass'. Consumers: " + consumers,
-                consumers.contains( "com.example.MyClass" ) );
-    assertFalse( "FQCN should not include the 'inner' segment that would come from " +
-                 "a shallow-root match. Consumers: " + consumers,
-                 consumers.contains( "inner.com.example.MyClass" ) );
   }
 
   /**

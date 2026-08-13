@@ -1190,29 +1190,47 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.BlockUtil\": [\n" +
-      "      \"example.OutputTrackingTest$block_1_\",\n" +
-      "      \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest\": [\n" +
-      "      \"example.OutputTrackingTest$block_0_\",\n" +
-      "      \"example.OutputTrackingTest$block_1_\",\n" +
-      "      \"example.OutputTrackingTest$block_2_\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest$block_0_\": [\n" +
-      "      \"example.OutputTrackingTest\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest$block_1_\": [\n" +
-      "      \"example.OutputTrackingTest\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest$block_2_\": [\n" +
-      "      \"example.OutputTrackingTest\",\n" +
-      "      \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
-      "    ],\n" +
-      "    \"example.OutputTrackingTest$block_2_$block_0_\": [\n" +
-      "      \"example.OutputTrackingTest$block_2_\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.BlockUtil\": {\n" +
+      "      \"abi_hash\": \"43e90d208cdbb20fdc2876797b5887fc0328f9c9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest$block_1_\",\n" +
+      "        \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.OutputTrackingTest\": {\n" +
+      "      \"abi_hash\": \"05749465884fda7e47be08c2c42d73365a6505d5\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest$block_0_\",\n" +
+      "        \"example.OutputTrackingTest$block_1_\",\n" +
+      "        \"example.OutputTrackingTest$block_2_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.OutputTrackingTest$block_0_\": {\n" +
+      "      \"abi_hash\": \"38655716f0f6c35d6dc2833d101f98c46031d9b8\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.OutputTrackingTest$block_1_\": {\n" +
+      "      \"abi_hash\": \"1948ee27339f855e1e2681c8424f6a1f36206fea\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.OutputTrackingTest$block_2_\": {\n" +
+      "      \"abi_hash\": \"863de33c9751f2406be27cc6657f949d81aa9c25\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest\",\n" +
+      "        \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.OutputTrackingTest$block_2_$block_0_\": {\n" +
+      "      \"abi_hash\": \"713c7eeb16b0ba71ff44982da636bb26b7eb49b0\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.OutputTrackingTest$block_2_\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
 
@@ -1404,7 +1422,7 @@ public class IncrementalCompilationEndToEndIT
                 afterTimestamps.get( "Outer.class" ).toMillis() > initialTimestamps.get( "Outer.class" ).toMillis() );
     assertTrue( "Inner should be recompiled",
                 afterTimestamps.get( "Outer$Inner.class" ).toMillis() > initialTimestamps.get( "Outer$Inner.class" ).toMillis() );
-    assertTrue( "Consumer should be recompiled due to outer class change",
+    assertTrue( "InnerClassConsumer should be recompiled due to outer class change",
                 afterTimestamps.get( "InnerClassConsumer.class" ).toMillis() > initialTimestamps.get( "InnerClassConsumer.class" ).toMillis() );
   }
 
@@ -1491,7 +1509,7 @@ public class IncrementalCompilationEndToEndIT
                 afterTimestamps.get( "RegionsUIHelper.class" ).toMillis() > initialTimestamps.get( "RegionsUIHelper.class" ).toMillis() );
     assertTrue( "RegionsUIHelper$SearchOn should be recompiled",
                 afterTimestamps.get( "RegionsUIHelper$SearchOn.class" ).toMillis() > initialTimestamps.get( "RegionsUIHelper$SearchOn.class" ).toMillis() );
-    assertTrue( "Consumer should be recompiled due to outer class change",
+    assertTrue( "RegionsPageExpressions should be recompiled due to outer class change",
                 afterTimestamps.get( "RegionsPageExpressions.class" ).toMillis() > initialTimestamps.get( "RegionsPageExpressions.class" ).toMillis() );
   }
 
@@ -2014,14 +2032,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.ClassA\": [\n" +
-      "      \"example.ClassB\"\n" +
-      "    ],\n" +
-      "    \"example.ClassB\": [\n" +
-      "      \"example.ClassC\"\n" +
-      "    ],\n" +
-      "    \"example.ClassC\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.ClassA\": {\n" +
+      "      \"abi_hash\": \"d0c716d19eba2763194f6d47963c4afdd5c4aac9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ClassB\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.ClassB\": {\n" +
+      "      \"abi_hash\": \"0bed502819ca26ee15253c07c04403a7314d0cf3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ClassC\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.ClassC\": {\n" +
+      "      \"abi_hash\": \"339eaa1cded89605ed00a809aa6ec7b030774e74\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -2121,16 +2148,25 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.ClassA\": [\n" +
-      "      \"example.ClassB\"\n" +
-      "    ],\n" +
-      "    \"example.ClassB\": [\n" +
-      "      \"example.ClassC\"\n" +
-      "    ],\n" +
-      "    \"example.ClassC\": [\n" +
-      "      \"example.ClassA\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.ClassA\": {\n" +
+      "      \"abi_hash\": \"d0c716d19eba2763194f6d47963c4afdd5c4aac9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ClassB\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.ClassB\": {\n" +
+      "      \"abi_hash\": \"0bed502819ca26ee15253c07c04403a7314d0cf3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ClassC\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.ClassC\": {\n" +
+      "      \"abi_hash\": \"15ab706b027af7ae9258798cdf183250bf4dcbca\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ClassA\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -2224,14 +2260,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.IResult\": [\n" +
-      "      \"example.ResultBase\"\n" +
-      "    ],\n" +
-      "    \"example.ResultBase\": [\n" +
-      "      \"example.StringResult\"\n" +
-      "    ],\n" +
-      "    \"example.StringResult\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.IResult\": {\n" +
+      "      \"abi_hash\": \"1071a8617200a7cf0e410bc9ffdb19f2c4dae70c\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.ResultBase\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.ResultBase\": {\n" +
+      "      \"abi_hash\": \"3a6c7d12e3883c0b918c5589b0ec413031cdc7df\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.StringResult\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.StringResult\": {\n" +
+      "      \"abi_hash\": \"cc37aea54d29c605ea08de42a09f4d3d7c3b7800\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "Dep file must use raw type names (no angle brackets) and track both consumer relationships",
@@ -2335,15 +2380,27 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.SharedProducer\": [\n" +
-      "      \"example.TypeA\",\n" +
-      "      \"example.TypeB\",\n" +
-      "      \"example.TypeC\"\n" +
-      "    ],\n" +
-      "    \"example.TypeA\": [],\n" +
-      "    \"example.TypeB\": [],\n" +
-      "    \"example.TypeC\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.SharedProducer\": {\n" +
+      "      \"abi_hash\": \"1d5a1b19a99c9be1c02ea8c2d8b1e394c5e3b318\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.TypeA\",\n" +
+      "        \"example.TypeB\",\n" +
+      "        \"example.TypeC\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.TypeA\": {\n" +
+      "      \"abi_hash\": \"82e9321703fd75199f387b1c9a3aac21dd3cb605\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.TypeB\": {\n" +
+      "      \"abi_hash\": \"47ade65f3484b91fc653a74f080f4c028c19d6cc\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.TypeC\": {\n" +
+      "      \"abi_hash\": \"2ba9b69bc5e498b51adcf0398b231541dcb68202\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After full compile, dep file should list all three consumers of SharedProducer",
@@ -2366,23 +2423,10 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success );
 
     String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
-    String expectedAfterIncremental =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.SharedProducer\": [\n" +
-      "      \"example.TypeA\",\n" +
-      "      \"example.TypeB\",\n" +
-      "      \"example.TypeC\"\n" +
-      "    ],\n" +
-      "    \"example.TypeA\": [],\n" +
-      "    \"example.TypeB\": [],\n" +
-      "    \"example.TypeC\": []\n" +
-      "  }\n" +
-      "}";
+
     assertEquals(
       "After incremental compile of TypeA only, TypeB and TypeC must still appear as consumers of SharedProducer",
-      expectedAfterIncremental, afterIncremental );
+      expectedAfterFullCompile, afterIncremental );
   }
 
   @Test
@@ -2434,12 +2478,21 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.P1\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ],\n" +
-      "    \"example.P2\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"928fffcc2b83882d9dcd7423f0e7600491beb6a1\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.P1\": {\n" +
+      "      \"abi_hash\": \"597572344d408fd90f2ccfff0c863d068ceaec8f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.P2\": {\n" +
+      "      \"abi_hash\": \"03ac85faf94f0589fab35a84ee02c5d9550143ad\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After full compile, P1 should list Consumer; P2 should be empty",
@@ -2465,12 +2518,21 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.P1\": [],\n" +
-      "    \"example.P2\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"928fffcc2b83882d9dcd7423f0e7600491beb6a1\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.P1\": {\n" +
+      "      \"abi_hash\": \"597572344d408fd90f2ccfff0c863d068ceaec8f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.P2\": {\n" +
+      "      \"abi_hash\": \"03ac85faf94f0589fab35a84ee02c5d9550143ad\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -2529,13 +2591,22 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Bystander\": [],\n" +
-      "    \"example.Hub\": [\n" +
-      "      \"example.Bystander\",\n" +
-      "      \"example.Spoke\"\n" +
-      "    ],\n" +
-      "    \"example.Spoke\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Bystander\": {\n" +
+      "      \"abi_hash\": \"5a0cf9411e67598cda7c6596e5ca159c914dc66f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Hub\": {\n" +
+      "      \"abi_hash\": \"7db224b3553a5fca3147c391ea90db8d3cce6e5b\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Bystander\",\n" +
+      "        \"example.Spoke\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Spoke\": {\n" +
+      "      \"abi_hash\": \"18e2e6c9b2948d9e69a98a8091b2b7d1f4bd5d1c\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After full compile, Hub should list both Bystander and Spoke as consumers",
@@ -2556,11 +2627,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Bystander\": [],\n" +
-      "    \"example.Hub\": [\n" +
-      "      \"example.Bystander\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Bystander\": {\n" +
+      "      \"abi_hash\": \"5a0cf9411e67598cda7c6596e5ca159c914dc66f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Hub\": {\n" +
+      "      \"abi_hash\": \"7db224b3553a5fca3147c391ea90db8d3cce6e5b\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Bystander\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -2610,11 +2687,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.LeafX\": [],\n" +
-      "    \"example.P\": [\n" +
-      "      \"example.LeafX\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.LeafX\": {\n" +
+      "      \"abi_hash\": \"79dccf75b09b3fa6c19593974b90672c987162e7\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.P\": {\n" +
+      "      \"abi_hash\": \"d4886c3a15bde23142c446ec0ba2891890aa2e71\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.LeafX\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After full compile, P should list LeafX as its sole consumer",
@@ -2641,9 +2724,15 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.LeafX\": [],\n" +
-      "    \"example.P\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.LeafX\": {\n" +
+      "      \"abi_hash\": \"79dccf75b09b3fa6c19593974b90672c987162e7\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.P\": {\n" +
+      "      \"abi_hash\": \"d4886c3a15bde23142c446ec0ba2891890aa2e71\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -2690,9 +2779,15 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepsAfterInitial =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Alpha\": [],\n" +
-      "    \"example.Beta\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Alpha\": {\n" +
+      "      \"abi_hash\": \"b0cead47a1b9983e2f318bfb568917b4137d688a\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Beta\": {\n" +
+      "      \"abi_hash\": \"5c32001bd45a55561a4df7f92472ba27c68e066a\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After initial compile, dep file should list Alpha and Beta, each with no consumers",
@@ -2721,8 +2816,11 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Alpha\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Alpha\": {\n" +
+      "      \"abi_hash\": \"b0cead47a1b9983e2f318bfb568917b4137d688a\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After removing leaf Beta, dep file should contain only Alpha",
@@ -2773,11 +2871,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"com.example.DummyJava\": [\n" +
-      "      \"example.GosuConsumer\"\n" +
-      "    ],\n" +
-      "    \"example.GosuConsumer\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"com.example.DummyJava\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.GosuConsumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.GosuConsumer\": {\n" +
+      "      \"abi_hash\": \"30904bf6c41aaf4344538776284a7ad75c1c0742\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "After initial compile, the dep file should record DummyJava -> [GosuConsumer]",
@@ -2899,16 +3003,25 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepsInitial =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer$Inner\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$Inner\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"1f40ac59262941bfe89d50fbfeab62f2e04416c1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner\": {\n" +
+      "      \"abi_hash\": \"5b0759ae9c4f713839900818d0738e37ec4aeeef\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -2964,11 +3077,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepsAfter =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"9f87eb550a12273193d5704230f7f5a6c88ac10d\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
@@ -3021,16 +3140,25 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepsInitial =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer$Inner\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$Inner\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"1f40ac59262941bfe89d50fbfeab62f2e04416c1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner\": {\n" +
+      "      \"abi_hash\": \"5b0759ae9c4f713839900818d0738e37ec4aeeef\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -3075,8 +3203,11 @@ public class IncrementalCompilationEndToEndIT
     String expectedDepsAfter =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
@@ -3249,11 +3380,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.MyType\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyType\": {\n" +
+      "      \"abi_hash\": \"28f60f81ac579c487a582856ebb6b4297deeb813\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3291,6 +3428,22 @@ public class IncrementalCompilationEndToEndIT
       newConsumerTime.toMillis() > initialConsumerTime.toMillis() );
 
     String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyType\": {\n" +
+      "      \"abi_hash\": \"5a6c9ad8745bd2fdd9f0810ce58cdef5c28b591e\",\n" + // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
     assertEquals(
       "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps );
@@ -3322,11 +3475,17 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.MyType\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyType\": {\n" +
+      "      \"abi_hash\": \"28f60f81ac579c487a582856ebb6b4297deeb813\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3397,14 +3556,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Container\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ],\n" +
-      "    \"example.MyType\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Container\": {\n" +
+      "      \"abi_hash\": \"d29eabdae191e94a74ffa1d2a755fdf805d06956\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.MyType\": {\n" +
+      "      \"abi_hash\": \"28f60f81ac579c487a582856ebb6b4297deeb813\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3482,14 +3650,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Container\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ],\n" +
-      "    \"example.Data\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"1bf4a811a6be2ced679e4e75f0f3cfc31ceaedce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Container\": {\n" +
+      "      \"abi_hash\": \"2111662c8f01742a9f767033caf5ab106532da28\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Data\": {\n" +
+      "      \"abi_hash\": \"24913396e6d27cae41ecbf058cf04c0a9fc7f158\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3635,14 +3812,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.MyType\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ],\n" +
-      "    \"example.Schema\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"a15df1e7a417929cf542d0fadbf3ba1559793bbd\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyType\": {\n" +
+      "      \"abi_hash\": \"28f60f81ac579c487a582856ebb6b4297deeb813\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Schema\": {\n" +
+      "      \"abi_hash\": \"c1ff0377fe66bda34ee7df1360a3262ee3eb519d\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3734,14 +3920,23 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.A\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ],\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.MyAnno\": [\n" +
-      "      \"example.Consumer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.A\": {\n" +
+      "      \"abi_hash\": \"7a272c2ad060250a8075f39fd684a568885e8828\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"66219228f1bd59f9777a714b980bd09fa8027679\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyAnno\": {\n" +
+      "      \"abi_hash\": \"b5e4d79e3c7676c4aca1ff980cc80af9422714e0\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -3909,12 +4104,21 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.AnnotatedConsumer\": [],\n" +
-      "    \"example.MyAnno\": [\n" +
-      "      \"example.AnnotatedConsumer\"\n" +
-      "    ],\n" +
-      "    \"example.UnrelatedConsumer\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.AnnotatedConsumer\": {\n" +
+      "      \"abi_hash\": \"6a06747305328bbb85319279cf248784f5880814\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.MyAnno\": {\n" +
+      "      \"abi_hash\": \"6aad68937a2ed64c0ad66c6efbbb22fb88e30011\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.AnnotatedConsumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.UnrelatedConsumer\": {\n" +
+      "      \"abi_hash\": \"ed53ff8de0ebdada536ca51d18506669723cb7b2\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals(
@@ -4007,16 +4211,25 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer$Inner\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$Inner\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"1f40ac59262941bfe89d50fbfeab62f2e04416c1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner\": {\n" +
+      "      \"abi_hash\": \"5b0759ae9c4f713839900818d0738e37ec4aeeef\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -4060,9 +4273,157 @@ public class IncrementalCompilationEndToEndIT
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"1f40ac59262941bfe89d50fbfeab62f2e04416c1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner\": {\n" +
+      "      \"abi_hash\": \"0e71210d25d90d6fb181fbe0805210e06e57d396\",\n" +  // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
     assertEquals(
       "Dep file after incremental compile should still record both " +
       "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
+      expectedDeps, actualDepsAfter );
+  }
+
+  @Test
+  public void testSelfReferencesAreNotRecorded() throws Exception
+  {
+    File builderFile = createSourceFile( "example/Builder.gs",
+                                         "package example\n" +
+                                         "\n" +
+                                         "class Builder {\n" +
+                                         "  var _value : String\n" +
+                                         "  \n" +
+                                         "  function withValue( v : String ) : Builder {\n" +
+                                         "    _value = v\n" +
+                                         "    return this\n" +
+                                         "  }\n" +
+                                         "  \n" +
+                                         "  function copy() : Builder {\n" +
+                                         "    return new Builder()\n" +
+                                         "  }\n" +
+                                         "}"
+    );
+
+    File consumer = createSourceFile( "example/Consumer.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class Consumer {\n" +
+                                      "  var _builder : Builder = new Builder()\n" +
+                                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    Path builderClass = outputDir.resolve( "example/Builder.class" );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    assertTrue( "precondition: Builder.class should exist", Files.exists( builderClass ) );
+    assertTrue( "precondition: Consumer.class should exist", Files.exists( consumerClass ) );
+
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Builder\": {\n" +
+      "      \"abi_hash\": \"814198b4e0ebda44aa3ab461d388fdc0846d6b38\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    assertEquals(
+      "After initial compile, Builder's only consumer must be Consumer -- the " +
+      "Builder -> Builder self-reference must be filtered out even though " +
+      "Builder's bytecode references itself throughout, and Builder must never " +
+      "list itself as a consumer.",
+      expectedDeps, actualDepsInitial );
+
+    FileTime initialBuilderTime = getFileModificationTime( builderClass );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+
+    Thread.sleep( SLEEP_MS );
+
+    // ABI change to Builder: add another self-returning method.
+    Files.write( builderFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Builder {\n" +
+      "  var _value : String\n" +
+      "  \n" +
+      "  function withValue( v : String ) : Builder {\n" +
+      "    _value = v\n" +
+      "    return this\n" +
+      "  }\n" +
+      "  \n" +
+      "  function copy() : Builder {\n" +
+      "    return new Builder()\n" +
+      "  }\n" +
+      "  \n" +
+      "  function reset() : Builder {\n" +
+      "    _value = null\n" +
+      "    return this\n" +
+      "  }\n" +
+      "}"
+    ).getBytes() );
+
+    CompileResult incr = compile( Arrays.asList( builderFile ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+
+    assertTrue( "Builder.class should be rewritten after incremental compile",
+                getFileModificationTime( builderClass ).toMillis() > initialBuilderTime.toMillis() );
+    assertTrue(
+      "Consumer.class should be recompiled when Builder's ABI changes (its " +
+      "field is typed Builder).",
+      getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+
+    // Only Builder's abi_hash changes; the graph shape is unchanged and Builder
+    // still does not list itself as a consumer (no self-edge drift).
+    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Builder\": {\n" +
+      "      \"abi_hash\": \"5eec5dbf782ac8e2466de61314aa27414f44feae\",\n" + // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After incremental compile, Builder's consumer list must still be exactly " +
+      "[example.Consumer] -- the self-reference is filtered on every build, so " +
+      "the graph never drifts to include Builder -> Builder.",
       expectedDeps, actualDepsAfter );
   }
 
@@ -4118,21 +4479,33 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Outer$AnonymouS__1\",\n" +
-      "      \"example.Outer$block_0_\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$AnonymouS__1\": [\n" +
-      "      \"example.Outer\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$block_0_\": [\n" +
-      "      \"example.Outer\"\n" +
-      "    ],\n" +
-      "    \"example.Util\": [\n" +
-      "      \"example.Outer$AnonymouS__1\",\n" +
-      "      \"example.Outer$block_0_\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"c34e377b85fdd72d3447417227417b4422a754a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__1\",\n" +
+      "        \"example.Outer$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__1\": {\n" +
+      "      \"abi_hash\": \"779474dee77ebf5074dabd95a6110be4424106df\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$block_0_\": {\n" +
+      "      \"abi_hash\": \"699ca6fe3acd53b480218aef2da56431cefe06cd\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Util\": {\n" +
+      "      \"abi_hash\": \"e5b5364df26c2bb9f6dfa9b2252a0a68f6144e16\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__1\",\n" +
+      "        \"example.Outer$block_0_\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -4173,6 +4546,38 @@ public class IncrementalCompilationEndToEndIT
       getFileModificationTime( anonClass ).toMillis() > initialAnonTime.toMillis() );
 
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"c34e377b85fdd72d3447417227417b4422a754a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__1\",\n" +
+      "        \"example.Outer$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__1\": {\n" +
+      "      \"abi_hash\": \"779474dee77ebf5074dabd95a6110be4424106df\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$block_0_\": {\n" +
+      "      \"abi_hash\": \"699ca6fe3acd53b480218aef2da56431cefe06cd\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Util\": {\n" +
+      "      \"abi_hash\": \"e02fa5637ea2ef4ce4990271f8ead5d001fac26a\",\n" +  // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__1\",\n" +
+      "        \"example.Outer$block_0_\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4227,20 +4632,32 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Outer\": [\n" +
-      "      \"example.Outer$AnonymouS__0\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$AnonymouS__0\": [\n" +
-      "      \"example.Outer\",\n" +
-      "      \"example.Outer$AnonymouS__0$block_0_\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$AnonymouS__0$block_0_\": [\n" +
-      "      \"example.Outer$AnonymouS__0\"\n" +
-      "    ],\n" +
-      "    \"example.Util\": [\n" +
-      "      \"example.Outer$AnonymouS__0$block_0_\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"6e04bf1ae752e64d0a9b7bd632ce9c4b9bf81445\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__0\": {\n" +
+      "      \"abi_hash\": \"b206ca40998645749c80ef7a61d52360f33d85e1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\",\n" +
+      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__0$block_0_\": {\n" +
+      "      \"abi_hash\": \"90c73c9fc45903003d765ff4e211b955517344f3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Util\": {\n" +
+      "      \"abi_hash\": \"e5b5364df26c2bb9f6dfa9b2252a0a68f6144e16\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -4281,7 +4698,37 @@ public class IncrementalCompilationEndToEndIT
       "Outer$AnonymouS__0$block_0_.class should be recompiled (the innermost " +
       "block is the actual referrer of Util).",
       getFileModificationTime( innerBlockClass ).toMillis() > initialInnerBlockTime.toMillis() );
-
+      expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"6e04bf1ae752e64d0a9b7bd632ce9c4b9bf81445\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__0\": {\n" +
+      "      \"abi_hash\": \"b206ca40998645749c80ef7a61d52360f33d85e1\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer\",\n" +
+      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$AnonymouS__0$block_0_\": {\n" +
+      "      \"abi_hash\": \"90c73c9fc45903003d765ff4e211b955517344f3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Util\": {\n" +
+      "      \"abi_hash\": \"e02fa5637ea2ef4ce4990271f8ead5d001fac26a\",\n" + // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
@@ -4331,16 +4778,25 @@ public class IncrementalCompilationEndToEndIT
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"example.Consumer\": [],\n" +
-      "    \"example.Outer$Class\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer$Class$Inner\"\n" +
-      "    ],\n" +
-      "    \"example.Outer$Class$Inner\": [\n" +
-      "      \"example.Consumer\",\n" +
-      "      \"example.Outer$Class\"\n" +
-      "    ]\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer$Class\": {\n" +
+      "      \"abi_hash\": \"bd72d005e0a1e793ce6ae05a9bfef8f9b55bf1ae\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Class$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Class$Inner\": {\n" +
+      "      \"abi_hash\": \"afa76abd9aad0e7a0d36b8ab9b5176114a5d45da\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Class\"\n" +
+      "      ]\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
@@ -4382,6 +4838,30 @@ public class IncrementalCompilationEndToEndIT
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
     String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5f704120b3f6090c6bf3d48a6f05a36f7948029f\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Outer$Class\": {\n" +
+      "      \"abi_hash\": \"bd72d005e0a1e793ce6ae05a9bfef8f9b55bf1ae\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Class$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Class$Inner\": {\n" +
+      "      \"abi_hash\": \"cb5677ebe5dedfda041ea639a88af433efba10c5\",\n" + // ABI change
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Outer$Class\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4415,13 +4895,15 @@ public class IncrementalCompilationEndToEndIT
 
     String expectedDepFile = "{\n" +
                              "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-                             "  \"consumers\": {\n" +
-                             "    \"example.Producer\": []\n" +
+                             "  \"dep_graph\": {\n" +
+                             "    \"example.Producer\": {\n" +
+                             "      \"abi_hash\": \"6e2256ed1f1d8d7abcdd9c8d9c5fe6612f6246e5\",\n" +
+                             "      \"consumers\": []\n" +
+                             "    }\n" +
                              "  }\n" +
                              "}";
 
-    assertTrue( "Expected dep file must match the generated one",
-                expectedDepFile.equals( Files.readString( dependencyFile.toPath() ) ) );
+    assertEquals(expectedDepFile, Files.readString( dependencyFile.toPath() )  );
     Thread.sleep( SLEEP_MS );
 
     // Step 2: add a brand new source file that has no relationship to
@@ -4455,13 +4937,18 @@ public class IncrementalCompilationEndToEndIT
 
     expectedDepFile = "{\n" +
                       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-                      "  \"consumers\": {\n" +
-                      "    \"example.NewType\": [],\n" +
-                      "    \"example.Producer\": []\n" +
+                      "  \"dep_graph\": {\n" +
+                      "    \"example.NewType\": {\n" +
+                      "      \"abi_hash\": \"659d02a98c891a26fabcacd70f80a704b6fd650f\",\n" +
+                      "      \"consumers\": []\n" +
+                      "    },\n" +
+                      "    \"example.Producer\": {\n" +
+                      "      \"abi_hash\": \"6e2256ed1f1d8d7abcdd9c8d9c5fe6612f6246e5\",\n" +
+                      "      \"consumers\": []\n" +
+                      "    }\n" +
                       "  }\n" +
                       "}";
-    assertTrue( "Expected dep file must match the generated one",
-                expectedDepFile.equals( Files.readString( dependencyFile.toPath() ) ) );
+    assertEquals(expectedDepFile, Files.readString( dependencyFile.toPath() )  );
   }
 
   private static class CompileResult

@@ -80,6 +80,7 @@ public class GosuCompiler implements IGosuCompiler
 
   private GosuInitialization _gosuInitialization;
   private File _compilingSourceFile;
+  private ArrayList<IGosuClass> _compilingInnerClasses;
   private IIncrementalCompilationManager _incrementalManager;
 
   @Override
@@ -176,11 +177,12 @@ public class GosuCompiler implements IGosuCompiler
     while( !worklist.isEmpty() && !thresholdExceeded )
     {
       String type = worklist.remove();
-
+      boolean wasTypeCompiled = false;
       // Only add if it's a Gosu type (not a known local Java type, java types are already compiled) and
       // it is not a removed type (no file to compile).
       if( !localJavaTypes.contains( type ) && !removedTypes.contains( type ) )
       {
+        // TODO should be this added only if sourceFile != null?
         typeFqcnsToCompile.add( type );
         String sourceFile = _incrementalManager.getGosuFilePathFromFqcn( type );
         if( sourceFile == null )
@@ -205,16 +207,29 @@ public class GosuCompiler implements IGosuCompiler
         {
           sourceFilesCompiled.add( sourceFile );
           thresholdExceeded = compileGosuSource( options, driver, sourceFile );
+          wasTypeCompiled = true;
         }
       }
 
-      Set<String> consumers = _incrementalManager.getConsumersFor( type );
-      for( String consumer : consumers )
-      {
-        if( !visited.contains( consumer ) )
+      if (_incrementalManager.hasNewABI(type)) {
+        Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
+        for( String consumer : consumers )
         {
-          visited.add( consumer );
-          worklist.add( consumer );
+          if( !visited.contains( consumer ) )
+          {
+            visited.add( consumer );
+            worklist.add( consumer );
+          }
+        }
+      } else if (wasTypeCompiled) {
+        // TODO Test 3 level of nesting and wasTypeCompiled effectiveness
+        for (IGosuClass innerClass : _compilingInnerClasses) {
+          String innerFqcn = _incrementalManager.getClassFileName( innerClass );
+          if( !visited.contains( innerFqcn ) )
+          {
+            visited.add( innerFqcn );
+            worklist.add( innerFqcn );
+          }
         }
       }
     }
@@ -433,6 +448,7 @@ public class GosuCompiler implements IGosuCompiler
       {
         if( type.isValid() )
         {
+          _compilingInnerClasses = new ArrayList<>();
           createGosuOutputFiles( (IGosuClass)type, driver );
         }
       }
@@ -832,6 +848,7 @@ public class GosuCompiler implements IGosuCompiler
     }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {
+      _compilingInnerClasses.add(innerClass);
       final String innerClassName = String.format( "%s$%s.class", outputFile.getName().substring( 0, outputFile.getName().lastIndexOf( '.' ) ), innerClass.getRelativeName() );
       File innerClassFile = new File( outputFile.getParent(), innerClassName );
       if( innerClassFile.isFile() )

@@ -1,5 +1,6 @@
 package gw.lang;
 
+import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.Set;
@@ -18,7 +19,7 @@ public interface IIncrementalCompilationManager {
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades
      * are computed lazily by the incremental compile driver, which walks the resulting
-     * graph via {@link #getConsumersFor(String)}.
+     * graph via {@link #getOrCreateConsumersFor(String)}.
      *
      * @param bytes     compiled bytecode for {@code gosuClass}
      * @param gosuClass the type whose dependencies are being recorded; used as the
@@ -62,5 +63,9 @@ public interface IIncrementalCompilationManager {
      * <p>Used by the incremental driver to walk the reverse-dependency graph while interleaving
      * compilation.
      */
-    Set<String> getConsumersFor(String fqcn);
+    Set<String> getOrCreateConsumersFor( String fqcn);
+
+    // TODO doc
+    boolean hasNewABI( String fqcn );
+    String getClassFileName( IType type );
 }

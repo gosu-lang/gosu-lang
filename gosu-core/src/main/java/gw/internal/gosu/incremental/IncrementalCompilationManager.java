@@ -27,6 +27,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+class ProducerInfo {
+  String abiHash;
+  Set<String> consumers;
+
+  ProducerInfo( String abiHash, Set<String> consumers ) {
+    this.abiHash = abiHash;
+    this.consumers = consumers;
+  }
+
+  ProducerInfo( ) {
+    this(IncrementalCompilationManager.NO_ABI_HASH, new HashSet<>());
+  }
+}
+
 /**
  * Manages dependency tracking and incremental compilation for gosuc.
  * Tracks:
@@ -37,14 +51,18 @@ import java.util.TreeMap;
 public class IncrementalCompilationManager implements IIncrementalCompilationManager
 {
   public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
+  public static final String NO_ABI_HASH = "NO_ABI_HASH";
 
   // Dep-file field names, shared by the reader and the writer so the two cannot drift.
   private static final String FIELD_VERSION = "version";
+  private static final String FIELD_DEP_GRAPH = "dep_graph";
+  private static final String FIELD_ABI_HASH = "abi_hash";
   private static final String FIELD_CONSUMERS = "consumers";
 
   private final String dependencyFilePath;
-  private final Map<String, Set<String>> typeDependencies;
-  private final Map<String, Set<String>> currentUsedBy;
+  private final Map<String, ProducerInfo> typeDependencies;
+  //TODO rename to currentTypeDeps
+  private final Map<String, ProducerInfo> currentUsedBy;
   private final boolean verbose;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
@@ -77,8 +95,12 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   public void trackDependencies( byte[] bytes, IGosuClass gosuClass )
   {
     ClassReader reader = new ClassReader( bytes );
-    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this );
+    /*TODO: user verbose flag?*/
+    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this, verbose);
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
+    // Set the new computed ABI hash for the gosuClass just visited. Note that DependenciesClassVisitor ensures that
+    // visitor.consumerFqcn is registered as producer as well.
+    currentUsedBy.get( visitor.consumerFqcn ).abiHash = visitor.AbiHash;
     trackTypeliteralsFromAST( gosuClass );
   }
 
@@ -106,7 +128,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * Used as the FQCN shape stored in the dep graph so dep-file keys match
    * {@code .class} artifacts.
    */
-  private static String getClassFileName( IType type )
+  public String getClassFileName( IType type )
   {
     IType enclosing = type.getEnclosingType();
     if( enclosing == null )
@@ -238,7 +260,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   /**
    * Load existing dependency data from file
    */
-  private Map<String, Set<String>> loadDependencyFile()
+  private Map<String, ProducerInfo> loadDependencyFile()
   {
     File depFile = new File( dependencyFilePath );
     if( !depFile.exists() )
@@ -254,7 +276,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       Files.newBufferedReader( depFile.toPath(), StandardCharsets.UTF_8 ) ))
     {
       String version = null;
-      Map<String, Set<String>> consumersSet = null;
+      Map<String, ProducerInfo> depGraph = null;
 
       reader.beginObject();
       while( reader.hasNext() )
@@ -264,8 +286,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
           case FIELD_VERSION:
             version = reader.nextString();
             break;
-          case FIELD_CONSUMERS:
-            consumersSet = readConsumers( reader );
+          case FIELD_DEP_GRAPH:
+            depGraph = readDepGraph( reader );
             break;
           default:
             reader.skipValue();
@@ -273,9 +295,9 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
       reader.endObject();
 
-      if( DEPENDENCY_VERSION.equals( version ) && consumersSet != null )
+      if( DEPENDENCY_VERSION.equals( version ) && depGraph != null )
       {
-        return consumersSet;
+        return depGraph;
       }
       if( verbose )
       {
@@ -290,33 +312,49 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     }
   }
 
-  /**
-   * Read the {@code consumers} object (producer FQCN -&gt; array of consumer FQCNs) from
-   * {@code reader}, which must be positioned just before the object's opening brace.
-   * Consumes the matching closing brace. Producer sets are stored as {@link HashSet}s
-   * (order is irrelevant in memory; the writer sorts on flush).
-   */
-  private static Map<String, Set<String>> readConsumers( JsonReader reader ) throws IOException
+  private Map<String, ProducerInfo> readDepGraph( JsonReader reader ) throws IOException
   {
-    Map<String, Set<String>> consumersSet = new HashMap<>();
+    Map<String, ProducerInfo> depGraph = new HashMap<>();
     reader.beginObject();
     while( reader.hasNext() )
     {
       String producer = reader.nextName();
-      Set<String> consumers = new HashSet<>();
-      reader.beginArray();
-      while( reader.hasNext() )
-      {
-        consumers.add( reader.nextString() );
-      }
-      reader.endArray();
-      consumersSet.put( producer, consumers );
+       depGraph.put( producer, readProdInfo(reader));
     }
     reader.endObject();
-    return consumersSet;
+    return depGraph;
+  }
+ // TODO doc
+  private ProducerInfo readProdInfo( JsonReader reader ) throws IOException
+  {
+    reader.beginObject();
+    String abiHash = null;
+    Set<String> consumers = new HashSet<>();
+    while( reader.hasNext() )
+    {
+      switch( reader.nextName() )
+      {
+        case FIELD_ABI_HASH:
+          abiHash = reader.nextString();
+          break;
+        case FIELD_CONSUMERS:
+          reader.beginArray();
+          while( reader.hasNext() )
+          {
+            consumers.add( reader.nextString() );
+          }
+          reader.endArray();
+          break;
+        default:
+          reader.skipValue();
+      }
+    }
+    reader.endObject();
+    return new ProducerInfo(abiHash, consumers);
   }
 
-  /**
+
+  /** TODO update
    * Apply this session's tracked dependencies ({@code currentUsedBy}) to the in-memory
    * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
    * Does NOT write to disk. Callers that need persistence should use
@@ -334,8 +372,9 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
     // For each old producer, remove consumers that have been modified(recompiled) or removed: we cannot assume they are
     // still consumers due to source file changes.
-    for( Set<String> consumers : typeDependencies.values() )
+    for( ProducerInfo info: typeDependencies.values() )
     {
+      Set<String> consumers = info.consumers;
       consumers.removeAll( typeFqcnsToCompile );
       consumers.removeAll( removedTypes );
     }
@@ -344,15 +383,53 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     // recompilation of typeFqcnsToCompile.
     // For each refreshed producer merge its consumers with the ones of the corresponding old producer so that the old
     // producer is now up to date.
-    for( Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet() )
+    for( Map.Entry<String, ProducerInfo> entry : currentUsedBy.entrySet() )
     {
       String refreshedProducer = entry.getKey();
-      Set<String> refreshedConsumers = entry.getValue();
+      String newAbiHash = entry.getValue().abiHash;
+      Set<String> refreshedConsumers = entry.getValue().consumers;
 
-      typeDependencies.computeIfAbsent( refreshedProducer, k -> new HashSet<>() ).addAll( refreshedConsumers );
+      ProducerInfo prodInfo = typeDependencies.computeIfAbsent( refreshedProducer, k -> new ProducerInfo() );
+      prodInfo.consumers.addAll( refreshedConsumers );
+      if (!newAbiHash.equals( NO_ABI_HASH ))
+      {
+        prodInfo.abiHash = newAbiHash;
+      } else if (typeFqcnsToCompile.contains( refreshedProducer)) {
+        throw new IllegalStateException("The freshly compiled type " + refreshedProducer + " does not have a new ABI hash");
+      }
     }
     // Content no longer needed and now stale.
     currentUsedBy.clear();
+  }
+
+  void writeDepGraph(JsonWriter writer) throws IOException
+  {
+    writer.beginObject();
+    // Sort keys for deterministic, cache-stable output.
+    for( Map.Entry<String, ProducerInfo> entry : new TreeMap<>( typeDependencies ).entrySet() )
+    {
+      String producer = entry.getKey();
+      writer.name( producer );
+      writeProducerInfo(writer, entry.getValue());
+    }
+    writer.endObject();
+  }
+
+  void writeProducerInfo(JsonWriter writer, ProducerInfo prodInfo) throws IOException
+  {
+    writer.beginObject();
+    writer.name( FIELD_ABI_HASH ).value( prodInfo.abiHash );
+    writer.name( FIELD_CONSUMERS );
+    writer.beginArray();
+    List<String> consumers = new ArrayList<>( prodInfo.consumers );
+    // Sort consumers for deterministic, cache-stable output.
+    Collections.sort( consumers );
+    for( String consumer : consumers )
+    {
+      writer.value( consumer );
+    }
+    writer.endArray();
+    writer.endObject();
   }
 
   @Override
@@ -381,22 +458,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
         writer.beginObject();
         writer.name( FIELD_VERSION ).value( DEPENDENCY_VERSION );
-        writer.name( FIELD_CONSUMERS ).beginObject();
-        // Sort keys and consumer lists for deterministic, cache-stable output.
-        for( Map.Entry<String, Set<String>> entry : new TreeMap<>( typeDependencies ).entrySet() )
-        {
-          String producer = entry.getKey();
-          writer.name( producer );
-          writer.beginArray();
-          List<String> consumers = new ArrayList<>( entry.getValue() );
-          Collections.sort( consumers );
-          for( String consumer : consumers )
-          {
-            writer.value( consumer );
-          }
-          writer.endArray();
-        }
-        writer.endObject();
+        writer.name( FIELD_DEP_GRAPH );
+        writeDepGraph( writer );
         writer.endObject();
       }
       Files.move( tmpFile.toPath(), depFile.toPath(),
@@ -435,7 +498,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     {
       return;
     }
-    getOrCreateConsumerSet( producer ).add( consumer );
+    getOrCreateCurrentConsumerSet( producer ).add( consumer );
   }
 
   /**
@@ -449,9 +512,9 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * @param producerFqcn The FQCN of the producer type
    * @return The consumer set (existing or newly created)
    */
-  public Set<String> getOrCreateConsumerSet( String producerFqcn )
+  public Set<String> getOrCreateCurrentConsumerSet( String producerFqcn )
   {
-    return currentUsedBy.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
+    return currentUsedBy.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
   }
 
   /**
@@ -590,8 +653,18 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   @Override
-  public Set<String> getConsumersFor( String fqcn )
+  public Set<String> getOrCreateConsumersFor( String producerFqcn )
   {
-    return typeDependencies.computeIfAbsent( fqcn, k -> new HashSet<>() );
+    return typeDependencies.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
+  }
+
+  @Override
+  public boolean hasNewABI( String fqcn )
+  {
+    // Note: we are not using computeIfAbsent as we don't want to modify both maps.
+    String oldAbiHash = typeDependencies.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
+    String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo()  ).abiHash;
+    //return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
+    return true;
   }
 }

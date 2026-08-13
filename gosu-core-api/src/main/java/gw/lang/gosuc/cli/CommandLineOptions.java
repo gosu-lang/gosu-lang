@@ -150,7 +150,7 @@ public class CommandLineOptions
     return _dependencyFile == null ? ".gosuc-deps.json" : _dependencyFile;
   }
 
-  @Parameter(names = "-changed-types", description = "Changed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
+  @Parameter(names = "-changed-types", description = "Changed (or newly added) type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
   private String _changedTypes;
 
   @Parameter(names = "-removed-types", description = "Removed type FQCNs (Java + Gosu) for incremental compilation (path-separator delimited)")
