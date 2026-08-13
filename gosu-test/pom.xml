@@ -116,6 +116,23 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <!--By default, Failsafe scans src/test/java for files matching specific patterns: */IT.java, **/*IT.java, or **/*ITCase.java-->
+        <version>2.22.2</version>
+        <configuration>
+          <argLine>-Dgw.tests.skip.knownbreak=true -DcheckedArithmetic=true -Xmx2g</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   

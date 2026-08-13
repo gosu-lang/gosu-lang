@@ -8,6 +8,7 @@ import gw.config.BaseService;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
 import gw.internal.gosu.coercer.FunctionToInterfaceClassGenerator;
+import gw.internal.gosu.incremental.IncrementalCompilationManager;
 import gw.internal.gosu.ir.builders.SimpleCompiler;
 import gw.internal.gosu.ir.transform.util.IRTypeResolverAPIWrapper;
 import gw.internal.gosu.javadoc.JavaDocFactoryImpl;
@@ -22,6 +23,7 @@ import gw.internal.gosu.template.SimpleTemplateHost;
 import gw.internal.gosu.template.TemplateGenerator;
 import gw.internal.gosu.template.TemplateTokenizerInstructor;
 import gw.lang.IGosuShop;
+import gw.lang.IIncrementalCompilationManager;
 import gw.lang.annotation.UsageModifier;
 import gw.lang.annotation.UsageTarget;
 import gw.lang.init.GosuPathEntry;
@@ -410,5 +412,11 @@ public class GosuIndustrialParkImpl extends BaseService implements IGosuShop
   public String generateJavaStub( IGosuClass gsClass )
   {
     return JavaStubGenerator.instance().genStub( gsClass );
+  }
+
+  @Override
+  public IIncrementalCompilationManager createIncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
+                                                                            List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose) {
+    return new IncrementalCompilationManager(dependencyFilePath, sourceRoots, localJavaTypes, allSourceFiles, verbose);
   }
 }

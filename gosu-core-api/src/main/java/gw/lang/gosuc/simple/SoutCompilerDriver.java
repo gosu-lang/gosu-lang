@@ -6,17 +6,20 @@ import java.util.List;
 import java.util.Locale;
 import javax.tools.Diagnostic;
 
-public class SoutCompilerDriver implements ICompilerDriver {
+public class SoutCompilerDriver implements ICompilerDriver
+{
   private final boolean _echo;
   private final boolean _includeWarnings;
   private List<String> errors = new ArrayList<>();
   private List<String> warnings = new ArrayList<>();
 
-  public SoutCompilerDriver() {
+  public SoutCompilerDriver()
+  {
     this( false, true );
   }
 
-  public SoutCompilerDriver( boolean echo, boolean warnings ) {
+  public SoutCompilerDriver( boolean echo, boolean warnings )
+  {
     _echo = echo;
     _includeWarnings = warnings;
   }
@@ -28,17 +31,23 @@ public class SoutCompilerDriver implements ICompilerDriver {
   }
 
   @Override
-  public void sendCompileIssue(Object file, int category, long offset, long line, long column, String message) {
-    if (category == WARNING) {
+  public void sendCompileIssue( Object file, int category, long offset, long line, long column, String message )
+  {
+    if( category == WARNING )
+    {
       String warning = String.format( "%s:[%s,%s] warning: %s", file.toString(), line, column, message );
       warnings.add( warning );
-      if( _echo && _includeWarnings ) {
+      if( _echo && _includeWarnings )
+      {
         System.out.println( warning );
       }
-    } else if (category == ERROR) {
+    }
+    else if( category == ERROR )
+    {
       String error = String.format( "%s:[%s,%s] error: %s", file.toString(), line, column, message );
       errors.add( error );
-      if( _echo ) {
+      if( _echo )
+      {
         System.out.println( error );
       }
     }
@@ -48,21 +57,22 @@ public class SoutCompilerDriver implements ICompilerDriver {
   public void sendCompileIssue( Diagnostic d )
   {
     sendCompileIssue( d.getSource(),
-      d.getKind() == Diagnostic.Kind.ERROR ? ICompilerDriver.ERROR : ICompilerDriver.WARNING,
-      d.getStartPosition(),
-      d.getLineNumber(),
-      d.getColumnNumber(),
-      d.getMessage( Locale.getDefault() ) );
+                      d.getKind() == Diagnostic.Kind.ERROR ? ICompilerDriver.ERROR : ICompilerDriver.WARNING,
+                      d.getStartPosition(),
+                      d.getLineNumber(),
+                      d.getColumnNumber(),
+                      d.getMessage( Locale.getDefault() ) );
   }
 
   @Override
   public void registerOutput( File sourceFile, File outputFile )
   {
-    registerOutput( (Object) sourceFile, outputFile );
+    registerOutput( (Object)sourceFile, outputFile );
   }
 
   @Override
-  public void registerOutput(Object sourceFile, File outputFile) {
+  public void registerOutput( Object sourceFile, File outputFile )
+  {
     // nothing to do
   }
 
@@ -71,15 +81,18 @@ public class SoutCompilerDriver implements ICompilerDriver {
     return _includeWarnings;
   }
 
-  public boolean hasErrors() {
+  public boolean hasErrors()
+  {
     return errors.size() > 0;
   }
 
-  public List<String> getErrors() {
+  public List<String> getErrors()
+  {
     return errors;
   }
 
-  public List<String> getWarnings() {
+  public List<String> getWarnings()
+  {
     return warnings;
   }
 }

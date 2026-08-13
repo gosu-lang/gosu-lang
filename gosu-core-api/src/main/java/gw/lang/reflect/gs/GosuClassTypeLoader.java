@@ -36,7 +36,7 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
   public static final String GOSU_RULE_SET_EXT = ".grs";
 
   public static final String[] ALL_EXTS = {GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT};
-  public static final Set<String> ALL_EXTS_SET = new HashSet<String>(Arrays.asList(GOSU_CLASS_FILE_EXT, GOSU_ENHANCEMENT_FILE_EXT, GOSU_PROGRAM_FILE_EXT, GOSU_TEMPLATE_FILE_EXT, GOSU_RULE_EXT, GOSU_RULE_SET_EXT));
+  public static final Set<String> ALL_EXTS_SET = new HashSet<String>(Arrays.asList(ALL_EXTS));
   public static final Set<String> EXTENSIONS = new HashSet<String>(Arrays.asList("gs", "gsx", "gsp", "gst", "gr", "grs"));
 
   // These constants are only here because api can't depend on impl currently; they shouldn't be considered

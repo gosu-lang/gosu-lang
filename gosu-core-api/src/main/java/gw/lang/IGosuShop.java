@@ -170,4 +170,7 @@ public interface IGosuShop extends IService
   String toString( Object val );
 
   String generateJavaStub( IGosuClass gsClass );
+
+  IIncrementalCompilationManager createIncrementalCompilationManager(String dependencyFilePath, List<String> sourceRoots,
+                                                                     List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose);
 }

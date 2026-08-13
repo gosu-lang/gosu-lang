@@ -87,7 +87,7 @@ jobs:
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
-          
+
       - name: release Gosu
         run: mvn release:perform -B -s $GITHUB_WORKSPACE/settings.xml -Prelease
         env:

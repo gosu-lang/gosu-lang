@@ -4,19 +4,23 @@ import gw.config.AbstractPlatformHelper;
 import gw.config.ExecutionMode;
 import gw.lang.reflect.module.IModule;
 
-public class CompilerPlatformHelper extends AbstractPlatformHelper {
+public class CompilerPlatformHelper extends AbstractPlatformHelper
+{
 
   @Override
-  public ExecutionMode getExecutionMode() {
+  public ExecutionMode getExecutionMode()
+  {
     return ExecutionMode.COMPILER;
   }
 
   @Override
-  public boolean shouldCacheTypeNames() {
+  public boolean shouldCacheTypeNames()
+  {
     return false;
   }
 
   @Override
-  public void refresh(IModule module) {
+  public void refresh( IModule module )
+  {
   }
 }

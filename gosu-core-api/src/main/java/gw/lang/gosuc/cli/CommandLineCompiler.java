@@ -7,6 +7,7 @@ import gw.lang.gosuc.simple.GosuCompiler;
 import gw.lang.gosuc.simple.ICompilerDriver;
 import gw.lang.gosuc.simple.IGosuCompiler;
 import gw.lang.gosuc.simple.SoutCompilerDriver;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,18 @@ public class CommandLineCompiler
 {
   public static void main( String[] args )
   {
+    int exitCode = runCompiler( args );
+    System.exit( exitCode );
+  }
+
+  /**
+   * Run the compiler without calling System.exit(), suitable for testing
+   *
+   * @param args command line arguments
+   * @return exit code (0 for success, non-zero for failure)
+   */
+  public static int runCompiler( String[] args )
+  {
     CommandLineOptions options = new CommandLineOptions();
     JCommander help = JCommander.newBuilder().addObject( options ).args( args ).build();
     if( args.length == 0 || options.isHelp() )
@@ -28,7 +41,7 @@ public class CommandLineCompiler
       help.setProgramName( "gosuc" );
       help.usage();
       System.out.println( "In addition, the @<filename> syntax may be used to read the above options and source files from a file" );
-      System.exit( 0 );
+      return 0;
     }
     else
     {
@@ -37,7 +50,7 @@ public class CommandLineCompiler
 
       //print summary
       boolean exitWithFailure = summarize( driver.getWarnings(), driver.getErrors(), options.isNoWarn() ) || thresholdExceeded;
-      System.exit( exitWithFailure ? 1 : 0 );
+      return exitWithFailure ? 1 : 0;
     }
   }
 
@@ -51,7 +64,7 @@ public class CommandLineCompiler
     if( options.isVersion() )
     {
       System.out.println( "gosuc " + Gosu.getVersion() );
-      System.exit( 0 );
+      return false; // No threshold exceeded, successful completion
     }
 
     NecessaryEvilUtil.bypassJava9Security();
@@ -62,8 +75,8 @@ public class CommandLineCompiler
 
     List<String> classpath = new ArrayList<>();
     classpath.addAll( Arrays.stream( options.getClasspath().split( File.pathSeparator ) )
-      .map( e -> new File( e ).getAbsoluteFile().toURI().toString() )
-      .collect( Collectors.toList() ) );
+                        .map( e -> new File( e ).getAbsoluteFile().toURI().toString() )
+                        .collect( Collectors.toList() ) );
     if( JreUtil.isJava8() )
     {
       classpath.addAll( GosucUtil.getJreJars() );
@@ -81,11 +94,15 @@ public class CommandLineCompiler
     }
 
     gosuc.initializeGosu( sourcepath, classpath, options.getDestDir() );
-
-    boolean thresholdExceeded = gosuc.compile( options, driver );
-
-    gosuc.uninitializeGosu();
-    
+    boolean thresholdExceeded;
+    try
+    {
+      thresholdExceeded = gosuc.compile( options, driver );
+    }
+    finally
+    {
+      gosuc.uninitializeGosu();
+    }
     return thresholdExceeded;
   }
 
@@ -93,7 +110,6 @@ public class CommandLineCompiler
    * @param warnings List of warnings
    * @param errors   List of errors
    * @param isNoWarn true if warnings are disabled
-   *
    * @return true if compilation resulted in errors, false otherwise
    */
   private static boolean summarize( List<String> warnings, List<String> errors, boolean isNoWarn )

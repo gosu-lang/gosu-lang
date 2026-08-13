@@ -8,6 +8,8 @@ import gw.config.Registry;
 import gw.fs.FileFactory;
 import gw.fs.IDirectory;
 import gw.fs.IFile;
+import gw.lang.GosuShop;
+import gw.lang.IIncrementalCompilationManager;
 import gw.lang.gosuc.GosucDependency;
 import gw.lang.gosuc.GosucModule;
 import gw.lang.gosuc.cli.CommandLineOptions;
@@ -30,6 +32,7 @@ import gw.lang.reflect.module.IExecutionEnvironment;
 import gw.lang.reflect.module.IFileSystem;
 import gw.lang.reflect.module.IModule;
 import gw.util.PathUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,11 +48,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
+
 import manifold.internal.javac.IJavaParser;
 import manifold.internal.javac.InMemoryClassJavaFileObject;
 import manifold.util.NecessaryEvilUtil;
@@ -60,17 +66,143 @@ import static gw.lang.gosuc.simple.ICompilerDriver.WARNING;
 
 public class GosuCompiler implements IGosuCompiler
 {
-  private static final String[] SOURCE_EXTS = { ".gs", ".gsx", ".gst", ".java" };
+  // Use GosuClassTypeLoader.ALL_EXTS for Gosu files (.gs, .gsx, .gst, .gsp, .gr, .grs) plus .java
+  private static final String[] SOURCE_EXTS = buildSourceExtensions();
+
+  private static String[] buildSourceExtensions()
+  {
+    List<String> exts = new ArrayList<>( Arrays.asList( gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS ) );
+    exts.add( ".java" );
+    return exts.toArray( new String[0] );
+  }
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
+  protected IIncrementalCompilationManager _incrementalManager;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
+
+    if( !options.isIncremental() )
+    {
+      // Normal compilation - compile all sources
+      return compileFilteredSources( getSourceFiles( options ), options, driver );
+    }
+
+    // Extract source roots from sourcepath for FQCN computation
+    List<String> sourceRoots = new ArrayList<>();
+    String sourcepath = options.getSourcepath();
+    if( sourcepath != null && !sourcepath.isEmpty() )
+    {
+      for( StringTokenizer tok = new StringTokenizer( sourcepath, File.pathSeparator ); tok.hasMoreTokens(); )
+      {
+        sourceRoots.add( tok.nextToken() );
+      }
+    }
+    List<String> allSourceFiles = getSourceFiles( options );
+    _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
+                                                                        options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
+
+    // Get changed and removed type FQCNs from CLI
+    Set<String> changedTypes = options.getChangedTypes();
+    Set<String> removedTypes = options.getRemovedTypes();
+
+    // Calculate types that need recompilation (returns FQCNs)
+    Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
+      changedTypes, removedTypes );
+
+    // Prevents stale class/source files.
+    Set<String> toDelete = new HashSet<>( removedTypes );
+    toDelete.addAll( typeFqcnsToCompile );
+    // TODO: Non-transactional: deletion happens before the compiler runs. If compile then fails, the deleted
+    // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
+    deleteClassAndSourceFiles( toDelete, options.getDestDir(), options.isVerbose() );
+
+    List<String> sourceFiles;
+    Set<String> sourceFilesToCompile = new HashSet<>();
+
+    // Match FQCNs to source files
+    for( String fqcn : typeFqcnsToCompile )
+    {
+      String sourceFile = _incrementalManager.getGosuFilePathFromFqcn( fqcn );
+      if( sourceFile == null )
+      {
+        // TODO: This should only happen if the dep graph carries stale entries in pathological situations, ex:
+        //  - a previously-recorded Gosu consumer whose .gs file was deleted outside the Gradle change-set Gradle
+        //    reported.
+        //  - a dep file that survived an aborted compile.
+
+        // Handle stale inner classes.
+        // This can happen when Outer.gs contains an Outer class and an Inner one. When we delete Outer.gs and do an
+        // incremental compilation, we still find a stale producer Outer$Inner in dep file after calling
+        // calculateRecompilationSet().
+        // See testOuterSourceRemovalRecordsExpectedDepFileAndDeletesStaleClassFiles().
+        if( fqcn.contains( "$" ) )
+        {
+          continue;
+        }
+
+        // TODO Probably it will be better to do a full rebuild instead of failing hard, but for now we want to debug
+        // this failure when it happens.
+        throw new IllegalStateException( "Could not find source file for type " + fqcn );
+      }
+      // Inner classes can map to the same sourceFile, using a set will avoid duplicates.
+      sourceFilesToCompile.add( sourceFile );
+    }
+
+    // If still no files to compile in incremental mode, this is likely the first compilation
+    // Compile all source files to build initial dependency data
+    if( sourceFilesToCompile.isEmpty() )
+    {
+      sourceFiles = allSourceFiles;
+      if( options.isVerbose() )
+      {
+        System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
+      }
+    }
+    else
+    {
+      sourceFiles = new ArrayList<>( sourceFilesToCompile );
+      if( options.isVerbose() )
+      {
+        System.out.println( "Incremental compilation: recompiling " + sourceFilesToCompile.size() + " source files" );
+        for( String fqcn : sourceFilesToCompile )
+        {
+          System.out.println( "  - " + fqcn );
+        }
+      }
+    }
+
+    boolean thresholdExceeded = compileFilteredSources( sourceFiles, options, driver );
+    if( !driver.hasErrors() )
+    {
+      File destDir = new File( options.getDestDir() );
+      Set<String> effectivelyRemoved = new HashSet<>( removedTypes );
+      for( String fqcn : typeFqcnsToCompile )
+      {
+        if( fqcn.contains( "$" ) )
+        {
+          // If FQCN is an inner class and that inner class was deleted (the outer is part of removedTypes or the outer
+          // source code no longer contains the inner), we need to add it to effectivelyRemoved so
+          // that updateDependencyFile will correctly remove the inner class from the dep file as consumer and
+          // producer.
+          if( !classFileFor( destDir, fqcn ).exists() )
+          {
+            effectivelyRemoved.add( fqcn );
+          }
+        }
+      }
+      _incrementalManager.updateDependencyFile( typeFqcnsToCompile, effectivelyRemoved );
+    }
+    return thresholdExceeded;
+  }
+
+  private boolean compileFilteredSources( List<String> sourceFiles, CommandLineOptions options, ICompilerDriver driver )
+  {
     List<String> gosuFiles = new ArrayList<>();
     List<String> javaFiles = new ArrayList<>();
-    for( String fileName : getSourceFiles( options ) )
+    for( String fileName : sourceFiles )
     {
       if( fileName.toLowerCase().endsWith( ".java" ) )
       {
@@ -82,22 +214,19 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
+    boolean thresholdExceeded = false;
+
     if( !gosuFiles.isEmpty() )
     {
-      if( compileGosuSources( options, driver, gosuFiles ) )
-      {
-        return true;
-      }
+      thresholdExceeded = compileGosuSources( options, driver, gosuFiles );
     }
 
     if( !javaFiles.isEmpty() )
     {
-      if( compileJavaSources( options, driver, javaFiles ) )
-      {
-        return true;
-      }
+      thresholdExceeded = compileJavaSources( options, driver, javaFiles );
     }
-    return false;
+
+    return thresholdExceeded;
   }
 
   private List<String> getSourceFiles( CommandLineOptions options )
@@ -264,7 +393,141 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
-    return false;
+    return true;
+  }
+
+  /**
+   * Delete each type's outputs from {@code destDir}: the {@code <fqcn>.class}
+   * file and the source-file copy (any known Gosu extension).
+   *
+   * <p>Called before incremental compile for both removed types (cleanup) and
+   * about-to-be-recompiled types. Nested compiled units (inner / anonymous /
+   * block classes) are not handled specially here: BFS in
+   * {@link IIncrementalCompilationManager#calculateRecompilationSet} reliably
+   * pulls every nested FQCN into {@code typeFqcnsToCompile} via the
+   * bidirectional bytecode edges recorded from each nested class's
+   * {@code InnerClasses} attribute, so each nested FQCN ends up in this
+   * method's input set and has its {@code .class} file deleted directly.
+   *
+   * <p>No-op if {@code fqcns} is empty or {@code destDir} is null / blank.
+   *
+   * @param fqcns   FQCNs whose outputs should be deleted
+   * @param destDir output directory (e.g. {@code build/classes/gosu/main})
+   * @param verbose if true, log each deletion
+   */
+  private void deleteClassAndSourceFiles( Set<String> fqcns, String destDir, boolean verbose )
+  {
+    if( !fqcns.isEmpty() && destDir != null && !destDir.isEmpty() )
+    {
+      File dest = new File( destDir );
+      for( String fqcn : fqcns )
+      {
+        deleteClassFile( fqcn, dest, verbose );
+        deleteSourceFile( fqcn, dest, verbose );
+      }
+    }
+  }
+
+
+  /**
+   * Resolve the {@code .class} file path for {@code fqcn} under {@code outputDir}.
+   * Example: {@code outputDir=build/classes/gosu/main} and
+   * {@code fqcn=com.example.Foo} -> {@code build/classes/gosu/main/com/example/Foo.class}.
+   */
+  private static File classFileFor( File outputDir, String fqcn )
+  {
+    return new File( outputDir, fqcn.replace( '.', File.separatorChar ) + ".class" );
+  }
+
+  /**
+   * Delete the .class file for the given type.
+   *
+   * @param fqcn      The fully-qualified class name of the type to clean up
+   * @param outputDir The output directory containing compiled .class files
+   * @param verbose   Whether to log deletion operations
+   */
+  private void deleteClassFile( String fqcn, File outputDir, boolean verbose )
+  {
+    File mainClassFile = classFileFor( outputDir, fqcn );
+
+    if( verbose )
+    {
+      System.out.println( "Attempting to delete class file for removed type: " + fqcn );
+      System.out.println( "  Output dir: " + outputDir );
+      System.out.println( "  Target file: " + mainClassFile );
+      System.out.println( "  File exists: " + mainClassFile.exists() );
+    }
+
+    if( mainClassFile.exists() )
+    {
+      if( mainClassFile.delete() )
+      {
+        if( verbose )
+        {
+          System.out.println( "Deleted stale class file: " + mainClassFile );
+        }
+      }
+      else
+      {
+        System.err.println( "Warning: Failed to delete class file: " + mainClassFile );
+      }
+    }
+    else if( verbose )
+    {
+      System.out.println( "Class file does not exist (may have already been deleted): " + mainClassFile );
+    }
+  }
+
+  /**
+   * Deletes source file for the given type from the output directory.
+   * Attempts to delete source files for all known Gosu file extensions.
+   * <p>
+   * Since there's no way to determine which extension a FQCN originally had
+   * (could be .gs, .gr, .grs, .gst, .gsp, or .gsx), we attempt deletion for
+   * all known Gosu extensions. File.delete() is safe for non-existent files.
+   *
+   * @param fqcn      The fully qualified name of the type
+   * @param outputDir The output directory containing source files
+   * @param verbose   Whether to log deletion operations
+   */
+  private void deleteSourceFile( String fqcn, File outputDir, boolean verbose )
+  {
+    // Use official list from GosuClassTypeLoader: .gs, .gsx, .gsp, .gst, .gr, .grs
+    String[] extensions = gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS;
+
+    for( String extension : extensions )
+    {
+      deleteSourceFile( fqcn, extension, outputDir, verbose );
+    }
+  }
+
+  /**
+   * Deletes a specific source file from the output directory.
+   *
+   * @param fqcn      The fully qualified name of the type
+   * @param extension The file extension (e.g., ".gs", ".gr", etc.)
+   * @param outputDir The output directory
+   * @param verbose   Whether to log deletion operations
+   */
+  private void deleteSourceFile( String fqcn, String extension, File outputDir, boolean verbose )
+  {
+    String relativePath = fqcn.replace( '.', File.separatorChar );
+    File sourceFile = new File( outputDir, relativePath + extension );
+
+    if( sourceFile.exists() )
+    {
+      if( sourceFile.delete() )
+      {
+        if( verbose )
+        {
+          System.out.println( "Deleted stale source file: " + sourceFile );
+        }
+      }
+      else
+      {
+        System.err.println( "Warning: Failed to delete source file: " + sourceFile );
+      }
+    }
   }
 
   private IType getType( File file )
@@ -333,7 +596,7 @@ public class GosuCompiler implements IGosuCompiler
 
     compiledJavaFiles = compiledJavaFiles.stream().filter( e -> TypeSystem.getByFullNameIfValid( e.getClassName().replace( '$', '.' ) ) instanceof IJavaType ).collect( Collectors.toList() );
 
-    for( InMemoryClassJavaFileObject compiledJavaFile: compiledJavaFiles )
+    for( InMemoryClassJavaFileObject compiledJavaFile : compiledJavaFiles )
     {
       final String outRelativePath = compiledJavaFile.getClassName().replace( '.', File.separatorChar ) + ".class";
       File child = new File( moduleOutputDirectory.getPath().getFileSystemPathString() );
@@ -438,8 +701,8 @@ public class GosuCompiler implements IGosuCompiler
       createNewFile( destFile );
     }
 
-    try( FileChannel source = new FileInputStream( sourceFile ).getChannel();
-         FileChannel destination = new FileOutputStream( destFile ).getChannel() )
+    try (FileChannel source = new FileInputStream( sourceFile ).getChannel();
+         FileChannel destination = new FileOutputStream( destFile ).getChannel())
     {
       destination.transferFrom( source, 0, source.size() );
     }
@@ -448,10 +711,15 @@ public class GosuCompiler implements IGosuCompiler
   private void populateGosuClassFile( File outputFile, IGosuClass gosuClass, ICompilerDriver driver ) throws IOException
   {
     final byte[] bytes = TypeSystem.getGosuClassLoader().getBytes( gosuClass );
-    try( OutputStream out = new FileOutputStream( outputFile ) )
+    try (OutputStream out = new FileOutputStream( outputFile ))
     {
       out.write( bytes );
       driver.registerOutput( _compilingSourceFile, outputFile );
+    }
+    // Track dependencies if incremental compilation is enabled.
+    if( _incrementalManager != null )
+    {
+      _incrementalManager.trackDependencies( bytes, gosuClass );
     }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {
@@ -467,7 +735,7 @@ public class GosuCompiler implements IGosuCompiler
 
   private void populateJavaClassFile( File outputFile, byte[] bytes, ICompilerDriver driver ) throws IOException
   {
-    try( OutputStream out = new FileOutputStream( outputFile ) )
+    try (OutputStream out = new FileOutputStream( outputFile ))
     {
       out.write( bytes );
       driver.registerOutput( _compilingSourceFile, outputFile );
@@ -548,4 +816,5 @@ public class GosuCompiler implements IGosuCompiler
   {
     return CommonServices.getPlatformHelper().isPathIgnored( sourceFile );
   }
+
 }
