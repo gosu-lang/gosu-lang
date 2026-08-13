@@ -50,7 +50,7 @@ class ProducerInfo {
  */
 public class IncrementalCompilationManager implements IIncrementalCompilationManager
 {
-  public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
+  public static final String DEPENDENCY_VERSION = "0.2";  // Still in alpha
   public static final String NO_ABI_HASH = "NO_ABI_HASH";
 
   // Dep-file field names, shared by the reader and the writer so the two cannot drift.
