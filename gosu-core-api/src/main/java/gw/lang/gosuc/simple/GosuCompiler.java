@@ -76,8 +76,8 @@ public class GosuCompiler implements IGosuCompiler
     return exts.toArray( new String[0] );
   }
 
-  private GosuInitialization _gosuInitialization;
-  private File _compilingSourceFile;
+  protected GosuInitialization _gosuInitialization;
+  protected File _compilingSourceFile;
   private IIncrementalCompilationManager _incrementalManager;
 
   @Override
