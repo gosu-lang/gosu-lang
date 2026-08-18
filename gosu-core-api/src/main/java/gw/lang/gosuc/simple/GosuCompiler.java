@@ -76,18 +76,18 @@ public class GosuCompiler implements IGosuCompiler
     return exts.toArray( new String[0] );
   }
 
-  protected GosuInitialization _gosuInitialization;
-  protected File _compilingSourceFile;
-  protected IIncrementalCompilationManager _incrementalManager;
+  private GosuInitialization _gosuInitialization;
+  private File _compilingSourceFile;
+  private IIncrementalCompilationManager _incrementalManager;
 
   @Override
   public boolean compile( CommandLineOptions options, ICompilerDriver driver )
   {
-
+    List<String> allSourceFiles = getSourceFiles( options );
     if( !options.isIncremental() )
     {
       // Normal compilation - compile all sources
-      return compileFilteredSources( getSourceFiles( options ), options, driver );
+      return compileFilteredSources( allSourceFiles, options, driver );
     }
 
     // Extract source roots from sourcepath for FQCN computation
@@ -100,10 +100,32 @@ public class GosuCompiler implements IGosuCompiler
         sourceRoots.add( tok.nextToken() );
       }
     }
-    List<String> allSourceFiles = getSourceFiles( options );
+
     _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
                                                                         options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
 
+    if( !new File( options.getDependencyFile() ).exists() )
+    {
+      // First incremental compilation: compile all source files to build initial dependency file.
+      if( options.isVerbose() )
+      {
+        System.out.println( "Initial incremental compilation: compiling all " + allSourceFiles.size() + " source files" );
+      }
+      boolean thresholdExceeded = compileFilteredSources( allSourceFiles, options, driver );
+      // Don't persist the graph on a threshold abort: the compile stopped early, so
+      // what was tracked is partial. Leave the (absent) dep file so the next run rebuilds from scratch.
+      if( !driver.hasErrors() && !thresholdExceeded )
+      {
+        _incrementalManager.updateDependencyFile( Collections.emptySet(), Collections.emptySet() );
+      }
+      return thresholdExceeded;
+    }
+
+    return compileGosuIncrementally( options, driver );
+  }
+
+  private boolean compileGosuIncrementally( CommandLineOptions options, ICompilerDriver driver )
+  {
     // Get changed and removed type FQCNs from CLI
     Set<String> changedTypes = options.getChangedTypes();
     Set<String> removedTypes = options.getRemovedTypes();
@@ -119,7 +141,6 @@ public class GosuCompiler implements IGosuCompiler
     // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
     deleteClassAndSourceFiles( toDelete, options.getDestDir(), options.isVerbose() );
 
-    List<String> sourceFiles;
     Set<String> sourceFilesToCompile = new HashSet<>();
 
     // Match FQCNs to source files
@@ -151,31 +172,21 @@ public class GosuCompiler implements IGosuCompiler
       sourceFilesToCompile.add( sourceFile );
     }
 
-    // If still no files to compile in incremental mode, this is likely the first compilation
-    // Compile all source files to build initial dependency data
-    if( sourceFilesToCompile.isEmpty() )
+
+    List<String> sourceFiles = new ArrayList<>( sourceFilesToCompile );
+    if( options.isVerbose() )
     {
-      sourceFiles = allSourceFiles;
-      if( options.isVerbose() )
+      System.out.println( "Incremental compilation: recompiling " + sourceFilesToCompile.size() + " source files" );
+      for( String fqcn : sourceFilesToCompile )
       {
-        System.out.println( "Initial incremental compilation: compiling all " + sourceFiles.size() + " source files" );
-      }
-    }
-    else
-    {
-      sourceFiles = new ArrayList<>( sourceFilesToCompile );
-      if( options.isVerbose() )
-      {
-        System.out.println( "Incremental compilation: recompiling " + sourceFilesToCompile.size() + " source files" );
-        for( String fqcn : sourceFilesToCompile )
-        {
-          System.out.println( "  - " + fqcn );
-        }
+        System.out.println( "  - " + fqcn );
       }
     }
 
+    // Don't persist the graph on a threshold abort: the compile stopped early, so
+    // what was tracked is partial.
     boolean thresholdExceeded = compileFilteredSources( sourceFiles, options, driver );
-    if( !driver.hasErrors() )
+    if( !driver.hasErrors() && !thresholdExceeded )
     {
       File destDir = new File( options.getDestDir() );
       Set<String> effectivelyRemoved = new HashSet<>( removedTypes );
