@@ -104,6 +104,12 @@ public class GosuCompiler implements IGosuCompiler
     _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
                                                                         options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
 
+    // A missing dep file is the only signal meaning "compile everything", so a driver wanting a full
+    // rebuild must delete it -- supplying no -changed-types/-removed-types is not enough, as that is
+    // indistinguishable from an incremental round whose cascade came out empty, which must compile
+    // nothing. The Gradle plugin gets this for free by declaring the dep file an @OutputFile: Gradle
+    // deletes declared outputs before any non-incremental execution. Load-bearing: if the dep file
+    // ever stops being a task output, full rebuilds will silently compile nothing.
     if( !new File( options.getDependencyFile() ).exists() )
     {
       // First incremental compilation: compile all source files to build initial dependency file.
