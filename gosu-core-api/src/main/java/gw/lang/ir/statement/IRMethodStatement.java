@@ -8,6 +8,7 @@ import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureWriter;
 import gw.lang.UnstableAPI;
 import gw.lang.ir.IRAnnotation;
+import gw.lang.ir.IRClass;
 import gw.lang.ir.IRStatement;
 import gw.lang.ir.IRSymbol;
 import gw.lang.ir.IRType;
@@ -74,16 +75,7 @@ public class IRMethodStatement extends IRStatement {
           } else {
             types = new IType[] {boundingType};
           }
-          SignatureVisitor sv;
-          for(int i = types.length-1; i >= 0 ; i--) {
-            if( types[i].isInterface() ) {
-              sv = sw.visitInterfaceBound();
-            }
-            else {
-              sv = sw.visitClassBound();
-            }
-            SignatureUtil.visitType( sv, SignatureUtil.getPureGenericType(types[i]), bGeneric );
-          }
+          IRClass.emitBounds( sw, types, bGeneric );
         }
         else {
           SignatureVisitor sv = sw.visitClassBound();
