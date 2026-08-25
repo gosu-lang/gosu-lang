@@ -18,12 +18,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -666,5 +668,69 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo()  ).abiHash;
     //return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
     return true;
+  }
+
+  @Override
+  public Set<String> calculateRecompilationSet( Set<String> changedTypes, Set<String> removedTypes )
+  {
+    Set<String> toRecompile = new HashSet<>();
+    Set<String> visited = new HashSet<>();
+    Queue<String> worklist = new ArrayDeque<>();
+
+    // Seed the worklist with the union of changed and removed types.
+    for( String changedType : changedTypes )
+    {
+      if( !visited.contains( changedType ) )
+      {
+        visited.add( changedType );
+        worklist.add( changedType );
+      }
+    }
+    for( String removedType : removedTypes )
+    {
+      if( !visited.contains( removedType ) )
+      {
+        visited.add( removedType );
+        worklist.add( removedType );
+      }
+    }
+
+    /*
+      Note that the typeDependencies[X] give you all the types that consume/refer to X: if X is modified all types in
+      typeDependencies[X] must be recompiled.
+      This map reflects the status of the previously compiled .class files. The changedTypes/removedTypes are
+      referring to source code changes, not yet reflected on the .class files.
+      Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
+      to be recompiled.
+      Once the toRecompile files are recompiled, updateDependencyFile updates the dependency file to reflect the modified
+      dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
+    */
+    while( !worklist.isEmpty() )
+    {
+      String type = worklist.remove();
+
+      // Only add if it's a Gosu type (not a known local Java type, java types are already compiled) and
+      // it is not a removed type (no file to compile).
+      if( !localJavaTypes.contains( type ) && !removedTypes.contains( type ) )
+      {
+        toRecompile.add( type );
+      }
+
+      Set<String> consumers = getOrCreateConsumersFor( type );
+      for( String consumer : consumers )
+      {
+        if( !visited.contains( consumer ) )
+        {
+          visited.add( consumer );
+          worklist.add( consumer );
+        }
+      }
+    }
+
+    if( verbose )
+    {
+      System.out.println( "Recompiling: " + toRecompile );
+    }
+    return toRecompile;
   }
 }

@@ -68,4 +68,23 @@ public interface IIncrementalCompilationManager {
     // TODO doc
     boolean hasNewABI( String fqcn );
     String getClassFileName( IType type );
+
+    /**
+     * Compute the set of Gosu types that need to be recompiled given a set of changed
+     * and removed types.
+     * <p>
+     * Walks the reverse-dependency graph ({@code typeDependencies}) breadth-first starting
+     * from the union of changed and removed types, collecting every Gosu consumer reachable
+     * along the way. Java types in {@code localJavaTypes} are walked through to find their
+     * Gosu consumers but excluded from the result (gosuc cannot recompile Java sources).
+     * Removed types are excluded from the result themselves (their source files are gone),
+     * though their downstream consumers are not.
+     *
+     * @param changedTypes types whose source was modified; the changed types themselves
+     *                     (if Gosu) plus all transitive Gosu consumers are returned
+     * @param removedTypes types whose source was deleted; the removed types themselves
+     *                     are NOT returned, but their transitive Gosu consumers are
+     * @return the FQCNs of Gosu types that need recompilation
+     */
+    Set<String> calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes);
 }
