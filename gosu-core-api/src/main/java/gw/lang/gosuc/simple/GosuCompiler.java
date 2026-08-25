@@ -78,8 +78,8 @@ public class GosuCompiler implements IGosuCompiler
     return exts.toArray( new String[0] );
   }
 
-  private GosuInitialization _gosuInitialization;
-  private File _compilingSourceFile;
+  protected GosuInitialization _gosuInitialization;
+  protected File _compilingSourceFile;
   private ArrayList<IGosuClass> _compilingInnerClasses;
   private IIncrementalCompilationManager _incrementalManager;
 
@@ -106,7 +106,12 @@ public class GosuCompiler implements IGosuCompiler
 
     _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
                                                                         options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
-
+    // A missing dep file is the only signal meaning "compile everything", so a driver wanting a full
+    // rebuild must delete it -- supplying no -changed-types/-removed-types is not enough, as that is
+    // indistinguishable from an incremental round whose cascade came out empty, which must compile
+    // nothing. The Gradle plugin gets this for free by declaring the dep file an @OutputFile: Gradle
+    // deletes declared outputs before any non-incremental execution. Load-bearing: if the dep file
+    // ever stops being a task output, full rebuilds will silently compile nothing.
     if( !new File( options.getDependencyFile() ).exists() )
     {
       // First incremental compilation: compile all source files to build initial dependency file.
@@ -234,17 +239,17 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
-    if( options.isVerbose() )
-    {
+      if( options.isVerbose() )
+      {
       System.out.println( "Incremental compilation: recompiled " + sourceFilesCompiled.size() + " source files:" );
       for( String fqcn : sourceFilesCompiled )
-      {
-        System.out.println( "  - " + fqcn );
+        {
+          System.out.println( "  - " + fqcn );
+        }
       }
-    }
 
-    // Skip the dep-file write on any threshold abort: the loop exited early, so
-    // typeFqcnsToCompile is partial and persisting it would corrupt the graph. Leaves the prior dep file intact.
+    // Don't persist the graph on a threshold abort: the compile stopped early, so
+    // what was tracked is partial.
     if( !driver.hasErrors() && !thresholdExceeded )
     {
       File destDir = new File( options.getDestDir() );

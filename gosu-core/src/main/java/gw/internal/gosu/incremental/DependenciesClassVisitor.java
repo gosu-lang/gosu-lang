@@ -468,8 +468,8 @@ class DependenciesClassVisitor extends ClassVisitor
     }
 
     private void addDependentTypeFromBootstrapMethodArgument( Object arg )
-    {
-      if( arg instanceof Type )
+
+    {  if( arg instanceof Type )
       {
         maybeAddDependentType( (Type)arg );
       }

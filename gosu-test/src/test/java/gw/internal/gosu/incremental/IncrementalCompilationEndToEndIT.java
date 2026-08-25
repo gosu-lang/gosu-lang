@@ -2744,11 +2744,6 @@ public class IncrementalCompilationEndToEndIT
   @Test
   public void testRemovingLeafWithNoConsumersCompilesNothingWhenDepFileExists() throws Exception
   {
-    // Alpha and Beta are fully independent: neither references the other, and nothing references Beta.
-    // After the initial full compile the dep file EXISTS. Removing Beta yields an EMPTY recompile set --
-    // Beta is excluded as a removed type and has no consumers to cascade to. Because the dep file already
-    // exists, the driver takes the incremental path and must recompile NOTHING; it must NOT fall back to a
-    // full "compile all" rebuild.
     File alpha = createSourceFile( "example/Alpha.gs",
                                    "package example\n" +
                                    "\n" +
@@ -2801,7 +2796,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult incr = compileWithDeleted( Collections.emptyList(), Arrays.asList( beta ) );
     assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
 
-    // KEY assertion: nothing is recompiled. The old empty-set -> compile-all fallback would report 1 (Alpha).
+    // KEY assertion: nothing is recompiled.
     assertEquals( "Removing a leaf with no consumers must recompile nothing (no compile-all fallback)",
                   0, incr.filesCompiled );
 
@@ -2830,17 +2825,6 @@ public class IncrementalCompilationEndToEndIT
   @Test
   public void testChangedLocalJavaTypeCascadesToGosuConsumerButIsNotCompiled() throws Exception
   {
-    // A Gosu type references a same-module Java type. When that Java type is reported changed on an
-    // incremental build (and listed in -local-java-types), gosuc must recompile the Gosu consumer but must
-    // NOT attempt to compile the Java type (gosuc cannot compile Java), and must not fail.
-    //
-    // This exercises both halves of the local-Java-type handling:
-    //  - the manager records the edge DummyJava -> GosuConsumer only if shouldTrackType() accepts the Java
-    //    type via localJavaTypes (otherwise there is no edge, and the cascade below would not fire), and
-    //  - the driver excludes the changed Java type from the recompile set: it is seeded and cascaded
-    //    through, but never compiled, and does not throw on its absent .gs source.
-
-    // A fresh, same-module Java type compiled into its own classes dir (added to the classpath below).
     Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
     compileDummyJavaType( "com.example.DummyJava",
                           "package com.example;\n" +
@@ -2900,12 +2884,73 @@ public class IncrementalCompilationEndToEndIT
 
     assertTrue( "Incremental compile should succeed -- the Java type is excluded, its consumer recompiles: "
                 + incr.error, incr.success );
-    // If shouldTrackType had NOT recorded the edge, filesCompiled would be 0 (no cascade). If the driver had
-    // NOT excluded the Java type, it would throw on the type's absent .gs source (success == false).
+
     assertEquals( "Only the Gosu consumer should be recompiled -- not the Java type", 1, incr.filesCompiled );
     assertTrue( "Gosu consumer should be recompiled (its .class timestamp must advance)",
                 afterTimestamps.get( "GosuConsumer.class" ).toMillis()
                 > beforeTimestamps.get( "GosuConsumer.class" ).toMillis() );
+    assertFalse( "gosuc must not write a .class for the local Java type",
+                 Files.exists( dummyJavaClassInGosuOutput ) );
+  }
+
+
+  @Test
+  public void testChangedLocalJavaTypeDoesNotCascadesToGosuIndependent() throws Exception
+  {
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    compileDummyJavaType( "com.example.DummyJava",
+                          "package com.example;\n" +
+                          "public class DummyJava {\n" +
+                          "  public String hello() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+
+    // A Gosu consumer that references the Java type.
+    createSourceFile( "example/GosuIndipendent.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class GosuIndipendent {\n" +
+                      "  var _dummy : String = \"Hello\"\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.DummyJava" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+
+    // Initial compile builds the dep graph.
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    // Golden dep file.
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.GosuIndipendent\": {\n" +
+      "      \"abi_hash\": \"9485e29a93eb3c5236b9cfad393d45630e06ab84\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "After initial compile, the dep file should not record DummyJava -> [GosuIndipendent]",
+                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+
+    Path dummyJavaClassInGosuOutput = outputDir.resolve( "com/example/DummyJava.class" );
+    Map<String, FileTime> beforeTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.DummyJava" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+
+    assertTrue( "Incremental compile should succeed -- the Java type is excluded as well as GosuIndipendent: "
+                + incr.error, incr.success );
+
+    assertEquals( "No file is recompiled", 0, incr.filesCompiled );
+    assertEquals( "GosuIndipendent should not be recompiled", afterTimestamps.get( "GosuIndipendent.class" ).toMillis(),
+                  beforeTimestamps.get( "GosuIndipendent.class" ).toMillis() );
     assertFalse( "gosuc must not write a .class for the local Java type",
                  Files.exists( dummyJavaClassInGosuOutput ) );
   }

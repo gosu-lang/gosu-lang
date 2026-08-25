@@ -81,8 +81,7 @@ public class CommandLineOptions
    */
   public boolean isVerbose()
   {
-    // TODO: REVERT ME
-    return true;
+    return _verbose;
   }
 
   @Parameter(names = "-version", description = "Version information")
@@ -189,8 +188,8 @@ public class CommandLineOptions
   }
 
   public Set<String> getLocalJavaTypes()
-  {
-    if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
+
+  {  if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
     {
       return Collections.emptySet();
     }
