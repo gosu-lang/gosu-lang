@@ -405,6 +405,51 @@ public class IncrementalCompilationEndToEndIT
   }
 
   @Test
+  public void testGenericSignatureAsmVisitorParsing() throws Exception
+  {
+    File zclassA = createSourceFile( "example/zClassA.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class zClassA {}\n");
+    File ifaceA = createSourceFile( "example/IfaceA.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "interface IfaceA {}\n");
+    File ifaceB = createSourceFile( "example/IfaceB.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "interface IfaceB {}\n" );
+    File sig = createSourceFile( "example/Sig.gs",
+                                 "package example\n" +
+                                 "abstract class Sig <P extends IfaceB & zClassA & IfaceA> {\n" +
+                                 "\n" +
+                                 "}");
+
+
+    // Initial compilation
+    CompileResult initialResult = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed", initialResult.success );
+    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.IfaceA\": [\n" +
+      "      \"example.Sig\"\n" +
+      "    ],\n" +
+      "    \"example.IfaceB\": [\n" +
+      "      \"example.Sig\"\n" +
+      "    ],\n" +
+      "    \"example.Sig\": [],\n" +
+      "    \"example.zClassA\": [\n" +
+      "      \"example.Sig\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
+  }
+
+  @Test
   public void testSourceFileDeletionOnTypeRemoval() throws Exception
   {
     // Test that both .class and source files are deleted from output when types are removed
