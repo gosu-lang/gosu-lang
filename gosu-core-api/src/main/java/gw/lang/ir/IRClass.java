@@ -16,6 +16,7 @@ import gw.lang.reflect.java.JavaTypes;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 @UnstableAPI
 public class IRClass {
@@ -127,12 +128,27 @@ public class IRClass {
         if( boundingType != null ) {
           IType[] types;
           if( boundingType instanceof ICompoundType) {
-            types = ((ICompoundType) boundingType).getTypes().toArray(new IType[0]);
+            Set<IType> allTypes = ((ICompoundType) boundingType).getTypes();
+            // Sort allTypes so that the first element is a class type, followed by interface types.
+            // This is necessary to be JVM spec compliant, and it makes sure a SignatureReader will be
+            // able to parse the signature we are emitting.
+            ArrayList<IType> clsThenIfaces = new ArrayList<>();
+            for( IType typ : allTypes ) {
+              if( !typ.isInterface() ) {
+                clsThenIfaces.add( typ );
+              }
+            }
+            for( IType typ : allTypes ) {
+              if( typ.isInterface() ) {
+                clsThenIfaces.add( typ );
+              }
+            }
+            types = clsThenIfaces.toArray( new IType[0] );
           } else {
             types = new IType[] {boundingType};
           }
           SignatureVisitor sv;
-          for(int i = types.length-1; i >= 0 ; i--) {
+          for(int i = 0; i < types.length ; i++) {
             if( types[i].isInterface() ) {
               sv = sw.visitInterfaceBound();
             }
