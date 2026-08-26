@@ -407,10 +407,10 @@ public class IncrementalCompilationEndToEndIT
   @Test
   public void testGenericSignatureAsmVisitorParsing() throws Exception
   {
-    File classA = createSourceFile( "example/ClassA.gs",
+    File zclassA = createSourceFile( "example/zClassA.gs",
                                   "package example\n" +
                                   "\n" +
-                                  "class ClassA {}\n");
+                                  "class zClassA {}\n");
     File ifaceA = createSourceFile( "example/IfaceA.gs",
                                   "package example\n" +
                                   "\n" +
@@ -421,7 +421,7 @@ public class IncrementalCompilationEndToEndIT
                                   "interface IfaceB {}\n" );
     File sig = createSourceFile( "example/Sig.gs",
                                  "package example\n" +
-                                 "abstract class Sig <P extends IfaceA & ClassA & IfaceB> {\n" +
+                                 "abstract class Sig <P extends IfaceB & zClassA & IfaceA> {\n" +
                                  "\n" +
                                  "}");
 
@@ -434,16 +434,16 @@ public class IncrementalCompilationEndToEndIT
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"consumers\": {\n" +
-      "    \"example.ClassA\": [\n" +
-      "      \"example.Sig\"\n" +
-      "    ],\n" +
       "    \"example.IfaceA\": [\n" +
       "      \"example.Sig\"\n" +
       "    ],\n" +
       "    \"example.IfaceB\": [\n" +
       "      \"example.Sig\"\n" +
       "    ],\n" +
-      "    \"example.Sig\": []\n" +
+      "    \"example.Sig\": [],\n" +
+      "    \"example.zClassA\": [\n" +
+      "      \"example.Sig\"\n" +
+      "    ]\n" +
       "  }\n" +
       "}";
     assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );

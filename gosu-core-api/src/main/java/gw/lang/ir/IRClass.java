@@ -128,8 +128,9 @@ public class IRClass {
         if( boundingType != null ) {
           IType[] types;
           if( boundingType instanceof ICompoundType) {
+            // Note that internally getTypes() returns a SortedSet, so we can iterate allTypes deterministically.
             Set<IType> allTypes = ((ICompoundType) boundingType).getTypes();
-            // Sort allTypes so that the first element is a class type, followed by interface types.
+            // Order allTypes so that the first element is a class type, followed by interface types.
             // This is necessary to be JVM spec compliant, and it makes sure a SignatureReader will be
             // able to parse the signature we are emitting.
             ArrayList<IType> clsThenIfaces = new ArrayList<>();
