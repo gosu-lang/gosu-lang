@@ -66,6 +66,22 @@ public class TypeLordTest extends TestClass
   class GenRec extends GenA<GenRec>{}
 
   //=======================================================
+  // Generic classes whose type-variable bounds are themselves generic.
+  //=======================================================
+  static class BndLeaf{}
+  static class BndMid<T extends BndLeaf>{}
+  @SuppressWarnings("rawtypes")
+  static class BndOuter<T extends BndMid>{}
+  @SuppressWarnings("rawtypes")
+  static class BndTwoArg<A extends BndMid, B extends BndMid>{}
+  // Bounds that reference each other, so expanding them to a fixpoint has to terminate.
+  @SuppressWarnings("rawtypes")
+  static class BndMutA<T extends BndMutB>{}
+  @SuppressWarnings("rawtypes")
+  static class BndMutB<T extends BndMutA>{}
+  static class BndSelf<T extends BndSelf<T>>{}
+
+  //=======================================================
   // Generic interfaces and friends
   //=======================================================
   interface IGenA1<T>{}
@@ -423,6 +439,86 @@ public class TypeLordTest extends TestClass
     IType pureList = JavaTypes.LIST();
     IType listOfString = pureList.getParameterizedType(JavaTypes.STRING());
     assertEquals(JavaTypes.LIST().getParameterizedType(JavaTypes.OBJECT()), TypeLord.findLeastUpperBound(Arrays.asList(pureList, listOfString)));
+  }
+
+  //=======================================================
+  // makeDefaultParameterizedType expands bounds to a fixpoint
+  //=======================================================
+
+  /**
+   * {@code BndOuter<T extends BndMid>} where {@code BndMid<T extends BndLeaf>} is generic in
+   * turn. Adopting the bound as-is -- which is what makeDefaultParameterizedType used to do --
+   * yields {@code BndOuter<BndMid>} when BndMid had not been expanded yet and
+   * {@code BndOuter<BndMid<BndLeaf>>} when it had, so the depth of the result depended on the
+   * order sources happened to be compiled in.
+   */
+  public void testDefaultParameterizationExpandsAGenericBoundInsteadOfLeavingItRaw()
+  {
+    IType def = TypeLord.makeDefaultParameterizedType( TypeSystem.get( BndOuter.class ) );
+
+    assertTrue( def.isParameterizedType() );
+    IType arg = def.getTypeParameters()[0];
+    assertEquals( TypeSystem.get( BndMid.class ), TypeLord.getPureGenericType( arg ) );
+    assertTrue( "the bound BndMid is itself generic and must not be left raw, but was: " + arg.getName(),
+                arg.isParameterizedType() );
+    assertEquals( TypeSystem.get( BndLeaf.class ), arg.getTypeParameters()[0] );
+  }
+
+  /**
+   * The invariant that makes the result a pure function of the declarations rather than of
+   * compile order: every type argument of a default parameterization is itself already in
+   * default-parameterized form, so expanding it again is a no-op.
+   */
+  public void testDefaultParameterizationIsClosedOverItsTypeArguments()
+  {
+    IType def = TypeLord.makeDefaultParameterizedType( TypeSystem.get( BndOuter.class ) );
+    for( IType arg: def.getTypeParameters() )
+    {
+      assertEquals( "type argument " + arg.getName() + " is not itself in default-parameterized form",
+                    arg, TypeLord.makeDefaultParameterizedType( arg ) );
+    }
+  }
+
+  /**
+   * {@code BndTwoArg<A extends BndMid, B extends BndMid>} -- both arguments must expand the
+   * same way. The cycle guard is a path set rather than an accumulating visited set precisely
+   * so that this holds: with the latter the second occurrence of BndMid would be treated as
+   * already seen and collapse to raw, which would just relocate the order dependence.
+   */
+  public void testSiblingTypeArgumentsSharingABoundExpandIdentically()
+  {
+    IType def = TypeLord.makeDefaultParameterizedType( TypeSystem.get( BndTwoArg.class ) );
+
+    IType[] args = def.getTypeParameters();
+    assertEquals( 2, args.length );
+    assertTrue( "expected the shared bound to be expanded, but got: " + args[0].getName(),
+                args[0].isParameterizedType() );
+    assertEquals( args[0], args[1] );
+  }
+
+  /**
+   * {@code BndMutA<T extends BndMutB>} and {@code BndMutB<T extends BndMutA>}. Expanding bounds
+   * to a fixpoint has to stop somewhere; the type that closes the cycle is left raw. Reaching
+   * the assertions at all is most of what this test checks.
+   */
+  public void testMutuallyRecursiveBoundsTerminate()
+  {
+    IType a = TypeLord.makeDefaultParameterizedType( TypeSystem.get( BndMutA.class ) );
+    IType b = TypeLord.makeDefaultParameterizedType( TypeSystem.get( BndMutB.class ) );
+
+    assertEquals( TypeSystem.get( BndMutA.class ), TypeLord.getPureGenericType( a ) );
+    assertEquals( TypeSystem.get( BndMutB.class ), TypeLord.getPureGenericType( b ) );
+  }
+
+  /**
+   * {@code BndSelf<T extends BndSelf<T>>} still bails out to the raw type through
+   * isRecursiveType. That check is unchanged by the fixpoint expansion, only moved ahead of
+   * the recursive call so it guards it.
+   */
+  public void testSelfRecursiveBoundIsStillLeftRaw()
+  {
+    IType self = TypeSystem.get( BndSelf.class );
+    assertEquals( self, TypeLord.makeDefaultParameterizedType( self ) );
   }
 
   public List<? extends String> returnsListOfString()

@@ -1265,6 +1265,24 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return null;
     }
+    else if( typeToCoerceTo instanceof ITypeVariableArrayType )
+    {
+      return RuntimeCoercer.instance();
+    }
+    else if( typeToCoerceTo instanceof ITypeVariableType )
+    {
+      // Decided before the equals() test below on purpose. ITypeVariableType.equals() is not
+      // equality, it delegates to isAssignableFrom(), and type variable instances are not
+      // canonical -- the header is re-parsed per compile phase and a fresh instance is made each
+      // time (see the note on TypeVariableType.equals). Two instances of the *same* function's
+      // type variable can therefore compare unequal because their enclosing IFunctionType's
+      // param signatures differ, and which instance is reached depends on what was compiled
+      // first. Asking that question here made `x as T` compile to a null coercer in one source
+      // order and TypeVariableCoercer in another. Coercing to a type variable is what
+      // TypeVariableCoercer is for, and it is a no-op at runtime when the value is already
+      // assignable, so answer it directly instead.
+      return TypeVariableCoercer.instance();
+    }
     else if( typeToCoerceTo.equals( typeToCoerceFrom ) )
     {
       return null;
@@ -1272,14 +1290,6 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     else if( typeToCoerceTo instanceof IErrorType || typeToCoerceFrom instanceof IErrorType )
     {
       return null;
-    }
-    else if( typeToCoerceTo instanceof ITypeVariableArrayType )
-    {
-      return RuntimeCoercer.instance();
-    }
-    else if( typeToCoerceTo instanceof ITypeVariableType )
-    {
-      return TypeVariableCoercer.instance();
     }
     else if( typeToCoerceTo.isAssignableFrom( typeToCoerceFrom ) && (!typeToCoerceFrom.isGenericType() || typeToCoerceFrom.isParameterizedType()) )
     {

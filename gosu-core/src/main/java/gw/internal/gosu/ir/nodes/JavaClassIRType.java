@@ -20,6 +20,7 @@ import gw.lang.reflect.java.IJavaType;
 import gw.util.GosuClassUtil;
 
 import gw.util.Array;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -221,20 +222,50 @@ public class JavaClassIRType implements IJavaClassIRType {
     if (otherType instanceof JavaClassIRType) {
       return _class.isAssignableFrom(((JavaClassIRType) otherType)._class);
     } else if (otherType instanceof GosuClassIRType) {
-      Set<? extends IType> allTypesInHierarchy = ((GosuClassIRType)otherType).getType().getAllTypesInHierarchy();
-      for (IType hierarchyType : allTypesInHierarchy) {
+      IType gosuType = ((GosuClassIRType)otherType).getType();
+      for (IType hierarchyType : gosuType.getAllTypesInHierarchy()) {
         IJavaClassInfo javaClassForType = resolveJavaClassForType(hierarchyType);
         if (javaClassForType != null && javaClassForType.getName().equals(_class.getName())) {
           return true;
         }
       }
 
-      return false;
+      // Missing it above does not mean "not assignable". getAllTypesInHierarchy() is populated
+      // lazily, and when a Gosu class is compiled after its Gosu supertype it can come back
+      // holding only the Gosu links of the chain -- every Java ancestor absent -- even though the
+      // supertype chain itself resolves all the way down. Whether that happens depends on the
+      // order sources were compiled in, and a spurious false here makes the caller emit a
+      // checkcast that the same compile in a different order omits. Walking the chain resolves
+      // each link on demand, so it answers the same way regardless of what has been cached.
+      return isJavaAncestorOf(gosuType, new HashSet<IType>());
     } else if (otherType instanceof SyntheticIRType) {
       return _class.isAssignableFrom(TypeSystem.getJavaClassInfo(((SyntheticIRType) otherType).getSuperClass(), TypeSystem.getGlobalModule()));
     } else {
       return false;
     }
+  }
+
+  /**
+   * True if this IRType's Java class appears in {@code type}'s supertype/interface graph. Unlike
+   * getAllTypesInHierarchy() this walks the links directly, resolving each on demand.
+   */
+  private boolean isJavaAncestorOf( IType type, Set<IType> visited ) {
+    while( type != null && visited.add( type ) ) {
+      IJavaClassInfo javaClassForType = resolveJavaClassForType( type );
+      if( javaClassForType != null && javaClassForType.getName().equals( _class.getName() ) ) {
+        return true;
+      }
+      IType[] interfaces = type.getInterfaces();
+      if( interfaces != null ) {
+        for( IType iface : interfaces ) {
+          if( isJavaAncestorOf( iface, visited ) ) {
+            return true;
+          }
+        }
+      }
+      type = type.getSupertype();
+    }
+    return false;
   }
 
   private IJavaClassInfo resolveJavaClassForType( IType hierarchyType ) {

@@ -1343,6 +1343,30 @@ public class TypeLord
 
   public static IType makeDefaultParameterizedType( IType type )
   {
+    return makeDefaultParameterizedType( type, new HashSet<IType>() );
+  }
+
+  /**
+   * Parameterize {@code type} with the bounding types of its type variables.
+   *
+   * <p>The bounds are themselves expanded to a fixpoint. Taking a bound as-is -- which is what
+   * this method used to do -- makes the depth of the resulting parameterization depend on
+   * whatever expansion state that bound happened to already be in, and that state is a function
+   * of the order in which sources were compiled. Given
+   * {@code class AccountContactsCoreResource<P extends AccountCoreResource>} where
+   * {@code AccountCoreResource<P extends AccountsCoreResource>} is generic in turn, the result
+   * was {@code AccountContactsCoreResource<AccountCoreResource>} when AccountCoreResource had
+   * not been expanded yet and {@code AccountContactsCoreResource<AccountCoreResource<AccountsCoreResource>>}
+   * when it had. Expanding the bound here makes the result a pure function of the declarations.
+   *
+   * @param expanding the types currently being expanded on this path, guarding against a bound
+   *                  that reaches back through the type being expanded. It is a path set, not an
+   *                  accumulating visited set: an entry is removed once its subtree is done, so
+   *                  that two sibling type arguments sharing a type both expand the same way
+   *                  rather than the second one collapsing to raw.
+   */
+  private static IType makeDefaultParameterizedType( IType type, Set<IType> expanding )
+  {
     if( type != null && !(type instanceof IGosuEnhancementInternal) &&
         !type.isParameterizedType() && type.isGenericType() )
     {
@@ -1351,24 +1375,39 @@ public class TypeLord
         return MetaType.DEFAULT_TYPE_TYPE.get();
       }
 
-      IType[] boundingTypes = new IType[type.getGenericTypeVariables().length];
-      for( int i = 0; i < boundingTypes.length; i++ )
-      {
-        boundingTypes[i] = type.getGenericTypeVariables()[i].getBoundingType();
-
-        IGenericTypeVariable typeVar = type.getGenericTypeVariables()[i];
-        if( TypeLord.isRecursiveType( typeVar.getTypeVariableDefinition().getType(), typeVar.getBoundingType() ) )
-        {
-          return type;
-        }
-      }
-
-      if( boundingTypes.length == 0 )
+      IGenericTypeVariable[] typeVars = type.getGenericTypeVariables();
+      if( typeVars.length == 0 )
       {
         return type;
       }
 
-      type = type.getParameterizedType( boundingTypes );
+      if( !expanding.add( type ) )
+      {
+        // A bound cycles back through this type e.g., class C<T extends D<C>>. Bail to the raw
+        // type, matching the isRecursiveType behavior below.
+        return type;
+      }
+
+      IType rawType = type;
+      try
+      {
+        IType[] boundingTypes = new IType[typeVars.length];
+        for( int i = 0; i < typeVars.length; i++ )
+        {
+          IGenericTypeVariable typeVar = typeVars[i];
+          if( TypeLord.isRecursiveType( typeVar.getTypeVariableDefinition().getType(), typeVar.getBoundingType() ) )
+          {
+            return rawType;
+          }
+          boundingTypes[i] = makeDefaultParameterizedType( typeVar.getBoundingType(), expanding );
+        }
+
+        type = type.getParameterizedType( boundingTypes );
+      }
+      finally
+      {
+        expanding.remove( rawType );
+      }
     }
     return type;
   }
