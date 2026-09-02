@@ -70,9 +70,9 @@ entire surface the Gradle plugin drives:
 | `-incremental` | `boolean _incremental` | Enables the incremental path. Absent ⇒ compile all sources (unchanged legacy behavior). |
 | `-dependency-file <path>` | `String _dependencyFile` | Path to the dependency file. **Default `.gosuc-deps.json`**; the plugin passes `build/tmp/gosuc-deps-{taskName}.json`. |
 | `-changed-types <fqcns>` | `String _changedTypes` | Path-separator-delimited FQCNs (Java **and** Gosu) whose source changed. Exposed as `Set<String> getChangedTypes()`. |
-| `-removed-types <fqcns>` | `String _removedTypes` | Path-separator-delimited FQCNs whose source was deleted. Exposed as `Set<String> getRemovedTypes()`. |
+| `-removed-types <fqcns>` | `String _removedTypes` | Path-separator-delimited FQCNs whose source was deleted. Exposed as `Set<String> getRemovedTypes()`. **May overlap `-changed-types` as supplied** — a source deleted and re-added inside one change window is reported as both — and the driver makes the two disjoint before use (§5). |
 | `-local-java-types <fqcns>` | `String _localJavaTypes` | Path-separator-delimited FQCNs of **same-module Java types** (the plugin populates this by scanning `build/classes/java/main`). Exposed as `List<String> getLocalJavaTypes()`. |
-| `-verbose` | `boolean _verbose` | Diagnostic logging throughout the incremental path. |
+| `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path. Not every step honors it: stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
 
 Delimiter is `File.pathSeparator` throughout; empty/blank strings parse to empty
 collections.
@@ -117,8 +117,16 @@ everything (this is the pre-existing behavior, now factored into a helper).
    passing the dep-file path, source roots, `-local-java-types`, the full source
    list, and the verbose flag. Construction **loads** the existing dep file into the
    in-memory `typeDependencies` graph and builds the `fqcn → source path` index.
-3. **Compute the recompile set**:
+3. **Make the change sets disjoint, then compute the recompile set.** A type can be
+   reported as both changed and removed — a source deleted and re-added inside one
+   change window looks exactly like that — so `removedTypes.removeAll(changedTypes)`
+   runs first: if the source is present now, "changed" wins. Then
    `typeFqcnsToCompile = calculateRecompilationSet(changedTypes, removedTypes)` (§7).
+
+   The filter is applied once and both consumers see the filtered set —
+   `calculateRecompilationSet` here, and `effectivelyRemoved` at step 8. Without it a
+   re-added type would be excluded from `toRecompile` (§7), have its outputs deleted at
+   step 4 and never regenerated, *and* lose its producer entry at step 8.
 4. **Delete stale outputs** for `removedTypes ∪ typeFqcnsToCompile` **before**
    compiling (`deleteClassAndSourceFiles`, §8). This is explicitly
    **non-transactional** — a code TODO notes that a compile failure after deletion
@@ -290,7 +298,10 @@ Key properties:
   excluded from `toRecompile` — gosuc cannot recompile Java sources; `compileJava`
   already did.
 - **Removed types cascade but aren't compiled.** Their source is gone, so they are
-  excluded from `toRecompile`, but their downstream consumers still cascade.
+  excluded from `toRecompile`, but their downstream consumers still cascade. This rests
+  on `removedTypes` being accurate: a type still present on disk but reported removed
+  would be skipped by the `X ∉ removedTypes` test and never rebuilt, which is why the
+  driver subtracts `changedTypes` from `removedTypes` before calling in (§5).
 - **Invariant that keeps the lookup null-safe.** `typeDependencies[X]` is iterated
   without a null guard. This is safe because every compiled type is registered as a
   key (§6.1), so every consumer FQCN reachable in the graph is also a key; seeds are
@@ -307,8 +318,7 @@ typeFqcnsToCompile`:
 - the **source copy** — gosuc packages `.gs*` sources alongside `.class` files in the
   output dir, so any stale source copy is removed too. Because the original
   extension isn't recoverable from an FQCN, deletion is attempted for **all** known
-  Gosu extensions (`.gs .gsx .gsp .gst .gr .grs`); `File.delete()` is a no-op on
-  absent files.
+  Gosu extensions (`.gs .gsx .gsp .gst .gr .grs`); those not present are skipped.
 
 There is **no per-FQCN `$*.class` glob**. Nested compiled units are cleaned because
 the BFS already pulls every nested FQCN into `typeFqcnsToCompile` (bidirectional
@@ -385,6 +395,25 @@ at construction from the full source list, keyed on outermost FQCN). On a miss i
 strips trailing `$…` segments and retries, so `example.Outer$Inner` and
 `example.Outer$Anon__0$block_0_` both resolve to `Outer.gs`. Returns `null` for
 anything not a known local Gosu source.
+
+**Producer keys are erased FQCNs.** `getClassFileName` replaces a parameterized type
+with its generic type before walking the enclosing-type chain, so no key ever carries
+type arguments. A key is only ever matched against `.class` artifacts and against the
+FQCNs in `-changed-types`, and a parameterized name matches neither — but the two
+failure modes differ, and the `$`-stripping above is what makes one of them silent:
+
+- a parameterized **nested** type, `example.Outer$Inner<String>`, has a `$`, so the
+  retry loop strips it and resolves `example.Outer`. `shouldTrackType` returns *true*
+  and the edge is recorded under a key that can never fire.
+- a parameterized **top-level** type, `example.Box<example.Leaf>`, has no `$` to strip.
+  The lookup fails, `shouldTrackType` returns false, and the edge is dropped with no
+  trace — losing dependencies for every type literal that resolves to a generic type.
+
+Erasing at the top of `getClassFileName` covers both, and because the erasure precedes
+the recursion it applies to a parameterized *enclosing* type as well. It is also the
+only step needed: a parameterized type is itself an `IJavaType`/`IGosuClass`, so it
+reaches `getClassFileName` on its own and no separate descent into its generic type is
+required to record the link.
 
 Source roots and candidate paths are canonicalized (`toAbsolutePath().normalize()`)
 so lookups don't depend on how the caller spelled a path. `buildGosuFqcnToSourcePath`

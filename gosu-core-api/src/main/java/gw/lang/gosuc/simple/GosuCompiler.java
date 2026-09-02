@@ -136,6 +136,9 @@ public class GosuCompiler implements IGosuCompiler
     Set<String> changedTypes = options.getChangedTypes();
     Set<String> removedTypes = options.getRemovedTypes();
 
+    // changedTypes and removedTypes must be disjoint: filter out from removedTypes, types
+    // that are recorded as BOTH removed and changed
+    removedTypes.removeAll( changedTypes );
     // Calculate types that need recompilation (returns FQCNs)
     Set<String> typeFqcnsToCompile = _incrementalManager.calculateRecompilationSet(
       changedTypes, removedTypes );
@@ -145,7 +148,7 @@ public class GosuCompiler implements IGosuCompiler
     toDelete.addAll( typeFqcnsToCompile );
     // TODO: Non-transactional: deletion happens before the compiler runs. If compile then fails, the deleted
     // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
-    deleteClassAndSourceFiles( toDelete, options.getDestDir(), options.isVerbose() );
+    deleteClassAndSourceFiles( toDelete, options.getDestDir() );
 
     Set<String> sourceFilesToCompile = new HashSet<>();
 
@@ -430,17 +433,16 @@ public class GosuCompiler implements IGosuCompiler
    *
    * @param fqcns   FQCNs whose outputs should be deleted
    * @param destDir output directory (e.g. {@code build/classes/gosu/main})
-   * @param verbose if true, log each deletion
    */
-  private void deleteClassAndSourceFiles( Set<String> fqcns, String destDir, boolean verbose )
+  private void deleteClassAndSourceFiles( Set<String> fqcns, String destDir )
   {
     if( !fqcns.isEmpty() && destDir != null && !destDir.isEmpty() )
     {
       File dest = new File( destDir );
       for( String fqcn : fqcns )
       {
-        deleteClassFile( fqcn, dest, verbose );
-        deleteSourceFile( fqcn, dest, verbose );
+        deleteIfPresent( classFileFor( dest, fqcn ) );
+        deleteSourceFile( fqcn, dest );
       }
     }
   }
@@ -457,41 +459,16 @@ public class GosuCompiler implements IGosuCompiler
   }
 
   /**
-   * Delete the .class file for the given type.
+   * Delete {@code file} if it is there, warning if the deletion itself fails.
    *
-   * @param fqcn      The fully-qualified class name of the type to clean up
-   * @param outputDir The output directory containing compiled .class files
-   * @param verbose   Whether to log deletion operations
+   * @param file the file to delete
    */
-  private void deleteClassFile( String fqcn, File outputDir, boolean verbose )
+  private static void deleteIfPresent( File file )
   {
-    File mainClassFile = classFileFor( outputDir, fqcn );
-
-    if( verbose )
+    // delete() also returns false for a file that was never there, so exists() is needed.
+    if( file.exists() && !file.delete() )
     {
-      System.out.println( "Attempting to delete class file for removed type: " + fqcn );
-      System.out.println( "  Output dir: " + outputDir );
-      System.out.println( "  Target file: " + mainClassFile );
-      System.out.println( "  File exists: " + mainClassFile.exists() );
-    }
-
-    if( mainClassFile.exists() )
-    {
-      if( mainClassFile.delete() )
-      {
-        if( verbose )
-        {
-          System.out.println( "Deleted stale class file: " + mainClassFile );
-        }
-      }
-      else
-      {
-        System.err.println( "Warning: Failed to delete class file: " + mainClassFile );
-      }
-    }
-    else if( verbose )
-    {
-      System.out.println( "Class file does not exist (may have already been deleted): " + mainClassFile );
+      System.err.println( "Warning: Failed to delete file: " + file );
     }
   }
 
@@ -501,49 +478,19 @@ public class GosuCompiler implements IGosuCompiler
    * <p>
    * Since there's no way to determine which extension a FQCN originally had
    * (could be .gs, .gr, .grs, .gst, .gsp, or .gsx), we attempt deletion for
-   * all known Gosu extensions. File.delete() is safe for non-existent files.
+   * all known Gosu extensions; the ones that aren't there are skipped.
    *
    * @param fqcn      The fully qualified name of the type
    * @param outputDir The output directory containing source files
-   * @param verbose   Whether to log deletion operations
    */
-  private void deleteSourceFile( String fqcn, File outputDir, boolean verbose )
-  {
-    // Use official list from GosuClassTypeLoader: .gs, .gsx, .gsp, .gst, .gr, .grs
-    String[] extensions = gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS;
-
-    for( String extension : extensions )
-    {
-      deleteSourceFile( fqcn, extension, outputDir, verbose );
-    }
-  }
-
-  /**
-   * Deletes a specific source file from the output directory.
-   *
-   * @param fqcn      The fully qualified name of the type
-   * @param extension The file extension (e.g., ".gs", ".gr", etc.)
-   * @param outputDir The output directory
-   * @param verbose   Whether to log deletion operations
-   */
-  private void deleteSourceFile( String fqcn, String extension, File outputDir, boolean verbose )
+  private static void deleteSourceFile( String fqcn, File outputDir )
   {
     String relativePath = fqcn.replace( '.', File.separatorChar );
-    File sourceFile = new File( outputDir, relativePath + extension );
 
-    if( sourceFile.exists() )
+    // Use official list from GosuClassTypeLoader: .gs, .gsx, .gsp, .gst, .gr, .grs
+    for( String extension : gw.lang.reflect.gs.GosuClassTypeLoader.ALL_EXTS )
     {
-      if( sourceFile.delete() )
-      {
-        if( verbose )
-        {
-          System.out.println( "Deleted stale source file: " + sourceFile );
-        }
-      }
-      else
-      {
-        System.err.println( "Warning: Failed to delete source file: " + sourceFile );
-      }
+      deleteIfPresent( new File( outputDir, relativePath + extension ) );
     }
   }
 
