@@ -6,10 +6,13 @@ package gw.internal.gosu.parser;
 
 import gw.config.CommonServices;
 import gw.lang.parser.StandardCoercionManager;
+import gw.lang.parser.coercers.TypeVariableCoercer;
 import gw.lang.parser.exceptions.ParseResultsException;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.ReflectUtil;
 import gw.lang.reflect.TypeSystem;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuObject;
 import gw.lang.reflect.java.JavaTypes;
 import gw.test.TestClass;
@@ -20,6 +23,7 @@ import junit.framework.Assert;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -576,4 +580,78 @@ public class StandardCoercionManagerTest extends TestClass
     }
   }
 
+  //=======================================================
+  // Coercing to a type variable (order-dependence regression)
+  //=======================================================
+
+  /** The {@code E} of {@code java.util.List<E>}, as an {@link ITypeVariableType}. */
+  private static IType listTypeVariable()
+  {
+    IType typeVar = JavaTypes.LIST().getGenericTypeVariables()[0].getTypeVariableDefinition().getType();
+    assertTrue( "expected a type variable type, got " + typeVar.getClass().getName(),
+                typeVar instanceof ITypeVariableType );
+    return typeVar;
+  }
+
+  /**
+   * Baseline: coercing to a type variable resolves to {@link TypeVariableCoercer}.
+   */
+  public void testCoercingToATypeVariableResolvesToTypeVariableCoercer()
+  {
+    assertSame( TypeVariableCoercer.instance(),
+                CommonServices.getCoercionManager().resolveCoercerStatically( listTypeVariable(), JavaTypes.STRING() ) );
+  }
+
+  /**
+   * <p>{@code TypeVariableType.equals} concedes the reason in its own javadoc -- "By all rights type
+   * variable types should have identity equality. That's not the case right now ... We compile in
+   * multiple phases (header, decl, def). Each phase recompiles the header, including type vars. Each
+   * time a new type var type is created for the type var definition."
+   *
+   * <p>Two separately constructed instances of {@code List}'s {@code E} reproduce that without needing a
+   * compile: not identical, so the identity fast path cannot answer, but {@code equals()} reports them
+   * interchangeable -- so whichever of {@code equals()} and the {@code ITypeVariableType} check runs
+   * first decides the result.
+   */
+  public void testCoercingBetweenTwoNonCanonicalInstancesOfTheSameTypeVariableResolvesToTypeVariableCoercer()
+  {
+    IType listType = JavaTypes.LIST();
+    IGenericTypeVariable typeVar = listType.getGenericTypeVariables()[0];
+
+    IType first = new TypeVariableType( listType, typeVar );
+    IType second = new TypeVariableType( listType, typeVar );
+
+    // Preconditions. Without both of these the assertion below would hold whatever the branch order is,
+    // and the test would pass vacuously.
+    assertNotSame( "the two instances must be distinct, or the identity fast path answers before either" +
+                   " branch is reached", first, second );
+    assertTrue( "equals() must report the two instances interchangeable, or the equals() test falls" +
+                " through and the branch order stops mattering", first.equals( second ) );
+
+    assertSame( "coercing between two instances of the same type variable must still yield a coercer:" +
+                " the choice must not be routed through ITypeVariableType.equals()",
+                TypeVariableCoercer.instance(),
+                CommonServices.getCoercionManager().resolveCoercerStatically( first, second ) );
+  }
+
+
+  public void testCoercingToATypeVariableFromACompoundContainingItResolvesToTypeVariableCoercer()
+  {
+    IType typeVar = listTypeVariable();
+    IType compound = CompoundType.get( typeVar, TypeSystem.get( Date.class ) );
+
+    assertSame( "T & Date -> T must not depend on ITypeVariableType.equals()",
+                TypeVariableCoercer.instance(),
+                CommonServices.getCoercionManager().resolveCoercerStatically( typeVar, compound ) );
+  }
+
+  /**
+   * The identity fast path is checked before the type variable branch and must still win, so a
+   * genuinely no-op coercion does not start emitting a coercer call.
+   */
+  public void testCoercingATypeVariableToItselfNeedsNoCoercer()
+  {
+    IType typeVar = listTypeVariable();
+    assertNull( CommonServices.getCoercionManager().resolveCoercerStatically( typeVar, typeVar ) );
+  }
 }
