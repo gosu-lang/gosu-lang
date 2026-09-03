@@ -15,6 +15,7 @@ import com.sun.source.tree.ReturnTree;
 //import com.sun.source.tree.UsesTree;
 import com.sun.source.tree.UsesTree;
 import com.sun.source.util.DocTrees;
+import com.sun.source.util.SimpleTreeVisitor;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
@@ -27,7 +28,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 
 
-public class GosuVisitor implements TreeVisitor<String, Object>
+public class GosuVisitor extends SimpleTreeVisitor<String, Object>
 {
   private DocTrees _docTrees;
   private CompilationUnitTree _compilationUnit;
