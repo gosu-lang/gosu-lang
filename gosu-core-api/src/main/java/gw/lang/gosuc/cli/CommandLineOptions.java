@@ -4,8 +4,6 @@ import gw.internal.ext.com.beust.jcommander.Parameter;
 import gw.internal.ext.com.beust.jcommander.validators.PositiveInteger;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -163,9 +161,9 @@ public class CommandLineOptions
   {
     if( typeList == null || typeList.trim().isEmpty() )
     {
-      return Collections.emptySet();
+      return new LinkedHashSet<>();
     }
-    HashSet<String> types = new LinkedHashSet<>();
+    LinkedHashSet<String> types = new LinkedHashSet<>();
     for( String type : typeList.split( java.io.File.pathSeparator ) )
     {
       String trimmed = type.trim();
@@ -189,11 +187,12 @@ public class CommandLineOptions
 
   public Set<String> getLocalJavaTypes()
 
-  {  if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
+  {
+    if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
     {
-      return Collections.emptySet();
+      return new LinkedHashSet<>();
     }
-    Set<String> types = new HashSet<>();
+    LinkedHashSet<String> types = new LinkedHashSet<>();
     for( String type : _localJavaTypes.split( java.io.File.pathSeparator ) )
     {
       String trimmed = type.trim();

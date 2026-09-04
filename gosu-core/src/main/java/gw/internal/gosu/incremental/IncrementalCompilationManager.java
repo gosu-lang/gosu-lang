@@ -111,8 +111,11 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * {@code .class} filenames, with {@code $} as the separator between an enclosing
    * type and a nested one. For top-level types this is just the type's name.
    *
-   * <p>Defined as a structural recurrence on the enclosing-type chain:
+   * <p>Defined as a structural recurrence on the enclosing-type chain, over the type's
+   * <i>erasure</i>:
    * <ul>
+   *   <li>a parameterized type is first replaced by its generic type, so that no type
+   *       arguments reach the result;</li>
    *   <li>if {@code type} is top-level (no enclosing type), the result is
    *       {@code type.getName()};</li>
    *   <li>otherwise, the result is {@code getClassFileName(enclosing) + "$" +
@@ -123,15 +126,32 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * <ul>
    *   <li>top-level: {@code example.Outer} -&gt; {@code "example.Outer"}</li>
    *   <li>member class: {@code example.Outer.Inner} -&gt; {@code "example.Outer$Inner"}</li>
+   *   <li>parameterized: {@code example.Outer.Inner<String>} -&gt;
+   *       {@code "example.Outer$Inner"}</li>
    *   <li>nested block: {@code Outer.AnonymouS__0.block_0_} -&gt;
    *       {@code "example.Outer$AnonymouS__0$block_0_"}</li>
    * </ul>
    * <p>
    * Used as the FQCN shape stored in the dep graph so dep-file keys match
    * {@code .class} artifacts.
+   *
+   * <p>The erasure step is what makes those keys usable. A key is matched against
+   * {@code .class} artifacts and against the FQCNs passed in {@code -changed-types}, and a
+   * parameterized name matches neither. Without it, {@code getRelativeName()} of a
+   * parameterized nested type carries its type arguments and the key came out as
+   * {@code "example.Outer$Inner<String>"}; {@link #shouldTrackType} accepted that, because
+   * {@link #getGosuFilePathFromFqcn} strips at the last {@code $} and resolves the enclosing
+   * class, so the edge was recorded under a key that could never fire. For a parameterized
+   * <i>top-level</i> type there is no {@code $} to strip, the lookup failed outright, and the
+   * edge was dropped without a trace -- silently losing dependencies for every type literal
+   * that resolved to a generic type.
    */
   public String getClassFileName( IType type )
   {
+    if( type.isParameterizedType() )
+    {
+      type = type.getGenericType();
+    }
     IType enclosing = type.getEnclosingType();
     if( enclosing == null )
     {

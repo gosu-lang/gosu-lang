@@ -405,6 +405,166 @@ public class IncrementalCompilationEndToEndIT
   }
 
   @Test
+  public void testIncrementalCompilationWithDeletedAndReAddedFile() throws Exception
+  {
+    // Create files with dependencies
+    File util = createSourceFile( "example/StringUtil.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class StringUtil {\n" +
+                                  "  static function capitalize(s : String) : String {\n" +
+                                  "    return s?.substring(0, 1).toUpperCase() + s?.substring(1)\n" +
+                                  "  }\n" +
+                                  "}"
+    );
+
+    File consumer = createSourceFile( "example/Consumer.gs",
+                                       "package example\n" +
+                                       "\n" +
+                                       "class Consumer {\n" +
+                                       "  function formatName(name : String) : String {\n" +
+                                       "    return StringUtil.capitalize(name)\n" +
+                                       "  }\n" +
+                                       "}"
+    );
+
+
+
+    // Initial compilation
+    CompileResult initialResult = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed", initialResult.success );
+
+    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"47360ef5571a70d2ef31dea6dfa6b53c0f5220c9\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.StringUtil\": {\n" +
+      "      \"abi_hash\": \"377aed35ca0115545f6741e82fe9751092f7b7bd\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    // Delete StringUtil
+    Files.delete( util.toPath() );
+    Path utilClassFile = outputDir.resolve( "example/StringUtil.class" );
+    assertTrue( "StringUtil.class should exist before the incremental compile", Files.exists( utilClassFile ) );
+
+    util = createSourceFile( "example/StringUtil.gs",
+                             "package example\n" +
+                             "\n" +
+                             "class StringUtil {\n" +
+                             "  static function foo(s : String) : String { return \"foo\" }\n" +
+                             "  static function capitalize(s : String) : String {\n" +
+                             "    return s?.substring(0, 1).toUpperCase() + s?.substring(1)\n" +
+                             "  }\n" +
+                             "}"
+    );
+
+    // Incremental compilation with same deleted/changed file
+    CompileResult incrementalResult = compileWithDeleted(
+      Arrays.asList( util ),
+      Arrays.asList( util )
+    );
+
+    depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"47360ef5571a70d2ef31dea6dfa6b53c0f5220c9\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.StringUtil\": {\n" +
+      "      \"abi_hash\": \"a28b460e5e5ee6958da0356b6dd8f4df6dfa2207\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue( "StringUtil.class should be regenerated", Files.exists( utilClassFile ) );
+
+    assertTrue( "StringUtil should be recompiled",
+                afterTimestamps.get( "StringUtil.class" ).toMillis() > initialTimestamps.get( "StringUtil.class" ).toMillis() );
+    assertTrue( "Consumer should be recompiled",
+                afterTimestamps.get( "Consumer.class" ).toMillis() > initialTimestamps.get( "Consumer.class" ).toMillis() );
+    assertEquals( "Should compile only 2 files", 2, incrementalResult.filesCompiled );
+  }
+
+  @Test
+  public void testGenericSignatureAsmVisitorParsing() throws Exception
+  {
+    File zclassA = createSourceFile( "example/zClassA.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class zClassA {}\n");
+    File ifaceA = createSourceFile( "example/IfaceA.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "interface IfaceA {}\n");
+    File ifaceB = createSourceFile( "example/IfaceB.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "interface IfaceB {}\n" );
+    File sig = createSourceFile( "example/Sig.gs",
+                                 "package example\n" +
+                                 "abstract class Sig <P extends IfaceB & zClassA & IfaceA> {\n" +
+                                 "\n" +
+                                 "}");
+
+
+    // Initial compilation
+    CompileResult initialResult = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed", initialResult.success );
+    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.IfaceA\": {\n" +
+      "      \"abi_hash\": \"f85e2f2888e84d495688df61fbad55d8c78f11a3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Sig\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.IfaceB\": {\n" +
+      "      \"abi_hash\": \"167614de66b5de304dccc6c0cf50557b7895bfe9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Sig\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sig\": {\n" +
+      "      \"abi_hash\": \"c69a501a8cf50f0aff776f1da2e1b3dc9f1061e1\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.zClassA\": {\n" +
+      "      \"abi_hash\": \"9fa0fd6eafd73e7a5672cc180206d11185cfbe49\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Sig\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
+  }
+
+  @Test
   public void testSourceFileDeletionOnTypeRemoval() throws Exception
   {
     // Test that both .class and source files are deleted from output when types are removed
@@ -2318,6 +2478,188 @@ public class IncrementalCompilationEndToEndIT
   }
 
   @Test
+  public void testTypeLiteralOfNestedParameterizedTypeRecordsEdgeForEveryLinkNotJustTheLeaf() throws Exception
+  {
+    createSourceFile( "example/Leaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Leaf {\n" +
+                      "}"
+    );
+
+    createSourceFile( "example/Middle.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Middle<T extends Leaf> {\n" +
+                      "}"
+    );
+
+    createSourceFile( "example/Box.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Box<T extends Middle<Leaf>> {\n" +
+                      "}"
+    );
+
+    // The only type named in the body is `Box`; it resolves to Box<Middle<Leaf>>.
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "uses gw.lang.reflect.IType\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function typeLiteralAsValue() : IType {\n" +
+                      "    return Box\n" +
+                      "  }\n" +
+                      "}"
+    );
+
+    CompileResult result = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + result.error, result.success );
+
+    // Every link of the chain Box<Middle<Leaf>> must record Consumer as a consumer.
+    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Box\": {\n" +
+      "      \"abi_hash\": \"0c266bde99329c61df091dffa37dbb40debf73f9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"8faaf7a604ad4c108bab720ff96f08e524a03213\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Leaf\": {\n" +
+      "      \"abi_hash\": \"a111e7cfc5bca10e8fa16e1b6894b2b66873ca85\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Box\",\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Middle\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Middle\": {\n" +
+      "      \"abi_hash\": \"ccaf8fe729648aa6192d4b0fd9fe071d0b3fb14e\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Box\",\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "A type literal resolving to Box<Middle<Leaf>> must record a dep edge for " +
+                  "every link of the chain, not just the innermost non-parameterized one",
+                  expectedDeps, actualDeps );
+
+
+    Map<String, FileTime> beforeLeafChange = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( new File( srcDir.toFile(), "example/Leaf.gs" ),
+                      "class Leaf {\n",
+                      "class Leaf {\n  var _marker : int = 7\n" );
+
+    CompileResult afterLeafChange = compile(
+      Arrays.asList( new File( srcDir.toFile(), "example/Leaf.gs" ) ) );
+    assertTrue( "Compilation after the Leaf change should succeed: " + afterLeafChange.error,
+                afterLeafChange.success );
+
+    Map<String, FileTime> leafTimestamps = recordTimestamps();
+    assertTrue( "Consumer should be recompiled when Leaf changes",
+                leafTimestamps.get( "Consumer.class" ).toMillis() >
+                beforeLeafChange.get( "Consumer.class" ).toMillis() );
+
+    assertTrue( "Box should be recompiled when Leaf changes",
+                leafTimestamps.get( "Box.class" ).toMillis() >
+                beforeLeafChange.get( "Box.class" ).toMillis() );
+
+    assertTrue( "Middle should be recompiled when Leaf changes",
+                leafTimestamps.get( "Middle.class" ).toMillis() >
+                beforeLeafChange.get( "Middle.class" ).toMillis() );
+
+    Map<String, FileTime> beforeBoxChange = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( new File( srcDir.toFile(), "example/Box.gs" ),
+                      "class Box<T extends Middle<Leaf>> {",
+                      "class Box<T extends Leaf> {" );
+
+    CompileResult afterBoxChange = compile(
+      Arrays.asList( new File( srcDir.toFile(), "example/Box.gs" ) ) );
+    assertTrue( "Compilation after the Box change should succeed: " + afterBoxChange.error,
+                afterBoxChange.success );
+
+    Map<String, FileTime> boxTimestamps = recordTimestamps();
+    assertTrue( "Consumer should be recompiled when Box change",
+                boxTimestamps.get( "Consumer.class" ).toMillis() >
+                beforeBoxChange.get( "Consumer.class" ).toMillis() );
+    assertTrue( "Middle should not be recompiled when Box change",
+                boxTimestamps.get( "Middle.class" ).toMillis() ==
+                beforeBoxChange.get( "Middle.class" ).toMillis() );
+    assertTrue( "Leaf should not be recompiled when Box change",
+                boxTimestamps.get( "Leaf.class" ).toMillis() ==
+                beforeBoxChange.get( "Leaf.class" ).toMillis() );
+  }
+
+  @Test
+  public void testDependencyFileNeverRecordsAParameterizedTypeNameAsAProducerKey() throws Exception
+  {
+    createSourceFile( "example/JunkLeaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class JunkLeaf {\n" +
+                      "}"
+    );
+
+    createSourceFile( "example/JunkOuter.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class JunkOuter {\n" +
+                      "  protected var _cell : Cell<JunkLeaf> = new Cell<JunkLeaf>()\n" +
+                      "\n" +
+                      "  protected static class Cell<V> {\n" +
+                      "    construct() {\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}"
+    );
+
+    CompileResult result = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + result.error, result.success );
+
+    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.JunkLeaf\": {\n" +
+      "      \"abi_hash\": \"c3b3c91e85c7e33ae5ed5e521dd7dbfe86cc994c\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.JunkOuter\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.JunkOuter\": {\n" +
+      "      \"abi_hash\": \"f6de498810b8fbcd95df791d199bb1a916ff7658\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.JunkOuter$Cell\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.JunkOuter$Cell\": {\n" +
+      "      \"abi_hash\": \"927110bcfe67e36d6d64e663263ff810f9c6d40d\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.JunkOuter\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "producer keys must be plain FQCNs -- no parameterized type names",
+                  expectedDeps, actualDeps );
+  }
+
+  @Test
   public void testIncrementalSaveMergesConsumersRatherThanReplacing() throws Exception
   {
     // Regression test: when only a subset of consumers are recompiled incrementally,
@@ -3270,9 +3612,8 @@ public class IncrementalCompilationEndToEndIT
   public void testSourceFilePresentInOutputAfterFullAndIncrementalCompile() throws Exception
   {
     // gosuc copies Gosu source files into the output directory alongside their
-    // .class files (the deleteClassFile path also deletes the source copy --
-    // see testSourceFileDeletionOnTypeRemoval). This test pins the inverse
-    // invariant: for sources that ARE compiled (initially and after modification),
+    // .class files. This test pins the inverse invariant:
+    // for sources that ARE compiled (initially and after modification),
     // the source copy in the output dir must be present and reflect the latest
     // content.
 
