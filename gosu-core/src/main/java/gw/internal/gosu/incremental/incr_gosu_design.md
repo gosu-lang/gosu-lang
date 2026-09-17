@@ -51,11 +51,12 @@ forks:  gosuc -incremental
   ▼
 GosuCompiler.compile(options, driver)          ── §5
   ├─ create IncrementalCompilationManager       (loads dep file, builds fqcn→source map)
+  ├─ dep file absent? ⇒ compile ALL source files, then write the graph  (§5)
   ├─ recompileSet = calculateRecompilationSet(changed, removed)   ── §7  (transitive BFS)
   ├─ delete .class + source-copy for (removed ∪ recompileSet)     ── §8  (up front, non-transactional)
-  ├─ compile the mapped source files            (or ALL, if the set is empty ⇒ initial build)
+  ├─ compile exactly the mapped source files    (an empty set compiles nothing)
   │    └─ per compiled class: trackDependencies(bytes, gosuClass) ── §6
-  └─ if no errors: updateDependencyFile(recompileSet, effectivelyRemoved)  ── §9 (atomic write)
+  └─ if no errors and no threshold abort: updateDependencyFile(recompileSet, effectivelyRemoved)  ── §9 (atomic write)
 ```
 
 ---
@@ -117,7 +118,17 @@ everything (this is the pre-existing behavior, now factored into a helper).
    passing the dep-file path, source roots, `-local-java-types`, the full source
    list, and the verbose flag. Construction **loads** the existing dep file into the
    in-memory `typeDependencies` graph and builds the `fqcn → source path` index.
-3. **Make the change sets disjoint, then compute the recompile set.** A type can be
+3. **Branch on the dep file's existence.** If it is **absent**, this is a full
+   rebuild: compile every source file, then write the graph from scratch (still
+   gated on step 8's conditions) and return. Everything below runs only when a dep
+   file was found.
+
+   This is the **only** signal that means "compile everything", so **a driver wanting
+   a full rebuild must delete the dep file** — empty `-changed-types`/`-removed-types`
+   will not do, being indistinguishable from an incremental round whose cascade came
+   out empty, which must compile nothing. The Gradle plugin deletes it in
+   `GosuCompile` whenever `InputChanges.isIncremental()` is false.
+4. **Make the change sets disjoint, then compute the recompile set.** A type can be
    reported as both changed and removed — a source deleted and re-added inside one
    change window looks exactly like that — so `removedTypes.removeAll(changedTypes)`
    runs first: if the source is present now, "changed" wins. Then
@@ -126,32 +137,31 @@ everything (this is the pre-existing behavior, now factored into a helper).
    The filter is applied once and both consumers see the filtered set —
    `calculateRecompilationSet` here, and `effectivelyRemoved` at step 8. Without it a
    re-added type would be excluded from `toRecompile` (§7), have its outputs deleted at
-   step 4 and never regenerated, *and* lose its producer entry at step 8.
-4. **Delete stale outputs** for `removedTypes ∪ typeFqcnsToCompile` **before**
+   step 5 and never regenerated, *and* lose its producer entry at step 8.
+5. **Delete stale outputs** for `removedTypes ∪ typeFqcnsToCompile` **before**
    compiling (`deleteClassAndSourceFiles`, §8). This is explicitly
    **non-transactional** — a code TODO notes that a compile failure after deletion
    has no rollback.
-5. **Map FQCNs → source files** via `getGosuFilePathFromFqcn`:
+6. **Map FQCNs → source files** via `getGosuFilePathFromFqcn`:
    - a `$`-FQCN that resolves to no source is a **stale inner-class producer** and is
      silently skipped;
    - a top-level FQCN that resolves to no source **throws** `IllegalStateException`
      (a code TODO flags that a full rebuild might be the better recovery, but the
      current choice is to fail loud for debugging).
    Inner classes collapse onto the same source file (deduped via a `Set`).
-6. **Choose the compile set**:
-   - if the mapped set is **empty**, treat this as the **initial build** and compile
-     **all** source files (this repopulates the graph from scratch);
-   - otherwise compile exactly the mapped source files.
-7. **Compile** via `compileFilteredSources`, which splits Gosu vs `.java` files and
-   returns whether an error/warning **threshold** was exceeded.
-8. **Persist**, but only `if (!driver.hasErrors())`:
+7. **Compile** exactly the mapped source files, via `compileFilteredSources`, which
+   splits Gosu vs `.java` files and returns whether an error/warning **threshold** was
+   exceeded. An empty set compiles nothing — that is a cascade that reached no
+   consumer, not a full rebuild (step 3).
+8. **Persist**, but only `if (!driver.hasErrors() && !thresholdExceeded)`:
    - compute `effectivelyRemoved = removedTypes ∪ { $-FQCN ∈ recompileSet whose
      .class no longer exists on disk }` — this catches inner classes that were
      dropped when their outer source changed or was deleted;
    - call `updateDependencyFile(typeFqcnsToCompile, effectivelyRemoved)` (§9).
 
-Gating the dep-file write on `!driver.hasErrors()` means a **failed compile leaves
-the previous dep file untouched** — a broken run cannot corrupt the graph.
+Gating the dep-file write on both conditions means a **failed or truncated compile
+leaves the previous dep file untouched** — a broken run cannot corrupt the graph, and
+a threshold abort cannot persist the partial edge set it managed to record.
 
 ### Where edges are recorded — `populateGosuClassFile`
 
@@ -473,10 +483,13 @@ Documented limitations on this branch:
 3. **In-memory accumulation, no fresh re-analysis** — the graph is loaded once and
    mutated; it is never re-derived from the output `.class` files. A dep-extraction
    bug can therefore persist in the dep file across builds. Mitigated (not closed)
-   by: gating the write on `!hasErrors()` (§5) and the `effectivelyRemoved`
+   by: gating the write on `!hasErrors() && !thresholdExceeded` (§5) and the `effectivelyRemoved`
    inner-class sweep (§5).
-4. **Empty recompile set ⇒ compile-all** — in incremental mode an empty mapped set
-   is treated as an initial build and recompiles everything. 
+4. **The full-rebuild signal is out-of-band** — it is the dep file's absence, not
+   anything on the command line (§5). A driver that asks for a full rebuild while
+   leaving the file in place gets an incremental round with an empty cascade:
+   nothing compiled, exit 0, stale outputs. Nothing here can detect that; the
+   obligation sits entirely with the driver.
 5. **No ABI-level pruning, no `dependencyToAll`/SOURCE-retention/`module-info`
    machinery** — the first is future work; the latter are
    structurally not applicable to Gosu's source/AST-based extraction.
