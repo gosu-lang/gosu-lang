@@ -284,7 +284,7 @@ public class GosuCompiler implements IGosuCompiler
       thresholdExceeded = compileGosuSources( options, driver, gosuFiles );
     }
 
-    if( !javaFiles.isEmpty() && !thresholdExceeded)
+    if( !javaFiles.isEmpty() && !thresholdExceeded )
     {
       thresholdExceeded = compileJavaSources( options, driver, javaFiles );
     }
