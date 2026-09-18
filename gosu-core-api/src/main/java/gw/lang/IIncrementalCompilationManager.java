@@ -1,5 +1,6 @@
 package gw.lang;
 
+import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.IGosuClass;
 
 import java.util.Set;
@@ -16,8 +17,8 @@ public interface IIncrementalCompilationManager {
      * for references that don't make it into bytecode.
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades
-     * are computed lazily in {@link #calculateRecompilationSet(Set, Set)} by walking
-     * the resulting graph.
+     * are computed lazily by the incremental compile driver, which walks the resulting
+     * graph via {@link #getOrCreateConsumersFor(String)}.
      *
      * @param bytes     compiled bytecode for {@code gosuClass}
      * @param gosuClass the type whose dependencies are being recorded; used as the
@@ -48,6 +49,51 @@ public interface IIncrementalCompilationManager {
      * dependency, or simply unknown.
      */
     String getGosuFilePathFromFqcn(String fqcn);
+
+    /**
+     * Return the consumers recorded for {@code fqcn} in the previously-persisted dependency graph --
+     * every type that must be recompiled if {@code fqcn} changes -- <em>inserting</em> and returning an
+     * empty set if {@code fqcn} has no recorded entry (e.g. a net-new type).
+     *
+     * <p>Reflects the graph as loaded at construction; edges recorded during the current build via
+     * {@link #trackDependencies(byte[], IGosuClass)} are not visible here until
+     * {@link #updateDependencyFile(Set, Set)} reconciles them.
+     *
+     * <p>Used by the incremental driver to walk the reverse-dependency graph while interleaving
+     * compilation.
+     */
+    Set<String> getOrCreateConsumersFor( String fqcn);
+
+    /**
+     * Builds the bytecode-style FQCN of {@code type} -- i.e. the form found in
+     * {@code .class} filenames, with {@code $} as the separator between an enclosing
+     * type and a nested one. For top-level types this is just the type's name.
+     *
+     * <p>Defined as a structural recurrence on the enclosing-type chain, over the type's
+     * <i>erasure</i>:
+     * <ul>
+     *   <li>a parameterized type is first replaced by its generic type, so that no type
+     *       arguments reach the result;</li>
+     *   <li>if {@code type} is top-level (no enclosing type), the result is
+     *       {@code type.getName()};</li>
+     *   <li>otherwise, the result is {@code getClassFileName(enclosing) + "$" +
+     *       type.getRelativeName()}.</li>
+     * </ul>
+     *
+     * <p>Examples:
+     * <ul>
+     *   <li>top-level: {@code example.Outer} -&gt; {@code "example.Outer"}</li>
+     *   <li>member class: {@code example.Outer.Inner} -&gt; {@code "example.Outer$Inner"}</li>
+     *   <li>parameterized: {@code example.Outer.Inner<String>} -&gt;
+     *       {@code "example.Outer$Inner"}</li>
+     *   <li>nested block: {@code Outer.AnonymouS__0.block_0_} -&gt;
+     *       {@code "example.Outer$AnonymouS__0$block_0_"}</li>
+     * </ul>
+     * <p>
+     * Used as the FQCN shape stored in the dep graph so dep-file keys match
+     * {@code .class} artifacts.
+     */
+    String getClassFileName( IType type );
 
     /**
      * Compute the set of Gosu types that need to be recompiled given a set of changed
