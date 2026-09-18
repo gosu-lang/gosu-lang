@@ -65,9 +65,39 @@ public interface IIncrementalCompilationManager {
      */
     Set<String> getOrCreateConsumersFor( String fqcn);
 
+    /**
+     * Builds the bytecode-style FQCN of {@code type} -- i.e. the form found in
+     * {@code .class} filenames, with {@code $} as the separator between an enclosing
+     * type and a nested one. For top-level types this is just the type's name.
+     *
+     * <p>Defined as a structural recurrence on the enclosing-type chain, over the type's
+     * <i>erasure</i>:
+     * <ul>
+     *   <li>a parameterized type is first replaced by its generic type, so that no type
+     *       arguments reach the result;</li>
+     *   <li>if {@code type} is top-level (no enclosing type), the result is
+     *       {@code type.getName()};</li>
+     *   <li>otherwise, the result is {@code getClassFileName(enclosing) + "$" +
+     *       type.getRelativeName()}.</li>
+     * </ul>
+     *
+     * <p>Examples:
+     * <ul>
+     *   <li>top-level: {@code example.Outer} -&gt; {@code "example.Outer"}</li>
+     *   <li>member class: {@code example.Outer.Inner} -&gt; {@code "example.Outer$Inner"}</li>
+     *   <li>parameterized: {@code example.Outer.Inner<String>} -&gt;
+     *       {@code "example.Outer$Inner"}</li>
+     *   <li>nested block: {@code Outer.AnonymouS__0.block_0_} -&gt;
+     *       {@code "example.Outer$AnonymouS__0$block_0_"}</li>
+     * </ul>
+     * <p>
+     * Used as the FQCN shape stored in the dep graph so dep-file keys match
+     * {@code .class} artifacts.
+     */
+    String getClassFileName( IType type );
+
     // TODO doc
     boolean hasNewABI( String fqcn );
-    String getClassFileName( IType type );
 
     /**
      * Compute the set of Gosu types that need to be recompiled given a set of changed
