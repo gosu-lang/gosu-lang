@@ -19,8 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for v2 FQCN-based IncrementalCompilationManager.
- * Note: v1 tests have been removed as they tested APIs that no longer exist in v2.
+ * Unit tests for {@link IncrementalCompilationManager}.
  */
 public class IncrementalCompilationManagerTest
 {
@@ -41,10 +40,10 @@ public class IncrementalCompilationManagerTest
    */
   private IncrementalCompilationManager newManager()
   {
-    return newManager( Collections.emptyList() );
+    return newManager( Collections.emptySet() );
   }
 
-  private IncrementalCompilationManager newManager( List<String> localJavaTypes )
+  private IncrementalCompilationManager newManager( Set<String> localJavaTypes )
   {
     return new IncrementalCompilationManager(
       dependencyFile.getAbsolutePath(),
@@ -111,7 +110,7 @@ public class IncrementalCompilationManagerTest
     // Self-references inside recordTypeDependency are filtered out -- documenting
     // that production behavior here requires a local manager.
     IncrementalCompilationManager manager = newManager();
-    manager.getOrCreateConsumerSet( "com.example.Consumer" );
+    manager.getOrCreateCurrentConsumerSet( "com.example.Consumer" );
     manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );  // skipped
     manager.recordTypeDependency( "com.example.Builder", "com.example.Consumer" ); // recorded
     manager.updateDependencyFile( Set.of( "com.example.Consumer" ), Collections.emptySet() );
@@ -151,7 +150,7 @@ public class IncrementalCompilationManagerTest
   {
     // Register type and add only self-reference
     IncrementalCompilationManager manager = newManager();
-    manager.getOrCreateConsumerSet( "com.example.Builder" );
+    manager.getOrCreateCurrentConsumerSet( "com.example.Builder" );
     manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );
     manager.updateDependencyFile( Set.of( "com.example.Builder" ), Collections.emptySet() );
 
@@ -271,7 +270,7 @@ public class IncrementalCompilationManagerTest
                                                                    "entity.Document", Collections.emptyList() ) );
 
     Set<String> toRecompile = newManager(
-      Arrays.asList( "com.guidewire._generated.entity.DocumentInternal" )
+      Set.of( "com.guidewire._generated.entity.DocumentInternal" )
     ).calculateRecompilationSet(
       Set.of( "entity.Document", "com.guidewire._generated.entity.DocumentInternal" ),
       Collections.emptySet()
@@ -332,9 +331,9 @@ public class IncrementalCompilationManagerTest
         outerRoot.toAbsolutePath().toString(),    // shallow root, declared first
         innerRoot.toAbsolutePath().toString()     // deeper root, the correct match
       ),
-      Collections.emptyList(), Collections.emptyList(), false );
+      Collections.emptySet(), Collections.emptyList(), false );
 
-    manager.getOrCreateConsumerSet( "com.example.MyClass" );
+    manager.getOrCreateCurrentConsumerSet( "com.example.MyClass" );
     manager.recordTypeDependency(
       "example.Producer",
       "com.example.MyClass"

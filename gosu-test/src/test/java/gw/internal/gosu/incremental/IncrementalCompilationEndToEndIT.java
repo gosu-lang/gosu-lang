@@ -837,14 +837,14 @@ public class IncrementalCompilationEndToEndIT
         // we'd rather fail loudly than silently report 0 files compiled.
         String output = outStream.toString();
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-          "(?:compiling all|recompiling) (\\d+) source files" );
+          "(?:compiling all|recompiled) (\\d+) source files" );
         java.util.regex.Matcher matcher = pattern.matcher( output );
         if( !matcher.find() )
         {
           throw new IllegalStateException(
             "Could not parse compiled-files count from gosuc output - expected one of " +
             "\"Initial incremental compilation: compiling all N source files\" or " +
-            "\"Incremental compilation: recompiling N source files\". Output was:\n" + output );
+            "\"Incremental compilation: recompiled N source files\". Output was:\n" + output );
         }
         result.filesCompiled = Integer.parseInt( matcher.group( 1 ) );
 
@@ -3133,6 +3133,16 @@ public class IncrementalCompilationEndToEndIT
                   beforeTimestamps.get( "GosuIndipendent.class" ).toMillis() );
     assertFalse( "gosuc must not write a .class for the local Java type",
                  Files.exists( dummyJavaClassInGosuOutput ) );
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"com.example.DummyJava\": [],\n" +
+      "    \"example.GosuIndipendent\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Walking a changed local Java type with no consumers should add an empty entry for it",
+                  expectedAfterIncremental, Files.readString( dependencyFile.toPath() ).trim() );
   }
 
   @Test

@@ -57,7 +57,7 @@ class DependenciesClassVisitor extends ClassVisitor
     // The type will appear in the dep file even if no consumer relationships are
     // recorded for it. This is called  for every compiled type to maintain a
     // complete registry.
-    incrementalCompilationManager.getOrCreateConsumerSet( consumerFqcn );
+    incrementalCompilationManager.getOrCreateCurrentConsumerSet( consumerFqcn );
     collectClassDependenciesFromConstantPool( reader );
   }
 

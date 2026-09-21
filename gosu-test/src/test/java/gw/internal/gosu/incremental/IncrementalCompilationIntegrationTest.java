@@ -47,7 +47,7 @@ public class IncrementalCompilationIntegrationTest
   {
     return new IncrementalCompilationManager( dependencyFile.getAbsolutePath(),
                                               Collections.singletonList( srcDir.toAbsolutePath().toString() ),
-                                              Collections.emptyList(), Collections.emptyList(), false );
+                                              Collections.emptySet(), Collections.emptyList(), false );
   }
 
   @Test

@@ -53,7 +53,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   private final Map<String, String> gosuFqcnToSourcePath;
 
   public IncrementalCompilationManager( String dependencyFilePath, List<String> sourceRoots,
-                                        List<String> localJavaTypes, List<String> allSourceFiles, boolean verbose )
+                                        Set<String> localJavaTypes, List<String> allSourceFiles, boolean verbose )
   {
     this.dependencyFilePath = dependencyFilePath;
     // Canonicalize each source root: absolute-path + normalize collapses ".",
@@ -68,7 +68,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
     }
     this.sourceRoots = roots;
-    this.localJavaTypes = localJavaTypes != null ? new HashSet<>( localJavaTypes ) : new HashSet<>();
+    this.localJavaTypes = localJavaTypes;
     this.verbose = verbose;
     this.typeDependencies = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
@@ -84,50 +84,24 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     trackTypeliteralsFromAST( gosuClass );
   }
 
-  /**
-   * Builds the bytecode-style FQCN of {@code type} -- i.e. the form found in
-   * {@code .class} filenames, with {@code $} as the separator between an enclosing
-   * type and a nested one. For top-level types this is just the type's name.
-   *
-   * <p>Defined as a structural recurrence on the enclosing-type chain, over the type's
-   * <i>erasure</i>:
-   * <ul>
-   *   <li>a parameterized type is first replaced by its generic type, so that no type
-   *       arguments reach the result;</li>
-   *   <li>if {@code type} is top-level (no enclosing type), the result is
-   *       {@code type.getName()};</li>
-   *   <li>otherwise, the result is {@code getClassFileName(enclosing) + "$" +
-   *       type.getRelativeName()}.</li>
-   * </ul>
-   *
-   * <p>Examples:
-   * <ul>
-   *   <li>top-level: {@code example.Outer} -&gt; {@code "example.Outer"}</li>
-   *   <li>member class: {@code example.Outer.Inner} -&gt; {@code "example.Outer$Inner"}</li>
-   *   <li>parameterized: {@code example.Outer.Inner<String>} -&gt;
-   *       {@code "example.Outer$Inner"}</li>
-   *   <li>nested block: {@code Outer.AnonymouS__0.block_0_} -&gt;
-   *       {@code "example.Outer$AnonymouS__0$block_0_"}</li>
-   * </ul>
-   * <p>
-   * Used as the FQCN shape stored in the dep graph so dep-file keys match
-   * {@code .class} artifacts.
-   *
-   * <p>The erasure step is what makes those keys usable. A key is matched against
-   * {@code .class} artifacts and against the FQCNs passed in {@code -changed-types}, and a
-   * parameterized name matches neither. Without it, {@code getRelativeName()} of a
-   * parameterized nested type carries its type arguments and the key came out as
-   * {@code "example.Outer$Inner<String>"}; {@link #shouldTrackType} accepted that, because
-   * {@link #getGosuFilePathFromFqcn} strips at the last {@code $} and resolves the enclosing
-   * class, so the edge was recorded under a key that could never fire. For a parameterized
-   * <i>top-level</i> type there is no {@code $} to strip, the lookup failed outright, and the
-   * edge was dropped without a trace -- silently losing dependencies for every type literal
-   * that resolved to a generic type.
-   */
-  private static String getClassFileName( IType type )
+  public String getClassFileName( IType type )
   {
     if( type.isParameterizedType() )
     {
+      /*
+       * getClassFileName(type) is used as the FQCN shape stored in the dep graph so dep-file keys match
+       * .class artifacts.
+       * The erasure step below is what makes those keys usable. A key is matched against
+       * .class artifacts and against the FQCNs passed in -changed-types, and a
+       * parameterized name matches neither. Without it, getRelativeName() of a
+       * parameterized nested type carries its type arguments and the key came out as
+       * "example.Outer$Inner<String>"; shouldTrackType accepted that, because
+       * getGosuFilePathFromFqcn strips at the last $ and resolves the enclosing
+       * class, so the edge was recorded under a key that could never fire. For a parameterized
+       * top-level type there is no $ to strip, the lookup failed outright, and the
+       * edge was dropped without a trace -- silently losing dependencies for every type literal
+       * that resolved to a generic type.
+       */
       type = type.getGenericType();
     }
     IType enclosing = type.getEnclosingType();
@@ -457,7 +431,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     {
       return;
     }
-    getOrCreateConsumerSet( producer ).add( consumer );
+    getOrCreateCurrentConsumerSet( producer ).add( consumer );
   }
 
   /**
@@ -471,7 +445,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * @param producerFqcn The FQCN of the producer type
    * @return The consumer set (existing or newly created)
    */
-  public Set<String> getOrCreateConsumerSet( String producerFqcn )
+  public Set<String> getOrCreateCurrentConsumerSet( String producerFqcn )
   {
     return currentUsedBy.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
   }
@@ -612,6 +586,12 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   @Override
+  public Set<String> getOrCreateConsumersFor( String producerFqcn )
+  {
+    return typeDependencies.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
+  }
+
+  @Override
   public Set<String> calculateRecompilationSet( Set<String> changedTypes, Set<String> removedTypes )
   {
     Set<String> toRecompile = new HashSet<>();
@@ -619,22 +599,12 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     Queue<String> worklist = new ArrayDeque<>();
 
     // Seed the worklist with the union of changed and removed types.
-    //
-    // Pre-populate typeDependencies with an empty consumer set for any seed
-    // FQCN that doesn't already have an entry. The BFS body below reads
-    // typeDependencies.get(type) and iterates it directly (no null guard).
-    // A net-new source file added since the last build, or a changed-types
-    // entry from a freshly-deleted dep file, would otherwise NPE here.
-    // After this loop, typeDependencies.get(seed) is guaranteed non-null for
-    // every seed in the worklist; new edges discovered as the BFS visits a
-    // seed are still appended through the normal recordTypeDependency path.
     for( String changedType : changedTypes )
     {
       if( !visited.contains( changedType ) )
       {
         visited.add( changedType );
         worklist.add( changedType );
-        typeDependencies.putIfAbsent( changedType, new HashSet<>() );
       }
     }
     for( String removedType : removedTypes )
@@ -643,7 +613,6 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       {
         visited.add( removedType );
         worklist.add( removedType );
-        typeDependencies.putIfAbsent( removedType, new HashSet<>() );
       }
     }
 
@@ -668,7 +637,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
         toRecompile.add( type );
       }
 
-      Set<String> consumers = typeDependencies.get( type );
+      Set<String> consumers = getOrCreateConsumersFor( type );
       for( String consumer : consumers )
       {
         if( !visited.contains( consumer ) )
