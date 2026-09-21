@@ -112,15 +112,15 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     {
       /*
        * getClassFileName(type) is used as the FQCN shape stored in the dep graph so dep-file keys match
-       * {@code .class} artifacts.
-       * <p>The erasure step below is what makes those keys usable. A key is matched against
-       * {@code .class} artifacts and against the FQCNs passed in {@code -changed-types}, and a
-       * parameterized name matches neither. Without it, {@code getRelativeName()} of a
+       * .class artifacts.
+       * The erasure step below is what makes those keys usable. A key is matched against
+       * .class artifacts and against the FQCNs passed in -changed-types, and a
+       * parameterized name matches neither. Without it, getRelativeName() of a
        * parameterized nested type carries its type arguments and the key came out as
-       * {@code "example.Outer$Inner<String>"}; {@link #shouldTrackType} accepted that, because
-       * {@link #getGosuFilePathFromFqcn} strips at the last {@code $} and resolves the enclosing
+       * "example.Outer$Inner<String>"; shouldTrackType accepted that, because
+       * getGosuFilePathFromFqcn strips at the last $ and resolves the enclosing
        * class, so the edge was recorded under a key that could never fire. For a parameterized
-       * <i>top-level</i> type there is no {@code $} to strip, the lookup failed outright, and the
+       * top-level type there is no $ to strip, the lookup failed outright, and the
        * edge was dropped without a trace -- silently losing dependencies for every type literal
        * that resolved to a generic type.
        */

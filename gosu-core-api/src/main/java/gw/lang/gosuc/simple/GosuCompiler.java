@@ -151,7 +151,7 @@ public class GosuCompiler implements IGosuCompiler
     // TODO: Non-transactional: deletion happens before the compiler runs. If compile then fails, the deleted
     // outputs are gone with no rollback. A future stash-and-restore step would close this gap.
     deleteClassAndSourceFiles( removedTypes, options.getDestDir() );
-    deleteClasses( changedTypes, options.getDestDir() );
+    deleteClassAndSourceFiles( changedTypes, options.getDestDir() );
 
     // Seed the worklist with the union of changed and removed types.
     for( String changedType : changedTypes )
@@ -190,7 +190,7 @@ public class GosuCompiler implements IGosuCompiler
       // it is not a removed type (no file to compile).
       if( !localJavaTypes.contains( type ) && !removedTypes.contains( type ) )
       {
-        // TODO should be this added only if sourceFile != null?
+        // Needed to compute effectivelyRemoved and updateDependencyFile, regardless if sourceFile == null or not.
         typeFqcnsToCompile.add( type );
         String sourceFile = _incrementalManager.getGosuFilePathFromFqcn( type );
         if( sourceFile == null )
@@ -242,14 +242,14 @@ public class GosuCompiler implements IGosuCompiler
       }
     }
 
-      if( options.isVerbose() )
-      {
+    if( options.isVerbose() )
+    {
       System.out.println( "Incremental compilation: recompiled " + sourceFilesCompiled.size() + " source files:" );
-      for( String fqcn : sourceFilesCompiled )
-        {
-          System.out.println( "  - " + fqcn );
-        }
+      for( String src : sourceFilesCompiled )
+      {
+        System.out.println( "  - " + src );
       }
+    }
 
     // Don't persist the graph on a threshold abort: the compile stopped early, so
     // what was tracked is partial.
@@ -299,7 +299,7 @@ public class GosuCompiler implements IGosuCompiler
       thresholdExceeded = compileGosuSources( options, driver, gosuFiles );
     }
 
-    if( !javaFiles.isEmpty() )
+    if( !javaFiles.isEmpty() && !thresholdExceeded )
     {
       thresholdExceeded = compileJavaSources( options, driver, javaFiles );
     }
@@ -504,29 +504,6 @@ public class GosuCompiler implements IGosuCompiler
       {
         deleteClassFile( fqcn, dest );
         deleteSourceFile( fqcn, dest );
-      }
-    }
-  }
-
-  /**
-   * Delete each type's outputs from {@code destDir}: the {@code <fqcn>.class}
-   * file.
-   * <p>
-   * Nested compiled units (inner / anonymous /
-   * block .class files) are also deleted to prevent stale classes on disk.
-   * <p>No-op if {@code fqcns} is empty or {@code destDir} is null / blank.
-   *
-   * @param fqcns   FQCNs whose outputs should be deleted
-   * @param destDir output directory (e.g. {@code build/classes/gosu/main})
-   */
-  private void deleteClasses( Set<String> fqcns, String destDir )
-  {
-    if( !fqcns.isEmpty() && destDir != null && !destDir.isEmpty() )
-    {
-      File dest = new File( destDir );
-      for( String fqcn : fqcns )
-      {
-        deleteClassFile( fqcn, dest );
       }
     }
   }

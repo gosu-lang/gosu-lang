@@ -186,7 +186,6 @@ public class CommandLineOptions
   }
 
   public Set<String> getLocalJavaTypes()
-
   {
     if( _localJavaTypes == null || _localJavaTypes.trim().isEmpty() )
     {

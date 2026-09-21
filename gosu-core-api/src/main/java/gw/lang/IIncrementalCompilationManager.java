@@ -7,7 +7,6 @@ import java.util.Set;
 
 public interface IIncrementalCompilationManager {
 
-
     /**
      * Record the single-hop dependency edges produced when {@code gosuClass} is
      * compiled to the given bytecode.
@@ -53,8 +52,8 @@ public interface IIncrementalCompilationManager {
 
     /**
      * Return the consumers recorded for {@code fqcn} in the previously-persisted dependency graph --
-     * every type that must be recompiled if {@code fqcn} changes -- or an empty set if {@code fqcn} has
-     * no recorded entry (e.g. a net-new type).
+     * every type that must be recompiled if {@code fqcn} changes -- <em>inserting</em> and returning an
+     * empty set if {@code fqcn} has no recorded entry (e.g. a net-new type).
      *
      * <p>Reflects the graph as loaded at construction; edges recorded during the current build via
      * {@link #trackDependencies(byte[], IGosuClass)} are not visible here until
