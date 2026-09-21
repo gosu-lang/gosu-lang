@@ -52,11 +52,14 @@ forks:  gosuc -incremental
 GosuCompiler.compile(options, driver)          ── §5
   ├─ create IncrementalCompilationManager       (loads dep file, builds fqcn→source map)
   ├─ dep file absent? ⇒ compile ALL source files, then write the graph  (§5)
-  ├─ recompileSet = calculateRecompilationSet(changed, removed)   ── §7  (transitive BFS)
-  ├─ delete .class + source-copy for (removed ∪ recompileSet)     ── §8  (up front, non-transactional)
-  ├─ compile exactly the mapped source files    (an empty set compiles nothing)
-  │    └─ per compiled class: trackDependencies(bytes, gosuClass) ── §6
-  └─ if no errors and no threshold abort: updateDependencyFile(recompileSet, effectivelyRemoved)  ── §9 (atomic write)
+  ▼
+compileGosuIncrementally(options, driver)      ── §5
+  ├─ delete .class + $*.class + source copy for (changed ∪ removed)  ── §8 (up front, non-transactional)
+  ├─ seed a worklist with (changed ∪ removed), then walk it          ── §7
+  │    ├─ compile the visited type's source on demand (once per source file)
+  │    │    └─ per compiled class: trackDependencies(bytes, gosuClass) ── §6
+  │    └─ enqueue every consumer of the visited type
+  └─ if no errors and no threshold abort: updateDependencyFile(compiled, effectivelyRemoved)  ── §9 (atomic write)
 ```
 
 ---
@@ -72,7 +75,7 @@ entire surface the Gradle plugin drives:
 | `-dependency-file <path>` | `String _dependencyFile` | Path to the dependency file. **Default `.gosuc-deps.json`**; the plugin passes `build/tmp/gosuc-deps-{taskName}.json`. |
 | `-changed-types <fqcns>` | `String _changedTypes` | Path-separator-delimited FQCNs (Java **and** Gosu) whose source changed. Exposed as `Set<String> getChangedTypes()`. |
 | `-removed-types <fqcns>` | `String _removedTypes` | Path-separator-delimited FQCNs whose source was deleted. Exposed as `Set<String> getRemovedTypes()`. **May overlap `-changed-types` as supplied** — a source deleted and re-added inside one change window is reported as both — and the driver makes the two disjoint before use (§5). |
-| `-local-java-types <fqcns>` | `String _localJavaTypes` | Path-separator-delimited FQCNs of **same-module Java types** (the plugin populates this by scanning `build/classes/java/main`). Exposed as `List<String> getLocalJavaTypes()`. |
+| `-local-java-types <fqcns>` | `String _localJavaTypes` | Path-separator-delimited FQCNs of **same-module Java types** (the plugin populates this by scanning `build/classes/java/main`). Exposed as `Set<String> getLocalJavaTypes()`. |
 | `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path. Not every step honors it: stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
 
 Delimiter is `File.pathSeparator` throughout; empty/blank strings parse to empty
@@ -82,23 +85,34 @@ collections.
 
 ## 4. The manager contract (`IIncrementalCompilationManager`)
 
-A new interface in `gosu-core-api` (`gw.lang`) with exactly four methods:
+A new interface in `gosu-core-api` (`gw.lang`):
 
 ```java
 void         trackDependencies(byte[] bytes, IGosuClass gosuClass);
 void         updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes);
 String       getGosuFilePathFromFqcn(String fqcn);
+Set<String>  getOrCreateConsumersFor(String fqcn);
+String       getClassFileName(IType type);
 Set<String>  calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes);
 ```
 
 - **`trackDependencies`** — records the *direct* producer→consumer edges observed
   when `gosuClass` was compiled to `bytes` (§6). Transitive cascades are **not**
   computed here.
-- **`calculateRecompilationSet`** — walks the reverse-dependency graph to return
-  the full set of Gosu types needing recompilation (§7).
+- **`getOrCreateConsumersFor`** — returns the consumers recorded for one producer,
+  **inserting** an empty set when the FQCN has no entry. This is the single step the
+  driver's worklist walks the graph through (§7); the insertion is contractual, since
+  it registers the FQCN as a graph key and is therefore observable in the dep file
+  (§9.3).
 - **`getGosuFilePathFromFqcn`** — maps an FQCN to its `.gs*` source path, resolving
   inner/block FQCNs up to their outermost enclosing source (§10).
+- **`getClassFileName`** — builds the bytecode-shape FQCN of a type (`$` between an
+  enclosing type and a nested one), over the type's erasure. This is the key shape
+  the dep graph stores, so keys match `.class` artifacts (§10).
 - **`updateDependencyFile`** — reconciles and persists the graph (§9).
+- **`calculateRecompilationSet`** — a standalone transitive BFS over the same graph,
+  returning the full recompile set in one call. It is **not** on the driver's path
+  (§7 describes what is); it is retained as a test-only oracle.
 
 ---
 
@@ -120,43 +134,49 @@ everything (this is the pre-existing behavior, now factored into a helper).
    in-memory `typeDependencies` graph and builds the `fqcn → source path` index.
 3. **Branch on the dep file's existence.** If it is **absent**, this is a full
    rebuild: compile every source file, then write the graph from scratch (still
-   gated on step 8's conditions) and return. Everything below runs only when a dep
-   file was found.
+   gated on step 7's conditions) and return. Everything below runs only when a dep
+   file was found, and lives in `compileGosuIncrementally`.
 
    This is the **only** signal that means "compile everything", so **a driver wanting
    a full rebuild must delete the dep file** — empty `-changed-types`/`-removed-types`
    will not do, being indistinguishable from an incremental round whose cascade came
    out empty, which must compile nothing. The Gradle plugin deletes it in
    `GosuCompile` whenever `InputChanges.isIncremental()` is false.
-4. **Make the change sets disjoint, then compute the recompile set.** A type can be
-   reported as both changed and removed — a source deleted and re-added inside one
-   change window looks exactly like that — so `removedTypes.removeAll(changedTypes)`
-   runs first: if the source is present now, "changed" wins. Then
-   `typeFqcnsToCompile = calculateRecompilationSet(changedTypes, removedTypes)` (§7).
-
-   The filter is applied once and both consumers see the filtered set —
-   `calculateRecompilationSet` here, and `effectivelyRemoved` at step 8. Without it a
-   re-added type would be excluded from `toRecompile` (§7), have its outputs deleted at
-   step 5 and never regenerated, *and* lose its producer entry at step 8.
-5. **Delete stale outputs** for `removedTypes ∪ typeFqcnsToCompile` **before**
+4. **Make the change sets disjoint.** A type can be reported as both changed and
+   removed — a source deleted and re-added inside one change window looks exactly like
+   that — so `removedTypes.removeAll(changedTypes)` runs first: if the source is
+   present now, "changed" wins. The filter is applied once and every later step sees
+   the filtered sets. Without it a re-added type would have its source copy deleted at
+   step 5, be skipped by the walk's removed-type test at step 6, and never be
+   regenerated.
+5. **Delete stale outputs** for `changedTypes` and for `removedTypes` **before**
    compiling (`deleteClassAndSourceFiles`, §8). This is explicitly
    **non-transactional** — a code TODO notes that a compile failure after deletion
    has no rollback.
-6. **Map FQCNs → source files** via `getGosuFilePathFromFqcn`:
+6. **Walk the reverse-dependency graph, compiling on demand** (§7). The worklist is
+   seeded with `changedTypes ∪ removedTypes`. Each visited FQCN that is neither a
+   local Java type nor a removed type joins `typeFqcnsToCompile` and is mapped to a
+   source via `getGosuFilePathFromFqcn`:
    - a `$`-FQCN that resolves to no source is a **stale inner-class producer** and is
      silently skipped;
    - a top-level FQCN that resolves to no source **throws** `IllegalStateException`
      (a code TODO flags that a full rebuild might be the better recovery, but the
-     current choice is to fail loud for debugging).
-   Inner classes collapse onto the same source file (deduped via a `Set`).
-7. **Compile** exactly the mapped source files, via `compileFilteredSources`, which
-   splits Gosu vs `.java` files and returns whether an error/warning **threshold** was
-   exceeded. An empty set compiles nothing — that is a cascade that reached no
-   consumer, not a full rebuild (step 3).
-8. **Persist**, but only `if (!driver.hasErrors() && !thresholdExceeded)`:
-   - compute `effectivelyRemoved = removedTypes ∪ { $-FQCN ∈ recompileSet whose
+     current choice is to fail loud for debugging);
+   - otherwise the source is compiled, unless an earlier FQCN already compiled it.
+     Inner classes collapse onto the same source file, which is compiled once.
+
+   Every visited FQCN then contributes its consumers to the worklist, including the
+   local Java and removed types that are walked through but never compiled. The walk
+   stops early if a compile trips the error/warning **threshold**. A walk that reaches
+   no compilable type compiles nothing — that is an empty cascade, not a full rebuild
+   (step 3).
+7. **Persist**, but only `if (!driver.hasErrors() && !thresholdExceeded)`:
+   - compute `effectivelyRemoved = removedTypes ∪ { $-FQCN ∈ typeFqcnsToCompile whose
      .class no longer exists on disk }` — this catches inner classes that were
-     dropped when their outer source changed or was deleted;
+     dropped when their outer source changed or was deleted. This is why a visited
+     FQCN joins `typeFqcnsToCompile` even when it resolves to no source: the sweep
+     iterates that set, and a stale inner-class producer left out of it would never be
+     purged from the graph;
    - call `updateDependencyFile(typeFqcnsToCompile, effectivelyRemoved)` (§9).
 
 Gating the dep-file write on both conditions means a **failed or truncated compile
@@ -216,7 +236,7 @@ that treats the **class being visited as the consumer** and records an edge
 Every candidate flows through `maybeAddDependentType`, which unwraps array types to
 their element type, keeps only `OBJECT`-sort types, and calls
 `shouldTrackType(producerFqcn)` (§10) before `recordTypeDependency(producer,
-consumer)`. The constructor also calls `getOrCreateConsumerSet(consumerFqcn)` so
+consumer)`. The constructor also calls `getOrCreateCurrentConsumerSet(consumerFqcn)` so
 **every compiled type is registered as a graph key**, even if it has no consumers.
 
 > **Single bucket — no accessible/private split.** All edges land in one consumer
@@ -277,24 +297,28 @@ Concrete cases pinned by gosuc-level e2e tests in `IncrementalCompilationEndToEn
 
 ---
 
-## 7. Recompile-set computation (`calculateRecompilationSet`)
+## 7. Graph traversal and compile-on-demand
 
 The graph `typeDependencies : Map<String, Set<String>>` is keyed **producer →
 consumers**: `typeDependencies[X]` is every type that must recompile if `X` changes.
 It reflects the *previously compiled* `.class` files; the incoming
 `changedTypes`/`removedTypes` are *source-level* changes not yet reflected in the
-`.class` artifacts. The BFS bridges the two:
+`.class` artifacts. The driver's walk bridges the two, compiling as it goes:
 
 ```
-visited  = {}; worklist = {}; toRecompile = {}
-seed worklist with (changedTypes ∪ removedTypes)          // putIfAbsent empty sets to avoid NPE
-while worklist not empty:
+visited             = changedTypes ∪ removedTypes
+worklist            = changedTypes, then removedTypes
+typeFqcnsToCompile  = {}                       // FQCNs credited as recompiled
+sourceFilesCompiled = {}                       // source files already handed to the compiler
+while worklist not empty and not thresholdExceeded:
     X = worklist.remove()
-    if X ∉ localJavaTypes and X ∉ removedTypes:           // walk-through-not-compile / gone
-        toRecompile.add(X)
-    for consumer in typeDependencies[X]:                  // ALL consumers, unconditionally
+    if X ∉ localJavaTypes and X ∉ removedTypes:          // walk-through-not-compile / gone
+        typeFqcnsToCompile.add(X)
+        F = getGosuFilePathFromFqcn(X)
+        if F == null:  throw unless X contains '$'       // stale inner-class producer
+        else if F ∉ sourceFilesCompiled:  compile(F)
+    for consumer in getOrCreateConsumersFor(X):          // ALL consumers, unconditionally
         if consumer ∉ visited: enqueue(consumer)
-return toRecompile
 ```
 
 Key properties:
@@ -303,37 +327,49 @@ Key properties:
   unconditionally, so the cascade is the complete transitive closure. Because there
   is no accessible/private distinction, it is **over-approximate but never
   under-approximate** (§12).
+- **Compilation is keyed on the source file, not the FQCN.** A source declaring
+  several compiled units is compiled once however many of its FQCNs the walk reaches.
+  Compile order does not affect the result: in-project Gosu types resolve from source,
+  never from a sibling `.class` (§12).
 - **Local Java types are walked through but not compiled.** A changed same-module
   Java type (in `-local-java-types`) is used to find its Gosu consumers but is
-  excluded from `toRecompile` — gosuc cannot recompile Java sources; `compileJava`
-  already did.
+  excluded from `typeFqcnsToCompile` — gosuc cannot recompile Java sources;
+  `compileJava` already did.
 - **Removed types cascade but aren't compiled.** Their source is gone, so they are
-  excluded from `toRecompile`, but their downstream consumers still cascade. This rests
-  on `removedTypes` being accurate: a type still present on disk but reported removed
-  would be skipped by the `X ∉ removedTypes` test and never rebuilt, which is why the
-  driver subtracts `changedTypes` from `removedTypes` before calling in (§5).
-- **Invariant that keeps the lookup null-safe.** `typeDependencies[X]` is iterated
-  without a null guard. This is safe because every compiled type is registered as a
-  key (§6.1), so every consumer FQCN reachable in the graph is also a key; seeds are
-  additionally `putIfAbsent`-seeded.
+  excluded from `typeFqcnsToCompile`, but their downstream consumers still cascade.
+  This rests on `removedTypes` being accurate: a type still present on disk but
+  reported removed would be skipped by the `X ∉ removedTypes` test and never rebuilt,
+  which is why the driver subtracts `changedTypes` from `removedTypes` first (§5).
+- **A threshold abort stops the walk**, and the dep file is then left untouched
+  (§5 step 7).
+- **The consumer lookup is null-safe by construction.** `getOrCreateConsumersFor`
+  inserts an empty set for an FQCN with no entry, so the loop needs no null guard.
+  That insertion is observable: it registers the FQCN as a graph key and is persisted
+  (§9.3, §12).
+
+`calculateRecompilationSet` computes the same closure in a single call without
+compiling anything. It is not on this path; it is retained as a test-only oracle.
 
 ---
 
 ## 8. Stale-output deletion (`deleteClassAndSourceFiles`)
 
-Before compiling, the driver deletes, for each FQCN in `removedTypes ∪
-typeFqcnsToCompile`:
+Before compiling, the driver deletes, for each FQCN in `changedTypes` and each FQCN in
+`removedTypes`:
 
 - the **`.class` file** — `destDir/<fqcn-with-'/'>.class`;
+- its **nested outputs** — every `<fqcn>$*.class` in the same package directory, which
+  covers inner, anonymous and block classes;
 - the **source copy** — gosuc packages `.gs*` sources alongside `.class` files in the
   output dir, so any stale source copy is removed too. Because the original
   extension isn't recoverable from an FQCN, deletion is attempted for **all** known
   Gosu extensions (`.gs .gsx .gsp .gst .gr .grs`); those not present are skipped.
 
-There is **no per-FQCN `$*.class` glob**. Nested compiled units are cleaned because
-the BFS already pulls every nested FQCN into `typeFqcnsToCompile` (bidirectional
-bytecode edges from each nested class's `InnerClasses` attribute), so each nested
-`.class` is deleted directly by being in the input set.
+**Only changed and removed types are cleared, not the whole cascade.** A cascade
+consumer's source did not change, so recompiling it regenerates exactly the same set
+of class files and overwrites them in place — it cannot orphan a nested output. Only
+an edited or deleted source can drop a nested class, which is what makes the
+`$*.class` glob over those two sets sufficient.
 
 > **Non-transactional.** Deletion happens *before* the compiler runs and there is no
 > stash/restore. If the compile then fails, the deleted outputs are gone with no
@@ -441,7 +477,7 @@ simpler. Side by side:
 | Capability | Gradle Java incr. compiler | This Gosu branch |
 |---|---|---|
 | Per-class dep extraction | ASM bytecode scan (`ClassDependenciesVisitor`) | ASM bytecode scan (`DependenciesClassVisitor`) + narrow AST supplement for type literals (§6) |
-| Transitive cascade | Yes (`ClassSetAnalysis.findTransitiveDependents`) | Yes (`calculateRecompilationSet` BFS, §7) |
+| Transitive cascade | Yes (`ClassSetAnalysis.findTransitiveDependents`) | Yes — worklist walk interleaved with compilation (§7) |
 | Accessible vs. private edge buckets | Yes — asymmetric cascade (private deps don't propagate) | **No** — single bucket, full transitive cascade (§12) |
 | Annotations as dependency edges | Yes | Yes — constant pool + `visitAnnotation` (§6.3) |
 | `dependencyToAll` (SOURCE-retention, `module-info`) | Yes | **N/A** — structurally unnecessary / no such constructs (§6.3) |
@@ -463,7 +499,7 @@ only extra recompilation (§12).
 
 ## 12. Correctness properties & known limitations
 
-**Sound (never under-recompiles).** The BFS enqueues *all* consumers transitively,
+**Sound (never under-recompiles).** The walk enqueues *all* consumers transitively,
 so any type whose `.class` could be stale is recompiled. The old graph may be
 over-approximate (an edge dropped this build is still acted on until the graph is
 rewritten) but never under-approximate.
@@ -471,8 +507,9 @@ rewritten) but never under-approximate.
 **Why source-order doesn't matter.** In-project Gosu types resolve from `.gs`
 **source** via the TypeSystem, never from a sibling `.class`. So recompiling `X`
 always sees the *new* source-derived type info of any changed `Y`, regardless of
-compile order — which is why batch-compiling the whole recompile set in one session
-is safe.
+compile order — which is what makes it safe to compile during the traversal, before
+the full cascade is even known, and what lets stale-output deletion be confined to
+the changed and removed sets (§8).
 
 Documented limitations on this branch:
 
@@ -493,3 +530,12 @@ Documented limitations on this branch:
 5. **No ABI-level pruning, no `dependencyToAll`/SOURCE-retention/`module-info`
    machinery** — the first is future work; the latter are
    structurally not applicable to Gosu's source/AST-based extraction.
+6. **The graph accumulates empty entries for unconsumed local Java types.** Walking a
+   changed same-module Java type calls `getOrCreateConsumersFor`, which registers it
+   as a key; if no Gosu type consumes it, the key persists as `"<fqcn>": []` and
+   nothing ever prunes it. The ceiling is the module's Java class count, so on a
+   Java-heavy module this can add keys on the order of the real producer count. It is
+   a dep-file size concern only — an empty consumer set costs the walk nothing. One
+   visible consequence: a graph regenerated from scratch (dep file deleted, §5 step 3)
+   omits these keys, because the full-rebuild path never runs the walk, so it is a
+   strict subset of the file it replaces rather than a byte-identical copy.

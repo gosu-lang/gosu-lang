@@ -3295,6 +3295,16 @@ public class IncrementalCompilationEndToEndIT
                   beforeTimestamps.get( "GosuIndipendent.class" ).toMillis() );
     assertFalse( "gosuc must not write a .class for the local Java type",
                  Files.exists( dummyJavaClassInGosuOutput ) );
+    String expectedAfterIncremental =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"com.example.DummyJava\": [],\n" +
+      "    \"example.GosuIndipendent\": []\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Walking a changed local Java type with no consumers should add an empty entry for it",
+                  expectedAfterIncremental, Files.readString( dependencyFile.toPath() ).trim() );
   }
 
   @Test
