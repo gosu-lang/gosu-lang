@@ -390,7 +390,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       if (!newAbiHash.equals( NO_ABI_HASH ))
       {
         prodInfo.abiHash = newAbiHash;
-      } else if (typeFqcnsToCompile.contains( refreshedProducer)) {
+      } else if (typeFqcnsToCompile.contains( refreshedProducer )) {
         throw new IllegalStateException("The freshly compiled type " + refreshedProducer + " does not have a new ABI hash");
       }
     }

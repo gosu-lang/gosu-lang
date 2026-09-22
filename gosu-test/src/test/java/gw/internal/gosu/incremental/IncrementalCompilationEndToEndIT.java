@@ -3298,9 +3298,15 @@ public class IncrementalCompilationEndToEndIT
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"consumers\": {\n" +
-      "    \"com.example.DummyJava\": [],\n" +
-      "    \"example.GosuIndipendent\": []\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"com.example.DummyJava\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.GosuIndipendent\": {\n" +
+      "      \"abi_hash\": \"9485e29a93eb3c5236b9cfad393d45630e06ab84\",\n" +
+      "      \"consumers\": []\n" +
+      "    }\n" +
       "  }\n" +
       "}";
     assertEquals( "Walking a changed local Java type with no consumers should add an empty entry for it",

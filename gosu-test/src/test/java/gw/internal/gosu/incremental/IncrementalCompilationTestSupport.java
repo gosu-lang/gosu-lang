@@ -40,14 +40,17 @@ final class IncrementalCompilationTestSupport
     Map<String, Object> root = new LinkedHashMap<>();
     root.put( "version", DEPENDENCY_VERSION );
 
-    Map<String, List<String>> sortedConsumers = new TreeMap<>();
+    Map<String, Object> sortedConsumers = new TreeMap<>();
     for( Map.Entry<String, List<String>> entry : producerToConsumers.entrySet() )
     {
       List<String> consumers = new ArrayList<>( entry.getValue() );
       Collections.sort( consumers );
-      sortedConsumers.put( entry.getKey(), consumers );
+      LinkedHashMap<Object, Object> data = new LinkedHashMap<>();
+      data.put("abi_hash", "0000000000000000000000000000000000000000");
+      data.put("consumers", consumers);
+      sortedConsumers.put( entry.getKey(), data );
     }
-    root.put( "consumers", sortedConsumers );
+    root.put( "dep_graph", sortedConsumers );
 
     File parent = depFile.getParentFile();
     if( parent != null )

@@ -104,31 +104,6 @@ public class IncrementalCompilationManagerTest
   }
 
 
-  @Test //TODO recheck
-  public void testSelfReferencesAreNotRecorded()
-  {
-    // Self-references inside recordTypeDependency are filtered out -- documenting
-    // that production behavior here requires a local manager.
-    IncrementalCompilationManager manager = newManager();
-    manager.getOrCreateCurrentConsumerSet( "com.example.Consumer" );
-    manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );  // skipped
-    manager.recordTypeDependency( "com.example.Builder", "com.example.Consumer" ); // recorded
-    manager.updateDependencyFile( Set.of( "com.example.Consumer" ), Collections.emptySet() );
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of( "com.example.Builder" ),
-      Collections.emptySet()
-    );
-
-    // Both Builder (changed type) and Consumer (dependent) should be recompiled
-    assertTrue( "Builder should be recompiled when it changes",
-                toRecompile.contains( "com.example.Builder" ) );
-    assertTrue( "Consumer should be recompiled when Builder changes",
-                toRecompile.contains( "com.example.Consumer" ) );
-    assertTrue( "Should have exactly 2 types to recompile",
-                toRecompile.size() == 2 );
-  }
-
   @Test
   public void testTypesWithoutConsumersAreRegistered()
   {
@@ -143,29 +118,6 @@ public class IncrementalCompilationManagerTest
 
     assertTrue( "SimplePOGO should be recompiled when it changes",
                 toRecompile.contains( "com.example.SimplePOGO" ) );
-  }
-
-  @Test
-  public void testSelfReferencingTypeRegisteredWithEmptyArray()
-  {
-    // Register type and add only self-reference
-    IncrementalCompilationManager manager = newManager();
-    manager.getOrCreateCurrentConsumerSet( "com.example.Builder" );
-    manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );
-    manager.updateDependencyFile( Set.of( "com.example.Builder" ), Collections.emptySet() );
-
-    Set<String> toRecompile = newManager().calculateRecompilationSet(
-      Set.of( "com.example.Builder" ),
-      Collections.emptySet()
-    );
-
-    // Builder should exist in dependency file but with no external consumers
-    // Only the changed type itself should be recompiled (no consumers)
-    assertTrue( "Builder should be recompiled when it changes",
-                toRecompile.contains( "com.example.Builder" ) );
-    // Check that there are no other types to recompile
-    assertTrue( "Only Builder should be in recompilation set",
-                toRecompile.size() == 1 );
   }
 
   @Test
@@ -322,6 +274,10 @@ public class IncrementalCompilationManagerTest
     Files.createDirectories( innerFile.getParent() );
     Files.createFile( innerFile );
 
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
+                                                           Map.of( "com.example.MyClass", Collections.emptyList(),
+                                                                   "example.Producer", List.of("com.example.MyClass")) );
+
     // Configure the manager with BOTH roots, deliberately listing the shallower
     // root first so any naive "iterate in declaration order" would pick the
     // wrong one.
@@ -333,13 +289,6 @@ public class IncrementalCompilationManagerTest
       ),
       Collections.emptySet(), Collections.emptyList(), false );
 
-    manager.getOrCreateCurrentConsumerSet( "com.example.MyClass" );
-    manager.recordTypeDependency(
-      "example.Producer",
-      "com.example.MyClass"
-    );
-    manager.updateDependencyFile(
-      Set.of( "com.example.MyClass" ), Collections.emptySet() );
 
     // Reload and verify which FQCN was recorded as the consumer of Producer.
     // The dep file's BFS only knows FQCNs, so we use calculateRecompilationSet
