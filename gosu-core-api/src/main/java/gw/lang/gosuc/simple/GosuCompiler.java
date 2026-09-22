@@ -219,7 +219,8 @@ public class GosuCompiler implements IGosuCompiler
         }
       }
 
-      if (_incrementalManager.hasNewABI(type)) {
+      if( _incrementalManager.hasNewABI( type ) )
+      {
         Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
         for( String consumer : consumers )
         {
@@ -229,9 +230,12 @@ public class GosuCompiler implements IGosuCompiler
             worklist.add( consumer );
           }
         }
-      } else if (wasTypeCompiled) {
+      }
+      else if( wasTypeCompiled )
+      {
         // TODO Test 3 level of nesting and wasTypeCompiled effectiveness
-        for (IGosuClass innerClass : _compilingInnerClasses) {
+        for( IGosuClass innerClass : _compilingInnerClasses )
+        {
           String innerFqcn = _incrementalManager.getClassFileName( innerClass );
           if( !visited.contains( innerFqcn ) )
           {
@@ -776,7 +780,7 @@ public class GosuCompiler implements IGosuCompiler
     }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {
-      _compilingInnerClasses.add(innerClass);
+      _compilingInnerClasses.add( innerClass );
       final String innerClassName = String.format( "%s$%s.class", outputFile.getName().substring( 0, outputFile.getName().lastIndexOf( '.' ) ), innerClass.getRelativeName() );
       File innerClassFile = new File( outputFile.getParent(), innerClassName );
       if( innerClassFile.isFile() )

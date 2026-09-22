@@ -188,7 +188,7 @@ class DependenciesClassVisitor extends ClassVisitor
     appendAbiList( abiStr, abiFields, "\n" );
     abiStr.append( "\nmethods:\n" );
     appendAbiList( abiStr, abiMethods, "\n" );
-    if  (verbose)
+    if( verbose )
     {
       System.out.println( abiStr );
     }
@@ -253,7 +253,7 @@ class DependenciesClassVisitor extends ClassVisitor
   @Override
   public void visitInnerClass( String name, String outerName, String innerName, int access )
   {
-    if (!isPrivate( access ))
+    if( !isPrivate( access ) )
     {
       StringBuilder abiInner = new StringBuilder();
       abiInner.append( access ).append( ' ' ).append( name ).append( '(' ).append( innerName ).append( ')' );
@@ -310,7 +310,7 @@ class DependenciesClassVisitor extends ClassVisitor
 
   private static boolean isSourceCodePrivate( int access, List<String> annotations )
   {
-    return access == 0 && !annotations.contains("@Lgw/lang/ir/Internal;T[]");
+    return access == 0 && !annotations.contains( "@Lgw/lang/ir/Internal;T[]" );
   }
 
   private class DepFieldVisitor extends FieldVisitor
@@ -325,7 +325,7 @@ class DependenciesClassVisitor extends ClassVisitor
       abiField = new StringBuilder();
       abiFieldAnnotations = new ArrayList<>();
       fieldAccess = access;
-      if( !isPrivate(access) )
+      if( !isPrivate( access ) )
       {
         abiField.append( access );
         abiField.append( ' ' );
@@ -354,7 +354,7 @@ class DependenciesClassVisitor extends ClassVisitor
     @Override
     public void visitEnd()
     {
-      if( isPrivate( fieldAccess ) || isSourceCodePrivate( fieldAccess, abiFieldAnnotations ))
+      if( isPrivate( fieldAccess ) || isSourceCodePrivate( fieldAccess, abiFieldAnnotations ) )
       {
         return;
       }
@@ -380,7 +380,7 @@ class DependenciesClassVisitor extends ClassVisitor
       abiParamsAnnotations = new ArrayList<>();
       abiTypesAnnotations = new ArrayList<>();
       methodAccess = access;
-      if( !isPrivate(access) )
+      if( !isPrivate( access ) )
       {
         abiMethod.append( access );
         abiMethod.append( ' ' );
@@ -456,7 +456,7 @@ class DependenciesClassVisitor extends ClassVisitor
     @Override
     public void visitEnd()
     {
-      if( isPrivate( methodAccess ) || isSourceCodePrivate( methodAccess, abiMethodAnnotations ))
+      if( isPrivate( methodAccess ) || isSourceCodePrivate( methodAccess, abiMethodAnnotations ) )
       {
         return;
       }
@@ -469,7 +469,8 @@ class DependenciesClassVisitor extends ClassVisitor
 
     private void addDependentTypeFromBootstrapMethodArgument( Object arg )
 
-    {  if( arg instanceof Type )
+    {
+      if( arg instanceof Type )
       {
         maybeAddDependentType( (Type)arg );
       }

@@ -29,17 +29,20 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
-class ProducerInfo {
+class ProducerInfo
+{
   String abiHash;
   Set<String> consumers;
 
-  ProducerInfo( String abiHash, Set<String> consumers ) {
+  ProducerInfo( String abiHash, Set<String> consumers )
+  {
     this.abiHash = abiHash;
     this.consumers = consumers;
   }
 
-  ProducerInfo( ) {
-    this(IncrementalCompilationManager.NO_ABI_HASH, new HashSet<>());
+  ProducerInfo()
+  {
+    this( IncrementalCompilationManager.NO_ABI_HASH, new HashSet<>() );
   }
 }
 
@@ -98,7 +101,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   {
     ClassReader reader = new ClassReader( bytes );
     /*TODO: user verbose flag?*/
-    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this, verbose);
+    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this, verbose );
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
     // Set the new computed ABI hash for the gosuClass just visited. Note that DependenciesClassVisitor ensures that
     // visitor.consumerFqcn is registered as producer as well.
@@ -315,12 +318,13 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     while( reader.hasNext() )
     {
       String producer = reader.nextName();
-       depGraph.put( producer, readProdInfo(reader));
+      depGraph.put( producer, readProdInfo( reader ) );
     }
     reader.endObject();
     return depGraph;
   }
- // TODO doc
+
+  // TODO doc
   private ProducerInfo readProdInfo( JsonReader reader ) throws IOException
   {
     reader.beginObject();
@@ -346,11 +350,12 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
     }
     reader.endObject();
-    return new ProducerInfo(abiHash, consumers);
+    return new ProducerInfo( abiHash, consumers );
   }
 
 
-  /** TODO update
+  /**
+   * TODO update
    * Apply this session's tracked dependencies ({@code currentUsedBy}) to the in-memory
    * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
    * Does NOT write to disk. Callers that need persistence should use
@@ -368,7 +373,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
     // For each old producer, remove consumers that have been modified(recompiled) or removed: we cannot assume they are
     // still consumers due to source file changes.
-    for( ProducerInfo info: typeDependencies.values() )
+    for( ProducerInfo info : typeDependencies.values() )
     {
       Set<String> consumers = info.consumers;
       consumers.removeAll( typeFqcnsToCompile );
@@ -387,18 +392,20 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
       ProducerInfo prodInfo = typeDependencies.computeIfAbsent( refreshedProducer, k -> new ProducerInfo() );
       prodInfo.consumers.addAll( refreshedConsumers );
-      if (!newAbiHash.equals( NO_ABI_HASH ))
+      if( !newAbiHash.equals( NO_ABI_HASH ) )
       {
         prodInfo.abiHash = newAbiHash;
-      } else if (typeFqcnsToCompile.contains( refreshedProducer )) {
-        throw new IllegalStateException("The freshly compiled type " + refreshedProducer + " does not have a new ABI hash");
+      }
+      else if( typeFqcnsToCompile.contains( refreshedProducer ) )
+      {
+        throw new IllegalStateException( "The freshly compiled type " + refreshedProducer + " does not have a new ABI hash" );
       }
     }
     // Content no longer needed and now stale.
     currentUsedBy.clear();
   }
 
-  void writeDepGraph(JsonWriter writer) throws IOException
+  void writeDepGraph( JsonWriter writer ) throws IOException
   {
     writer.beginObject();
     // Sort keys for deterministic, cache-stable output.
@@ -406,12 +413,12 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     {
       String producer = entry.getKey();
       writer.name( producer );
-      writeProducerInfo(writer, entry.getValue());
+      writeProducerInfo( writer, entry.getValue() );
     }
     writer.endObject();
   }
 
-  void writeProducerInfo(JsonWriter writer, ProducerInfo prodInfo) throws IOException
+  void writeProducerInfo( JsonWriter writer, ProducerInfo prodInfo ) throws IOException
   {
     writer.beginObject();
     writer.name( FIELD_ABI_HASH ).value( prodInfo.abiHash );
@@ -659,7 +666,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   {
     // Note: we are not using computeIfAbsent as we don't want to modify both maps.
     String oldAbiHash = typeDependencies.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
-    String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo()  ).abiHash;
+    String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
     //return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
     return true;
   }
