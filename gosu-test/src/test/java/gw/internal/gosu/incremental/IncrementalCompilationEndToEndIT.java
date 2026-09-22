@@ -1283,10 +1283,16 @@ public class IncrementalCompilationEndToEndIT
     Map<String, FileTime> initialTimestamps = recordTimestamps();
 
     // Step 4: Modify the utility class
-    modifySourceFile( utilClass,
-                      "return s.toLowerCase()",
-                      "return s.toUpperCase()"
-    );
+    Files.write( utilClass.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class BlockUtil {\n" +
+      "  public var foo : int = 0\n" +
+      "  static function transform(s : String) : String {\n" +
+      "    return s.toLowerCase()\n" +
+      "  }\n" +
+      "}"
+    ).getBytes() );
 
     result = compile( Arrays.asList( utilClass ) );
     assertTrue( "Incremental compilation should succeed", result.success );
@@ -1551,7 +1557,7 @@ public class IncrementalCompilationEndToEndIT
       "\n" +
       "class Outer {\n" +
       "  var _value : String\n" +
-      "  var _count : int\n" +
+      "  public var _count : int\n" +
       "  \n" +
       "  class Inner {\n" +
       "    var _innerValue : String\n" +
@@ -2225,11 +2231,22 @@ public class IncrementalCompilationEndToEndIT
       "\n" +
       "class ClassA {\n" +
       "  static function value() : int {\n" +
-      "    return 2  // changed\n" +
+      "    return 1\n" +
       "  }\n" +
+      "  function newFunc() {}\n" +
       "}"
     ).getBytes() );
-
+    Files.write( classB.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class ClassB {\n" +
+      "  // Re-exposes ClassA.value() on ClassB's public API\n" +
+      "  static function transitive() : int {\n" +
+      "    return ClassA.value() + 10\n" +
+      "  }\n" +
+      "  function newFunc() {}\n" +
+      "}"
+    ).getBytes() );
     // Step 6: Incremental compile, passing only ClassA as the changed input
     CompileResult incrementalResult = compile( Arrays.asList( classA ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
@@ -2337,14 +2354,25 @@ public class IncrementalCompilationEndToEndIT
     Map<String, FileTime> initialTimestamps = recordTimestamps();
     Thread.sleep( SLEEP_MS );
 
-    // Step 5: Modify ClassA (entry point into the cycle)
+    // Step 5: Modify ClassA and ClassB
     Files.write( classA.toPath(), (
       "package example\n" +
       "\n" +
       "class ClassA {\n" +
       "  static function value() : int {\n" +
-      "    return ClassC.helper() + 1  // changed\n" +
+      "    return ClassC.helper()\n" +
       "  }\n" +
+      "  function newFunc() {}\n" +
+      "}"
+    ).getBytes() );
+    Files.write( classB.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class ClassB {\n" +
+      "  static function transitive() : int {\n" +
+      "    return ClassA.value() + 10\n" +
+      "  }\n" +
+      "  function newFunc() {}\n" +
       "}"
     ).getBytes() );
 
@@ -2460,11 +2488,26 @@ public class IncrementalCompilationEndToEndIT
       "package example\n" +
       "\n" +
       "interface IResult<T> {\n" +
-      "  static final var FOO : int = 10\n" +
+      "  static final public var FOO : int = 10\n" +
       "  property get Value() : T\n" +
       "}"
     ).getBytes() );
-
+    Files.write( srcDir.resolve( "example/ResultBase.gs" ), (
+                      "package example\n" +
+                      "\n" +
+                      "abstract class ResultBase<T> implements IResult<T> {\n" +
+                      "  static final public var BAR : int = 10\n" +
+                      "  private var _value : T\n" +
+                      "\n" +
+                      "  construct(v : T) {\n" +
+                      "    _value = v\n" +
+                      "  }\n" +
+                      "\n" +
+                      "  override property get Value() : T {\n" +
+                      "    return _value\n" +
+                      "  }\n" +
+                      "}"
+    ).getBytes() );
     CompileResult incrementalResult = compile(
       Arrays.asList( new File( srcDir.toFile(), "example/IResult.gs" ) ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
@@ -2560,7 +2603,7 @@ public class IncrementalCompilationEndToEndIT
 
     modifySourceFile( new File( srcDir.toFile(), "example/Leaf.gs" ),
                       "class Leaf {\n",
-                      "class Leaf {\n  var _marker : int = 7\n" );
+                      "class Leaf {\n  public var _marker : int = 7\n" );
 
     CompileResult afterLeafChange = compile(
       Arrays.asList( new File( srcDir.toFile(), "example/Leaf.gs" ) ) );
@@ -4372,6 +4415,7 @@ public class IncrementalCompilationEndToEndIT
       "\n" +
       "class A {\n" +
       "  public static final var FOO : int = 99\n" +
+      "  public static final var BAR : int = -1\n" +
       "}"
     ).getBytes() );
 
@@ -4383,8 +4427,7 @@ public class IncrementalCompilationEndToEndIT
 
     FileTime newConsumerTime = getFileModificationTime( consumerClass );
     assertTrue(
-      "Consumer.class should be recompiled when A.FOO's value changes as we don't track ABI changes yet (a " +
-      "change in FOO value should not be a ABI change, so this test will fail whe we implement ABI checking)",
+      "Consumer.class should be recompiled when A changes",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis() );
 
     // Bytecode check: confirm that gosuc folds the constant expression

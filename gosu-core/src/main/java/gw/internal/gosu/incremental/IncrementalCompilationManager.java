@@ -667,8 +667,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     // Note: we are not using computeIfAbsent as we don't want to modify both maps.
     String oldAbiHash = typeDependencies.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
     String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
-    //return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
-    return true;
+    return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
   }
 
   @Override
