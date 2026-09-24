@@ -217,9 +217,23 @@ public class GosuClassProxyFactory
       type = type.getGenericType();
     }
     StringBuilder sb = new StringBuilder();
-    sb.append( "package " ).append( IGosuClass.PROXY_PREFIX ).append('.').append( type.getNamespace() ).append( '\n' );
+    appendProxyPackage( sb, type );
     genClassImpl(type, headerOnly, sb);
     return sb;
+  }
+
+  // When a Java type is in the default (unnamed) package, getNamespace() returns the empty string.
+  // Emitting "_proxy_." with a trailing dot produces invalid Gosu and the proxy source fails to
+  // parse, so the proxy ends up with no members and Gosu subclasses can't inherit them.
+  private static void appendProxyPackage( StringBuilder sb, IJavaType type )
+  {
+    sb.append( "package " ).append( IGosuClass.PROXY_PREFIX );
+    String namespace = type.getNamespace();
+    if( namespace != null && !namespace.isEmpty() )
+    {
+      sb.append( '.' ).append( namespace );
+    }
+    sb.append( '\n' );
   }
 
   private void genClassImpl( IJavaType type, boolean headerOnly, StringBuilder sb )
@@ -444,7 +458,7 @@ public class GosuClassProxyFactory
       type = type.getGenericType();
     }
     StringBuilder sb = new StringBuilder();
-    sb.append( "package " ).append( IGosuClass.PROXY_PREFIX ).append( '.' ).append( type.getNamespace() ).append('\n');
+    appendProxyPackage( sb, type );
     genInterfaceImpl( type, headerOnly, sb );
     return sb;
   }
