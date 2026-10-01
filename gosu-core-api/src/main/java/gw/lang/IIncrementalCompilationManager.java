@@ -8,17 +8,33 @@ import java.util.Set;
 public interface IIncrementalCompilationManager {
 
     /**
+     * Returns whether a usable dependency graph was loaded at construction: the dependency file
+     * existed, parsed, carried the version this manager reads, and every entry had both of its
+     * fields.
+     *
+     * <p>{@code false} means the driver has nothing to walk and must compile every source, then
+     * persist the graph from scratch. That covers an absent file (first build, or a driver that
+     * deleted it to force a full rebuild), an unreadable file, a file written by a gosuc with a
+     * different dependency-file version, and a file whose entries lack a field, which no gosuc
+     * writes. Treating any but the first as an empty graph instead would compile only the changed
+     * types and silently leave their consumers stale.
+     */
+    boolean hasValidExistingDepFile();
+
+    /**
      * Record the single-hop dependency edges produced when {@code gosuClass} is
-     * compiled to the given bytecode.
+     * compiled to the given bytecode, and compute the class's ABI hash from the same bytes.
      *
      * <p>Runs the two-phase walk over {@code bytes} via DependenciesClassVisitor
      * (constant-pool scan in the constructor + structural {@code ClassVisitor} callbacks
-     * via {@code accept}), then a narrow AST pass via trackTypeliteralsFromAST
-     * for references that don't make it into bytecode.
+     * via {@code accept}, which record the edges and assemble the canonical ABI text in one
+     * pass), then a narrow AST pass via trackTypeliteralsFromAST for references that don't
+     * make it into bytecode.
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades
      * are computed lazily by the incremental compile driver, which walks the resulting
-     * graph via {@link #getOrCreateConsumersFor(String)}.
+     * graph via {@link #getOrCreateConsumersFor(String)}, gated by {@link #hasNewABI(String)}.
+     * Both take the class's bytecode-shape FQCN, {@link #getClassFileName(IType)}, as the key.
      *
      * @param bytes     compiled bytecode for {@code gosuClass}
      * @param gosuClass the type whose dependencies are being recorded; used as the
@@ -27,9 +43,10 @@ public interface IIncrementalCompilationManager {
     void trackDependencies(byte[] bytes, IGosuClass gosuClass);
 
     /**
-     * Reconcile the in-memory dependency graph via updateDependencies and
-     * persist the result to disk. Keys and consumer lists are sorted before
-     * serialization for deterministic JSON output.
+     * Reconcile the in-memory dependency graph and ABI hashes via updateDependencies and
+     * persist the result to disk as one entry per type, holding that type's ABI hash and its
+     * consumers. Types and consumer lists are sorted before serialization for deterministic
+     * JSON output.
      */
     void updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes);
 
@@ -95,7 +112,23 @@ public interface IIncrementalCompilationManager {
      */
     String getClassFileName( IType type );
 
-    // TODO doc
+    /**
+     * Returns whether the ABI of {@code fqcn}, as recorded by {@link #trackDependencies(byte[], IGosuClass)}
+     * during this build, differs from the ABI persisted for it by the previous build.
+     *
+     * <p>{@code true} whenever there is nothing to compare: the type was not hashed in this build
+     * (not compiled by gosuc: a local Java type, a removed type, a class its recompiled source
+     * no longer declares), or the previous build stored no hash for it (a new type). Every such
+     * case fails safe toward cascading.
+     *
+     * <p>The driver enqueues a recompiled type's consumers only when this returns {@code true},
+     * which is what stops a cascade at a type whose recompile left its consumer-visible surface
+     * unchanged.
+     *
+     * <p>With verbose logging on, prints one line per call: {@code ABI CHANGED} or
+     * {@code ABI STABLE}, the reason (no fresh hash, no previous hash, hash changed, hash
+     * same), the FQCN, and the previous and fresh hashes.
+     */
     boolean hasNewABI( String fqcn );
 
     /**
@@ -108,6 +141,9 @@ public interface IIncrementalCompilationManager {
      * Gosu consumers but excluded from the result (gosuc cannot recompile Java sources).
      * Removed types are excluded from the result themselves (their source files are gone),
      * though their downstream consumers are not.
+     * <p>
+     * This is the full, ungated closure: it knows nothing about ABI hashes and is not on the
+     * driver's path.
      *
      * @param changedTypes types whose source was modified; the changed types themselves
      *                     (if Gosu) plus all transitive Gosu consumers are returned

@@ -29,33 +29,23 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
-class ProducerInfo
-{
-  String abiHash;
-  Set<String> consumers;
-
-  ProducerInfo( String abiHash, Set<String> consumers )
-  {
-    this.abiHash = abiHash;
-    this.consumers = consumers;
-  }
-
-  ProducerInfo()
-  {
-    this( IncrementalCompilationManager.NO_ABI_HASH, new HashSet<>() );
-  }
-}
-
 /**
  * Manages dependency tracking and incremental compilation for gosuc.
  * Tracks:
  * - Source file to output files mapping (handles blocks/inner classes)
- * - Dependencies between source files
- * - API signatures for detecting breaking changes
+ * - Dependencies between compiled types (producer -> consumers)
+ * - An ABI hash per compiled type, so a recompile that leaves a type's consumer-visible
+ *   surface unchanged does not cascade to its consumers
+ * Both the persisted graph and this build's records are maps of {@link ProducerInfo}, one per
+ * type, which is also how the dependency file lays them out.
  */
 public class IncrementalCompilationManager implements IIncrementalCompilationManager
 {
   public static final String DEPENDENCY_VERSION = "0.2";  // Still in alpha
+  /**
+   * The {@code abi_hash} written for a type that has none: a local Java type, which gosuc never
+   * compiles. {@link #hasNewABI} reads it as "changed".
+   */
   public static final String NO_ABI_HASH = "NO_ABI_HASH";
 
   // Dep-file field names, shared by the reader and the writer so the two cannot drift.
@@ -65,9 +55,15 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   private static final String FIELD_CONSUMERS = "consumers";
 
   private final String dependencyFilePath;
-  private final Map<String, ProducerInfo> typeDependencies;
+  // The graph as persisted by the previous build: one record per type, holding its ABI hash and its
+  // consumers, exactly as the dep file lays it out. Empty when no usable file was loaded.
+  private Map<String, ProducerInfo> typeDependencies;
+  // The same shape for what this build recorded: the consumers observed in freshly compiled bytecode,
+  // keyed by producer, and the ABI hash of every class compiled this build. A producer that was only
+  // referenced, not compiled, carries NO_ABI_HASH here.
   //TODO rename to currentTypeDeps
   private final Map<String, ProducerInfo> currentUsedBy;
+  private final boolean validDepFile;
   private final boolean verbose;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
@@ -91,21 +87,28 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     this.sourceRoots = roots;
     this.localJavaTypes = localJavaTypes;
     this.verbose = verbose;
-    this.typeDependencies = loadDependencyFile();
+    this.typeDependencies = new HashMap<>();
+    this.validDepFile = loadDependencyFile();
     this.currentUsedBy = new HashMap<>();
     this.gosuFqcnToSourcePath = buildGosuFqcnToSourcePath( allSourceFiles );
+  }
+
+  @Override
+  public boolean hasValidExistingDepFile()
+  {
+    return validDepFile;
   }
 
   @Override
   public void trackDependencies( byte[] bytes, IGosuClass gosuClass )
   {
     ClassReader reader = new ClassReader( bytes );
-    /*TODO: user verbose flag?*/
-    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this, verbose );
+    // One walk records the class's dependency edges and assembles its canonical ABI text.
+    DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false /*TODO verbose*/ );
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
-    // Set the new computed ABI hash for the gosuClass just visited. Note that DependenciesClassVisitor ensures that
-    // visitor.consumerFqcn is registered as producer as well.
-    currentUsedBy.get( visitor.consumerFqcn ).abiHash = visitor.AbiHash;
+    // Store the fresh ABI hash on the class's own record; the visitor's constructor registered
+    // the class's FQCN as a producer, so the record exists and the hash lands next to its edges.
+    currentUsedBy.get( visitor.getConsumerFqcn() ).abiHash = visitor.getAbiHash();
     trackTypeliteralsFromAST( gosuClass );
   }
 
@@ -257,9 +260,13 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   /**
-   * Load existing dependency data from file
+   * Load the dependency graph -- each type's ABI hash and consumers -- from the dependency
+   * file into {@link #typeDependencies}.
+   *
+   * @return whether a usable file was loaded; {@code false} leaves the graph empty and means
+   *         the driver must compile everything (see {@link #hasValidExistingDepFile()})
    */
-  private Map<String, ProducerInfo> loadDependencyFile()
+  private boolean loadDependencyFile()
   {
     File depFile = new File( dependencyFilePath );
     if( !depFile.exists() )
@@ -268,7 +275,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       {
         System.out.println( "No existing dependency file found at: " + dependencyFilePath );
       }
-      return new HashMap<>();
+      return false;
     }
 
     try (JsonReader reader = new JsonReader(
@@ -296,19 +303,20 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
       if( DEPENDENCY_VERSION.equals( version ) && depGraph != null )
       {
-        return depGraph;
+        typeDependencies = depGraph;
+        return true;
       }
       if( verbose )
       {
-        System.out.println( "Dependency file version mismatch, starting fresh" );
+        System.out.println( "Dependency file is not version " + DEPENDENCY_VERSION +
+                            " or is incomplete; compiling everything to regenerate it" );
       }
-      return new HashMap<>();
     }
     catch( IOException | IllegalStateException e )
     {
       System.err.println( "Error loading dependency file: " + e.getMessage() );
-      return new HashMap<>();
     }
+    return false;
   }
 
   private Map<String, ProducerInfo> readDepGraph( JsonReader reader ) throws IOException
@@ -318,18 +326,27 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     while( reader.hasNext() )
     {
       String producer = reader.nextName();
-      depGraph.put( producer, readProdInfo( reader ) );
+      depGraph.put( producer, readProdInfo( reader, producer ) );
     }
     reader.endObject();
     return depGraph;
   }
 
-  // TODO doc
-  private ProducerInfo readProdInfo( JsonReader reader ) throws IOException
+  /**
+   * Read one type's record -- its {@code abi_hash} and {@code consumers} -- from {@code reader},
+   * positioned just before the record's opening brace; consumes the matching closing brace. gosuc
+   * is the only writer of the file and always writes both fields, so an entry lacking either is
+   * not a file this gosuc wrote: the whole file is rejected and the driver compiles everything,
+   * rather than loading a record whose null hash would only be written back as JSON {@code null}
+   * and fail to parse one build later.
+   *
+   * @throws IllegalStateException if the entry lacks {@code abi_hash} or {@code consumers}
+   */
+  private ProducerInfo readProdInfo( JsonReader reader, String producer ) throws IOException
   {
     reader.beginObject();
     String abiHash = null;
-    Set<String> consumers = new HashSet<>();
+    Set<String> consumers = null;
     while( reader.hasNext() )
     {
       switch( reader.nextName() )
@@ -338,6 +355,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
           abiHash = reader.nextString();
           break;
         case FIELD_CONSUMERS:
+          consumers = new HashSet<>();
           reader.beginArray();
           while( reader.hasNext() )
           {
@@ -350,14 +368,23 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
     }
     reader.endObject();
+    if( abiHash == null || consumers == null )
+    {
+      throw new IllegalStateException( "Dependency file entry for " + producer + " lacks " +
+                                       (abiHash == null ? FIELD_ABI_HASH : FIELD_CONSUMERS) );
+    }
     return new ProducerInfo( abiHash, consumers );
   }
 
 
   /**
-   * TODO update
-   * Apply this session's tracked dependencies ({@code currentUsedBy}) to the in-memory
-   * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
+   * Apply this build's records ({@code currentUsedBy}: tracked dependencies and ABI hashes) to
+   * the persisted graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}:
+   * removed types lose their record, recompiled and removed types are stripped from every
+   * consumer list, this build's consumers are merged in, and a fresh hash replaces the persisted
+   * one. A producer that was merely referenced carries {@code NO_ABI_HASH} and keeps its
+   * persisted hash; a producer credited as compiled without a fresh hash is an internal
+   * inconsistency and throws, since every class gosuc compiles is hashed.
    * Does NOT write to disk. Callers that need persistence should use
    * {@link #updateDependencyFile(Set, Set)} instead.
    *
@@ -664,10 +691,53 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   @Override
   public boolean hasNewABI( String fqcn )
   {
-    // Note: we are not using computeIfAbsent as we don't want to modify both maps.
-    String oldAbiHash = typeDependencies.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
-    String newAbiHash = currentUsedBy.getOrDefault( fqcn, new ProducerInfo() ).abiHash;
-    return newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
+    // Plain lookups: computeIfAbsent would register the FQCN as a key in both maps as a side effect, and
+    // getOrDefault would allocate a throwaway record per call. An absent record means no hash.
+    String oldAbiHash = NO_ABI_HASH;
+    ProducerInfo oldInfo = typeDependencies.get( fqcn );
+    if( oldInfo != null )
+    {
+      oldAbiHash = oldInfo.abiHash;
+    }
+    String newAbiHash = NO_ABI_HASH;
+    ProducerInfo newInfo = currentUsedBy.get( fqcn );
+    if( newInfo != null )
+    {
+      newAbiHash = newInfo.abiHash;
+    }
+    boolean changed = newAbiHash.equals( NO_ABI_HASH ) || !newAbiHash.equals( oldAbiHash );
+    if( verbose )
+    {
+      // The reason is what explains a surprising cascade: "changed" covers three different situations.
+      String reason;
+      if( newAbiHash.equals( NO_ABI_HASH ) )
+      {
+        reason = "no fresh hash";
+      }
+      else if( oldAbiHash.equals( NO_ABI_HASH ) )
+      {
+        reason = "no previous hash";
+      }
+      else if( changed )
+      {
+        reason = "hash changed";
+      }
+      else
+      {
+        reason = "hash same";
+      }
+      String verdict;
+      if( changed )
+      {
+        verdict = "ABI CHANGED";
+      }
+      else
+      {
+        verdict = "ABI STABLE";
+      }
+      System.out.println( verdict + " (" + reason + "): " + fqcn + " old=" + oldAbiHash + " new=" + newAbiHash );
+    }
+    return changed;
   }
 
   @Override

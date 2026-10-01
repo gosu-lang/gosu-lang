@@ -80,7 +80,9 @@ public class GosuCompiler implements IGosuCompiler
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
-  private ArrayList<IGosuClass> _compilingInnerClasses;
+  // The nested classes written by the most recent per-file compile, for the incremental walk; allocated once,
+  // cleared per file.
+  private final List<IGosuClass> _compilingInnerClasses = new ArrayList<>();
   private IIncrementalCompilationManager _incrementalManager;
 
   @Override
@@ -106,14 +108,9 @@ public class GosuCompiler implements IGosuCompiler
 
     _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
                                                                         options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
-    // A missing dep file is the only signal meaning "compile everything", so a driver wanting a full
-    // rebuild must delete it -- supplying no -changed-types/-removed-types is not enough, as that is
-    // indistinguishable from an incremental round whose cascade came out empty, which must compile
-    // nothing. The Gradle plugin deletes it in GosuCompile: declaring it an @OutputFile does not
-    // guarantee Gradle removes it first.
-    if( !new File( options.getDependencyFile() ).exists() )
+    if( !_incrementalManager.hasValidExistingDepFile() )
     {
-      // First incremental compilation: compile all source files to build initial dependency file.
+      // Compile all source files to build the dependency file from scratch.
       if( options.isVerbose() )
       {
         System.out.println( "Initial incremental compilation: compiling all " + allSourceFiles.size() + " source files" );
@@ -129,6 +126,16 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     return compileGosuIncrementally( options, driver );
+  }
+
+  /** Puts {@code type} on the worklist unless the walk has already seen it. */
+  private static void enqueueType( String type, Set<String> visited, Queue<String> worklist )
+  {
+    if( !visited.contains( type ) )
+    {
+      visited.add( type );
+      worklist.add( type );
+    }
   }
 
   private boolean compileGosuIncrementally( CommandLineOptions options, ICompilerDriver driver )
@@ -156,30 +163,27 @@ public class GosuCompiler implements IGosuCompiler
     // Seed the worklist with the union of changed and removed types.
     for( String changedType : changedTypes )
     {
-      if( !visited.contains( changedType ) )
-      {
-        visited.add( changedType );
-        worklist.add( changedType );
-      }
+      enqueueType(changedType, visited, worklist);
     }
     for( String removedType : removedTypes )
     {
-      if( !visited.contains( removedType ) )
-      {
-        visited.add( removedType );
-        worklist.add( removedType );
-      }
+      enqueueType(removedType, visited, worklist);
     }
 
     /*
-      Note that the typeDependencies[X] give you all the types that consume/refer to X: if X is modified all types in
-      typeDependencies[X] must be recompiled.
-      This map reflects the status of the previously compiled .class files. The changedTypes/removedTypes are
-      referring to source code changes, not yet reflected on the .class files.
-      Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
-      to be recompiled.
-      Once the toRecompile files are recompiled, _incrementalManager.updateDependencyFile updates the dependency file to
-      reflect the modified dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
+      typeDependencies[X] holds every type that consumes X as of the previously compiled .class files, while
+      changedTypes/removedTypes describe source changes not yet reflected in those .class files. The walk below
+      bridges the two. Each type taken off the worklist has its source compiled on demand, and every nested class
+      that compile produced is enqueued so that it takes its own turn; a type's consumers are then enqueued only if
+      hasNewABI says so, which it does when the ABI hash moved and whenever there is no fresh hash to compare: a
+      local Java type or removed type that gosuc never compiles, or a class its source no longer declares. A
+      recompile that left a class's consumer-visible surface unchanged cannot have invalidated anything compiled
+      against it, so the cascade stops there, while a nested class whose own hash moved still cascades to its own
+      consumers. Classes no compile produced need no enumeration: every nested class consumes its enclosing class,
+      and the enclosing class's hash covers the names of its member classes, so a removed outer or a deleted
+      member class reaches the worklist through the graph like any other consumer.
+      Once the walk is done, _incrementalManager.updateDependencyFile brings the graph and the hashes in line with
+      the new .class files on disk.
     */
     boolean thresholdExceeded = false;
     while( !worklist.isEmpty() && !thresholdExceeded )
@@ -224,24 +228,18 @@ public class GosuCompiler implements IGosuCompiler
         Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
         for( String consumer : consumers )
         {
-          if( !visited.contains( consumer ) )
-          {
-            visited.add( consumer );
-            worklist.add( consumer );
-          }
+          enqueueType(consumer, visited, worklist);
         }
       }
       else if( wasTypeCompiled )
       {
-        // TODO Test 3 level of nesting and wasTypeCompiled effectiveness
+        // type does not have a new ABI, but we still need to inspect any inner class, which
+        // might have changed. Inner classes are always in type's consumers, so when hasNewABI( type )
+        // is true we enqueue inner classes above as usual.
         for( IGosuClass innerClass : _compilingInnerClasses )
         {
           String innerFqcn = _incrementalManager.getClassFileName( innerClass );
-          if( !visited.contains( innerFqcn ) )
-          {
-            visited.add( innerFqcn );
-            worklist.add( innerFqcn );
-          }
+          enqueueType(innerFqcn, visited, worklist);
         }
       }
     }
@@ -446,6 +444,7 @@ public class GosuCompiler implements IGosuCompiler
   public boolean compile( File sourceFile, ICompilerDriver driver )
   {
     _compilingSourceFile = sourceFile;
+    _compilingInnerClasses.clear();
 
     IType type = getType( _compilingSourceFile );
     if( type == null )
@@ -460,7 +459,6 @@ public class GosuCompiler implements IGosuCompiler
       {
         if( type.isValid() )
         {
-          _compilingInnerClasses = new ArrayList<>();
           createGosuOutputFiles( (IGosuClass)type, driver );
         }
       }

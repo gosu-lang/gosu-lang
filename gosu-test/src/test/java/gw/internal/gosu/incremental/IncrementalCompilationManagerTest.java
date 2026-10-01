@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -305,6 +306,178 @@ public class IncrementalCompilationManagerTest
     assertFalse( "FQCN should not include the 'inner' segment that would come from " +
                  "a shallow-root match. Recompile set: " + toRecompile,
                  toRecompile.contains( "inner.com.example.MyClass" ) );
+  }
+
+  @Test
+  public void testSelfReferencesAreNotRecorded()
+  {
+    // Self-references inside recordTypeDependency are filtered out. The edges are recorded without
+    // crediting a compile: on this branch a type credited as compiled must carry a fresh hash, which
+    // only a real compile can supply.
+    IncrementalCompilationManager manager = newManager();
+    manager.getOrCreateCurrentConsumerSet( "com.example.Consumer" );
+    manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );  // skipped
+    manager.recordTypeDependency( "com.example.Builder", "com.example.Consumer" ); // recorded
+    manager.updateDependencyFile( Collections.emptySet(), Collections.emptySet() );
+
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
+      Set.of( "com.example.Builder" ),
+      Collections.emptySet()
+    );
+
+    // Both Builder (changed type) and Consumer (dependent) should be recompiled
+    assertTrue( "Builder should be recompiled when it changes",
+                toRecompile.contains( "com.example.Builder" ) );
+    assertTrue( "Consumer should be recompiled when Builder changes",
+                toRecompile.contains( "com.example.Consumer" ) );
+    assertEquals( "Should have exactly 2 types to recompile", 2, toRecompile.size() );
+  }
+
+  @Test
+  public void testSelfReferencingTypeRegisteredWithEmptyArray()
+  {
+    // Register type and add only self-reference
+    IncrementalCompilationManager manager = newManager();
+    manager.getOrCreateCurrentConsumerSet( "com.example.Builder" );
+    manager.recordTypeDependency( "com.example.Builder", "com.example.Builder" );
+    manager.updateDependencyFile( Collections.emptySet(), Collections.emptySet() );
+
+    Set<String> toRecompile = newManager().calculateRecompilationSet(
+      Set.of( "com.example.Builder" ),
+      Collections.emptySet()
+    );
+
+    // Builder should exist in dependency file but with no external consumers
+    // Only the changed type itself should be recompiled (no consumers)
+    assertTrue( "Builder should be recompiled when it changes",
+                toRecompile.contains( "com.example.Builder" ) );
+    assertEquals( "Only Builder should be in recompilation set", 1, toRecompile.size() );
+  }
+
+  @Test
+  public void testNoDependencyFile()
+  {
+    assertFalse( "A missing dep file: the driver must compile everything",
+                 newManager().hasValidExistingDepFile() );
+  }
+
+  @Test
+  public void testDependencyFileIsPresent()
+  {
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
+                                                           Map.of( "com.example.Producer", List.of( "com.example.Consumer" ) ),
+                                                           Map.of( "com.example.Producer", "aa" ) );
+
+    IncrementalCompilationManager manager = newManager();
+    assertTrue( manager.hasValidExistingDepFile() );
+    assertEquals( Set.of( "com.example.Consumer" ), manager.getOrCreateConsumersFor( "com.example.Producer" ) );
+  }
+
+  @Test
+  public void testDependencyHasWrongVersion()
+  {
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile, "0.1",
+                                                           Map.of( "com.example.Producer", List.of( "com.example.Consumer" ) ),
+                                                           Collections.emptyMap() );
+
+    IncrementalCompilationManager manager = newManager();
+    assertFalse( "A dep file written for another format version is not usable",
+                 manager.hasValidExistingDepFile() );
+    assertTrue( "Nothing from an unusable dep file may be loaded",
+                manager.getOrCreateConsumersFor( "com.example.Producer" ).isEmpty() );
+  }
+
+  @Test
+  public void testDependencyFileEntryWithoutAbiHashIsNotUsable()
+  {
+    // A null hash map omits abi_hash from every entry, which no gosuc writes: a malformed file.
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile, IncrementalCompilationManager.DEPENDENCY_VERSION,
+                                                           Map.of( "com.example.Producer", List.of( "com.example.Consumer" ) ),
+                                                           null );
+
+    IncrementalCompilationManager manager = newManager();
+    assertFalse( "A current-version dep file whose entries lack abi_hash is malformed, hence not usable",
+                 manager.hasValidExistingDepFile() );
+    assertTrue( "Nothing from a malformed dep file may be loaded",
+                manager.getOrCreateConsumersFor( "com.example.Producer" ).isEmpty() );
+  }
+
+  @Test
+  public void testDependencyFileEntryWithoutConsumersIsNotUsable() throws IOException
+  {
+    // The support helper always writes consumers, so the other half of the rule needs a hand-written file.
+    Files.createDirectories( dependencyFile.toPath().getParent() );
+    Files.writeString( dependencyFile.toPath(),
+                       "{\n" +
+                       "  \"version\": \"" + IncrementalCompilationManager.DEPENDENCY_VERSION + "\",\n" +
+                       "  \"dep_graph\": {\n" +
+                       "    \"com.example.Producer\": {\n" +
+                       "      \"abi_hash\": \"aa\"\n" +
+                       "    }\n" +
+                       "  }\n" +
+                       "}" );
+
+    IncrementalCompilationManager manager = newManager();
+    assertFalse( "A current-version dep file whose entries lack consumers is malformed, hence not usable",
+                 manager.hasValidExistingDepFile() );
+    assertTrue( "Nothing from a malformed dep file may be loaded",
+                manager.getOrCreateConsumersFor( "com.example.Producer" ).isEmpty() );
+  }
+
+  @Test
+  public void testHasNewAbiFailsSafeWhenThereIsNothingToCompare()
+  {
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
+                                                           Map.of( "com.example.Producer", List.of() ),
+                                                           Map.of( "com.example.Producer", "aa" ) );
+
+    IncrementalCompilationManager manager = newManager();
+    assertTrue( "A type not hashed this build counts as changed, even with a previous hash on file",
+                manager.hasNewABI( "com.example.Producer" ) );
+    assertTrue( "A type unknown to both builds counts as changed",
+                manager.hasNewABI( "com.example.Unknown" ) );
+  }
+
+  @Test
+  public void testAbiHashesArePersistedAndDroppedForRemovedTypes() throws IOException
+  {
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
+                                                           Map.of( "com.example.Kept", List.of(),
+                                                                   "com.example.Removed", List.of() ),
+                                                           Map.of( "com.example.Kept", "aa",
+                                                                   "com.example.Removed", "bb" ) );
+
+    newManager().updateDependencyFile( Collections.emptySet(), Set.of( "com.example.Removed" ) );
+
+    String json = Files.readString( dependencyFile.toPath() );
+    assertTrue( "The kept type's hash should survive a rewrite it was not part of: " + json,
+                json.contains( "\"com.example.Kept\": {\n      \"abi_hash\": \"aa\"" ) );
+    assertFalse( "A removed type's entry, hash included, should be dropped: " + json,
+                 json.contains( "com.example.Removed" ) );
+  }
+
+  @Test
+  public void testReferencedButNotCompiledProducerKeepsItsPersistedHash() throws IOException
+  {
+    IncrementalCompilationTestSupport.writeDependencyFile( dependencyFile,
+                                                           Map.of( "com.example.Producer", List.of(),
+                                                                   "com.example.Consumer", List.of() ),
+                                                           Map.of( "com.example.Producer", "aa",
+                                                                   "com.example.Consumer", "bb" ) );
+
+    // Consumer's bytecode references Producer: Producer gets a record in this build's tracking as a
+    // producer, but nothing compiled it, so it has no fresh hash to offer. (The compile of Consumer is
+    // not credited here: a credited type must carry a fresh hash, which only a real compile supplies.)
+    IncrementalCompilationManager manager = newManager();
+    manager.getOrCreateCurrentConsumerSet( "com.example.Consumer" );
+    manager.recordTypeDependency( "com.example.Producer", "com.example.Consumer" );
+    manager.updateDependencyFile( Collections.emptySet(), Collections.emptySet() );
+
+    String json = Files.readString( dependencyFile.toPath() );
+    assertTrue( "A merely referenced producer keeps the hash the previous build stored: " + json,
+                json.contains( "\"com.example.Producer\": {\n      \"abi_hash\": \"aa\"" ) );
+    assertTrue( "The edge recorded this build is merged in: " + json,
+                json.contains( "\"consumers\": [\n        \"com.example.Consumer\"\n      ]" ) );
   }
 
   /**

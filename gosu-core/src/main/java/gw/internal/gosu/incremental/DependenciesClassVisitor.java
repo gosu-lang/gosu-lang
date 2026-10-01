@@ -7,6 +7,17 @@ package gw.internal.gosu.incremental;
 import gw.internal.ext.org.objectweb.asm.*;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureReader;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
+import gw.lang.ir.Internal;
+import gw.lang.parser.IExpression;
+import gw.lang.reflect.IConstructorInfo;
+import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IOptionalParamCapable;
+import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.gs.GosuClassTypeLoader;
+import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuClassTypeInfo;
+import gw.lang.reflect.java.ICompileTimeConstantValue;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,16 +27,25 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
-//TODO document ABI creation
 
 /**
- * Extracts the set of types referenced by a compiled Gosu class file and records each
- * as a {@code producer -> consumer} edge in the {@link IncrementalCompilationManager}'s
- * dependency graph, where the consumer is the class being visited.
+ * One ASM walk over a freshly compiled Gosu class file, doing two jobs in the same pass:
+ * <ul>
+ *   <li><b>Dependency extraction</b> -- every type the class references is recorded as a
+ *       {@code producer -> consumer} edge in the {@link IncrementalCompilationManager}'s
+ *       dependency graph, where the consumer is the class being visited.</li>
+ *   <li><b>ABI hashing</b> -- the class's consumer-visible surface is assembled into a canonical
+ *       text whose SHA-1 is exposed as {@link #getAbiHash()} once the walk ends. Two class files with
+ *       the same ABI -- differing only in method bodies, private members, debug info, or member
+ *       order -- hash identically, so the incremental driver can stop a cascade at a type whose
+ *       recompile changed none of its consumer-visible surface.</li>
+ * </ul>
+ * The walk runs with {@code SKIP_FRAMES} only: dependency extraction needs method bodies and
+ * local-variable tables, and the ABI side records nothing from any code-level callback.
  *
- * <h3>Two-phase walk</h3>
+ * <h3>Dependency extraction: a two-phase walk</h3>
  * <p>
- * The visitor runs in two phases against the same {@link ClassReader}:
+ * Edges are gathered in two phases against the same {@link ClassReader}:
  *
  * <ol>
  *   <li><b>Constant-pool scan</b> ({@link #collectClassDependenciesFromConstantPool},
@@ -48,17 +68,58 @@ import java.util.TreeSet;
  *
  * <p>The split is deliberate: each phase covers cases the other misses, and the
  * constant-pool scan is fast enough that the redundancy isn't a perf concern.
+ *
+ * <h3>Bytecode ABI</h3>
+ * <p>
+ * The canonical text holds the class file version, access flags, name, generic signature and
+ * superclass; the member classes the class declares (its {@code InnerClasses} entries, minus
+ * block classes, anonymous classes and private member classes, none of which a consumer can
+ * name through it); its interfaces, sorted; its annotations; and every consumer-visible field
+ * (access, name, descriptor, signature, {@code ConstantValue}, annotations) and method (access,
+ * name, descriptor, signature, exceptions, annotations, parameter and type annotations). Every
+ * list is sorted before hashing, so emission order is irrelevant.
+ *
+ * <p><b>Member visibility follows Gosu, not the JVM.</b> gosuc never emits {@code ACC_PRIVATE}
+ * for ordinary members: a Gosu-private member (explicit, or a {@code var} with no modifier) is
+ * written as package-private so nested classes can reach it, and a member declared
+ * {@code internal} is written as package-private with a {@code @gw.lang.ir.Internal} annotation.
+ * A member is therefore ABI iff it is public or protected, or package-private and annotated
+ * {@code @Internal}; see {@link #isSourceCodePrivate}.
+ *
+ * <h3>Gosu compile-time surface</h3>
+ * <p>
+ * Three things the compiler bakes from a producer's <em>source</em> into a consumer's bytecode
+ * never reach the producer's own class file, so {@link #appendGosuCompileTimeSurface} adds them
+ * from the producer's type info: the values of non-private {@code static final} compile-time
+ * constants (gosuc initializes fields in {@code <clinit>} and emits no {@code ConstantValue}, yet
+ * consumers fold constants into string concatenations, switch cases and annotation arguments),
+ * the parameter names of non-private methods and constructors (named-argument call sites bind
+ * against them), and their default parameter value expressions (the parser splices the default
+ * into every call site that omits the argument).
+ *
+ * <p>Every compiled class is hashed, anonymous and block classes included. A hash that cannot be
+ * computed is not tolerated: the exception aborts the compile rather than degrading to a cascade.
+ * With verbose logging on, the canonical text of every class is printed.
  */
 class DependenciesClassVisitor extends ClassVisitor
 {
   private static final int CONSTANT_CLASS_TAG = 7;
   private static final int ASM_API_VERSION = Opcodes.ASM5;
+  /**
+   * What {@link DepAnnotationVisitor} renders for the {@code @gw.lang.ir.Internal} annotation gosuc puts on
+   * every member declared {@code internal}: the descriptor, {@code T} for runtime-visible, and an empty
+   * value list. This is rendered text, not a descriptor, so it has to follow that rendering; the
+   * internal-var assertion of {@code AbiHashTest.testInternalMembersAreAbi} is what catches drift. See
+   * {@link #isSourceCodePrivate}.
+   */
+  private static final String INTERNAL_ANNOTATION_TEXT = "@" + Type.getDescriptor( Internal.class ) + "T[]";
   private boolean isClassPrivate;
 
   private final IncrementalCompilationManager incrementalCompilationManager;
-  public final String consumerFqcn;
+  private final String consumerFqcn;
+  private final IGosuClass gosuClass;
 
-  public String AbiHash;
+  private String abiHash;
   private final StringBuilder abiStr;
   private List<String> abiInterfaces;
   private final List<String> abiFields;
@@ -67,15 +128,11 @@ class DependenciesClassVisitor extends ClassVisitor
   private final List<String> abiInnerClasses;
   private final boolean verbose;
 
-  /* TODO
-  A flag to skip the SourceFile, SourceDebugExtension, LocalVariableTable, LocalVariableTypeTable, LineNumberTable and MethodParameters attributes. If this flag is set these attributes are neither parsed nor visited (i.e. ClassVisitor.visitSource,
-   MethodVisitor.visitLocalVariable, MethodVisitor.visitLineNumber and MethodVisitor.visitParameter are not called).
-   */
-
   // TODO consider using a string interner here and in the IncrementalCompilationManager
-  public DependenciesClassVisitor( ClassReader reader, IncrementalCompilationManager incrementalCompilationManager, boolean verbose )
+  public DependenciesClassVisitor(IGosuClass gosuClass,  ClassReader reader, IncrementalCompilationManager incrementalCompilationManager, boolean verbose )
   {
     super( ASM_API_VERSION );
+    this.gosuClass = gosuClass;
     isClassPrivate = false;
     consumerFqcn = getFqcn( reader.getClassName() );
     abiStr = new StringBuilder();
@@ -138,7 +195,7 @@ class DependenciesClassVisitor extends ClassVisitor
   }
 
 
-  public static String sha1( String input )
+  private static String sha1( String input )
   {
     try
     {
@@ -188,12 +245,89 @@ class DependenciesClassVisitor extends ClassVisitor
     appendAbiList( abiStr, abiFields, "\n" );
     abiStr.append( "\nmethods:\n" );
     appendAbiList( abiStr, abiMethods, "\n" );
+    appendGosuCompileTimeSurface( gosuClass, abiStr );
     if( verbose )
     {
       System.out.println( abiStr );
     }
-    AbiHash = sha1( abiStr.toString() );
+    abiHash = sha1( abiStr.toString() );
   }
+
+  /**
+   * Appends, sorted, the parts of {@code gosuClass}'s consumer-visible surface that gosuc never
+   * writes into its class file.
+   */
+  static void appendGosuCompileTimeSurface( IGosuClass gosuClass, StringBuilder out )
+  {
+    IGosuClassTypeInfo typeInfo = gosuClass.getTypeInfo();
+    List<String> lines = new ArrayList<>();
+
+    for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
+    {
+      if( property.isPrivate() || !property.isStatic() || !(property instanceof ICompileTimeConstantValue) )
+      {
+        continue;
+      }
+      ICompileTimeConstantValue constant = (ICompileTimeConstantValue)property;
+      if( constant.isCompileTimeConstantValue() )
+      {
+        lines.add( "const " + property.getName() +
+                   " : " + property.getFeatureType().getName() +
+                   " = " + String.valueOf( ( constant.doCompileTimeEvaluation() ) ));
+      }
+    }
+
+    for( IMethodInfo method : typeInfo.getDeclaredMethods() )
+    {
+      if( !method.isPrivate() && method instanceof IOptionalParamCapable )
+      {
+        lines.add( "method " + method.getName() + parameterSurface( method.getParameters(), (IOptionalParamCapable)method ) );
+      }
+    }
+
+    for( IConstructorInfo constructor : typeInfo.getDeclaredConstructors() )
+    {
+      if( !constructor.isPrivate() && constructor instanceof IOptionalParamCapable )
+      {
+        lines.add( "constructor" + parameterSurface( constructor.getParameters(), (IOptionalParamCapable)constructor ) );
+      }
+    }
+
+    Collections.sort( lines );
+    for( String line : lines )
+    {
+      out.append( line ).append( '\n' );
+    }
+  }
+
+  /**
+   * {@code (types) names=[...] defaults=[...]} for one method or constructor. Parameter types
+   * make the line unique per overload.
+   */
+  private static String parameterSurface( IParameterInfo[] parameters, IOptionalParamCapable optional )
+  {
+    StringBuilder out = new StringBuilder( "(" );
+    for( IParameterInfo parameter : parameters )
+    {
+      out.append( " " ).append( parameter.getFeatureType().getName() );
+    }
+    out.append( ") names=" ).append( Arrays.toString( optional.getParameterNames() ) ).append( " defaults=[" );
+    // A parameter without a default renders as "none" whether the array carries a null entry for it or, as
+    // IOptionalParamCapable also allows, is empty; an explicit `= null` default is a NullExpression and renders
+    // as "null". The two must differ: a caller may omit the argument only in the second case.
+    IExpression[] defaults = optional.getDefaultValueExpressions();
+    for( int i = 0; i < parameters.length; i++ )
+    {
+      String defaultValue = "none";
+      if( defaults != null && i < defaults.length && defaults[i] != null )
+      {
+        defaultValue = String.valueOf( defaults[i] );
+      }
+      out.append( " " ).append( defaultValue );
+    }
+    return out.append( ']' ).toString();
+  }
+
 
   // Phase 1 of the two-phase walk (see class Javadoc).
   private void collectClassDependenciesFromConstantPool( ClassReader reader )
@@ -230,7 +364,7 @@ class DependenciesClassVisitor extends ClassVisitor
     }
   }
 
-  protected void maybeAddDependentType( Type type )
+  private void maybeAddDependentType( Type type )
   {
     while( type.getSort() == Type.ARRAY )
     {
@@ -253,12 +387,15 @@ class DependenciesClassVisitor extends ClassVisitor
   @Override
   public void visitInnerClass( String name, String outerName, String innerName, int access )
   {
-    if( !isPrivate( access ) )
+    // Member classes are part of the enclosing class's surface: a consumer resolves Outer.Inner through Outer.
+    // Block and anonymous classes come and go with method bodies, and a private member class is nameable by
+    // nothing outside this source file, so none of those belong in the hash.
+    if( !isPrivate( access ) && !innerName.startsWith( GosuClassTypeLoader.BLOCK_PREFIX ) && !innerName.startsWith( IGosuClass.ANONYMOUS_PREFIX ) )
     {
       StringBuilder abiInner = new StringBuilder();
       abiInner.append( access ).append( ' ' ).append( name ).append( '(' ).append( innerName ).append( ')' );
       abiInner.append( " outer " ).append( outerName );
-      abiAnnotations.add( abiInner.toString() );
+      abiInnerClasses.add( abiInner.toString() );
     }
   }
 
@@ -308,9 +445,34 @@ class DependenciesClassVisitor extends ClassVisitor
     return (access & Opcodes.ACC_PRIVATE) == Opcodes.ACC_PRIVATE;
   }
 
+  /**
+   * Whether a member with {@code access} is Gosu-private, i.e. nameable by nothing outside its own
+   * source file. gosuc writes both private and {@code internal} members as package-private (see
+   * {@code AbstractElementTransformer.getModifiers}) and tells them apart only by the
+   * {@code @gw.lang.ir.Internal} annotation it adds to the latter, so a member is Gosu-private iff
+   * it is neither public nor protected and carries no such annotation.
+   *
+   * <p>The visibility bits are masked out rather than the whole value compared to zero because
+   * {@code getModifiers} ORs {@code ACC_STATIC}, {@code ACC_FINAL}, {@code ACC_ABSTRACT},
+   * {@code ACC_ENUM}, {@code ACC_TRANSIENT} and {@code ACC_DEPRECATED} onto the same value: a
+   * private {@code static var} arrives as {@code ACC_STATIC}, not {@code 0}, and is no less private
+   * for it. Comparing to zero treated every such member as ABI and recompiled its consumers for
+   * nothing.
+   */
   private static boolean isSourceCodePrivate( int access, List<String> annotations )
   {
-    return access == 0 && !annotations.contains( "@Lgw/lang/ir/Internal;T[]" );
+    return (access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED)) == 0 && !annotations.contains( INTERNAL_ANNOTATION_TEXT );
+  }
+
+  public String getAbiHash()
+  {
+    return abiHash;
+  }
+
+  /** The bytecode-shape FQCN of the class being visited, i.e. the consumer side of every edge it records. */
+  public String getConsumerFqcn()
+  {
+    return consumerFqcn;
   }
 
   private class DepFieldVisitor extends FieldVisitor
@@ -404,7 +566,6 @@ class DependenciesClassVisitor extends ClassVisitor
     {
       maybeAddClassTypesFromSignature( signature );
       maybeAddDependentType( Type.getType( desc ) );
-      super.visitLocalVariable( name, desc, signature, start, end, index );
     }
 
     @Override
