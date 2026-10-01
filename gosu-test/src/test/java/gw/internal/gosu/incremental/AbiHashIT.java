@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests for the ABI hash gosuc records for a compiled Gosu class: it must be blind to
+ * Tests for the ABI hash gosuc records for a compiled Gosu class: it must be blind to
  * everything a separately compiled consumer cannot observe, and sensitive to everything it can.
  * Each test compiles a small {@code p.Fixture} with gosuc in incremental mode into a fresh
  * directory and reads the class's hash from the dependency file, so the hash under test is the
@@ -34,8 +34,12 @@ import static org.junit.Assert.assertTrue;
  * Member visibility is judged the way gosuc emits it: a Gosu-private member is written
  * package-private and is not ABI, a member declared {@code internal} is package-private plus
  * {@code @gw.lang.ir.Internal} and is ABI.
+ *
+ * <p>Runs under failsafe, in its own JVM, because every test initializes gosuc in-process and
+ * gosuc refuses to initialize in a JVM where the Gosu runtime is already up, as it is in the
+ * surefire JVM once any harness-based test has run.
  */
-public class AbiHashTest
+public class AbiHashIT
 {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();

@@ -386,7 +386,7 @@ Reconciliation likewise throws if a type credited as compiled has no fresh hash 
 Hashing therefore never silently degrades; a defect in it surfaces as a failed build rather
 than as a permanently cascading type.
 
-The bytecode half and the Gosu surface are pinned by `AbiHashTest`, which compiles small
+The bytecode half and the Gosu surface are pinned by `AbiHashIT`, which compiles small
 Gosu fixtures with gosuc and reads their hashes from the dep file: stable across body edits,
 comments, member order, private members, blocks and anonymous classes; moved by public
 members, descriptors, generic signatures, constant values, access flags, supertypes,

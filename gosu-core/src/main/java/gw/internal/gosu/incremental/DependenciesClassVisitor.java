@@ -109,7 +109,7 @@ class DependenciesClassVisitor extends ClassVisitor
    * What {@link DepAnnotationVisitor} renders for the {@code @gw.lang.ir.Internal} annotation gosuc puts on
    * every member declared {@code internal}: the descriptor, {@code T} for runtime-visible, and an empty
    * value list. This is rendered text, not a descriptor, so it has to follow that rendering; the
-   * internal-var assertion of {@code AbiHashTest.testInternalMembersAreAbi} is what catches drift. See
+   * internal-var assertion of {@code AbiHashIT.testInternalMembersAreAbi} is what catches drift. See
    * {@link #isSourceCodePrivate}.
    */
   private static final String INTERNAL_ANNOTATION_TEXT = "@" + Type.getDescriptor( Internal.class ) + "T[]";
