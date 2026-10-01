@@ -173,10 +173,12 @@ public class GosuCompiler implements IGosuCompiler
     /*
       typeDependencies[X] holds every type that consumes X as of the previously compiled .class files, while
       changedTypes/removedTypes describe source changes not yet reflected in those .class files. The walk below
-      bridges the two. Each type taken off the worklist has its source compiled on demand, and every nested class
-      that compile produced is enqueued so that it takes its own turn; a type's consumers are then enqueued only if
-      hasNewABI says so, which it does when the ABI hash moved and whenever there is no fresh hash to compare: a
-      local Java type or removed type that gosuc never compiles, or a class its source no longer declares. A
+      bridges the two. Each type taken off the worklist has its source compiled on demand. Its consumers are then
+      enqueued only if hasNewABI says so, which it does when the ABI hash moved and whenever there is no fresh hash
+      to compare: a local Java type or removed type that gosuc never compiles, or a class its source no longer
+      declares. Otherwise, if this turn compiled the source, every nested class the compile produced is enqueued
+      instead, so that each takes its own turn gated on its own hash; when the hash did move, those nested classes
+      are already among the consumers, since each names its enclosing class in its own InnerClasses entry. A
       recompile that left a class's consumer-visible surface unchanged cannot have invalidated anything compiled
       against it, so the cascade stops there, while a nested class whose own hash moved still cascades to its own
       consumers. Classes no compile produced need no enumeration: every nested class consumes its enclosing class,

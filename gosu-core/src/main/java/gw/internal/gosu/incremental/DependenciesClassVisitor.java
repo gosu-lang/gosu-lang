@@ -99,7 +99,8 @@ import java.util.TreeSet;
  *
  * <p>Every compiled class is hashed, anonymous and block classes included. A hash that cannot be
  * computed is not tolerated: the exception aborts the compile rather than degrading to a cascade.
- * With verbose logging on, the canonical text of every class is printed.
+ * Constructed with {@code verbose} on, it also prints the canonical text of every class;
+ * {@link IncrementalCompilationManager#trackDependencies} leaves that flag off.
  */
 class DependenciesClassVisitor extends ClassVisitor
 {

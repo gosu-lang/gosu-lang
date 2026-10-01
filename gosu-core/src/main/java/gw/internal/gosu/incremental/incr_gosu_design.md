@@ -57,10 +57,11 @@ compileGosuIncrementally(options, driver)      ── §5
   ├─ delete .class + $*.class + source copy for (changed ∪ removed)  ── §8 (up front, non-transactional)
   ├─ seed a worklist with (changed ∪ removed), then walk it          ── §7
   │    ├─ compile the visited type's source on demand (once per source file)
-  │    │    ├─ per compiled class: trackDependencies(bytes, gosuClass) ── §6  (edges + ABI hash, one walk)
-  │    │    └─ enqueue every nested class the compile produced, so each takes its own turn
-  │    └─ enqueue the consumers of each type whose ABI hash moved, and of every type gosuc has
-  │       no fresh hash for (local Java, removed, no longer declared by its source)
+  │    │    └─ per compiled class: trackDependencies(bytes, gosuClass) ── §6  (edges + ABI hash, one walk)
+  │    ├─ enqueue the consumers of each type whose ABI hash moved, and of every type gosuc has
+  │    │  no fresh hash for (local Java, removed, no longer declared by its source)
+  │    └─ otherwise, if this turn compiled the source, enqueue every nested class the compile
+  │       produced, so each is gated on its own hash
   └─ if no errors and no threshold abort: updateDependencyFile(compiled, effectivelyRemoved)  ── §9 (atomic write)
 ```
 
@@ -78,7 +79,7 @@ entire surface the Gradle plugin uses:
 | `-changed-types <fqcns>` | `String _changedTypes` | Path-separator-delimited FQCNs (Java **and** Gosu) whose source changed. Exposed as `Set<String> getChangedTypes()`. |
 | `-removed-types <fqcns>` | `String _removedTypes` | Path-separator-delimited FQCNs whose source was deleted. Exposed as `Set<String> getRemovedTypes()`. **May overlap `-changed-types` as supplied** — a source deleted and re-added inside one change window is reported as both — and the driver makes the two disjoint before use (§5). |
 | `-local-java-types <fqcns>` | `String _localJavaTypes` | Path-separator-delimited FQCNs of **same-module Java types** (the plugin populates this by scanning `build/classes/java/main`). Exposed as `Set<String> getLocalJavaTypes()`. |
-| `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path: the canonical ABI text of every compiled class (§6.4) and, for every type the walk decides on, whether its ABI counted as changed and why (§7). Stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
+| `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path: which path was taken (a full rebuild, or an incremental round and the source files it recompiled), dependency-file loading and saving, and, for every type the walk decides on, whether its ABI counted as changed and why (§7). Stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
 
 Delimiter is `File.pathSeparator` throughout; empty/blank strings parse to empty
 collections.
@@ -183,14 +184,17 @@ everything.
      source **throws** `IllegalStateException`: the graph carries an entry no source
      explains, and the failure is kept loud for debugging. Otherwise the source is compiled,
      unless an earlier FQCN already compiled it — inner classes collapse onto the same
-     source file, which is compiled once — and **every nested class the compile produced is
-     enqueued**, so each takes its own turn and is gated on its own hash;
+     source file, which is compiled once;
    - **its consumers are then enqueued iff `hasNewABI`**, which is true when its hash moved
      and whenever there is no fresh hash to compare: a walked-through type, a class its
-     recompiled source no longer declares (the sweep in step 7 purges it). A recompiled
-     class whose hash is unchanged enqueues nothing, which is what stops the cascade; a
-     nested class whose own hash moved cascades to its own consumers regardless of what its
-     enclosing class's hash did.
+     recompiled source no longer declares (the sweep in step 7 purges it). **Otherwise, if
+     this turn compiled the source, every nested class the compile produced is enqueued
+     instead**, so each takes its own turn and is gated on its own hash: a nested class whose
+     own hash moved cascades to its own consumers regardless of what its enclosing class's
+     hash did. When the enclosing class's hash did move, its nested classes are among the
+     consumers just enqueued, since each names its enclosing class in its own `InnerClasses`
+     entry. A recompiled class whose hash is unchanged therefore enqueues nothing beyond its
+     own nested classes, which is what stops the cascade.
 
    The walk stops early if a compile trips the error/warning **threshold**. A walk that
    reaches no compilable type compiles nothing — that is an empty cascade, not a full
@@ -225,9 +229,9 @@ supplement and stores the hash:
 
 ```java
 ClassReader reader = new ClassReader(bytes);
-DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, verbose);
+DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false);   // its flag for printing the text stays off
 reader.accept(visitor, ClassReader.SKIP_FRAMES);   // edges (§6.1) + canonical ABI text (§6.4)
-currentUsedBy.get(visitor.getConsumerFqcn()).abiHash = visitor.getAbiHash();
+currTypeDependencies.get(visitor.getConsumerFqcn()).abiHash = visitor.getAbiHash();
 trackTypeliteralsFromAST(gosuClass);               // AST supplement (§6.2)
 ```
 
@@ -329,9 +333,8 @@ Every compiled class gets a SHA-1 hex digest of a canonical text of everything a
 compiled consumer can observe about it at compile time (change detection, not security, so
 the shorter digest is enough). Two class files with the same ABI hash identically; the
 driver uses that to stop a cascade at a class whose recompile left its consumer-visible
-surface unchanged (§7). With `-verbose`, the canonical text of every compiled class is
-printed, and the walk prints each type's verdict, `ABI CHANGED` or `ABI STABLE`, with the
-reason and both digests.
+surface unchanged (§7). With `-verbose`, the walk prints each type's verdict, `ABI CHANGED`
+or `ABI STABLE`, with the reason and both digests; the canonical text itself is not printed.
 
 **Bytecode ABI.** The §6.1 walk collects, alongside the edges: the class file version, the
 class access flags, name, generic `Signature` and superclass; the **member classes** it
@@ -410,15 +413,17 @@ sourceFilesCompiled = {}                       // source files already handed to
 enqueue(T)          = if T ∉ visited: visited.add(T); worklist.add(T)
 while worklist not empty and not thresholdExceeded:
     X = worklist.remove()
+    compiledHere = false
     if X ∉ localJavaTypes and X ∉ removedTypes:            // walked through otherwise: never compiled by gosuc
         typeFqcnsToCompile.add(X)
         F = getGosuFilePathFromFqcn(X)
         if F == null:  throw unless X contains '$'         // stale nested-class producer
         else if F ∉ sourceFilesCompiled:
-            sourceFilesCompiled.add(F); compile(F)
-            for N in nested classes written by compile(F): enqueue(N)   // each takes its own turn
+            sourceFilesCompiled.add(F); compile(F); compiledHere = true
     if hasNewABI(X):                                       // also true whenever X has no fresh hash
-        for consumer in getOrCreateConsumersFor(X): enqueue(consumer)
+        for consumer in getOrCreateConsumersFor(X): enqueue(consumer)   // X's nested classes are among them
+    else if compiledHere:
+        for N in nested classes written by compile(F): enqueue(N)      // each is gated on its own hash
 ```
 
 Key properties:
@@ -430,14 +435,16 @@ Key properties:
   moved *its* hash. Every case with no hash to compare — local Java types, removed types,
   classes their source no longer declares — cascades unconditionally, so the walk is
   **never under-approximate** (§12).
-- **Every nested class a compile produced takes its own turn.** It is enqueued as soon as
-  its source is compiled and gated on its own hash, so an inner class whose ABI moved
-  cascades to its own consumers, keyed under `Outer$Inner`, whether or not its enclosing
-  class's hash moved, and a change three levels down reaches only the consumers bound to
-  that level: each enclosing class's hash covers its member classes' names, not their
-  members (pinned by `testThreeLevelNestedMemberClassChangeRecompilesConsumerWithExpectedDepFile`).
-  When the enclosing class's hash did move, the same nested classes are also its consumers
-  in the graph, and the second `enqueue` is a no-op.
+- **Every nested class a compile produced takes its own turn**, gated on its own hash, so an
+  inner class whose ABI moved cascades to its own consumers, keyed under `Outer$Inner`,
+  whether or not its enclosing class's hash moved, and a change three levels down reaches
+  only the consumers bound to that level: each enclosing class's hash covers its member
+  classes' names, not their members (pinned by
+  `testThreeLevelNestedMemberClassChangeRecompilesConsumerWithExpectedDepFile`). It reaches
+  the worklist by one of two routes. When the enclosing class's hash moved, it is among that
+  class's consumers — every nested class names each of its enclosing classes in its own
+  `InnerClasses` attribute — and is enqueued with them. When the hash is unchanged, the walk
+  enqueues the nested classes the compile produced directly, since nothing else would.
 - **Classes no compile produced need no enumeration.** Every nested class consumes its
   enclosing class (its own `InnerClasses` entry names it), and an enclosing class's hash
   covers the names of its non-private member classes (§6.4). A removed outer therefore
@@ -504,7 +511,7 @@ graph:
 2. **Strip stale consumers**: from *every* type's record, remove all of
    `typeFqcnsToCompile` and `removedTypes` — a recompiled/removed type can no longer be
    assumed to still consume its old producers (its source changed).
-3. **Merge this build's records**: for each producer recorded this build (`currentUsedBy`),
+3. **Merge this build's records**: for each producer recorded this build (`currTypeDependencies`),
    union its recomputed consumers into the persisted record (`computeIfAbsent`), bringing
    the old producer up to date, and, if the record carries a hash — only classes compiled
    this build do — replace the persisted hash with it: it describes the `.class` file now on
@@ -513,7 +520,7 @@ graph:
    (`∈ typeFqcnsToCompile`) that nonetheless has no fresh hash is an internal inconsistency
    and **throws** `IllegalStateException`: every compiled class is hashed (§6.4), so this
    cannot happen unless something upstream broke.
-4. Clear `currentUsedBy`.
+4. Clear `currTypeDependencies`.
 
 This drop-then-overlay pattern is what keeps dropped edges from lingering: a producer whose
 only consumer stopped referencing it ends up with that consumer stripped in step 2 and not

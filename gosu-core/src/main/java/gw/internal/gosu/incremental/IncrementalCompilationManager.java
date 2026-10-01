@@ -61,8 +61,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   // The same shape for what this build recorded: the consumers observed in freshly compiled bytecode,
   // keyed by producer, and the ABI hash of every class compiled this build. A producer that was only
   // referenced, not compiled, carries NO_ABI_HASH here.
-  //TODO rename to currentTypeDeps
-  private final Map<String, ProducerInfo> currentUsedBy;
+
+  private final Map<String, ProducerInfo> currTypeDependencies;
   private final boolean validDepFile;
   private final boolean verbose;
   private final Set<Path> sourceRoots;
@@ -89,7 +89,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     this.verbose = verbose;
     this.typeDependencies = new HashMap<>();
     this.validDepFile = loadDependencyFile();
-    this.currentUsedBy = new HashMap<>();
+    this.currTypeDependencies = new HashMap<>();
     this.gosuFqcnToSourcePath = buildGosuFqcnToSourcePath( allSourceFiles );
   }
 
@@ -108,7 +108,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
     // Store the fresh ABI hash on the class's own record; the visitor's constructor registered
     // the class's FQCN as a producer, so the record exists and the hash lands next to its edges.
-    currentUsedBy.get( visitor.getConsumerFqcn() ).abiHash = visitor.getAbiHash();
+    currTypeDependencies.get( visitor.getConsumerFqcn() ).abiHash = visitor.getAbiHash();
     trackTypeliteralsFromAST( gosuClass );
   }
 
@@ -378,7 +378,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
 
   /**
-   * Apply this build's records ({@code currentUsedBy}: tracked dependencies and ABI hashes) to
+   * Apply this build's records ({@code currTypeDependencies}: tracked dependencies and ABI hashes) to
    * the persisted graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}:
    * removed types lose their record, recompiled and removed types are stripped from every
    * consumer list, this build's consumers are merged in, and a fresh hash replaces the persisted
@@ -407,11 +407,11 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       consumers.removeAll( removedTypes );
     }
 
-    // currentUsedBy has refreshed producers each one of them pointing to recomputed consumers resulting from the
+    // currTypeDependencies has refreshed producers each one of them pointing to recomputed consumers resulting from the
     // recompilation of typeFqcnsToCompile.
     // For each refreshed producer merge its consumers with the ones of the corresponding old producer so that the old
     // producer is now up to date.
-    for( Map.Entry<String, ProducerInfo> entry : currentUsedBy.entrySet() )
+    for( Map.Entry<String, ProducerInfo> entry : currTypeDependencies.entrySet() )
     {
       String refreshedProducer = entry.getKey();
       String newAbiHash = entry.getValue().abiHash;
@@ -429,7 +429,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
     }
     // Content no longer needed and now stale.
-    currentUsedBy.clear();
+    currTypeDependencies.clear();
   }
 
   void writeDepGraph( JsonWriter writer ) throws IOException
@@ -544,7 +544,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    */
   public Set<String> getOrCreateCurrentConsumerSet( String producerFqcn )
   {
-    return currentUsedBy.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
+    return currTypeDependencies.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
   }
 
   /**
@@ -700,7 +700,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       oldAbiHash = oldInfo.abiHash;
     }
     String newAbiHash = NO_ABI_HASH;
-    ProducerInfo newInfo = currentUsedBy.get( fqcn );
+    ProducerInfo newInfo = currTypeDependencies.get( fqcn );
     if( newInfo != null )
     {
       newAbiHash = newInfo.abiHash;
