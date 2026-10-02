@@ -343,8 +343,13 @@ private member classes — see below); its interfaces, sorted; its annotations; 
 **consumer-visible** field (access, name, descriptor, signature, `ConstantValue`,
 annotations) and method (access, name, descriptor, signature, declared exceptions,
 annotations, parameter annotations, type annotations). Each list is sorted before hashing,
-so emission order is irrelevant. Annotation values, nested annotations and arrays are
-rendered into the annotation's text, so a changed annotation argument moves the hash.
+so emission order is irrelevant, with one exception: the elements of an array-valued
+annotation argument keep their class-file order, since that order, and their number, is part
+of the argument's value. Annotation values, nested annotations and arrays are rendered into
+the annotation's text, so a changed annotation argument moves the hash, a reordered array
+argument included. An annotation's named members are sorted like everything else; gosuc
+writes them in the annotation type's declaration order and looks each up by name, so the
+order a usage site lists them in never reaches the class file.
 
 **Member classes.** A consumer resolves `Outer.Inner` through `Outer`, so the enclosing
 class's text names its member classes, and deleting or renaming one moves the enclosing
@@ -391,9 +396,12 @@ than as a permanently cascading type.
 
 The bytecode half and the Gosu surface are pinned by `AbiHashIT`, which compiles small
 Gosu fixtures with gosuc and reads their hashes from the dep file: stable across body edits,
-comments, member order, private members, blocks and anonymous classes; moved by public
-members, descriptors, generic signatures, constant values, access flags, supertypes,
-annotations and their values, parameter names, default values, and `internal` members.
+comments, member order, private members, blocks and anonymous classes, and the order and
+spelling (named or positional) of an annotation's arguments; moved by public members,
+descriptors, generic signatures, constant values, access flags, supertypes, annotations and
+their values, the order and number of an annotation array's elements, the declaration order
+of an annotation type's members (its positional users bind by it), parameter names, default
+values, and `internal` members.
 
 ---
 

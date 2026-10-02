@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
 
 /**
  * One ASM walk over a freshly compiled Gosu class file, doing two jobs in the same pass:
@@ -77,7 +76,11 @@ import java.util.TreeSet;
  * name through it); its interfaces, sorted; its annotations; and every consumer-visible field
  * (access, name, descriptor, signature, {@code ConstantValue}, annotations) and method (access,
  * name, descriptor, signature, exceptions, annotations, parameter and type annotations). Every
- * list is sorted before hashing, so emission order is irrelevant.
+ * list is sorted before hashing, so emission order is irrelevant, with one exception: the elements
+ * of an array-valued annotation argument keep their class-file order, because that order, and
+ * their number, is part of the argument's value. An annotation's named members are sorted like
+ * everything else; gosuc writes them in the annotation type's declaration order and looks each one
+ * up by name, so a usage site's argument order never reaches the class file anyway.
  *
  * <p><b>Member visibility follows Gosu, not the JVM.</b> gosuc never emits {@code ACC_PRIVATE}
  * for ordinary members: a Gosu-private member (explicit, or a {@code var} with no modifier) is
@@ -648,7 +651,7 @@ class DependenciesClassVisitor extends ClassVisitor
     private final boolean isAnnotationPrivate;
     private final boolean isArrayContainer;
     private final StringBuilder abiAnnotation;
-    private final TreeSet<String> abiAnnotationVals;
+    private final List<String> abiAnnotationVals;
     private String containerName;
     private final DepAnnotationVisitor parent;
     private final List<String> outermostAnnotations;
@@ -662,7 +665,7 @@ class DependenciesClassVisitor extends ClassVisitor
       this.parent = parent;
       containerName = null;
       abiAnnotation = new StringBuilder();
-      abiAnnotationVals = new TreeSet<>();
+      abiAnnotationVals = new ArrayList<>();
       if( !isPrivate && descriptor != null )
       {
         abiAnnotation.append( '@' );
@@ -755,6 +758,9 @@ class DependenciesClassVisitor extends ClassVisitor
       if( !isArrayContainer )
       {
         abiAnnotation.append( "[" );
+        // Named members carry no order in the class file; the elements of an array container keep theirs, which is
+        // part of the value.
+        Collections.sort( abiAnnotationVals );
       }
       for( String val : abiAnnotationVals )
       {

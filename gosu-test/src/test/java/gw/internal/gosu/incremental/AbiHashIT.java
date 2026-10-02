@@ -4,6 +4,7 @@ import gw.internal.ext.com.google.gson.JsonObject;
 import gw.internal.ext.com.google.gson.JsonParser;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
 import gw.internal.ext.org.objectweb.asm.Opcodes;
+import gw.internal.ext.org.objectweb.asm.tree.AnnotationNode;
 import gw.internal.ext.org.objectweb.asm.tree.ClassNode;
 import gw.internal.ext.org.objectweb.asm.tree.FieldNode;
 import gw.internal.ext.org.objectweb.asm.tree.MethodNode;
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -59,6 +61,35 @@ public class AbiHashIT
     "  function value() : String\n" +
     "}\n";
 
+  /** {@link #TAG_ANNOTATION} with an array-valued member. */
+  private static final String TAG_ARRAY_ANNOTATION = TAG_ANNOTATION.replace( "function value() : String\n", "function value() : String[]\n" );
+
+  /** An annotation with two named members, for argument-order checks. */
+  private static final String COLUMN_ANNOTATION =
+    "package p\n" +
+    "uses java.lang.annotation.ElementType\n" +
+    "uses java.lang.annotation.Target\n" +
+    "uses java.lang.annotation.Retention\n" +
+    "uses java.lang.annotation.RetentionPolicy\n" +
+    "\n" +
+    "@Target({ElementType.TYPE})\n" +
+    "@Retention(RetentionPolicy.RUNTIME)\n" +
+    "annotation Column {\n" +
+    "  function name() : String\n" +
+    "  function email() : String\n" +
+    "}\n";
+
+  /** {@link #COLUMN_ANNOTATION} with its two members declared in the other order. */
+  private static final String COLUMN_ANNOTATION_EMAIL_FIRST =
+    COLUMN_ANNOTATION.replace( "  function name() : String\n  function email() : String\n",
+                               "  function email() : String\n  function name() : String\n" );
+
+  /** A fixture annotated with both of {@link #COLUMN_ANNOTATION}'s members, by name. */
+  private static final String COLUMN_USAGE = "package p\n\n@Column(:name = \"username\", :email = \"a@bar.com\")\nclass Fixture {}\n";
+
+  /** {@link #COLUMN_USAGE} spelled with positional arguments, which bind to the members in declaration order. */
+  private static final String COLUMN_POSITIONAL_USAGE = "package p\n\n@Column(\"username\", \"a@bar.com\")\nclass Fixture {}\n";
+
   private static final String BASE =
     "  public static final var LIMIT : int = 3\n" +
     "  public var count : int\n" +
@@ -67,16 +98,18 @@ public class AbiHashIT
     "  protected function touch() { _secret++ }\n" +
     "  private function hidden() {}\n";
 
-  /** The output of one gosuc run: the fixture's hash and its class file. */
+  /** The output of one gosuc run: the fixture's hash, its class file, and the dependency file every hash is read from. */
   private static final class Compiled
   {
     final String hash;
     final Path classFile;
+    final Path depFile;
 
-    Compiled( String hash, Path classFile )
+    Compiled( String hash, Path classFile, Path depFile )
     {
       this.hash = hash;
       this.classFile = classFile;
+      this.depFile = depFile;
     }
   }
 
@@ -130,6 +163,7 @@ public class AbiHashIT
       System.setOut( new PrintStream( captured ) );
       System.setErr( new PrintStream( captured ) );
       exitCode = gw.lang.gosuc.cli.CommandLineCompiler.runCompiler( args.toArray( new String[0] ) );
+      originalOut.println(captured);
     }
     finally
     {
@@ -141,9 +175,14 @@ public class AbiHashIT
       throw new IllegalStateException( "Fixture failed to compile:\n" + captured );
     }
 
+    return new Compiled( abiHashOf( depFile, "p.Fixture" ), outDir.resolve( "p/Fixture.class" ), depFile );
+  }
+
+  /** The ABI hash {@code depFile} records for {@code fqcn}. */
+  private static String abiHashOf( Path depFile, String fqcn ) throws IOException
+  {
     JsonObject depGraph = JsonParser.parseString( Files.readString( depFile ) ).getAsJsonObject().getAsJsonObject( "dep_graph" );
-    String hash = depGraph.getAsJsonObject( "p.Fixture" ).get( "abi_hash" ).getAsString();
-    return new Compiled( hash, outDir.resolve( "p/Fixture.class" ) );
+    return depGraph.getAsJsonObject( fqcn ).get( "abi_hash" ).getAsString();
   }
 
   private static void assertSameAbi( String why, Compiled before, Compiled after )
@@ -185,6 +224,53 @@ public class AbiHashIT
       }
     }
     throw new AssertionError( "no method " + name + " in " + node.name );
+  }
+
+  /**
+   * The value gosuc wrote for {@code member} of the runtime-visible annotation {@code annoDesc} on {@code node}, as
+   * ASM's tree API represents it: a {@code List} for an array member, in class-file order.
+   */
+  private static Object annotationMember( ClassNode node, String annoDesc, String member )
+  {
+    if( node.visibleAnnotations != null )
+    {
+      for( AnnotationNode anno : node.visibleAnnotations )
+      {
+        if( annoDesc.equals( anno.desc ) && anno.values != null )
+        {
+          // anno.values alternates member name and value.
+          for( int i = 0; i + 1 < anno.values.size(); i += 2 )
+          {
+            if( member.equals( anno.values.get( i ) ) )
+            {
+              return anno.values.get( i + 1 );
+            }
+          }
+        }
+      }
+    }
+    throw new AssertionError( "no " + annoDesc + "." + member + " on " + node.name );
+  }
+
+  /** The member names of the runtime-visible annotation {@code annoDesc} on {@code node}, in class-file order. */
+  private static List<String> annotationMemberNames( ClassNode node, String annoDesc )
+  {
+    if( node.visibleAnnotations != null )
+    {
+      for( AnnotationNode anno : node.visibleAnnotations )
+      {
+        if( annoDesc.equals( anno.desc ) && anno.values != null )
+        {
+          List<String> names = new ArrayList<>();
+          for( int i = 0; i + 1 < anno.values.size(); i += 2 )
+          {
+            names.add( (String)anno.values.get( i ) );
+          }
+          return names;
+        }
+      }
+    }
+    throw new AssertionError( "no " + annoDesc + " on " + node.name );
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -396,5 +482,103 @@ public class AbiHashIT
     assertDifferentAbi( "A null default is ABI",
                         compileBody( "  static function greet(name : String) : String { return \"hi \" + name }\n" ),
                         compileBody( "  static function greet(name : String = null) : String { return \"hi \" + name }\n" ) );
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Annotation arguments
+  // ---------------------------------------------------------------------------------------------
+
+  @Test
+  public void testAnnotationArrayElementOrderIsAbi() throws IOException
+  {
+    // The elements of an array-valued argument are part of its value: {"b", "a"} and {"a", "b"} are different
+    // arguments. gosuc writes the elements in source order, which the preconditions check, and the hasher keeps that
+    // order rather than sorting it away.
+    String ba = "package p\n\n@Tag({\"b\", \"a\"})\nclass Fixture {}\n";
+    Compiled before = compile( "p/Tag.gs", TAG_ARRAY_ANNOTATION, "p/Fixture.gs", ba );
+    Compiled after = compile( "p/Tag.gs", TAG_ARRAY_ANNOTATION, "p/Fixture.gs", ba.replace( "{\"b\", \"a\"}", "{\"a\", \"b\"}" ) );
+    assertEquals( "precondition: gosuc writes the elements in source order",
+                  Arrays.asList( "b", "a" ), annotationMember( readClass( before.classFile ), "Lp/Tag;", "value" ) );
+    assertEquals( "precondition: gosuc writes the elements in source order",
+                  Arrays.asList( "a", "b" ), annotationMember( readClass( after.classFile ), "Lp/Tag;", "value" ) );
+    assertDifferentAbi( "The order of an annotation array's elements is ABI", before, after );
+  }
+
+  @Test
+  public void testAnnotationArrayElementMultiplicityIsAbi() throws IOException
+  {
+    // Likewise {"a", "a"} and {"a"}: a set would collapse them into the same text.
+    String aa = "package p\n\n@Tag({\"a\", \"a\"})\nclass Fixture {}\n";
+    Compiled before = compile( "p/Tag.gs", TAG_ARRAY_ANNOTATION, "p/Fixture.gs", aa );
+    Compiled after = compile( "p/Tag.gs", TAG_ARRAY_ANNOTATION, "p/Fixture.gs", aa.replace( "{\"a\", \"a\"}", "{\"a\"}" ) );
+    assertEquals( "precondition: gosuc writes every element",
+                  Arrays.asList( "a", "a" ), annotationMember( readClass( before.classFile ), "Lp/Tag;", "value" ) );
+    assertEquals( "precondition: gosuc writes every element",
+                  Arrays.asList( "a" ), annotationMember( readClass( after.classFile ), "Lp/Tag;", "value" ) );
+    assertDifferentAbi( "The number of an annotation array's elements is ABI", before, after );
+  }
+
+  @Test
+  public void testAnnotationArgumentOrderIsNotAbi() throws IOException
+  {
+    // Named arguments are unordered. gosuc writes an annotation's members in the order its type declares them and
+    // looks each value up by name, so the usage site's order never reaches the class file and the two spellings hash
+    // the same whichever way the hasher orders named members. This pins that property of the annotation writer.
+    Compiled before = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", COLUMN_USAGE );
+    Compiled after = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs",
+                              COLUMN_USAGE.replace( ":name = \"username\", :email = \"a@bar.com\"",
+                                                    ":email = \"a@bar.com\", :name = \"username\"" ) );
+    ClassNode swapped = readClass( after.classFile );
+    assertEquals( "precondition: both members reach the class file", "username", annotationMember( swapped, "Lp/Column;", "name" ) );
+    assertEquals( "precondition: both members reach the class file", "a@bar.com", annotationMember( swapped, "Lp/Column;", "email" ) );
+    assertSameAbi( "The order of an annotation's named arguments is not ABI", before, after );
+  }
+
+  @Test
+  public void testAnnotationMemberDeclarationOrderIsNotAbi() throws IOException
+  {
+    // Nor is the order in which the annotation type declares its members: the two Fixtures below carry the same
+    // name and email values. gosuc writes the members in declaration order, which the preconditions check, so this
+    // is the case where the hasher itself has to sort named members for the two to hash the same.
+    Compiled before = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", COLUMN_USAGE );
+    Compiled after = compile( "p/Column.gs", COLUMN_ANNOTATION_EMAIL_FIRST, "p/Fixture.gs", COLUMN_USAGE );
+    assertEquals( "precondition: gosuc writes the members in the annotation type's declaration order",
+                  Arrays.asList( "name", "email" ), annotationMemberNames( readClass( before.classFile ), "Lp/Column;" ) );
+    assertEquals( "precondition: gosuc writes the members in the annotation type's declaration order",
+                  Arrays.asList( "email", "name" ), annotationMemberNames( readClass( after.classFile ), "Lp/Column;" ) );
+    assertSameAbi( "The declaration order of an annotation type's members is not ABI", before, after );
+  }
+
+  @Test
+  public void testAnnotationMemberDeclarationOrderIsTheAnnotationTypesOwnAbi() throws IOException
+  {
+    // The mirror image: the same reorder is an ABI change for Column itself, because a positional usage such as
+    // @Column("username", "a@bar.com") binds by member order. gosuc exposes the members as the parameters of the
+    // annotation type's standard constructor, in declaration order, and parameter names are hashed.
+    assertNotEquals( "precondition: the two declarations differ", COLUMN_ANNOTATION, COLUMN_ANNOTATION_EMAIL_FIRST );
+    String before = abiHashOf( compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", COLUMN_USAGE ).depFile, "p.Column" );
+    String after = abiHashOf( compile( "p/Column.gs", COLUMN_ANNOTATION_EMAIL_FIRST, "p/Fixture.gs", COLUMN_USAGE ).depFile, "p.Column" );
+    assertNotEquals( "The declaration order of an annotation type's members is the type's own ABI (both hashed to " + before + ")",
+                     before, after );
+  }
+
+  @Test
+  public void testPositionalAnnotationArgumentsBindByMemberOrder() throws IOException
+  {
+    // Why the previous test holds: a positional usage binds its arguments to the members in declaration order, so
+    // the same @Column("username", "a@bar.com") means name = "username" under one declaration and
+    // name = "a@bar.com" under the other. The fixture's annotation values change with it, and so does its ABI,
+    // where the named usage of testAnnotationMemberDeclarationOrderIsNotAbi kept both the same.
+    Compiled named = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", COLUMN_USAGE );
+    Compiled before = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", COLUMN_POSITIONAL_USAGE );
+    Compiled after = compile( "p/Column.gs", COLUMN_ANNOTATION_EMAIL_FIRST, "p/Fixture.gs", COLUMN_POSITIONAL_USAGE );
+    ClassNode nameFirst = readClass( before.classFile );
+    assertEquals( "precondition: positional arguments bind in declaration order", "username", annotationMember( nameFirst, "Lp/Column;", "name" ) );
+    assertEquals( "precondition: positional arguments bind in declaration order", "a@bar.com", annotationMember( nameFirst, "Lp/Column;", "email" ) );
+    ClassNode emailFirst = readClass( after.classFile );
+    assertEquals( "precondition: the reorder rebinds the positional arguments", "a@bar.com", annotationMember( emailFirst, "Lp/Column;", "name" ) );
+    assertEquals( "precondition: the reorder rebinds the positional arguments", "username", annotationMember( emailFirst, "Lp/Column;", "email" ) );
+    assertSameAbi( "Positional and named spellings of the same values are not ABI", named, before );
+    assertDifferentAbi( "Reordering the members changes what a positional usage says, so the fixture's ABI moves", before, after );
   }
 }
