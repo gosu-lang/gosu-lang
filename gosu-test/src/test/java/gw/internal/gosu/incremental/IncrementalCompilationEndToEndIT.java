@@ -438,7 +438,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initialResult = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed", initialResult.success );
 
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -482,23 +482,9 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( util )
     );
 
-    depFileContent = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDepFile =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"d58f7e0a1574cbf7ab8cc79c849214aac709ea6b\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.StringUtil\": {\n" +
-      "      \"abi_hash\": \"998a61203fed586d5a6f426824da6b1e13520eb6\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    depFileContent = readDepFile();
+    expectedDepFile = expectedDepFile
+      .replace( "b96ff843baff2e221be732a51a5c3f82904da995", "998a61203fed586d5a6f426824da6b1e13520eb6" );   // example.StringUtil: ABI change
     assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -536,7 +522,7 @@ public class IncrementalCompilationEndToEndIT
     // Initial compilation
     CompileResult initialResult = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed", initialResult.success );
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -909,7 +895,7 @@ public class IncrementalCompilationEndToEndIT
         {
           try
           {
-            String depContent = new String( java.nio.file.Files.readAllBytes( dependencyFile.toPath() ) );
+            String depContent = readDepFile();
             System.out.println( "Dependency file contents: " + depContent );
           }
           catch( Exception e )
@@ -991,6 +977,12 @@ public class IncrementalCompilationEndToEndIT
     return timestamps;
   }
 
+  /** The dependency file as the golden assertions compare it: its whole content, trimmed. */
+  private String readDepFile() throws IOException
+  {
+    return Files.readString( dependencyFile.toPath() ).trim();
+  }
+
   @Test
   public void testIncrementalCompilationWithGosuExtensions() throws Exception
   {
@@ -1056,7 +1048,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 5: Verify dependency tracking in JSON file
-    String depsContent = new String( Files.readAllBytes( dependencyFile.toPath() ) );
+    String depsContent = readDepFile();
 
     // Check that PersonEnhancement depends on Person (v2 format uses FQCNs)
     assertTrue( "PersonEnhancement should depend on Person",
@@ -1152,7 +1144,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Compilation should succeed: " + result.error, result.success );
 
     // Read and parse dependency JSON
-    String depsContent = new String( Files.readAllBytes( dependencyFile.toPath() ) );
+    String depsContent = readDepFile();
 
     // Debug: Check what's actually in the JSON (v2 uses FQCNs, not file paths)
     System.out.println( "=== DETAILED JSON ANALYSIS ===" );
@@ -1355,7 +1347,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Compilation should succeed", result.success );
 
     // Verify exact dependency JSON structure
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
 
     String expectedDeps =
       "{\n" +
@@ -1543,7 +1535,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
-    String depsContent = Files.readString( dependencyFile.toPath() );
+    String depsContent = readDepFile();
 
     assertTrue( "Dependency file should contain Outer class",
                 depsContent.contains( "example.Outer" ) );
@@ -1635,7 +1627,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 4: Verify dependency file has only "RegionsUIHelper" entry
-    String depsContent = Files.readString( dependencyFile.toPath() );
+    String depsContent = readDepFile();
 
     assertTrue( "Dependency file should contain RegionsUIHelper",
                 depsContent.contains( "example.RegionsUIHelper" ) );
@@ -2206,7 +2198,7 @@ public class IncrementalCompilationEndToEndIT
 
     // Step 3: Verify both edges of the chain are recorded in the dep file —
     // this is what the driver's reverse-dependency BFS walks.
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2332,7 +2324,7 @@ public class IncrementalCompilationEndToEndIT
 
     // Step 3: Verify all three cycle edges are recorded in the dep file. Every
     // class has exactly one consumer (the next link in the cycle).
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2454,7 +2446,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult result = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2555,7 +2547,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Every link of the chain Box<Middle<Leaf>> must record Consumer as a consumer.
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2667,7 +2659,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult result = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2755,7 +2747,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2801,7 +2793,7 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( new File( srcDir.toFile(), "example/TypeA.gs" ) ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
 
     assertEquals(
       "After incremental compile of TypeA only, TypeB and TypeC must still appear as consumers of SharedProducer",
@@ -2853,7 +2845,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2893,7 +2885,7 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( new File( srcDir.toFile(), "example/Consumer.gs" ) ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2966,7 +2958,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3002,7 +2994,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
                 incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3062,7 +3054,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3099,7 +3091,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
                 incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3165,7 +3157,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, dep file should list Alpha and Beta, each with no consumers",
-                  expectedDepsAfterInitial, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDepsAfterInitial, readDepFile() );
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
     Thread.sleep( SLEEP_MS );
@@ -3198,7 +3190,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After removing leaf Beta, dep file should contain only Alpha",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
   }
 
   @Test
@@ -3248,7 +3240,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, the dep file should record DummyJava -> [GosuConsumer]",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
 
     // Incremental: DummyJava reported changed (and still flagged as a local Java type). Capture the Gosu
     // consumer's .class timestamp first so we can assert it is actually recompiled.
@@ -3313,7 +3305,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, the dep file should not record DummyJava -> [GosuIndipendent]",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
 
     Path dummyJavaClassInGosuOutput = outputDir.resolve( "com/example/DummyJava.class" );
     Map<String, FileTime> beforeTimestamps = recordTimestamps();
@@ -3347,7 +3339,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "Walking a changed local Java type with no consumers should add an empty entry for it",
-                  expectedAfterIncremental, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedAfterIncremental, readDepFile() );
   }
 
   @Test
@@ -3464,7 +3456,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both " +
@@ -3530,7 +3522,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "After Inner is removed (and Consumer adapts), Outer's consumer list " +
       "contains only Consumer. Outer$Inner is fully stripped from the dep " +
@@ -3601,7 +3593,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both.",
@@ -3650,7 +3642,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "After Outer.gs is removed, the dep file contains only Consumer. " +
       "Outer is stripped (it was in removedTypes -- key and value purge). " +
@@ -3748,7 +3740,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
     assertTrue( "Dependency file should exist after compile", dependencyFile.exists() );
 
-    String depFileContents = Files.readString( dependencyFile.toPath() );
+    String depFileContents = readDepFile();
 
     assertFalse(
       "java.lang.String must not appear in the dep graph. It is a JRE type, " +
@@ -3775,7 +3767,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
     assertTrue( "Dependency file should exist after compile", dependencyFile.exists() );
 
-    String depFileContents = Files.readString( dependencyFile.toPath() );
+    String depFileContents = readDepFile();
 
     assertFalse(
       "gw.util.AutoMap must not appear in the dep graph. It is a Gosu type " +
@@ -3814,8 +3806,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "precondition: MyType.class should exist after initial compile",
                 Files.exists( myTypeClass ) );
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes( dependencyFile.toPath() ), StandardCharsets.UTF_8 ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3866,23 +3857,9 @@ public class IncrementalCompilationEndToEndIT
       "List<MyType>).",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.MyType\": {\n" +
-      "      \"abi_hash\": \"34cbbd519d6bce281a16d6899027e7cabae94632\",\n" + // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDeps = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "e9158402fffc29fe9319866fa0c78c26b26e5f92", "34cbbd519d6bce281a16d6899027e7cabae94632" );   // example.MyType: ABI change
     assertEquals(
       "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps );
@@ -3910,7 +3887,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3991,7 +3968,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4085,7 +4062,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4247,7 +4224,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4355,7 +4332,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4542,7 +4519,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4674,7 +4651,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record both the consumer edges " +
       "(Outer -> Consumer and Outer$Inner -> Consumer from Consumer's field) " +
@@ -4714,31 +4691,9 @@ public class IncrementalCompilationEndToEndIT
       "is typed Outer.Inner).",
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.Outer$Inner\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"1149c34290ceb32d2bbd992fd45945a1d33c7193\",\n" +  // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.Outer\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDepsAfter = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "558596c2e57662de85bdaf01cc48724be1f134a3", "1149c34290ceb32d2bbd992fd45945a1d33c7193" );   // example.Outer$Inner: ABI change
     assertEquals(
       "Dep file after incremental compile should still record both " +
       "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
@@ -4840,7 +4795,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, the dep file should record the consumer edges of both fields and " +
       "the parent <-> member edges at both nesting levels.",
@@ -4891,45 +4846,9 @@ public class IncrementalCompilationEndToEndIT
       initialInnerConsumerTime.toMillis(),
       getFileModificationTime( innerConsumerClass ).toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.InnerConsumer\": {\n" +
-      "      \"abi_hash\": \"39d886f1c5f2d58aee6635b84def923079091354\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.InnerConsumer\",\n" +
-      "        \"example.Outer$Inner\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"bfb5782ac13d3496897f80071b92f11dc316bdc3\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.InnerConsumer\",\n" +
-      "        \"example.Outer\",\n" +
-      "        \"example.Outer$Inner$Innermost\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$Inner$Innermost\": {\n" +
-      "      \"abi_hash\": \"655dd01d354a796a64dd5da1b6c0f3e23b5f4c35\",\n" +  // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.Outer$Inner\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDepsAfter = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "74d18336c16a3ea4a8d29f51910c6fbfd2fa3bd8", "655dd01d354a796a64dd5da1b6c0f3e23b5f4c35" );   // example.Outer$Inner$Innermost: ABI change
     assertEquals(
       "Dep file after incremental compile should record the same edges, with only " +
       "Innermost's digest moved (no drift).",
@@ -4988,7 +4907,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, Builder's only consumer must be Consumer -- the " +
       "Builder -> Builder self-reference must be filtered out even though " +
@@ -5036,23 +4955,9 @@ public class IncrementalCompilationEndToEndIT
 
     // Only Builder's abi_hash changes; the graph shape is unchanged and Builder
     // still does not list itself as a consumer (no self-edge drift).
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Builder\": {\n" +
-      "      \"abi_hash\": \"2a126925002f5f49211dc5b2c16cc1c472aa07b2\",\n" + // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
-      "      \"consumers\": []\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDepsAfter = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "69b604e706c0e28059e04966388e0030e884cc5e", "2a126925002f5f49211dc5b2c16cc1c472aa07b2" );   // example.Builder: ABI change
     assertEquals(
       "After incremental compile, Builder's consumer list must still be exactly " +
       "[example.Consumer] -- the self-reference is filtered on every build, so " +
@@ -5141,7 +5046,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial );
@@ -5178,39 +5083,9 @@ public class IncrementalCompilationEndToEndIT
       "Outer$AnonymouS__1.class should be recompiled",
       getFileModificationTime( anonClass ).toMillis() > initialAnonTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3488bd86e6e289396964c7072b0e205829ecb2ac\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer$AnonymouS__1\",\n" +
-      "        \"example.Outer$block_0_\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$AnonymouS__1\": {\n" +
-      "      \"abi_hash\": \"2fd7693adb2bca3418f35454f50f6f123e20d6b0\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$block_0_\": {\n" +
-      "      \"abi_hash\": \"cc80c43c0b3118a953434fb4c8b75ce85a0b8177\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Util\": {\n" +
-      "      \"abi_hash\": \"d9a6efc742ed4491d0d153d7ae14cd66a93a7096\",\n" +  // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Outer$AnonymouS__1\",\n" +
-      "        \"example.Outer$block_0_\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDepsAfter = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "cf65eed712ed5956a5a94fd95b7c16df24da0de3", "d9a6efc742ed4491d0d153d7ae14cd66a93a7096" );   // example.Util: ABI change
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -5293,7 +5168,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial );
@@ -5331,38 +5206,9 @@ public class IncrementalCompilationEndToEndIT
       "Outer$AnonymouS__0$block_0_.class should be recompiled (the innermost " +
       "block is the actual referrer of Util).",
       getFileModificationTime( innerBlockClass ).toMillis() > initialInnerBlockTime.toMillis() );
-      expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3488bd86e6e289396964c7072b0e205829ecb2ac\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer$AnonymouS__0\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$AnonymouS__0\": {\n" +
-      "      \"abi_hash\": \"8a6827d97ffe3f70d70d14cbee8f917c604d601c\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer\",\n" +
-      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$AnonymouS__0$block_0_\": {\n" +
-      "      \"abi_hash\": \"96ea0b6c53a34f4d36a3f01e9d8ac9e71c2f4f31\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Outer$AnonymouS__0\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Util\": {\n" +
-      "      \"abi_hash\": \"d9a6efc742ed4491d0d153d7ae14cd66a93a7096\",\n" + // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    expectedDeps = expectedDeps
+      .replace( "cf65eed712ed5956a5a94fd95b7c16df24da0de3", "d9a6efc742ed4491d0d153d7ae14cd66a93a7096" );   // example.Util: ABI change
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -5432,7 +5278,7 @@ public class IncrementalCompilationEndToEndIT
       "    }\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, the dep file should record both the consumer " +
       "edges (Outer$Class -> Consumer and Outer$Class$Inner -> Consumer from " +
@@ -5470,31 +5316,9 @@ public class IncrementalCompilationEndToEndIT
       "Consumer.class should be recompiled when Outer$Class.Inner changes",
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
-    expectedDeps =
-      "{\n" +
-      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
-      "  \"dep_graph\": {\n" +
-      "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
-      "      \"consumers\": []\n" +
-      "    },\n" +
-      "    \"example.Outer$Class\": {\n" +
-      "      \"abi_hash\": \"c0c655e3ddd8470589dc63b14ef78a7eca630539\",\n" +
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.Outer$Class$Inner\"\n" +
-      "      ]\n" +
-      "    },\n" +
-      "    \"example.Outer$Class$Inner\": {\n" +
-      "      \"abi_hash\": \"7b05256f6ca9100e003ba2e1653ea61e846a7e03\",\n" + // ABI change
-      "      \"consumers\": [\n" +
-      "        \"example.Consumer\",\n" +
-      "        \"example.Outer$Class\"\n" +
-      "      ]\n" +
-      "    }\n" +
-      "  }\n" +
-      "}";
+    String actualDepsAfter = readDepFile();
+    expectedDeps = expectedDeps
+      .replace( "489f5cc24e077749c770773b76834881b48370e2", "7b05256f6ca9100e003ba2e1653ea61e846a7e03" );   // example.Outer$Class$Inner: ABI change
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -5536,7 +5360,7 @@ public class IncrementalCompilationEndToEndIT
                              "  }\n" +
                              "}";
 
-    assertEquals(expectedDepFile, Files.readString( dependencyFile.toPath() )  );
+    assertEquals(expectedDepFile, readDepFile() );
     Thread.sleep( SLEEP_MS );
 
     // Step 2: add a brand new source file that has no relationship to
@@ -5581,7 +5405,7 @@ public class IncrementalCompilationEndToEndIT
                       "    }\n" +
                       "  }\n" +
                       "}";
-    assertEquals(expectedDepFile, Files.readString( dependencyFile.toPath() )  );
+    assertEquals(expectedDepFile, readDepFile() );
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -5752,7 +5576,7 @@ public class IncrementalCompilationEndToEndIT
 
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
-    String depFileBefore = Files.readString( dependencyFile.toPath() );
+    String depFileBefore = readDepFile();
     Thread.sleep( SLEEP_MS );
 
     modifySourceFile( util, "greet(name : String)", "greet(who : String)" );
@@ -5762,7 +5586,7 @@ public class IncrementalCompilationEndToEndIT
     assertEquals( "Util and its named-argument caller should be recompiled", 2, incr.filesCompiled );
     assertFalse( "The caller binds the old parameter name, so the incremental compile must fail", incr.success );
     assertEquals( "A failed compile must leave the dependency file untouched",
-                  depFileBefore, Files.readString( dependencyFile.toPath() ) );
+                  depFileBefore, readDepFile() );
   }
 
   @Test
@@ -5825,7 +5649,7 @@ public class IncrementalCompilationEndToEndIT
                   afterTimestamps.get( className ).toMillis() > initialTimestamps.get( className ).toMillis() );
     }
     assertTrue( "The regenerated dep file should carry the current version",
-                Files.readString( dependencyFile.toPath() ).contains( "\"version\": \"" + DEPENDENCY_VERSION + "\"" ) );
+                readDepFile().contains( "\"version\": \"" + DEPENDENCY_VERSION + "\"" ) );
   }
 
   @Test
@@ -6046,7 +5870,7 @@ public class IncrementalCompilationEndToEndIT
 
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
-    String depFileInitial = Files.readString( dependencyFile.toPath() );
+    String depFileInitial = readDepFile();
     assertTrue( "precondition: the dep file records the member class",
                 depFileInitial.contains( "\"example.Outer$Inner\"" ) );
     // Keys are sorted, so Doubler's entry runs up to Outer's.
@@ -6073,7 +5897,7 @@ public class IncrementalCompilationEndToEndIT
     assertFalse( "Outer$Inner.class should be deleted along with its enclosing class's stale outputs",
                  Files.exists( outputDir.resolve( "example/Outer$Inner.class" ) ) );
     // Captured here, asserted after step 3 together with the file that step writes.
-    String depFileAfterDeletion = Files.readString( dependencyFile.toPath() );
+    String depFileAfterDeletion = readDepFile();
 
     // Step 3: change Doubler's ABI. Nothing left in Outer.gs uses Doubler, yet the stale "Doubler -> Outer$Inner"
     // edge resolves to Outer.gs and recompiles it once (the accepted cost); the cascade then purges the key.
@@ -6090,7 +5914,7 @@ public class IncrementalCompilationEndToEndIT
     ).getBytes() );
 
     CompileResult afterDoublerChange = compile( Arrays.asList( doubler ) );
-    String depFileAfterDoublerChange = Files.readString( dependencyFile.toPath() );
+    String depFileAfterDoublerChange = readDepFile();
     assertTrue( "Incremental compilation should succeed: " + afterDoublerChange.error, afterDoublerChange.success );
     // TODO: expected 1 not 2, for now let's do an extra rare recompilation.
     assertEquals( "Only Doubler.gs should be recompiled: its only user was the deleted Inner. A count of 2 means " +
@@ -6143,7 +5967,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    JsonObject root = JsonParser.parseString( Files.readString( dependencyFile.toPath() ) ).getAsJsonObject();
+    JsonObject root = JsonParser.parseString( readDepFile() ).getAsJsonObject();
     assertEquals( DEPENDENCY_VERSION, root.get( "version" ).getAsString() );
     JsonObject depGraph = root.getAsJsonObject( "dep_graph" );
     Set<String> types = depGraph.keySet();
@@ -6233,7 +6057,7 @@ public class IncrementalCompilationEndToEndIT
     assertEquals( "The top-level Inner did not change and is left alone",
                   initialTimestamps.get( "Inner.class" ), afterTimestamps.get( "Inner.class" ) );
     assertFalse( "The deleted member class is purged from the dependency file",
-                 Files.readString( dependencyFile.toPath() ).contains( "example.Outer$Inner" ) );
+                 readDepFile().contains( "example.Outer$Inner" ) );
   }
 
   @Test
@@ -6257,7 +6081,7 @@ public class IncrementalCompilationEndToEndIT
 
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
-    String firstDepFile = Files.readString( dependencyFile.toPath() );
+    String firstDepFile = readDepFile();
     assertTrue( "precondition: the dep file carries hashes", firstDepFile.contains( "\"abi_hash\": \"" ) );
 
     assertTrue( Files.deleteIfExists( dependencyFile.toPath() ) );
@@ -6266,7 +6090,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Compilation without a dep file should succeed: " + again.error, again.success );
     assertEquals( "Without a dep file every source is compiled", 2, again.filesCompiled );
     assertEquals( "A regenerated dep file, hashes included, should be byte-identical",
-                  firstDepFile, Files.readString( dependencyFile.toPath() ) );
+                  firstDepFile, readDepFile() );
   }
 
   @Test
@@ -6314,7 +6138,7 @@ public class IncrementalCompilationEndToEndIT
 
     // Step 3: Verify both edges of the chain are recorded in the dep file --
     // this is what the driver's walk follows.
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
