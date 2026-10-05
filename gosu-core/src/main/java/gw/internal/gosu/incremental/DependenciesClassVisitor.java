@@ -57,7 +57,8 @@ import java.util.List;
  *       standard ASM {@link ClassVisitor} callbacks add signature-level type refs
  *       that the constant pool alone wouldn't surface (e.g. generic type parameters
  *       reachable only through the {@code Signature} attribute, annotation descriptors,
- *       local-variable signatures inside method bodies).</li>
+ *       local-variable signatures inside method bodies, and the descriptors of the methods
+ *       and fields an instruction invokes or accesses).</li>
  * </ol>
  * <p>
  * Both phases route every discovered type through {@link #maybeAddDependentType}, which
@@ -73,9 +74,12 @@ import java.util.List;
  * The canonical text holds the class file version, access flags, name, generic signature and
  * superclass; the member classes the class declares (its {@code InnerClasses} entries, minus
  * block classes, anonymous classes and private member classes, none of which a consumer can
- * name through it); its interfaces, sorted; its annotations; and every consumer-visible field
- * (access, name, descriptor, signature, {@code ConstantValue}, annotations) and method (access,
- * name, descriptor, signature, exceptions, annotations, parameter and type annotations). Every
+ * name through it); its interfaces, sorted; its annotations and type annotations; and every
+ * consumer-visible field (access, name, descriptor, signature, {@code ConstantValue}, annotations,
+ * type annotations) and method (access, name, descriptor, signature, exceptions, annotations,
+ * parameter and type annotations, an annotation member's {@code AnnotationDefault}, and
+ * {@code MethodParameters} names). gosuc writes {@code AnnotationDefault} but neither type
+ * annotations nor {@code MethodParameters}; those two are hashed for completeness. Every
  * list is sorted before hashing, so emission order is irrelevant, with one exception: the elements
  * of an array-valued annotation argument keep their class-file order, because that order, and
  * their number, is part of the argument's value. An annotation's named members are sorted like
@@ -125,7 +129,7 @@ class DependenciesClassVisitor extends ClassVisitor
 
   private String abiHash;
   private final StringBuilder abiStr;
-  private List<String> abiInterfaces;
+  private final List<String> abiInterfaces;
   private final List<String> abiFields;
   private final List<String> abiMethods;
   private final List<String> abiAnnotations;
@@ -144,6 +148,7 @@ class DependenciesClassVisitor extends ClassVisitor
     abiMethods = new ArrayList<>();
     abiAnnotations = new ArrayList<>();
     abiInnerClasses = new ArrayList<>();
+    abiInterfaces = new ArrayList<>();
     this.incrementalCompilationManager = incrementalCompilationManager;
     this.verbose = verbose;
     // Mark consumerFqcn as present in this session's dependency tracking as producer.
@@ -180,7 +185,10 @@ class DependenciesClassVisitor extends ClassVisitor
       }
       abiStr.append( " extends " );
       abiStr.append( superName );
-      abiInterfaces = new ArrayList<>( Arrays.asList( interfaces ) );
+      if( interfaces != null )
+      {
+        abiInterfaces.addAll(  Arrays.asList( interfaces ) );
+      }
     }
     maybeAddClassTypesFromSignature( signature );
     if( superName != null )
@@ -386,8 +394,6 @@ class DependenciesClassVisitor extends ClassVisitor
     }
   }
 
-
-  //TODO also check for other visitor methods to override
   @Override
   public void visitInnerClass( String name, String outerName, String innerName, int access )
   {
@@ -442,6 +448,39 @@ class DependenciesClassVisitor extends ClassVisitor
   {
     maybeAddDependentType( Type.getType( desc ) );
     return new DepAnnotationVisitor( abiAnnotations, desc, visible, isClassPrivate, null );
+  }
+
+  @Override
+  public AnnotationVisitor visitTypeAnnotation( int typeRef, TypePath typePath, String descriptor, boolean visible )
+  {
+    // A type annotation on the class declaration itself: on a supertype or a type parameter.
+    maybeAddDependentType( Type.getType( descriptor ) );
+    return new DepAnnotationVisitor( abiAnnotations, typeAnnotationText( typeRef, typePath, descriptor ), visible, isClassPrivate, null );
+  }
+
+  @Override
+  public void visitOuterClass( String owner, String name, String descriptor )
+  {
+    // EnclosingMethod of a local or anonymous class: edges only. The enclosing class is a constant-pool entry and
+    // already recorded; the enclosing method's parameter and return types are present only in this descriptor.
+    // Nothing is hashed, since no consumer can name the class, let alone its enclosing method.
+    if( descriptor != null )
+    {
+      addTypesFromMethodDescriptor( descriptor );
+    }
+  }
+
+  /** What a type annotation contributes to the ABI text: where it sits ({@code typeRef}, {@code typePath}) and its type. */
+  private static String typeAnnotationText( int typeRef, TypePath typePath, String descriptor )
+  {
+    StringBuilder text = new StringBuilder();
+    text.append( typeRef ).append( ' ' );
+    if( typePath != null )
+    {
+      text.append( typePath ).append( ' ' );
+    }
+    text.append( descriptor );
+    return text.toString();
   }
 
   private static boolean isPrivate( int access )
@@ -518,6 +557,13 @@ class DependenciesClassVisitor extends ClassVisitor
     }
 
     @Override
+    public AnnotationVisitor visitTypeAnnotation( int typeRef, TypePath typePath, String descriptor, boolean visible )
+    {
+      maybeAddDependentType( Type.getType( descriptor ) );
+      return new DepAnnotationVisitor( abiFieldAnnotations, typeAnnotationText( typeRef, typePath, descriptor ), visible, isPrivate( fieldAccess ), null );
+    }
+
+    @Override
     public void visitEnd()
     {
       if( isPrivate( fieldAccess ) || isSourceCodePrivate( fieldAccess, abiFieldAnnotations ) )
@@ -536,6 +582,8 @@ class DependenciesClassVisitor extends ClassVisitor
     private final List<String> abiMethodAnnotations;
     private final List<String> abiParamsAnnotations;
     private final List<String> abiTypesAnnotations;
+    private final List<String> abiMethodDefault;
+    private final List<String> abiParameters;
     private final int methodAccess;
 
     protected DepMethodVisitor( int access, String name, String desc, String signature, String[] exceptions )
@@ -545,6 +593,8 @@ class DependenciesClassVisitor extends ClassVisitor
       abiMethodAnnotations = new ArrayList<>();
       abiParamsAnnotations = new ArrayList<>();
       abiTypesAnnotations = new ArrayList<>();
+      abiMethodDefault = new ArrayList<>();
+      abiParameters = new ArrayList<>();
       methodAccess = access;
       if( !isPrivate( access ) )
       {
@@ -590,20 +640,27 @@ class DependenciesClassVisitor extends ClassVisitor
     @Override
     public AnnotationVisitor visitTypeAnnotation( int typeRef, TypePath typePath, String descriptor, boolean visible )
     {
-      StringBuilder desc = new StringBuilder( descriptor );
       maybeAddDependentType( Type.getType( descriptor ) );
+      return new DepAnnotationVisitor( abiTypesAnnotations, typeAnnotationText( typeRef, typePath, descriptor ), visible, isPrivate( methodAccess ), null );
+    }
+
+    @Override
+    public AnnotationVisitor visitAnnotationDefault()
+    {
+      // The default value of an annotation member. gosuc bakes it into every user that omits the member, so it is
+      // ABI, and a class literal, enum or nested annotation inside it is a dependency, which the visitor records.
+      return new DepAnnotationVisitor( abiMethodDefault, null, false, isPrivate( methodAccess ), null );
+    }
+
+    @Override
+    public void visitParameter( String name, int access )
+    {
+      // MethodParameters: a parameter's name and flags, which named-argument call sites bind against. Position
+      // matters, so the entries keep their order and carry their index.
       if( !isPrivate( methodAccess ) )
       {
-        desc.append( typeRef );
-        desc.append( ' ' );
-        if( typePath != null )
-        {
-          desc.append( typePath );
-          desc.append( ' ' );
-        }
-        desc.append( descriptor );
+        abiParameters.add( "parameter " + abiParameters.size() + ' ' + access + ' ' + name );
       }
-      return new DepAnnotationVisitor( abiTypesAnnotations, desc.toString(), visible, isPrivate( methodAccess ), null );
     }
 
     @Override
@@ -619,6 +676,22 @@ class DependenciesClassVisitor extends ClassVisitor
     }
 
     @Override
+    public void visitFieldInsn( int opcode, String owner, String name, String descriptor )
+    {
+      // The owner is a constant-pool class entry and already recorded; the field's type is present only in this
+      // descriptor.
+      maybeAddDependentType( Type.getType( descriptor ) );
+    }
+
+    @Override
+    public void visitMethodInsn( int opcode, String owner, String name, String descriptor, boolean isInterface )
+    {
+      // The owner is a constant-pool class entry and already recorded; The invoked method's parameter and return types
+      // are present only in this descriptor.
+      addTypesFromMethodDescriptor( descriptor );
+    }
+
+    @Override
     public void visitEnd()
     {
       if( isPrivate( methodAccess ) || isSourceCodePrivate( methodAccess, abiMethodAnnotations ) )
@@ -629,6 +702,14 @@ class DependenciesClassVisitor extends ClassVisitor
       appendAbiList( abiMethod, abiMethodAnnotations, "\n" );
       appendAbiList( abiMethod, abiParamsAnnotations, "\n" );
       appendAbiList( abiMethod, abiTypesAnnotations, "\n" );
+      for( String value : abiMethodDefault )
+      {
+        abiMethod.append( "default " ).append( value ).append( '\n' );
+      }
+      for( String parameter : abiParameters )
+      {
+        abiMethod.append( parameter ).append( '\n' );
+      }
       abiMethods.add( abiMethod.toString() );
     }
 
@@ -726,6 +807,8 @@ class DependenciesClassVisitor extends ClassVisitor
     @Override
     public void visitEnum( String name, String desc, String value )
     {
+      // The enum's type is present only in this descriptor, not as a constant-pool class entry.
+      maybeAddDependentType( Type.getType( desc ) );
       if( !isAnnotationPrivate )
       {
         abiAnnotationVals.add( name + " " + desc + " " + value );

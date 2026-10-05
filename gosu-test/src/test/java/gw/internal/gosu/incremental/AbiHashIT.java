@@ -581,4 +581,33 @@ public class AbiHashIT
     assertSameAbi( "Positional and named spellings of the same values are not ABI", named, before );
     assertDifferentAbi( "Reordering the members changes what a positional usage says, so the fixture's ABI moves", before, after );
   }
+
+  @Test
+  public void testAnnotationMemberDefaultFoldedFromAnotherTypesConstantIsAbi() throws IOException
+  {
+    // gosuc bakes an annotation member's default into every user that omits the member, so the default's value is
+    // part of the annotation type's ABI. The constructor line on the Gosu surface renders the default's expression
+    // text, which does not move when that expression folds a constant declared elsewhere whose value changed; the
+    // AnnotationDefault attribute carries the folded value, and the hasher reads it there.
+    String consts = "package p\n\nclass Consts {\n  public static final var K : int = 4\n}\n";
+    String tag =
+      "package p\n" +
+      "uses java.lang.annotation.ElementType\n" +
+      "uses java.lang.annotation.Target\n" +
+      "uses java.lang.annotation.Retention\n" +
+      "uses java.lang.annotation.RetentionPolicy\n" +
+      "\n" +
+      "@Target({ElementType.TYPE})\n" +
+      "@Retention(RetentionPolicy.RUNTIME)\n" +
+      "annotation Tag {\n" +
+      "  function value() : int = Consts.K\n" +
+      "}\n";
+    String usage = "package p\n\n@Tag\nclass Fixture {}\n";
+    Compiled before = compile( "p/Consts.gs", consts, "p/Tag.gs", tag, "p/Fixture.gs", usage );
+    Compiled after = compile( "p/Consts.gs", consts.replace( "= 4", "= 5" ), "p/Tag.gs", tag, "p/Fixture.gs", usage );
+    assertDifferentAbi( "precondition: the default is baked into the fixture that omits the member", before, after );
+    String tagBefore = abiHashOf( before.depFile, "p.Tag" );
+    assertNotEquals( "An annotation member's default value is the annotation type's ABI (both hashed to " + tagBefore + ")",
+                     tagBefore, abiHashOf( after.depFile, "p.Tag" ) );
+  }
 }

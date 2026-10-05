@@ -259,10 +259,14 @@ collect the class's bytecode ABI (§6.4), so one walk serves both. Edge extracti
    | `visitField` | field descriptor + generic signature; field annotations |
    | `visitMethod` | return type, parameter types, declared exceptions, generic signature |
    | `MethodVisitor.visitLocalVariable` | local-variable descriptor + signature |
+   | `MethodVisitor.visitMethodInsn` / `visitFieldInsn` | parameter and return types of every invoked method, type of every accessed field — present only in the member's descriptor, never as a constant-pool class entry |
    | `MethodVisitor.visit*Annotation` | method / parameter / type annotations |
    | `MethodVisitor.visitInvokeDynamicInsn` | bootstrap method descriptor, owner, and `Type`/`Handle` bootstrap args (lambda/`invokedynamic` desugaring) |
+   | `MethodVisitor.visitAnnotationDefault` | class literals, enum types and nested annotation types inside an annotation member's default value |
+   | `visitOuterClass` | the enclosing method's parameter and return types of a local or anonymous class |
    | `visitAnnotation` (class) | annotation type descriptor |
-   | `AnnotationVisitor.visit` / nested `visitAnnotation` | annotation **values** that are `Type` (class literals inside annotation args) and nested annotation types |
+   | `visitTypeAnnotation` (class, field) | type annotation descriptors on the class declaration and on fields |
+   | `AnnotationVisitor.visit` / nested `visitAnnotation` / `visitEnum` | annotation **values** that are `Type` (class literals inside annotation args), nested annotation types, and the enum type of an enum value |
 
    Generic signatures are parsed with `SignatureReader` + a `SignatureVisitor` so that type
    arguments (e.g. `List<MyType>`) are captured, not just the erased descriptor.
@@ -321,6 +325,11 @@ Concrete cases pinned by gosuc-level e2e tests in `IncrementalCompilationEndToEn
 - **parameterized types**, Java- and Gosu-flavored (`List<MyType>`, `Container<MyType>`) —
   `testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange`,
   `testGosuFieldOfParameterizedGosuTypeRecompilesOnTypeParamChange`;
+- **types named only in a member descriptor** (the return type of an invoked method, the type of
+  an accessed field) — `testTypeNamedOnlyInAnInvokedMethodDescriptorIsADependency`,
+  `testTypeNamedOnlyInAnAccessedFieldDescriptorIsADependency`;
+- **an enum constant baked from an annotation default**, whose type the user's source never
+  names — `testEnumAnnotationValueBakedFromADefaultIsADependency`;
 - **cascade precision** — an unrelated consumer is *not* pulled in when an annotation type
   changes — `testTopLevelAnnotationChangeDoesNotOverRecompileUnrelatedSources`;
 - **graph hygiene** — JRE types and JAR-sourced (non-source-root) Gosu types stay out of the
@@ -339,10 +348,13 @@ or `ABI STABLE`, with the reason and both digests; the canonical text itself is 
 **Bytecode ABI.** The §6.1 walk collects, alongside the edges: the class file version, the
 class access flags, name, generic `Signature` and superclass; the **member classes** it
 declares (its `InnerClasses` entries, excluding block classes, anonymous classes, and
-private member classes — see below); its interfaces, sorted; its annotations; and every
-**consumer-visible** field (access, name, descriptor, signature, `ConstantValue`,
-annotations) and method (access, name, descriptor, signature, declared exceptions,
-annotations, parameter annotations, type annotations). Each list is sorted before hashing,
+private member classes — see below); its interfaces, sorted; its annotations and type
+annotations; and every **consumer-visible** field (access, name, descriptor, signature,
+`ConstantValue`, annotations, type annotations) and method (access, name, descriptor,
+signature, declared exceptions, annotations, parameter annotations, type annotations, an
+annotation member's `AnnotationDefault`, and `MethodParameters` names). gosuc writes
+`AnnotationDefault` but neither type annotations nor `MethodParameters`; those two are hashed
+for completeness. Each list is sorted before hashing,
 so emission order is irrelevant, with one exception: the elements of an array-valued
 annotation argument keep their class-file order, since that order, and their number, is part
 of the argument's value. Annotation values, nested annotations and arrays are rendered into

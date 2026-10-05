@@ -4283,6 +4283,257 @@ public class IncrementalCompilationEndToEndIT
   }
 
   @Test
+  public void testTypeNamedOnlyInAnInvokedMethodDescriptorIsADependency() throws Exception
+  {
+    // Consumer's only tie to Foo is the return type of Other.get(), which lives in the invokestatic's descriptor:
+    // no constant-pool class entry, no local variable and none of Consumer's own signatures names Foo. The
+    // dependency visitor reads that descriptor in visitMethodInsn; without it Foo -> Consumer is never recorded,
+    // and a change to Foo that breaks Consumer leaves Consumer.class stale. Base -> Consumer comes from the same
+    // descriptor's parameter type.
+    createSourceFile( "example/Base.gs", "package example\n\nclass Base {}\n" );
+    File foo = createSourceFile( "example/Foo.gs", "package example\n\nclass Foo extends Base {}\n" );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  static function get() : Foo { return new Foo() }\n" +
+                      "  static function consume(b : Base) {}\n" +
+                      "}\n" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function run() { Other.consume( Other.get() ) }\n" +
+                      "}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Base\": {\n" +
+      "      \"abi_hash\": \"feba50a2109280864abfceed28f374754b4e2f5f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Foo\",\n" +
+      "        \"example.Other\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5c2c3ff5867461527e0d2f88d92fd091a68562fa\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Foo\": {\n" +
+      "      \"abi_hash\": \"e10f0b6841d34d509468363252a2f5124f14cfa2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Other\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Other\": {\n" +
+      "      \"abi_hash\": \"0240c954318ae9b25c2c355e58193bd1bf418c85\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file after initial compile should record Foo -> Consumer and Base -> Consumer, both from the " +
+                  "descriptors of the methods Consumer invokes on Other",
+                  expectedDeps, readDepFile() );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    Path otherClass = outputDir.resolve( "example/Other.class" );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+    FileTime initialOtherTime = getFileModificationTime( otherClass );
+    Thread.sleep( SLEEP_MS );
+
+    // An ABI change to Foo that keeps Consumer valid must still reach it.
+    Files.write( foo.toPath(), "package example\n\nclass Foo extends Base {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( foo ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Foo, Other (which names Foo in a signature) and Consumer (which names it only in a descriptor)",
+                  3, widened.filesCompiled );
+    assertTrue( "Consumer.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+    assertTrue( "Other.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( otherClass ).toMillis() > initialOtherTime.toMillis() );
+    expectedDeps = expectedDeps
+      .replace( "e10f0b6841d34d509468363252a2f5124f14cfa2", "41cfb4051dc1fdbdfea269af27c4aa18e2f6aca9" );   // example.Foo: ABI change
+    assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
+
+    // A change to Foo that breaks Consumer must surface as a compile error in Consumer, not as a stale class file
+    // that passes a Foo where a Base is expected and fails verification at run time.
+    Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult broken = compile( Arrays.asList( foo ) );
+    assertFalse( "Consumer no longer compiles once Foo stops extending Base, so the incremental compile must fail",
+                 broken.success );
+    assertTrue( "The failure must be reported in Consumer: " + broken.error, broken.error.contains( "Consumer.gs" ) );
+    assertEquals( "A failed compile must leave the dependency file untouched", expectedDeps, readDepFile() );
+  }
+
+  @Test
+  public void testTypeNamedOnlyInAnAccessedFieldDescriptorIsADependency() throws Exception
+  {
+    // The field-instruction counterpart: Consumer reads Holder.FOO with a getstatic whose descriptor is the only
+    // place Consumer.class names Foo. visitFieldInsn reads that descriptor.
+    createSourceFile( "example/Base.gs", "package example\n\nclass Base {}\n" );
+    File foo = createSourceFile( "example/Foo.gs", "package example\n\nclass Foo extends Base {}\n" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  public static var FOO : Foo = new Foo()\n" +
+                      "}\n" );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  static function consume(b : Base) {}\n" +
+                      "}\n" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function run() { Other.consume( Holder.FOO ) }\n" +
+                      "}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Base\": {\n" +
+      "      \"abi_hash\": \"feba50a2109280864abfceed28f374754b4e2f5f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Foo\",\n" +
+      "        \"example.Other\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"5c2c3ff5867461527e0d2f88d92fd091a68562fa\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Foo\": {\n" +
+      "      \"abi_hash\": \"e10f0b6841d34d509468363252a2f5124f14cfa2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Holder\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Holder\": {\n" +
+      "      \"abi_hash\": \"9003abe9f658c8ee1c2dd1a3427b3d33b8ee884f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Other\": {\n" +
+      "      \"abi_hash\": \"948ea4f96427d4a607615732704835c5543d06d9\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file after initial compile should record Foo -> Consumer from the descriptor of Holder.FOO " +
+                  "and Base -> Consumer from the descriptor of Other.consume()",
+                  expectedDeps, readDepFile() );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    Path holderClass = outputDir.resolve( "example/Holder.class" );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+    FileTime initialHolderTime = getFileModificationTime( holderClass );
+    Thread.sleep( SLEEP_MS );
+
+    Files.write( foo.toPath(), "package example\n\nclass Foo extends Base {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( foo ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Foo, Holder (whose field is a Foo) and Consumer (which names Foo only in a descriptor)",
+                  3, widened.filesCompiled );
+    assertTrue( "Consumer.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+    assertTrue( "Holder.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( holderClass ).toMillis() > initialHolderTime.toMillis() );
+    expectedDeps = expectedDeps
+      .replace( "e10f0b6841d34d509468363252a2f5124f14cfa2", "41cfb4051dc1fdbdfea269af27c4aa18e2f6aca9" );   // example.Foo: ABI change
+    assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
+
+    Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult broken = compile( Arrays.asList( foo ) );
+    assertFalse( "Consumer no longer compiles once Foo stops extending Base, so the incremental compile must fail",
+                 broken.success );
+    assertTrue( "The failure must be reported in Consumer: " + broken.error, broken.error.contains( "Consumer.gs" ) );
+    assertEquals( "A failed compile must leave the dependency file untouched", expectedDeps, readDepFile() );
+  }
+
+  @Test
+  public void testEnumAnnotationValueBakedFromADefaultIsADependency() throws Exception
+  {
+    // Fixture writes @Tag and nothing else, so its source never names Mode and the AST supplement records nothing
+    // for it. gosuc bakes Tag's default, Mode.A, into Fixture's annotation, where the enum type is present only as
+    // the descriptor of an enum element value, never as a constant-pool class entry. The dependency visitor reads
+    // it in visitEnum; without that, Mode -> Fixture is never recorded.
+    File mode = createSourceFile( "example/Mode.gs", "package example\n\nenum Mode { A, B }\n" );
+    createSourceFile( "example/Tag.gs",
+                      "package example\n" +
+                      "uses java.lang.annotation.ElementType\n" +
+                      "uses java.lang.annotation.Target\n" +
+                      "uses java.lang.annotation.Retention\n" +
+                      "uses java.lang.annotation.RetentionPolicy\n" +
+                      "\n" +
+                      "@Target({ElementType.TYPE})\n" +
+                      "@Retention(RetentionPolicy.RUNTIME)\n" +
+                      "annotation Tag {\n" +
+                      "  function mode() : Mode = Mode.A\n" +
+                      "}\n" );
+    createSourceFile( "example/Fixture.gs", "package example\n\n@Tag\nclass Fixture {}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"d26e051cf01e7c8f5b8b6ff755f15a1035f22829\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Mode\": {\n" +
+      "      \"abi_hash\": \"05e53bff0efa50ebd9d3fa23a5e3ee0783d3c014\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\",\n" +
+      "        \"example.Tag\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Tag\": {\n" +
+      "      \"abi_hash\": \"cda26759e4f7d986dbd01f3965b50dc18a04f977\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Mode -> Fixture must be recorded from the enum value gosuc baked into Fixture's annotation",
+                  expectedDeps, readDepFile() );
+    Path fixtureClass = outputDir.resolve( "example/Fixture.class" );
+    FileTime initialFixtureTime = getFileModificationTime( fixtureClass );
+    Thread.sleep( SLEEP_MS );
+
+    // An ABI change to Mode must reach Fixture, whose annotation carries a Mode constant.
+    Files.write( mode.toPath(), "package example\n\nenum Mode { A, B, C }\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( mode ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Mode, Tag (whose member and default name Mode) and Fixture (whose baked default does)",
+                  3, widened.filesCompiled );
+    assertTrue( "Fixture.class must be rewritten when Mode's ABI changes",
+                getFileModificationTime( fixtureClass ).toMillis() > initialFixtureTime.toMillis() );
+    expectedDeps = expectedDeps
+      .replace( "05e53bff0efa50ebd9d3fa23a5e3ee0783d3c014", "fc6d62f39b060f937c5314ccb3842dfd540bb604" );   // example.Mode: ABI change
+    assertEquals( "The recompile leaves the graph as it was; only Mode's hash moves", expectedDeps, readDepFile() );
+  }
+
+  @Test
   public void testConstantInAnnotationArgValueDoesNotMaskDependency() throws Exception
   {
     // Pins that compile-time constants are NOT inlined too early during
