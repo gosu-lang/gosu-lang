@@ -348,18 +348,22 @@ or `ABI STABLE`, with the reason and both digests; the canonical text itself is 
 **Bytecode ABI.** The §6.1 walk collects, alongside the edges: the class file version, the
 class access flags, name, generic `Signature` and superclass; the **member classes** it
 declares (its `InnerClasses` entries, excluding block classes, anonymous classes, and
-private member classes — see below); its interfaces, sorted; its annotations and type
-annotations; and every **consumer-visible** field (access, name, descriptor, signature,
+private member classes — see below); its interfaces, in declaration order; its annotations
+and type annotations; and every **consumer-visible** field (access, name, descriptor, signature,
 `ConstantValue`, annotations, type annotations) and method (access, name, descriptor,
 signature, declared exceptions, annotations, parameter annotations, type annotations, an
 annotation member's `AnnotationDefault`, and `MethodParameters` names). gosuc writes
 `AnnotationDefault` but neither type annotations nor `MethodParameters`; those two are hashed
-for completeness. Each list is sorted before hashing,
-so emission order is irrelevant, with one exception: the elements of an array-valued
+for completeness. Each list is sorted before hashing, so emission order is irrelevant, with
+two exceptions, both of them ordered values rather than sets. The elements of an array-valued
 annotation argument keep their class-file order, since that order, and their number, is part
-of the argument's value. Annotation values, nested annotations and arrays are rendered into
-the annotation's text, so a changed annotation argument moves the hash, a reordered array
-argument included. An annotation's named members are sorted like everything else; gosuc
+of the argument's value. The interfaces keep their declaration order, because Gosu resolves an
+inherited member by merging each interface in that order and keeping the first match, so
+permuting an `extends` or `implements` clause can change which interface's member a consumer
+binds to, and with it the bytecode that consumer compiles. Annotation values, nested
+annotations and arrays are rendered into the annotation's text, so a changed annotation
+argument moves the hash, a reordered array argument included. An annotation's named members
+are sorted like everything else; gosuc
 writes them in the annotation type's declaration order and looks each up by name, so the
 order a usage site lists them in never reaches the class file.
 
@@ -398,6 +402,14 @@ A parameter without a default renders as `none`, whether the defaults array carr
 entry for it or is empty; an explicit `= null` default is a `NullExpression` and renders as
 `null`. The two must differ: a caller may omit the argument only in the second case.
 
+**Values are quoted.** A value carrying arbitrary text — a constant's value, an annotation
+argument, a default parameter expression — is written single-quoted with every quote inside it
+doubled, which leaves the delimiting quotes as the only unescaped ones. Concatenated raw, a
+value could spell the separator between two elements and make two different surfaces hash
+alike: `@A(x = "a", y = "b,y c")` and `@A(x = "a,y b", y = "c")` render the same bare text. The
+`none` above is a sentinel rather than a value and stays unquoted, so a default expression whose
+own text is `none` remains distinct from no default at all.
+
 **Every compiled class is hashed**, anonymous and block classes included: each is a
 compiled unit with its own record. Only local Java types, which gosuc never compiles, carry
 `NO_ABI_HASH`, and `hasNewABI` reads that as "changed". A class whose hash cannot be
@@ -413,7 +425,8 @@ spelling (named or positional) of an annotation's arguments; moved by public mem
 descriptors, generic signatures, constant values, access flags, supertypes, annotations and
 their values, the order and number of an annotation array's elements, the declaration order
 of an annotation type's members (its positional users bind by it), parameter names, default
-values, and `internal` members.
+values, `internal` members, annotation arguments or constant values whose own text contains the
+separators the canonical text uses, and the order an interface declares its supertypes in.
 
 ---
 

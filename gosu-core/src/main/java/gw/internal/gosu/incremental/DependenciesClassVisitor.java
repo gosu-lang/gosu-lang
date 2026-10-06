@@ -72,19 +72,25 @@ import java.util.List;
  * <h3>Bytecode ABI</h3>
  * <p>
  * The canonical text holds the class file version, access flags, name, generic signature and
- * superclass; the member classes the class declares (its {@code InnerClasses} entries, minus
- * block classes, anonymous classes and private member classes, none of which a consumer can
- * name through it); its interfaces, sorted; its annotations and type annotations; and every
+ * superclass; the member classes the class declares (its {@code InnerClasses} entries, minus block
+ * classes, anonymous classes and private member classes, none of which a consumer can name through
+ * it); its interfaces, in declaration order; its annotations and type annotations; and every
  * consumer-visible field (access, name, descriptor, signature, {@code ConstantValue}, annotations,
  * type annotations) and method (access, name, descriptor, signature, exceptions, annotations,
  * parameter and type annotations, an annotation member's {@code AnnotationDefault}, and
  * {@code MethodParameters} names). gosuc writes {@code AnnotationDefault} but neither type
- * annotations nor {@code MethodParameters}; those two are hashed for completeness. Every
- * list is sorted before hashing, so emission order is irrelevant, with one exception: the elements
- * of an array-valued annotation argument keep their class-file order, because that order, and
- * their number, is part of the argument's value. An annotation's named members are sorted like
- * everything else; gosuc writes them in the annotation type's declaration order and looks each one
- * up by name, so a usage site's argument order never reaches the class file anyway.
+ * annotations nor {@code MethodParameters}; those two are hashed for completeness. Every list is
+ * sorted before
+ * hashing, so emission order is irrelevant, with two exceptions, both of them ordered values rather
+ * than sets: the elements of an array-valued annotation argument keep their class-file order,
+ * because that order, and their number, is part of the argument's value; and the interfaces keep
+ * their declaration order, because Gosu resolves an inherited member by taking the first interface
+ * that declares it, so permuting the clause changes what a consumer binds to. An annotation's named
+ * members are sorted like everything else; gosuc writes them in the annotation type's declaration
+ * order and looks each one up by name, so a usage site's argument order never reaches the class
+ * file anyway. Every value carrying arbitrary text -- a constant's value, an annotation argument, a
+ * default parameter expression -- is rendered through {@link #quote}, so none of them can
+ * impersonate the separator between two elements.
  *
  * <p><b>Member visibility follows Gosu, not the JVM.</b> gosuc never emits {@code ACC_PRIVATE}
  * for ordinary members: a Gosu-private member (explicit, or a {@code var} with no modifier) is
@@ -244,20 +250,38 @@ class DependenciesClassVisitor extends ClassVisitor
     }
   }
 
+  /**
+   * {@code value} as a single-quoted element of the canonical text, with every quote inside it doubled. The
+   * delimiting quotes are then the only unescaped ones, which makes the rendering injective: a value holding a
+   * comma, a newline or a quote cannot impersonate the separator between two elements, so two different surfaces
+   * cannot hash alike through the text alone. Pinned by the separator tests in {@code AbiHashIT}.
+   */
+  private static String quote( String value )
+  {
+    return "'" + value.replace( "'", "''" ) + "'";
+  }
+
   @Override
   public void visitEnd()
   {
-    abiStr.append( " inners " );
-    appendAbiList( abiStr, abiInnerClasses, ", " );
-    abiStr.append( " implements " );
-    appendAbiList( abiStr, abiInterfaces, ", " );
-    abiStr.append( "\nannotations:\n" );
-    appendAbiList( abiStr, abiAnnotations, "\n" );
-    abiStr.append( "\nfields:\n" );
-    appendAbiList( abiStr, abiFields, "\n" );
-    abiStr.append( "\nmethods:\n" );
-    appendAbiList( abiStr, abiMethods, "\n" );
-    appendGosuCompileTimeSurface( gosuClass, abiStr );
+    if( !isClassPrivate )
+    {
+      abiStr.append( " inners " );
+      appendAbiList( abiStr, abiInnerClasses, ", " );
+      abiStr.append( " implements " );
+      for( String iface : abiInterfaces )
+      {
+        abiStr.append( iface );
+        abiStr.append( ", " );
+      }
+      abiStr.append( "\nannotations:\n" );
+      appendAbiList( abiStr, abiAnnotations, "\n" );
+      abiStr.append( "\nfields:\n" );
+      appendAbiList( abiStr, abiFields, "\n" );
+      abiStr.append( "\nmethods:\n" );
+      appendAbiList( abiStr, abiMethods, "\n" );
+      appendGosuCompileTimeSurface( gosuClass, abiStr );
+    }
     if( verbose )
     {
       System.out.println( abiStr );
@@ -285,7 +309,7 @@ class DependenciesClassVisitor extends ClassVisitor
       {
         lines.add( "const " + property.getName() +
                    " : " + property.getFeatureType().getName() +
-                   " = " + String.valueOf( ( constant.doCompileTimeEvaluation() ) ));
+                   " = " + quote( String.valueOf( ( constant.doCompileTimeEvaluation() ) ) ));
       }
     }
 
@@ -326,14 +350,15 @@ class DependenciesClassVisitor extends ClassVisitor
     out.append( ") names=" ).append( Arrays.toString( optional.getParameterNames() ) ).append( " defaults=[" );
     // A parameter without a default renders as "none" whether the array carries a null entry for it or, as
     // IOptionalParamCapable also allows, is empty; an explicit `= null` default is a NullExpression and renders
-    // as "null". The two must differ: a caller may omit the argument only in the second case.
+    // as "null". The two must differ: a caller may omit the argument only in the second case. The sentinel is
+    // left unquoted, so an expression whose own text is `none` renders as `'none'` and stays distinct from it.
     IExpression[] defaults = optional.getDefaultValueExpressions();
     for( int i = 0; i < parameters.length; i++ )
     {
       String defaultValue = "none";
       if( defaults != null && i < defaults.length && defaults[i] != null )
       {
-        defaultValue = String.valueOf( defaults[i] );
+        defaultValue = quote( String.valueOf( defaults[i] ) );
       }
       out.append( " " ).append( defaultValue );
     }
@@ -544,7 +569,7 @@ class DependenciesClassVisitor extends ClassVisitor
         if( value != null )
         {
           abiField.append( ' ' );
-          abiField.append( value );
+          abiField.append( quote( String.valueOf( value ) ) );
         }
       }
     }
@@ -800,7 +825,7 @@ class DependenciesClassVisitor extends ClassVisitor
         {
           value_str = value.toString();
         }
-        abiAnnotationVals.add( name + " " + value_str );
+        abiAnnotationVals.add( name + " " + quote( value_str ) );
       }
     }
 

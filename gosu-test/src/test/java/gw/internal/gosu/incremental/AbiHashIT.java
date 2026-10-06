@@ -214,6 +214,19 @@ public class AbiHashIT
     throw new AssertionError( "no field " + name + " in " + node.name );
   }
 
+  /** The descriptor gosuc wrote for the field {@code name} on {@code node}. */
+  private static String fieldDescriptor( ClassNode node, String name )
+  {
+    for( FieldNode field : node.fields )
+    {
+      if( field.name.equals( name ) )
+      {
+        return field.desc;
+      }
+    }
+    throw new AssertionError( "no field " + name + " in " + node.name );
+  }
+
   private static int methodAccess( ClassNode node, String name )
   {
     for( MethodNode method : node.methods )
@@ -327,6 +340,38 @@ public class AbiHashIT
   }
 
   @Test
+  public void testPrivateConstructorsAreNotAbi() throws IOException
+  {
+    // A Gosu-private constructor is not ABI, and it is decided twice over by two independent predicates: the
+    // bytecode half drops it through isSourceCodePrivate, since getModifiers writes Gosu-private as
+    // package-private rather than ACC_PRIVATE, and the Gosu compile-time surface drops it through
+    // IConstructorInfo.isPrivate, which keeps its parameter names and default values out too -- consistent,
+    // because no caller outside this file can omit an argument on a constructor it cannot call. This pins that
+    // the two agree.
+    //
+    // It takes two fixture families, because Gosu rejects "Overloading not allowed with optional parameters":
+    // a constructor carrying a default cannot sit beside another one. So the addition is checked with a private
+    // constructor that has no default, beside a public one; and the parameter name and default value are
+    // checked on a sole private constructor. Within each family the number of declared constructors is
+    // constant, so the implicit default constructor is suppressed in every fixture and cannot confound the
+    // comparison. The last assertion is the control: it proves a constructor does reach the hash once it is
+    // accessible, so the ones above are not passing vacuously.
+    String ctor = "  public construct( n : int ) {}\n";
+    assertSameAbi( "Adding a private constructor leaves the ABI alone",
+                   compileBody( BASE + ctor ),
+                   compileBody( BASE + ctor + "  private construct( tag : String ) {}\n" ) );
+
+    String priv = "  private construct( tag : String = \"x\" ) {}\n";
+    Compiled sole = compileBody( BASE + priv );
+    assertSameAbi( "Renaming a private constructor's parameter leaves the ABI alone",
+                   sole, compileBody( BASE + priv.replace( "tag", "label" ) ) );
+    assertSameAbi( "Changing a private constructor's default value leaves the ABI alone",
+                   sole, compileBody( BASE + priv.replace( "\"x\"", "\"y\"" ) ) );
+    assertDifferentAbi( "The same constructor declared public is ABI",
+                        sole, compileBody( BASE + priv.replace( "private construct", "public construct" ) ) );
+  }
+
+  @Test
   public void testGosuPrivateMembersAreWrittenPackagePrivate() throws IOException
   {
     // The premise of the privacy rule: gosuc never emits ACC_PRIVATE, so package-private without
@@ -336,6 +381,20 @@ public class AbiHashIT
     int method = methodAccess( node, "hidden" );
     assertEquals( "A private var is written package-private", 0, field & (Opcodes.ACC_PRIVATE | Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED) );
     assertEquals( "A private function is written package-private", 0, method & (Opcodes.ACC_PRIVATE | Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED) );
+  }
+
+  @Test
+  public void testStaticInitializerIsWrittenPackagePrivate() throws IOException
+  {
+    // The premise of <clinit>'s exclusion, which is a side effect rather than a rule of its own: nothing filters
+    // it by name, it simply arrives with the static bit alone, so isSourceCodePrivate reads it as Gosu-private
+    // and visitEnd drops it like any other private method. That is the right outcome -- nothing about <clinit>
+    // is consumer-visible -- but it rests on the access value, and emitting it public would quietly add it to
+    // every class's hashed method list. Its presence is part of the premise too: gosuc seeds the body with a
+    // Bootstrap.init call before the guard that would otherwise omit it, so every class has one.
+    ClassNode node = readClass( compileBody( BASE ).classFile );
+    assertEquals( "<clinit> is written neither public nor protected, which is what keeps it out of the ABI",
+                  0, methodAccess( node, "<clinit>" ) & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED) );
   }
 
   @Test
@@ -609,5 +668,102 @@ public class AbiHashIT
     String tagBefore = abiHashOf( before.depFile, "p.Tag" );
     assertNotEquals( "An annotation member's default value is the annotation type's ABI (both hashed to " + tagBefore + ")",
                      tagBefore, abiHashOf( after.depFile, "p.Tag" ) );
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Separators in the canonical text
+  // ---------------------------------------------------------------------------------------------
+
+  @Test
+  public void testAnnotationArgumentValueContainingTheMemberSeparatorIsAbi() throws IOException
+  {
+    // The hasher renders an annotation's named members as "<name> <value>" and joins them with an unescaped comma,
+    // so a value holding ",<member> " impersonates that join. Both fixtures below render
+    //   [email a,name b,name c,]
+    // while binding different values for both members, which a consumer reading either one observes.
+    String usage = "package p\n\n@Column(:name = \"b,name c\", :email = \"a\")\nclass Fixture {}\n";
+    String shifted = "package p\n\n@Column(:name = \"c\", :email = \"a,name b\")\nclass Fixture {}\n";
+    Compiled before = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", usage );
+    Compiled after = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", shifted );
+    assertEquals( "precondition: the two fixtures bind different values", "b,name c",
+                  annotationMember( readClass( before.classFile ), "Lp/Column;", "name" ) );
+    assertEquals( "precondition: the two fixtures bind different values", "c",
+                  annotationMember( readClass( after.classFile ), "Lp/Column;", "name" ) );
+    assertDifferentAbi( "An annotation argument whose value contains the member separator is still ABI",
+                        before, after );
+  }
+
+  @Test
+  public void testAnnotationArgumentValueContainingAQuoteIsAbi() throws IOException
+  {
+    // The guard on the fix for the case above. The hasher renders a member as "<name> '<value>'", quoting the
+    // value but not the name, so the sequence a value must hold to impersonate the join is "',name '": a closing
+    // quote, the comma, the next member's bare name, its space and its opening quote. Quoting a value without
+    // escaping a quote inside it leaves both fixtures below rendering
+    //   [email 'a',name 'b',name 'c',]
+    // so a quote within a value has to be escaped, not merely surrounded.
+    String usage = "package p\n\n@Column(:name = \"b',name 'c\", :email = \"a\")\nclass Fixture {}\n";
+    String shifted = "package p\n\n@Column(:name = \"c\", :email = \"a',name 'b\")\nclass Fixture {}\n";
+    Compiled before = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", usage );
+    Compiled after = compile( "p/Column.gs", COLUMN_ANNOTATION, "p/Fixture.gs", shifted );
+    assertEquals( "precondition: the two fixtures bind different values", "b',name 'c",
+                  annotationMember( readClass( before.classFile ), "Lp/Column;", "name" ) );
+    assertEquals( "precondition: the two fixtures bind different values", "c",
+                  annotationMember( readClass( after.classFile ), "Lp/Column;", "name" ) );
+    assertDifferentAbi( "An annotation argument whose value contains a quote is still ABI", before, after );
+  }
+
+  @Test
+  public void testConstantValueContainingTheLineSeparatorIsAbi() throws IOException
+  {
+    // The Gosu compile-time surface renders one "const <name> : <type> = <value>" line per constant and joins the
+    // lines with an unescaped newline, so a value holding that prefix impersonates the join. Both fixtures below
+    // render
+    //   const A : java.lang.String = p\nconst B : java.lang.String = q\nconst B : java.lang.String = r\n
+    // while binding different values for A and B. gosuc writes no ConstantValue attribute for either constant, so
+    // the field entries are identical and cannot mask the collision. The crafted values spell the type the way the
+    // line does, as the feature type's full name.
+    String body = "  public static final var A : String = \"p\"\n" +
+                  "  public static final var B : String = \"q\\nconst B : java.lang.String = r\"\n";
+    String shifted = "  public static final var A : String = \"p\\nconst B : java.lang.String = q\"\n" +
+                     "  public static final var B : String = \"r\"\n";
+    assertDifferentAbi( "A constant whose value contains the line separator is still ABI",
+                        compileBody( body ), compileBody( shifted ) );
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Interface declaration order
+  // ---------------------------------------------------------------------------------------------
+
+  @Test
+  public void testInterfaceDeclarationOrderIsAbi() throws IOException
+  {
+    // Gosu resolves an inherited member by merging each interface in getInterfaces() order and keeping the first
+    // match -- FeatureManager.mergeProperty through shouldReplace, and mergeMethod with replace=false -- and
+    // getInterfaces() is the declaration order the parser appends in (GosuClass.addInterface). Fixture below
+    // inherits Foo from both A, as Object, and B, as String, and declares neither, so the order of its extends
+    // clause alone decides the property's type and Consumer bakes that type into its own bytecode. The
+    // preconditions are the proof that the two orders are not interchangeable -- they name the property each
+    // order resolves to, read back off the descriptor Consumer gave its own inferred field -- and the assertion
+    // is the requirement that follows from it, which sorting the interfaces into the hash text would defeat.
+    String a = "package p\n\ninterface A {\n  property get Foo() : Object\n}\n";
+    String b = "package p\n\ninterface B {\n  property get Foo() : String\n}\n";
+    String consumer = "package p\n\nclass Consumer {\n" +
+                      "  static var x = make().Foo\n" +
+                      "  static function make() : Fixture { return null }\n" +
+                      "}\n";
+    Compiled before = compile( "p/A.gs", a, "p/B.gs", b,
+                               "p/Fixture.gs", "package p\n\ninterface Fixture extends A, B {}\n",
+                               "p/Consumer.gs", consumer );
+    Compiled after = compile( "p/A.gs", a, "p/B.gs", b,
+                              "p/Fixture.gs", "package p\n\ninterface Fixture extends B, A {}\n",
+                              "p/Consumer.gs", consumer );
+    assertEquals( "precondition: with A declared first, Foo resolves to A's Object-typed property",
+                  "Ljava/lang/Object;",
+                  fieldDescriptor( readClass( before.classFile.resolveSibling( "Consumer.class" ) ), "x" ) );
+    assertEquals( "precondition: with B declared first, Foo resolves to B's String-typed property",
+                  "Ljava/lang/String;",
+                  fieldDescriptor( readClass( after.classFile.resolveSibling( "Consumer.class" ) ), "x" ) );
+    assertDifferentAbi( "The order an interface declares its supertypes in is ABI", before, after );
   }
 }

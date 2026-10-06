@@ -2204,19 +2204,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.ClassA\": {\n" +
-      "      \"abi_hash\": \"364c0240a704e6fdfaaa54c4a65bc84102fae765\",\n" +
+      "      \"abi_hash\": \"e34b57931211a8aa5c6876eca34cb0ab3082feee\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassB\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassB\": {\n" +
-      "      \"abi_hash\": \"5a4e013a5c3fc5b83d74285077b37d1051b659d2\",\n" +
+      "      \"abi_hash\": \"7398a556727105dc7c1e802346c8a017a22cf288\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassC\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassC\": {\n" +
-      "      \"abi_hash\": \"d134e555a226fa356e02f4d4e533d88e828031a6\",\n" +
+      "      \"abi_hash\": \"d1da23ec122880e4ee62a75d9d8a06a39b556e17\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -2330,19 +2330,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.ClassA\": {\n" +
-      "      \"abi_hash\": \"364c0240a704e6fdfaaa54c4a65bc84102fae765\",\n" +
+      "      \"abi_hash\": \"e34b57931211a8aa5c6876eca34cb0ab3082feee\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassB\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassB\": {\n" +
-      "      \"abi_hash\": \"5a4e013a5c3fc5b83d74285077b37d1051b659d2\",\n" +
+      "      \"abi_hash\": \"7398a556727105dc7c1e802346c8a017a22cf288\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassC\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassC\": {\n" +
-      "      \"abi_hash\": \"93ab5c714f40b56a92c5055128ac47cab3e12e0c\",\n" +
+      "      \"abi_hash\": \"a1c1309ee3c4ccebe97d6a36513654651b111da0\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassA\"\n" +
       "      ]\n" +
@@ -2452,13 +2452,13 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.IResult\": {\n" +
-      "      \"abi_hash\": \"941cd430ad6ed59b183adceea994c5e6ea32ebe5\",\n" +
+      "      \"abi_hash\": \"1c756c68b9ad22882e48a5206b3762b44d852225\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ResultBase\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ResultBase\": {\n" +
-      "      \"abi_hash\": \"ef193479f34068474111914d2e1525702b1fd029\",\n" +
+      "      \"abi_hash\": \"30cb8c98ede444c0355b8efc154c17eebe3c7541\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.StringResult\"\n" +
       "      ]\n" +
@@ -4230,7 +4230,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"e048b268b9c63a823f866cb7f751f03b80821659\",\n" +
+      "      \"abi_hash\": \"94e294e002a7f533fb4dc09df7be032c5ae67e51\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyType\": {\n" +
@@ -4500,14 +4500,14 @@ public class IncrementalCompilationEndToEndIT
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Mode\": {\n" +
-      "      \"abi_hash\": \"05e53bff0efa50ebd9d3fa23a5e3ee0783d3c014\",\n" +
+      "      \"abi_hash\": \"b010f128411eb1d9808fe00eb929e55695409841\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Fixture\",\n" +
       "        \"example.Tag\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Tag\": {\n" +
-      "      \"abi_hash\": \"cda26759e4f7d986dbd01f3965b50dc18a04f977\",\n" +
+      "      \"abi_hash\": \"08f993e50db27a395396763d72fc92df9ffa0460\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Fixture\"\n" +
       "      ]\n" +
@@ -4529,7 +4529,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Fixture.class must be rewritten when Mode's ABI changes",
                 getFileModificationTime( fixtureClass ).toMillis() > initialFixtureTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "05e53bff0efa50ebd9d3fa23a5e3ee0783d3c014", "fc6d62f39b060f937c5314ccb3842dfd540bb604" );   // example.Mode: ABI change
+      .replace( "b010f128411eb1d9808fe00eb929e55695409841", "1b15c9a915abdb78a4b06cb289e747fccddf40c9" );   // example.Mode: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Mode's hash moves", expectedDeps, readDepFile() );
   }
 
@@ -4589,13 +4589,13 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.A\": {\n" +
-      "      \"abi_hash\": \"241ae69982e5fb95f972589e1d86e56ad3e07e4a\",\n" +
+      "      \"abi_hash\": \"8a3907267ecea7feea35127676201f08ddd0adcf\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"b312a509166c293ede7f885d0418803316910955\",\n" +
+      "      \"abi_hash\": \"48dfccf874eebaa5fe0b608e98f67e996ec7bf73\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyAnno\": {\n" +
@@ -4776,7 +4776,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.AnnotatedConsumer\": {\n" +
-      "      \"abi_hash\": \"f3ec455a310f504548116a1ec993c8ed4e6c2d7f\",\n" +
+      "      \"abi_hash\": \"dd5dbcd4f30f3c0efc172ebcfa2e380dee50fe37\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyAnno\": {\n" +
@@ -5277,7 +5277,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$AnonymouS__1\": {\n" +
-      "      \"abi_hash\": \"2fd7693adb2bca3418f35454f50f6f123e20d6b0\",\n" +
+      "      \"abi_hash\": \"ff8eb891d697977dfe8dd5d18ac733e39966e264\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer\"\n" +
       "      ]\n" +
@@ -5399,7 +5399,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$AnonymouS__0\": {\n" +
-      "      \"abi_hash\": \"8a6827d97ffe3f70d70d14cbee8f917c604d601c\",\n" +
+      "      \"abi_hash\": \"806388663b57a91d27bfb8b5791c647300474e90\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer\",\n" +
       "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
