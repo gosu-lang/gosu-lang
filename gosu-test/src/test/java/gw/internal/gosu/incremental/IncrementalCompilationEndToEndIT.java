@@ -444,11 +444,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"d58f7e0a1574cbf7ab8cc79c849214aac709ea6b\",\n" +
+      "      \"abi_hash\": \"46194fdb4c2aa810f17ad0e8a1a026aff78b9432\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.StringUtil\": {\n" +
-      "      \"abi_hash\": \"b96ff843baff2e221be732a51a5c3f82904da995\",\n" +
+      "      \"abi_hash\": \"1e200f65771de2b2f789758113f2fadfee1350c0\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -484,7 +484,7 @@ public class IncrementalCompilationEndToEndIT
 
     depFileContent = readDepFile();
     expectedDepFile = expectedDepFile
-      .replace( "b96ff843baff2e221be732a51a5c3f82904da995", "998a61203fed586d5a6f426824da6b1e13520eb6" );   // example.StringUtil: ABI change
+      .replace( "1e200f65771de2b2f789758113f2fadfee1350c0", "34cbf4cdd438b3e511a8c78207a74fcedeef0d8f" );   // example.StringUtil: ABI change
     assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -528,23 +528,23 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.IfaceA\": {\n" +
-      "      \"abi_hash\": \"3e2896486d4073d673dd1d81d2b966809cab0d39\",\n" +
+      "      \"abi_hash\": \"12d19674af7fd4f319eb7470e2c6492e16d42e54\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Sig\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.IfaceB\": {\n" +
-      "      \"abi_hash\": \"70a740d7ecc6a05672705217c3f8c92ce88edb79\",\n" +
+      "      \"abi_hash\": \"8fae9eaf490f6288eaadb008e779561e5df21dae\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Sig\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Sig\": {\n" +
-      "      \"abi_hash\": \"cac199e094a0926dcfc6e9d55c1e6ff35bd3ccca\",\n" +
+      "      \"abi_hash\": \"c00e4fb7e588e988cb8723181ac7eafa6dd3e876\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.zClassA\": {\n" +
-      "      \"abi_hash\": \"e822dd2a88aa3614a2a6992e13a1a5fa5e05f066\",\n" +
+      "      \"abi_hash\": \"4cd6c26d514d40ce3364635b1d6d3689d55d6a59\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Sig\"\n" +
       "      ]\n" +
@@ -934,8 +934,10 @@ public class IncrementalCompilationEndToEndIT
     {
       throw new IllegalStateException( "No system Java compiler available (tests must run on a JDK)" );
     }
+    // classesOutDir is on the classpath so a dummy type can extend one compiled before it.
     int rc = compiler.run( null, null, null,
                            "-d", classesOutDir.toAbsolutePath().toString(),
+                           "-classpath", classesOutDir.toAbsolutePath().toString(),
                            javaFile.toAbsolutePath().toString() );
     if( rc != 0 )
     {
@@ -1354,14 +1356,14 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.BlockUtil\": {\n" +
-      "      \"abi_hash\": \"33ae8480f67887f7f23034992b9bfebaaccbe269\",\n" +
+      "      \"abi_hash\": \"e736417b02532922b29a8c099d39bf607038adc8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest$block_1_\",\n" +
       "        \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.OutputTrackingTest\": {\n" +
-      "      \"abi_hash\": \"dfcf9b2ab580c01e1e45351ff1656b9705082a94\",\n" +
+      "      \"abi_hash\": \"ecd0dbc0db96ab060733a04ecf80ddc84b84c9e7\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest$block_0_\",\n" +
       "        \"example.OutputTrackingTest$block_1_\",\n" +
@@ -1369,26 +1371,26 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.OutputTrackingTest$block_0_\": {\n" +
-      "      \"abi_hash\": \"34c0d8a48b7f516bbc67d355d1a352232e10d32f\",\n" +
+      "      \"abi_hash\": \"d70493cb1fa15b13c98d63f7d37a38a81f8411f2\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.OutputTrackingTest$block_1_\": {\n" +
-      "      \"abi_hash\": \"fe754d109528708e17a8c76c81d4341792536d02\",\n" +
+      "      \"abi_hash\": \"8ce7f28b48836c981d77a116e81c7099b1cec21e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.OutputTrackingTest$block_2_\": {\n" +
-      "      \"abi_hash\": \"c6e2fa4180404e15da747d2708334a8035b28d3b\",\n" +
+      "      \"abi_hash\": \"b13ef89896aab14fa0f5b60d7166eb668718c666\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest\",\n" +
       "        \"example.OutputTrackingTest$block_2_$block_0_\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.OutputTrackingTest$block_2_$block_0_\": {\n" +
-      "      \"abi_hash\": \"6ce2839535021df22a6e8a6aa950aa045e547f9e\",\n" +
+      "      \"abi_hash\": \"00e4d87cbbace764f90a9851063357a6713cbcee\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.OutputTrackingTest$block_2_\"\n" +
       "      ]\n" +
@@ -2204,19 +2206,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.ClassA\": {\n" +
-      "      \"abi_hash\": \"e34b57931211a8aa5c6876eca34cb0ab3082feee\",\n" +
+      "      \"abi_hash\": \"d0604acd55af1d384c914fe9f6c4ddc43a2c389c\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassB\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassB\": {\n" +
-      "      \"abi_hash\": \"7398a556727105dc7c1e802346c8a017a22cf288\",\n" +
+      "      \"abi_hash\": \"4f7bb2b341ed577fba0e2b4766846170f716f53e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassC\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassC\": {\n" +
-      "      \"abi_hash\": \"d1da23ec122880e4ee62a75d9d8a06a39b556e17\",\n" +
+      "      \"abi_hash\": \"0e09a00730603c3b1c6a97d5cf2e6bfc03aa2254\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -2330,19 +2332,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.ClassA\": {\n" +
-      "      \"abi_hash\": \"e34b57931211a8aa5c6876eca34cb0ab3082feee\",\n" +
+      "      \"abi_hash\": \"d0604acd55af1d384c914fe9f6c4ddc43a2c389c\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassB\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassB\": {\n" +
-      "      \"abi_hash\": \"7398a556727105dc7c1e802346c8a017a22cf288\",\n" +
+      "      \"abi_hash\": \"4f7bb2b341ed577fba0e2b4766846170f716f53e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassC\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassC\": {\n" +
-      "      \"abi_hash\": \"a1c1309ee3c4ccebe97d6a36513654651b111da0\",\n" +
+      "      \"abi_hash\": \"59404dbe2dc7755ad26005f9a4cfad71b190edb7\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassA\"\n" +
       "      ]\n" +
@@ -2452,19 +2454,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.IResult\": {\n" +
-      "      \"abi_hash\": \"1c756c68b9ad22882e48a5206b3762b44d852225\",\n" +
+      "      \"abi_hash\": \"55723384eaab851a5bd0a78ceb96618ff2f4db56\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ResultBase\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ResultBase\": {\n" +
-      "      \"abi_hash\": \"30cb8c98ede444c0355b8efc154c17eebe3c7541\",\n" +
+      "      \"abi_hash\": \"d626271908436700abd2c9acf110661f6bde74b2\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.StringResult\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.StringResult\": {\n" +
-      "      \"abi_hash\": \"656c9d001ac5469c1c770cf366942cc8caf93d25\",\n" +
+      "      \"abi_hash\": \"4e86812e9061fbff79d9fc9c9b5716368fd75199\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -2553,17 +2555,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Box\": {\n" +
-      "      \"abi_hash\": \"98f18495f327a4ffcf28142b083a4aabaa2f981b\",\n" +
+      "      \"abi_hash\": \"666b5ea23135359e33313ed889772a99800354bf\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"428bf2796be5469ee7981a348757b361cc244ef6\",\n" +
+      "      \"abi_hash\": \"cabc11a12bcbb24adb94d2d61ba667971873f770\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Leaf\": {\n" +
-      "      \"abi_hash\": \"e02c3199772596853c796e1a7a581ef252de2e6b\",\n" +
+      "      \"abi_hash\": \"75bfd45e18b144ae36b3f8043e091022e6b9fadf\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Box\",\n" +
       "        \"example.Consumer\",\n" +
@@ -2571,7 +2573,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Middle\": {\n" +
-      "      \"abi_hash\": \"9bc7966ecee7f1abdb642f7086ca506b6bbaed2e\",\n" +
+      "      \"abi_hash\": \"a18cd6169fac62759d8a6f96edec612ed75daa4e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Box\",\n" +
       "        \"example.Consumer\"\n" +
@@ -2665,19 +2667,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.JunkLeaf\": {\n" +
-      "      \"abi_hash\": \"87b9792bd44846f00d71de449433a11c2f1448e4\",\n" +
+      "      \"abi_hash\": \"33883c132ce83b0b3b70d2f02c6e233aeea0e407\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.JunkOuter\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.JunkOuter\": {\n" +
-      "      \"abi_hash\": \"e049e21d51ad451207ef1aff91741d85465635f0\",\n" +
+      "      \"abi_hash\": \"ac6a96101b9200b67e875c4ad2284b2e2d817269\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.JunkOuter$Cell\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.JunkOuter$Cell\": {\n" +
-      "      \"abi_hash\": \"00ef96cff6cd9a67b2b65ee71c79db51c858b27e\",\n" +
+      "      \"abi_hash\": \"f0527848f5c71bda6836dc518a07d7bb1f2ac9f5\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.JunkOuter\"\n" +
       "      ]\n" +
@@ -2753,7 +2755,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.SharedProducer\": {\n" +
-      "      \"abi_hash\": \"0c062310e8d1c9e0bef427c720d4f006e002b4dc\",\n" +
+      "      \"abi_hash\": \"20c13d22e0a264068910f79df58efe0d30580e1d\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.TypeA\",\n" +
       "        \"example.TypeB\",\n" +
@@ -2761,15 +2763,15 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.TypeA\": {\n" +
-      "      \"abi_hash\": \"0edbd652001c9332598f3de9c636470c6c1e14db\",\n" +
+      "      \"abi_hash\": \"23e3b18a505e2f1f120fdf8fb25d87eb3f6e4904\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.TypeB\": {\n" +
-      "      \"abi_hash\": \"0961cf9df58716c69a14db2c431169c4929a776f\",\n" +
+      "      \"abi_hash\": \"4c91ca39ede6ad421c73fce7dfa2f3f42280814f\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.TypeC\": {\n" +
-      "      \"abi_hash\": \"9f78966db037245ae9fb3b1f901befc7f98b8b92\",\n" +
+      "      \"abi_hash\": \"bf9a333cb7259c17f08445ab301c3fc1c081ff14\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -2851,17 +2853,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"7f17c8973f84484a34beef1e318a0cc8394efa7d\",\n" +
+      "      \"abi_hash\": \"a51cf1d04bf9b9c33c965f8251f8968e288454bf\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.P1\": {\n" +
-      "      \"abi_hash\": \"d91118bf727fc657f5ef0ce95f62eebf9d4b8beb\",\n" +
+      "      \"abi_hash\": \"acf5a91121f25aa786da03eb1083aaaf38652a61\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.P2\": {\n" +
-      "      \"abi_hash\": \"add15c4011e97e8bd5de6bd85d782c3132026714\",\n" +
+      "      \"abi_hash\": \"9b8a7853002b21431cf441af3f8903b64a7d2355\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -2891,15 +2893,15 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"7f17c8973f84484a34beef1e318a0cc8394efa7d\",\n" +
+      "      \"abi_hash\": \"a51cf1d04bf9b9c33c965f8251f8968e288454bf\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.P1\": {\n" +
-      "      \"abi_hash\": \"d91118bf727fc657f5ef0ce95f62eebf9d4b8beb\",\n" +
+      "      \"abi_hash\": \"acf5a91121f25aa786da03eb1083aaaf38652a61\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.P2\": {\n" +
-      "      \"abi_hash\": \"add15c4011e97e8bd5de6bd85d782c3132026714\",\n" +
+      "      \"abi_hash\": \"9b8a7853002b21431cf441af3f8903b64a7d2355\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -2964,18 +2966,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Bystander\": {\n" +
-      "      \"abi_hash\": \"f409261593099d192b4d48a08fc90a7fd577eb13\",\n" +
+      "      \"abi_hash\": \"79d4e72d9c6242c2423d5c9654e28aff54b105aa\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Hub\": {\n" +
-      "      \"abi_hash\": \"2e1968fcbea503b4aa77e312899994bad1cf31e3\",\n" +
+      "      \"abi_hash\": \"8caf910eeeaaf0594cfd03f958b493c733212e7e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Bystander\",\n" +
       "        \"example.Spoke\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Spoke\": {\n" +
-      "      \"abi_hash\": \"cc8160b61c05cc336e6d8a91a9a106f2e36ff287\",\n" +
+      "      \"abi_hash\": \"19b2d1cda9334816dae1df1742544b8cdbf12003\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3000,11 +3002,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Bystander\": {\n" +
-      "      \"abi_hash\": \"f409261593099d192b4d48a08fc90a7fd577eb13\",\n" +
+      "      \"abi_hash\": \"79d4e72d9c6242c2423d5c9654e28aff54b105aa\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Hub\": {\n" +
-      "      \"abi_hash\": \"2e1968fcbea503b4aa77e312899994bad1cf31e3\",\n" +
+      "      \"abi_hash\": \"8caf910eeeaaf0594cfd03f958b493c733212e7e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Bystander\"\n" +
       "      ]\n" +
@@ -3060,11 +3062,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.LeafX\": {\n" +
-      "      \"abi_hash\": \"4c0072e4e6a30be6cb7a33665d250f2137656567\",\n" +
+      "      \"abi_hash\": \"fd7a3c4c39c67775c5dbfab7363e2799d54035ef\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.P\": {\n" +
-      "      \"abi_hash\": \"ca074deeb7e6891c734c21fcfaeaa57be2248c4a\",\n" +
+      "      \"abi_hash\": \"a7841bbd3d5e557b28b8ac646e4d2c733c754561\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.LeafX\"\n" +
       "      ]\n" +
@@ -3097,11 +3099,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.LeafX\": {\n" +
-      "      \"abi_hash\": \"4c0072e4e6a30be6cb7a33665d250f2137656567\",\n" +
+      "      \"abi_hash\": \"fd7a3c4c39c67775c5dbfab7363e2799d54035ef\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.P\": {\n" +
-      "      \"abi_hash\": \"ca074deeb7e6891c734c21fcfaeaa57be2248c4a\",\n" +
+      "      \"abi_hash\": \"a7841bbd3d5e557b28b8ac646e4d2c733c754561\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3147,11 +3149,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Alpha\": {\n" +
-      "      \"abi_hash\": \"654961862c5f26c8b2ad6d5ce7bbbd415f96a267\",\n" +
+      "      \"abi_hash\": \"0ddb260a999c1c866807017ca8ec65ebab0eb4e9\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Beta\": {\n" +
-      "      \"abi_hash\": \"518b2a928b0608f6156a10495972403affb37e74\",\n" +
+      "      \"abi_hash\": \"0ac39769b4c87f6fa8f7c5010a70e2527f7560f1\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3184,7 +3186,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Alpha\": {\n" +
-      "      \"abi_hash\": \"654961862c5f26c8b2ad6d5ce7bbbd415f96a267\",\n" +
+      "      \"abi_hash\": \"0ddb260a999c1c866807017ca8ec65ebab0eb4e9\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3234,7 +3236,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.GosuConsumer\": {\n" +
-      "      \"abi_hash\": \"842e29f4097c6c9f7561744050e5ba62b2e4189c\",\n" +
+      "      \"abi_hash\": \"3b380499c4c4d10d4d316f645a6d06a5a2301d5b\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3299,7 +3301,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.GosuIndipendent\": {\n" +
-      "      \"abi_hash\": \"9f1213da4ab3890c8f86db2576b001acfc0a93d1\",\n" +
+      "      \"abi_hash\": \"798bc2abd61adca20b6bf8b0b326ac78751dd948\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3333,7 +3335,7 @@ public class IncrementalCompilationEndToEndIT
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.GosuIndipendent\": {\n" +
-      "      \"abi_hash\": \"9f1213da4ab3890c8f86db2576b001acfc0a93d1\",\n" +
+      "      \"abi_hash\": \"798bc2abd61adca20b6bf8b0b326ac78751dd948\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3437,18 +3439,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
+      "      \"abi_hash\": \"a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Inner\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"558596c2e57662de85bdaf01cc48724be1f134a3\",\n" +
+      "      \"abi_hash\": \"558dbe36de2a9f41f3119be7c66a4039852197a9\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer\"\n" +
@@ -3511,11 +3513,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"abc23f1c9bbc9d0bd83f7c53623ccd46de1c907d\",\n" +
+      "      \"abi_hash\": \"1adddcd28dd139980b4e1ac754198bbd9b34477c\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -3574,18 +3576,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
+      "      \"abi_hash\": \"a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Inner\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"558596c2e57662de85bdaf01cc48724be1f134a3\",\n" +
+      "      \"abi_hash\": \"558dbe36de2a9f41f3119be7c66a4039852197a9\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer\"\n" +
@@ -3637,7 +3639,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -3812,11 +3814,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyType\": {\n" +
-      "      \"abi_hash\": \"e9158402fffc29fe9319866fa0c78c26b26e5f92\",\n" +
+      "      \"abi_hash\": \"06bf9ea038a42b354b67851493993905c3c15eb8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -3859,7 +3861,7 @@ public class IncrementalCompilationEndToEndIT
 
     String actualDeps = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "e9158402fffc29fe9319866fa0c78c26b26e5f92", "34cbbd519d6bce281a16d6899027e7cabae94632" );   // example.MyType: ABI change
+      .replace( "06bf9ea038a42b354b67851493993905c3c15eb8", "29208e41b849e427927909c6783b13a2d49db6d4" );   // example.MyType: ABI change
     assertEquals(
       "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps );
@@ -3893,11 +3895,11 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyType\": {\n" +
-      "      \"abi_hash\": \"e9158402fffc29fe9319866fa0c78c26b26e5f92\",\n" +
+      "      \"abi_hash\": \"06bf9ea038a42b354b67851493993905c3c15eb8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -3974,17 +3976,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Container\": {\n" +
-      "      \"abi_hash\": \"da09d51583092287ad02872528a7c205a1576df9\",\n" +
+      "      \"abi_hash\": \"f084819d2977eb4a31f0d91f64e9c37dce378782\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.MyType\": {\n" +
-      "      \"abi_hash\": \"e9158402fffc29fe9319866fa0c78c26b26e5f92\",\n" +
+      "      \"abi_hash\": \"06bf9ea038a42b354b67851493993905c3c15eb8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4068,17 +4070,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"d8369d0d3e1b51ccfe247a011dd2f47a13e290d8\",\n" +
+      "      \"abi_hash\": \"fbf0abf2c2a5be0ad90c0742bf3d27fd1455f3eb\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Container\": {\n" +
-      "      \"abi_hash\": \"cd71c0dd63f842ac9bbf548e2acd58560319e206\",\n" +
+      "      \"abi_hash\": \"ce23637ada5cd911864b632c1a05fcd598a9a38f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Data\": {\n" +
-      "      \"abi_hash\": \"9520361ca5861773aec863cab0c280c6e3636e00\",\n" +
+      "      \"abi_hash\": \"a7b61186d006475a18f966eddc2ea0a657f80765\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4230,17 +4232,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"94e294e002a7f533fb4dc09df7be032c5ae67e51\",\n" +
+      "      \"abi_hash\": \"2d5d6dfc2a557a268b4ea8039befe66dc53ab307\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyType\": {\n" +
-      "      \"abi_hash\": \"e9158402fffc29fe9319866fa0c78c26b26e5f92\",\n" +
+      "      \"abi_hash\": \"06bf9ea038a42b354b67851493993905c3c15eb8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Schema\": {\n" +
-      "      \"abi_hash\": \"742013750ea6148b7835ed7331d775a18df28cdc\",\n" +
+      "      \"abi_hash\": \"28417997a0f278a2fea2dce8d6fdabad0a83aa25\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4313,7 +4315,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Base\": {\n" +
-      "      \"abi_hash\": \"feba50a2109280864abfceed28f374754b4e2f5f\",\n" +
+      "      \"abi_hash\": \"fbb5ae4908c184eed1070619bc7b456bba42ffbc\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Foo\",\n" +
@@ -4321,18 +4323,18 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"5c2c3ff5867461527e0d2f88d92fd091a68562fa\",\n" +
+      "      \"abi_hash\": \"2bea026f5bd1b9314de5cba37cf1d2d5fcfc832f\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Foo\": {\n" +
-      "      \"abi_hash\": \"e10f0b6841d34d509468363252a2f5124f14cfa2\",\n" +
+      "      \"abi_hash\": \"36eae74918144756d59ff9af8a513963d677bcc1\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Other\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Other\": {\n" +
-      "      \"abi_hash\": \"0240c954318ae9b25c2c355e58193bd1bf418c85\",\n" +
+      "      \"abi_hash\": \"650526b049794d958d188245057a6b2c5217d859\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4359,7 +4361,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Other.class must be rewritten when Foo's ABI changes",
                 getFileModificationTime( otherClass ).toMillis() > initialOtherTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "e10f0b6841d34d509468363252a2f5124f14cfa2", "41cfb4051dc1fdbdfea269af27c4aa18e2f6aca9" );   // example.Foo: ABI change
+      .replace( "36eae74918144756d59ff9af8a513963d677bcc1", "94e70827d881c499f6112b0b699022169737a5ae" );   // example.Foo: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
 
     // A change to Foo that breaks Consumer must surface as a compile error in Consumer, not as a stale class file
@@ -4405,7 +4407,7 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Base\": {\n" +
-      "      \"abi_hash\": \"feba50a2109280864abfceed28f374754b4e2f5f\",\n" +
+      "      \"abi_hash\": \"fbb5ae4908c184eed1070619bc7b456bba42ffbc\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Foo\",\n" +
@@ -4413,24 +4415,24 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"5c2c3ff5867461527e0d2f88d92fd091a68562fa\",\n" +
+      "      \"abi_hash\": \"2bea026f5bd1b9314de5cba37cf1d2d5fcfc832f\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Foo\": {\n" +
-      "      \"abi_hash\": \"e10f0b6841d34d509468363252a2f5124f14cfa2\",\n" +
+      "      \"abi_hash\": \"36eae74918144756d59ff9af8a513963d677bcc1\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Holder\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Holder\": {\n" +
-      "      \"abi_hash\": \"9003abe9f658c8ee1c2dd1a3427b3d33b8ee884f\",\n" +
+      "      \"abi_hash\": \"79697a0528749cb847b13e14fcfd310ac9f203e7\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Other\": {\n" +
-      "      \"abi_hash\": \"948ea4f96427d4a607615732704835c5543d06d9\",\n" +
+      "      \"abi_hash\": \"5c8bf80a5131d2da5d894d7a819fb1880cdbd08c\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4456,7 +4458,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Holder.class must be rewritten when Foo's ABI changes",
                 getFileModificationTime( holderClass ).toMillis() > initialHolderTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "e10f0b6841d34d509468363252a2f5124f14cfa2", "41cfb4051dc1fdbdfea269af27c4aa18e2f6aca9" );   // example.Foo: ABI change
+      .replace( "36eae74918144756d59ff9af8a513963d677bcc1", "94e70827d881c499f6112b0b699022169737a5ae" );   // example.Foo: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
 
     Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
@@ -4496,18 +4498,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Fixture\": {\n" +
-      "      \"abi_hash\": \"d26e051cf01e7c8f5b8b6ff755f15a1035f22829\",\n" +
+      "      \"abi_hash\": \"9093aca007d1734ad86e009afd7b1c26b254c3ec\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Mode\": {\n" +
-      "      \"abi_hash\": \"b010f128411eb1d9808fe00eb929e55695409841\",\n" +
+      "      \"abi_hash\": \"21e2aeffcaa9c41b808118d8c76fc2059276aa15\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Fixture\",\n" +
       "        \"example.Tag\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Tag\": {\n" +
-      "      \"abi_hash\": \"08f993e50db27a395396763d72fc92df9ffa0460\",\n" +
+      "      \"abi_hash\": \"a5f27630bc0bef80fe2405acd7ad706070fb7a76\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Fixture\"\n" +
       "      ]\n" +
@@ -4529,7 +4531,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Fixture.class must be rewritten when Mode's ABI changes",
                 getFileModificationTime( fixtureClass ).toMillis() > initialFixtureTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "b010f128411eb1d9808fe00eb929e55695409841", "1b15c9a915abdb78a4b06cb289e747fccddf40c9" );   // example.Mode: ABI change
+      .replace( "21e2aeffcaa9c41b808118d8c76fc2059276aa15", "e88d931ed57f7769ba221967ba3e79055f0ddfad" );   // example.Mode: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Mode's hash moves", expectedDeps, readDepFile() );
   }
 
@@ -4589,17 +4591,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.A\": {\n" +
-      "      \"abi_hash\": \"8a3907267ecea7feea35127676201f08ddd0adcf\",\n" +
+      "      \"abi_hash\": \"c8429082960aaa334d338aade2779b79d4cacb1f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"48dfccf874eebaa5fe0b608e98f67e996ec7bf73\",\n" +
+      "      \"abi_hash\": \"9987b0a2b9d9e842b2d00cddeb1af90e56b16907\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyAnno\": {\n" +
-      "      \"abi_hash\": \"3eeffb49415944febeba1e7257a679768458a944\",\n" +
+      "      \"abi_hash\": \"ae5996fbb0426c5ec791e12468967b13438334e8\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
@@ -4776,17 +4778,17 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.AnnotatedConsumer\": {\n" +
-      "      \"abi_hash\": \"dd5dbcd4f30f3c0efc172ebcfa2e380dee50fe37\",\n" +
+      "      \"abi_hash\": \"d7e18c953f06f94ebc24722fd13dfcb7214635f1\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.MyAnno\": {\n" +
-      "      \"abi_hash\": \"44eee65b86324baf24a938d5c0e9497d5ab8e52f\",\n" +
+      "      \"abi_hash\": \"909a2e0d8895571501c5211ded6cf424f4c2109a\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.AnnotatedConsumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.UnrelatedConsumer\": {\n" +
-      "      \"abi_hash\": \"0fb7a6597616bed7f162c133a0d53673bde4f955\",\n" +
+      "      \"abi_hash\": \"cd58444698de8afc2c463dfa159a7880077d9530\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -4883,18 +4885,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
+      "      \"abi_hash\": \"a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Inner\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"558596c2e57662de85bdaf01cc48724be1f134a3\",\n" +
+      "      \"abi_hash\": \"558dbe36de2a9f41f3119be7c66a4039852197a9\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer\"\n" +
@@ -4944,7 +4946,7 @@ public class IncrementalCompilationEndToEndIT
 
     String actualDepsAfter = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "558596c2e57662de85bdaf01cc48724be1f134a3", "1149c34290ceb32d2bbd992fd45945a1d33c7193" );   // example.Outer$Inner: ABI change
+      .replace( "558dbe36de2a9f41f3119be7c66a4039852197a9", "855fa808d3b89044f11cdad1760412e80ab3dacc" );   // example.Outer$Inner: ABI change
     assertEquals(
       "Dep file after incremental compile should still record both " +
       "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
@@ -5013,15 +5015,15 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.InnerConsumer\": {\n" +
-      "      \"abi_hash\": \"39d886f1c5f2d58aee6635b84def923079091354\",\n" +
+      "      \"abi_hash\": \"ecc9c44848b01070224f6f78d68960ac3a15c8c4\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3b0f04cc0cd1d74c3f23b7a12cad1294b4eed1e7\",\n" +
+      "      \"abi_hash\": \"a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.InnerConsumer\",\n" +
@@ -5029,7 +5031,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Inner\": {\n" +
-      "      \"abi_hash\": \"bfb5782ac13d3496897f80071b92f11dc316bdc3\",\n" +
+      "      \"abi_hash\": \"62de5dffcab269ed21ae5f16f7123f5de639b311\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.InnerConsumer\",\n" +
@@ -5038,7 +5040,7 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Inner$Innermost\": {\n" +
-      "      \"abi_hash\": \"74d18336c16a3ea4a8d29f51910c6fbfd2fa3bd8\",\n" +
+      "      \"abi_hash\": \"cf4c9bb48e2e8b4bcf0ffd17c852ecf9467694f3\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Inner\"\n" +
@@ -5099,7 +5101,7 @@ public class IncrementalCompilationEndToEndIT
 
     String actualDepsAfter = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "74d18336c16a3ea4a8d29f51910c6fbfd2fa3bd8", "655dd01d354a796a64dd5da1b6c0f3e23b5f4c35" );   // example.Outer$Inner$Innermost: ABI change
+      .replace( "cf4c9bb48e2e8b4bcf0ffd17c852ecf9467694f3", "6350957ab53172990ee62329e23d6df0a9fb9a23" );   // example.Outer$Inner$Innermost: ABI change
     assertEquals(
       "Dep file after incremental compile should record the same edges, with only " +
       "Innermost's digest moved (no drift).",
@@ -5147,13 +5149,13 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Builder\": {\n" +
-      "      \"abi_hash\": \"69b604e706c0e28059e04966388e0030e884cc5e\",\n" +
+      "      \"abi_hash\": \"fe5092dd9aa758cab7a6a9cb51fac6ffed061967\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -5208,7 +5210,7 @@ public class IncrementalCompilationEndToEndIT
     // still does not list itself as a consumer (no self-edge drift).
     String actualDepsAfter = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "69b604e706c0e28059e04966388e0030e884cc5e", "2a126925002f5f49211dc5b2c16cc1c472aa07b2" );   // example.Builder: ABI change
+      .replace( "fe5092dd9aa758cab7a6a9cb51fac6ffed061967", "0e3c013afeeeef2b434db2452d5e4ac5282fa353" );   // example.Builder: ABI change
     assertEquals(
       "After incremental compile, Builder's consumer list must still be exactly " +
       "[example.Consumer] -- the self-reference is filtered on every build, so " +
@@ -5270,26 +5272,26 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3488bd86e6e289396964c7072b0e205829ecb2ac\",\n" +
+      "      \"abi_hash\": \"6a816e0d2e793bb4820fffb6a1e1441ae2d51a18\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer$AnonymouS__1\",\n" +
       "        \"example.Outer$block_0_\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$AnonymouS__1\": {\n" +
-      "      \"abi_hash\": \"ff8eb891d697977dfe8dd5d18ac733e39966e264\",\n" +
+      "      \"abi_hash\": \"49d97523b6b79658c32704309bcc3b818e572d12\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$block_0_\": {\n" +
-      "      \"abi_hash\": \"cc80c43c0b3118a953434fb4c8b75ce85a0b8177\",\n" +
+      "      \"abi_hash\": \"0c53e689d5c70fcce573bb0bd3f5a22f94991602\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Util\": {\n" +
-      "      \"abi_hash\": \"cf65eed712ed5956a5a94fd95b7c16df24da0de3\",\n" +
+      "      \"abi_hash\": \"b171d9ab1c1917edb5ec2f4c8aee78939101f3b3\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer$AnonymouS__1\",\n" +
       "        \"example.Outer$block_0_\"\n" +
@@ -5336,7 +5338,7 @@ public class IncrementalCompilationEndToEndIT
 
     String actualDepsAfter = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "cf65eed712ed5956a5a94fd95b7c16df24da0de3", "d9a6efc742ed4491d0d153d7ae14cd66a93a7096" );   // example.Util: ABI change
+      .replace( "b171d9ab1c1917edb5ec2f4c8aee78939101f3b3", "6458ac60d33b2bb3f1486b3165b715de29211b23" );   // example.Util: ABI change
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -5393,26 +5395,26 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Outer\": {\n" +
-      "      \"abi_hash\": \"3488bd86e6e289396964c7072b0e205829ecb2ac\",\n" +
+      "      \"abi_hash\": \"6a816e0d2e793bb4820fffb6a1e1441ae2d51a18\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer$AnonymouS__0\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$AnonymouS__0\": {\n" +
-      "      \"abi_hash\": \"806388663b57a91d27bfb8b5791c647300474e90\",\n" +
+      "      \"abi_hash\": \"52f1584ca05310e1aaf20e29e563acdbb50c7076\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer\",\n" +
       "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$AnonymouS__0$block_0_\": {\n" +
-      "      \"abi_hash\": \"96ea0b6c53a34f4d36a3f01e9d8ac9e71c2f4f31\",\n" +
+      "      \"abi_hash\": \"2b690a4f9c21fed4162729573c5969610dbd8a3e\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer$AnonymouS__0\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Util\": {\n" +
-      "      \"abi_hash\": \"cf65eed712ed5956a5a94fd95b7c16df24da0de3\",\n" +
+      "      \"abi_hash\": \"b171d9ab1c1917edb5ec2f4c8aee78939101f3b3\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Outer$AnonymouS__0$block_0_\"\n" +
       "      ]\n" +
@@ -5458,7 +5460,7 @@ public class IncrementalCompilationEndToEndIT
       "block is the actual referrer of Util).",
       getFileModificationTime( innerBlockClass ).toMillis() > initialInnerBlockTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "cf65eed712ed5956a5a94fd95b7c16df24da0de3", "d9a6efc742ed4491d0d153d7ae14cd66a93a7096" );   // example.Util: ABI change
+      .replace( "b171d9ab1c1917edb5ec2f4c8aee78939101f3b3", "6458ac60d33b2bb3f1486b3165b715de29211b23" );   // example.Util: ABI change
     String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
@@ -5510,18 +5512,18 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.Consumer\": {\n" +
-      "      \"abi_hash\": \"916b42df441065712413b38d81598df6bf63b69b\",\n" +
+      "      \"abi_hash\": \"11be5cb29f1e4b3884c6f1a1a1a6315eda3fcf1c\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Outer$Class\": {\n" +
-      "      \"abi_hash\": \"c0c655e3ddd8470589dc63b14ef78a7eca630539\",\n" +
+      "      \"abi_hash\": \"9c68a11b182c0ed9920583563de8c09848bb84cc\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Class$Inner\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.Outer$Class$Inner\": {\n" +
-      "      \"abi_hash\": \"489f5cc24e077749c770773b76834881b48370e2\",\n" +
+      "      \"abi_hash\": \"1f24c0dbce6081bfb18989b40647fca127d7b6a9\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Outer$Class\"\n" +
@@ -5569,7 +5571,7 @@ public class IncrementalCompilationEndToEndIT
 
     String actualDepsAfter = readDepFile();
     expectedDeps = expectedDeps
-      .replace( "489f5cc24e077749c770773b76834881b48370e2", "7b05256f6ca9100e003ba2e1653ea61e846a7e03" );   // example.Outer$Class$Inner: ABI change
+      .replace( "1f24c0dbce6081bfb18989b40647fca127d7b6a9", "5c05c45fe473e9b74eb8aa336a612142c4ba4555" );   // example.Outer$Class$Inner: ABI change
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -5605,7 +5607,7 @@ public class IncrementalCompilationEndToEndIT
                              "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
                              "  \"dep_graph\": {\n" +
                              "    \"example.Producer\": {\n" +
-                             "      \"abi_hash\": \"f69247f3a3b7f795a403b6cab6f9757ed0e90d16\",\n" +
+                             "      \"abi_hash\": \"796ddb72eb726b8c61bda86b0ea56bd02ea57e36\",\n" +
                              "      \"consumers\": []\n" +
                              "    }\n" +
                              "  }\n" +
@@ -5647,11 +5649,11 @@ public class IncrementalCompilationEndToEndIT
                       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
                       "  \"dep_graph\": {\n" +
                       "    \"example.NewType\": {\n" +
-                      "      \"abi_hash\": \"277eba523d2ced2c99af2bec6643c55cc4f6e418\",\n" +
+                      "      \"abi_hash\": \"7ce04c9ada9c12f24b8811f51de079fa0a9521f7\",\n" +
                       "      \"consumers\": []\n" +
                       "    },\n" +
                       "    \"example.Producer\": {\n" +
-                      "      \"abi_hash\": \"f69247f3a3b7f795a403b6cab6f9757ed0e90d16\",\n" +
+                      "      \"abi_hash\": \"796ddb72eb726b8c61bda86b0ea56bd02ea57e36\",\n" +
                       "      \"consumers\": []\n" +
                       "    }\n" +
                       "  }\n" +
@@ -6395,19 +6397,19 @@ public class IncrementalCompilationEndToEndIT
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
       "  \"dep_graph\": {\n" +
       "    \"example.ClassA\": {\n" +
-      "      \"abi_hash\": \"1d9eb62694f014ddae92b8049c940170f47dea87\",\n" +
+      "      \"abi_hash\": \"ff1e5a5ad5a87582664d7a55b1d13aeb913c32c1\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassB\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassB\": {\n" +
-      "      \"abi_hash\": \"ff6aada848cb74c4d9f96ac177f857211fa2fa3a\",\n" +
+      "      \"abi_hash\": \"5c23b4cdfd2784a0aa0f56ad2f2daf544b42aa34\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.ClassC\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.ClassC\": {\n" +
-      "      \"abi_hash\": \"908778c572e9ea154377639113c6a1db47e918df\",\n" +
+      "      \"abi_hash\": \"2817d86effb44c9326c23c4ff4289eb800f47e81\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -6476,6 +6478,2233 @@ public class IncrementalCompilationEndToEndIT
                 afterAbiChange.get( "ClassB.class" ).toMillis() > afterBodyChange.get( "ClassB.class" ).toMillis() );
     assertEquals( "ClassC should not be recompiled: recompiling ClassB left ClassB's ABI unchanged",
                   afterBodyChange.get( "ClassC.class" ), afterAbiChange.get( "ClassC.class" ) );
+  }
+
+  @Test
+  public void testConstantInheritedThroughAnIntermediateClassRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Leaf names FOO unqualified, through Mid, and folds it, which leaves no reference to Base in its bytecode. Its
+    // type literal records only Mid -> Leaf; the AST pass adds Base -> Leaf.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends Base {}"
+    );
+    createSourceFile( "example/Leaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Leaf extends Mid {\n" +
+                      "  function id() : String { return \"leaf-\" + FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Leaf.class" );
+    assertTrue( "precondition: Leaf folds FOO", classFileText( consumer ).contains( "leaf-old" ) );
+    assertFalse( "precondition: Leaf does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Leaf should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "leaf-new" ) );
+  }
+
+  @Test
+  public void testConstantQualifiedBySubclassRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Other names FOO as Mid.FOO and folds it, which leaves no reference to Base in its bytecode. Its type literal
+    // records Mid -> Other, not Base -> Other.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends Base {}"
+    );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  function id() : String { return \"other-\" + Mid.FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertTrue( "precondition: Other folds FOO", classFileText( consumer ).contains( "other-old" ) );
+    assertFalse( "precondition: Other does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "other-new" ) );
+  }
+
+  @Test
+  public void testConstantImportedAsAFeatureRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Imported names FOO through a feature import and never as a type literal, and folds it, which leaves no
+    // reference to Base in its bytecode.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Imported.gs",
+                      "package example\n" +
+                      "\n" +
+                      "uses example.Base#FOO\n" +
+                      "\n" +
+                      "class Imported {\n" +
+                      "  function id() : String { return \"imported-\" + FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Imported.class" );
+    assertTrue( "precondition: Imported folds FOO", classFileText( consumer ).contains( "imported-old" ) );
+    assertFalse( "precondition: Imported does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Imported should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "imported-new" ) );
+  }
+
+  @Test
+  public void testJavaConstantFoldedIntoAnAnnotationThroughAJavaSubclassRecompilesTheConsumer() throws Exception
+  {
+    // Other names JBase.FOO through JMid in an annotation argument, which gosuc folds. When JBase changes, Gradle
+    // reports JBase alone, since JMid's class file does not change, and Other's type literal records only
+    // JMid -> Other. The member access records JBase -> Other, which the dep file shows whatever the ABI hashes say.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBase = "package com.example;\n" +
+                   "public class JBase {\n" +
+                   "  public static final String FOO = \"foo-old\";\n" +
+                   "}";
+    compileDummyJavaType( "com.example.JBase", jBase, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+    compileDummyJavaType( "com.example.Ann",
+                          "package com.example;\n" +
+                          "import java.lang.annotation.*;\n" +
+                          "@Retention(RetentionPolicy.RUNTIME)\n" +
+                          "public @interface Ann { String value(); }",
+                          javaClassesDir );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@com.example.Ann( com.example.JMid.FOO )\n" +
+                      "class Other {}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid", "com.example.Ann" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertTrue( "precondition: Other folds FOO", classFileText( consumer ).contains( "foo-old" ) );
+    assertFalse( "precondition: Other does not reference JBase", classFileText( consumer ).contains( "com/example/JBase" ) );
+    assertTrue( "The dep file should record JBase -> Other: " + readDepFile(), readDepFile().contains(
+      "\"com.example.JBase\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Other\"\n" +
+      "      ]" ) );
+    Thread.sleep( SLEEP_MS );
+
+    compileDummyJavaType( "com.example.JBase", jBase.replace( "foo-old", "foo-new" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "foo-new" ) );
+  }
+
+  @Test
+  public void testJavaConstantFoldedIntoASwitchCaseThroughAJavaSubclassRecompilesTheConsumer() throws Exception
+  {
+    // Other names JBase.N through JMid in a switch case, which gosuc folds. As for an annotation argument, only the
+    // member access records JBase -> Other.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBase = "package com.example;\n" +
+                   "public class JBase {\n" +
+                   "  public static final int N = 1;\n" +
+                   "}";
+    compileDummyJavaType( "com.example.JBase", jBase, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  function f( x : int ) : String {\n" +
+                      "    switch( x ) {\n" +
+                      "      case com.example.JMid.N:\n" +
+                      "        return \"a\"\n" +
+                      "    }\n" +
+                      "    return \"b\"\n" +
+                      "  }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertFalse( "precondition: Other folds N and does not reference JBase",
+                 classFileText( consumer ).contains( "com/example/JBase" ) );
+    assertTrue( "The dep file should record JBase -> Other: " + readDepFile(), readDepFile().contains(
+      "\"com.example.JBase\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Other\"\n" +
+      "      ]" ) );
+    FileTime before = getFileModificationTime( consumer );
+    Thread.sleep( SLEEP_MS );
+
+    compileDummyJavaType( "com.example.JBase", jBase.replace( "N = 1", "N = 2" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other folded the old N, so it should be recompiled",
+                getFileModificationTime( consumer ).toMillis() > before.toMillis() );
+  }
+
+  @Test
+  public void testRenamingAPrivateMethodBoundByAFeatureLiteralDoesNotRecompileTheLiteralsOwner() throws Exception
+  {
+    // Pins known limitation 10 of incr_gosu_design.md. A feature literal binds to a member of another class with no
+    // regard for its visibility (CoreFeatureLiteralTest.testPrivateBasicInstanceFunctionWorks), and compiles to a
+    // lookup by name. Private members are not ABI, so renaming one moves no hash and Caller is left alone: the build
+    // succeeds, where a full build would fail, and the stale literal fails only when it runs. Depending on another
+    // class's private members is out of scope for incremental compilation.
+    File util = createSourceFile( "example/Util.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Util {\n" +
+                                  "  private function secret() : String { return \"s\" }\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function go() : Object { return Util#secret() }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( util, "function secret()", "function hidden()" );
+    CompileResult incr = compile( Arrays.asList( util ) );
+    assertTrue( "Caller binds the private Util#secret(), which no hash covers, so it is not recompiled, when this limitation is fixed the recompilation will happen and fail: " + incr.error,
+                incr.success );
+  }
+
+  @Test
+  public void testHashBaseClassPropagatesInSubClasses() throws Exception
+  {
+    File base = createSourceFile( "example/Base.gs",
+                                    "package example\n" +
+                                    "\n" +
+                                    "class Base {\n" +
+                                    "  public  function call_me() : String { return  \"abc\"}\n" +
+                                    " }"
+    );
+
+    File mid = createSourceFile( "example/Mid.gs",
+                                    "package example\n" +
+                                    "\n" +
+                                    "class Mid extends Base {}"
+    );
+
+    File leaf = createSourceFile( "example/Leaf.gs",
+                                    "package example\n" +
+                                    "\n" +
+                                    "class Leaf extends Mid {\n" +
+                                    "  function id() : String { return call_me() }\n" +
+                                    "}"
+    );
+
+    CompileResult initialResult = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initialResult.error,
+                initialResult.success );
+    assertTrue( "Dependency file should be created", dependencyFile.exists() );
+
+    String depFileContent = readDepFile();
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Base\": {\n" +
+      "      \"abi_hash\": \"d620c7bc5f42ed408aa68186468aa8097032455e\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Mid\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Leaf\": {\n" +
+      "      \"abi_hash\": \"6e85622248972f2e3f2965d86a16893381b5aefc\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Mid\": {\n" +
+      "      \"abi_hash\": \"3a935577300e8ef9db1f065f476d2d1f31c9f428\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Leaf\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "Dep file should match golden",
+      expectedDepFile, depFileContent );
+
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    Files.write( base.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Base {\n" +
+      "  public  function RENAMED() : String { return  \"abc\"}\n" +
+      " }"
+    ).getBytes() );
+
+
+    CompileResult incrementalResult = compile( Arrays.asList( base ) );
+    assertFalse( "Incremental compilation should fail: " + incrementalResult.error,
+                incrementalResult.success );
+
+    Map<String, FileTime> afterBodyChange = recordTimestamps();
+
+    assertTrue( "Base should be recompiled",
+                afterBodyChange.get( "Base.class" ).toMillis() > initialTimestamps.get( "Base.class" ).toMillis() );
+
+    Files.write( base.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Base {\n" +
+      "  public  function call_me() : String { return  \"abc\"}\n" +
+      "  public  function ADDED() : String { return  \"abc\"}\n" +
+      " }"
+    ).getBytes() );
+
+    CompileResult incrementalResultLast = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incrementalResultLast.error,
+                incrementalResultLast.success );
+    assertEquals( "All classes in the hierarchy must be recompiled", 3, incrementalResultLast.filesCompiled );
+
+    Map<String, FileTime> afterBodyChangeLast = recordTimestamps();
+
+    assertTrue( "Base should be recompiled",
+                afterBodyChangeLast.get( "Base.class" ).toMillis() > initialTimestamps.get( "Base.class" ).toMillis() );
+    assertTrue( "Mid should be recompiled",
+                afterBodyChangeLast.get( "Mid.class" ).toMillis() > initialTimestamps.get( "Mid.class" ).toMillis() );
+    assertTrue( "Leaf should be recompiled",
+                afterBodyChangeLast.get( "Leaf.class" ).toMillis() > initialTimestamps.get( "Leaf.class" ).toMillis() );
+    String newExpectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Base\": {\n" +
+      "      \"abi_hash\": \"b3f7e0ab5b85c362fdaf3aa2a82aad39c0c6db9f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Mid\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Leaf\": {\n" +
+      "      \"abi_hash\": \"eb119615fdbe2521a13f13a256dcfc8a3ee79cbd\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Mid\": {\n" +
+      "      \"abi_hash\": \"050ed6750327ff9bc4b4b47696df342d7076e00c\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Leaf\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals("Dep file should match new golden",  newExpectedDepFile, readDepFile() );
+  }
+  /**
+   * A Gosu class inheriting through a local Java class from another local Java class is a consumer of the upper one
+   * too. When {@code JBase} changes, Gradle reports {@code JBase} alone: {@code JMid}'s own ABI fingerprint does not
+   * move. Neither Gosu class names {@code JBase} in its class file, so without an edge from it the walk reaches
+   * neither, and {@code Leaf} would keep calling a method that is gone. With the edge, {@code Mid} is recompiled, its
+   * hash moves with the inherited surface, and the cascade reaches {@code Leaf}, whose compile then fails.
+   */
+  @Test
+  public void testLocalJavaSupertypeChangeReachesGosuSubclassesThroughALocalJavaClass() throws Exception
+  {
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBaseV1 = "package com.example;\n" +
+                     "public class JBase {\n" +
+                     "  public String greet() { return \"hi\"; }\n" +
+                     "}";
+    compileDummyJavaType( "com.example.JBase", jBaseV1, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends com.example.JMid {}"
+    );
+    createSourceFile( "example/Leaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Leaf extends Mid {\n" +
+                      "  function id() : String { return greet() }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String renamed() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Leaf calls the removed JBase.greet() through Mid, so the cascade must reach it and fail",
+                 incr.success );
+  }
+
+  /**
+   * The edge from a local Java ancestor is recorded for a private class too. Its callers sit in the same source,
+   * which names {@code Outer$P} only, so without the edge from {@code JBase} nothing brings {@code Outer.gs} into the walk when {@code JBase}
+   * changes, and {@code Outer.f()} would keep calling a method that is gone.
+   */
+  @Test
+  public void testLocalJavaAncestorChangeReachesTheSourceOfAPrivateSubclass() throws Exception
+  {
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String greet() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+
+    createSourceFile( "example/Outer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Outer {\n" +
+                      "  private static class P extends com.example.JMid {}\n" +
+                      "  function f() : String { return new P().greet() }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String renamed() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Outer calls the removed JBase.greet() through its private P, so Outer.gs must be recompiled and fail",
+                 incr.success );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfMemberTakingIt() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"8368f77ccaccde83487c074994559f30110f0346\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to Fixture.pick( x : Named ), and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfMethodWhoseTypeVariableItBounds() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    // Fixture's class file names Named only in pick's Signature, <T::Lexample/Named;>, which does not change with it.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick<T extends Named>( x : T ) : T { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"8368f77ccaccde83487c074994559f30110f0346\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to Fixture.pick<T extends Named>, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfInheritedMemberTakingIt() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    // Caller binds to take through Sub, and records no edge from Fixture, which declares it.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  function take( x : Named ) : String { return x.name() }\n" +
+                      "}" );
+    createSourceFile( "example/Sub.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Sub extends Fixture {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return new Sub().take( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, and Sub inherits take( x : Named ), so neither has a hash: a change to Named reaches
+    // Caller through them.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"def4603c23cf28b1dabd05c5b0364d5ced199808\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Sub\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"8368f77ccaccde83487c074994559f30110f0346\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sub\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to the take( x : Named ) Sub inherits, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfConstructorTakingIt() throws Exception
+  {
+    // As testStructureChangeReachesCallerOfMemberTakingIt, with a constructor: Caller's new names Holder(Object).
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  construct( n : Named ) {}\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return new Holder( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Holder names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Holder\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Holder\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"8368f77ccaccde83487c074994559f30110f0346\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to new Holder( n : Named ), and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerWritingAPropertyOfIt() throws Exception
+  {
+    // As testStructureChangeReachesCallerOfMemberTakingIt, with a property write: Caller calls setN(Object).
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  var _n : Named as N\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var h = new Holder()\n" +
+                      "    h.N = new Rec()\n" +
+                      "    return h\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Holder names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Holder\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Holder\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"8368f77ccaccde83487c074994559f30110f0346\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller assigns a Rec to Holder.N : Named, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAStructureAStructureNamesReachesCallers() throws Exception
+  {
+    // Named asks for a sized() : Sized, which Rec meets with a RecSized. Sized gaining a member RecSized lacks breaks
+    // Rec's fit to Named, though Named itself is unchanged.
+    File sized = createSourceFile( "example/Sized.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Sized {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    createSourceFile( "example/RecSized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class RecSized {\n" +
+                      "  function size() : int { return 1 }\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Named and Fixture have no hash, so a change to Sized reaches Caller through them. RecSized -> Caller comes
+    // from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"01d61232c4c5fc5bfcbd76486b77fd97dfbfc9a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.RecSized\": {\n" +
+      "      \"abi_hash\": \"04a2b492f6a8872142142d4c14a5315a960f9b62\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( sized, "function size() : int", "function size() : int\n  function width() : int" );
+    CompileResult incr = compile( List.of( sized ) );
+    assertFalse( "Rec no longer satisfies Named once Sized gains width(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // The mirror of testChangeToAStructureAStructureNamesReachesCallers: Named asks for a sized() : Sized, which Rec
+    // meets with a RecSized, and here RecSized loses size(). Rec's fit to Named breaks though neither Named nor Rec
+    // changed: RecSized -> Rec recompiles Rec, whose member line still says sized() : RecSized, so its hash stands
+    // still. Only an edge from RecSized brings Caller into the walk.
+    createSourceFile( "example/Sized.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Sized {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class RecSized {\n" +
+                      "  function size() : int { return 1 }\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"01d61232c4c5fc5bfcbd76486b77fd97dfbfc9a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.RecSized\": {\n" +
+      "      \"abi_hash\": \"04a2b492f6a8872142142d4c14a5315a960f9b62\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAParameterTypeOfAnArgumentsMemberReachesCallersPassingItForAStructure() throws Exception
+  {
+    // Named asks for an accept( s : Sized ), which Rec meets with an accept( s : Small ): Rec fits only while every Sized
+    // fits Small. Small gaining a member Sized lacks breaks the fit though neither Named nor Rec changed; Small -> Rec
+    // recompiles Rec with its hash unchanged, so only the edge from Small, which the AST pass follows from what the fit
+    // of Rec to Named reads, brings Caller into the walk.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    File small = createSourceFile( "example/Small.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Small {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function accept( s : Sized ) : String\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function accept( s : Small ) : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Rec names Small, so it has no hash and a change to Small reaches Caller through it; the AST pass also
+    // records Small -> Caller from what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Small\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( small, "function size() : int", "function size() : int\n  function width() : int" );
+    CompileResult incr = compile( List.of( small ) );
+    assertFalse( "Sized no longer fits Small once Small gains width(), so Rec no longer satisfies Named and Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // As testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure, with the Rec inside a type argument:
+    // an ArrayList<Rec> is passed where a List<Named> is expected only while Rec fits Named.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pickAll( xs : List<Named> ) : Object { return xs }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var l = new java.util.ArrayList<Rec>()\n" +
+                      "    return Fixture.pickAll( l )\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows the type argument Rec where a List<Named> is
+    // expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"01d61232c4c5fc5bfcbd76486b77fd97dfbfc9a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.RecSized\": {\n" +
+      "      \"abi_hash\": \"04a2b492f6a8872142142d4c14a5315a960f9b62\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so the ArrayList<Rec> no longer fits List<Named> and Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testUnhashedClassNamingAStructureStopsCascadingAtAHashedConsumer() throws Exception
+  {
+    // A names the structure S in its surface, so it is not hashed and every recompile of it reaches its consumers. B
+    // uses A only in a method body, so its surface names no structure and it is hashed like any other class: a change
+    // to A's body recompiles A and B, B's hash stands still, and the walk stops before C.
+    createSourceFile( "example/S.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure S {\n" +
+                      "  function name() : String\n" +
+                      "}" );
+    File a = createSourceFile( "example/A.gs",
+                               "package example\n" +
+                               "\n" +
+                               "class A {\n" +
+                               "  function take( s : S ) : String { return \"a\" }\n" +
+                               "}" );
+    createSourceFile( "example/B.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class B {\n" +
+                      "  function run() : String { return new A().take( null ) }\n" +
+                      "}" );
+    createSourceFile( "example/C.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class C {\n" +
+                      "  function go() : String { return new B().run() }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // A and the structure S are not hashed; B and C are.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.A\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.B\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.B\": {\n" +
+      "      \"abi_hash\": \"e48fc80951da013280a97eb2b1d08cd00909eca6\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.C\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.C\": {\n" +
+      "      \"abi_hash\": \"dab0f96b665b9f56db6ec357891836eb73ba0d66\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.S\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.A\",\n" +
+      "        \"example.B\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( a, "return \"a\"", "return \"b\"" );
+    CompileResult incr = compile( List.of( a ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertEquals( "A, which has no hash, and its consumer B should be recompiled", 2, incr.filesCompiled );
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue( "B should be recompiled: A has no hash, so any recompile of it reaches its consumers",
+                afterTimestamps.get( "B.class" ).toMillis() > initialTimestamps.get( "B.class" ).toMillis() );
+    assertEquals( "C should not be recompiled: B's hash did not move",
+                  initialTimestamps.get( "C.class" ), afterTimestamps.get( "C.class" ) );
+    assertEquals( "The dep file should be as before: B kept its hash", expectedDepFile, readDepFile() );
+  }
+
+  @Test
+  public void testArgumentPassedForAStructureRecompilesCallerOnChangesToTypesItsOtherMembersReach() throws Exception
+  {
+    // The cost of following what a value passed for a structure offers without working out which members the
+    // structure asks for. Named asks only for name(), but Caller gets an edge from every in-project type Rec's members
+    // reach: Big through extra(), and Bigger through Big's more(). A change to Bigger that leaves Big's hash where it
+    // was still recompiles Caller, though nothing Caller compiles against changed.
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function name() : String\n" +
+                      "}" );
+    File bigger = createSourceFile( "example/Bigger.gs",
+                                    "package example\n" +
+                                    "\n" +
+                                    "class Bigger {\n" +
+                                    "  function size() : int { return 1 }\n" +
+                                    "}" );
+    createSourceFile( "example/Big.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Big {\n" +
+                      "  function more() : Bigger { return new Bigger() }\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "  function extra() : Big { return new Big() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Big -> Caller and Bigger -> Caller come from the AST pass, which follows everything Rec's members reach.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Big\": {\n" +
+      "      \"abi_hash\": \"d32af51ea929788a59f397eed7b00e6ddfd149dc\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Bigger\": {\n" +
+      "      \"abi_hash\": \"5ef9f8ca6e450b5ef2847b856848035b3282f41c\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Big\",\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"2c7b69b9b72324799b07dbc05251547cbd56ee02\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    // An ABI change to Bigger that leaves Big's surface, more() : Bigger, as it was.
+    modifySourceFile( bigger, "function size() : int { return 1 }",
+                      "function size() : int { return 1 }\n  function width() : int { return 2 }" );
+    CompileResult incr = compile( List.of( bigger ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertEquals( "Bigger, its consumer Big and, through the edge from Bigger, Caller should be recompiled",
+                  3, incr.filesCompiled );
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue( "Caller should be recompiled through the edge from Bigger, though Named does not ask for extra()",
+                afterTimestamps.get( "Caller.class" ).toMillis() > initialTimestamps.get( "Caller.class" ).toMillis() );
+    assertEquals( "Rec should not be recompiled: Big's hash did not move",
+                  initialTimestamps.get( "Rec.class" ), afterTimestamps.get( "Rec.class" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueAssignedToAStructureReachesTheAssigningClass() throws Exception
+  {
+    // As testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure, with the Rec assigned to a local
+    // typed Named rather than passed. The parser wraps the value in an implicit coercion to Named, which the AST pass
+    // follows like an argument; Named itself reaches Caller as the local's type literal.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var s : Named = new Rec()\n" +
+                      "    return s\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Rec\": {\n" +
+      "      \"abi_hash\": \"01d61232c4c5fc5bfcbd76486b77fd97dfbfc9a2\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.RecSized\": {\n" +
+      "      \"abi_hash\": \"04a2b492f6a8872142142d4c14a5315a960f9b62\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\",\n" +
+      "        \"example.Rec\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToALocalJavaMemberTypeOfAJavaArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // The edges the AST pass records from what a value passed for a structure offers are needed whatever the ABI
+    // hashes say. Named asks for a sized() : Sized, which the local Java JRec meets with a JRecSized sized(). JRecSized
+    // losing size() breaks the fit, but Gradle reports JRecSized alone, since JRec's ABI does not change, and the graph
+    // records no edges between Java types, which gosuc never compiles: nothing leads from JRecSized to Caller but the
+    // edge the AST pass records, and the walk reaches Caller through it directly, since JRecSized has no hash.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jRecSized = "package com.example;\n" +
+                       "public class JRecSized {\n" +
+                       "  public int size() { return 1; }\n" +
+                       "}";
+    compileDummyJavaType( "com.example.JRecSized", jRecSized, javaClassesDir );
+    compileDummyJavaType( "com.example.JRec",
+                          "package com.example;\n" +
+                          "public class JRec {\n" +
+                          "  public JRecSized sized() { return new JRecSized(); }\n" +
+                          "}",
+                          javaClassesDir );
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new com.example.JRec() ) }\n" +
+                      "}" );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JRec", "com.example.JRecSized" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // JRecSized -> Caller is the only edge from JRecSized: the AST pass records it from what JRec offers.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"com.example.JRec\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"com.example.JRecSized\": {\n" +
+      "      \"abi_hash\": \"NO_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Caller\": {\n" +
+      "      \"abi_hash\": \"b2c86a4fd422e8d9321e41b6bff5c023bb5ea4ce\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Fixture\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Caller\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Named\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Fixture\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Sized\": {\n" +
+      "      \"abi_hash\": \"CANNOT_COMPUTE_ABI_HASH\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Named\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    compileDummyJavaType( "com.example.JRecSized", jRecSized.replace( "size()", "length()" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JRecSized" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "JRec no longer satisfies Named once JRecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedToABlockForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through a block invocation, and the AST pass has to follow what Rec offers there for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f( b : block( n : Named ) : Object ) : Object {\n" +
+                      "    return b( new Rec() )\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through a block invocation, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueAssignedToAnInheritedStructurePropertyReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through an inherited property written unqualified, and the AST pass has to follow what Rec
+    // offers there for the change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  var _n : Named as N\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller extends Holder {\n" +
+                      "  function f() {\n" +
+                      "    N = new Rec()\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through an inherited property written unqualified, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedToAnEnhancementMethodForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through an enhancement method, and the AST pass has to follow what Rec offers there for
+    // the change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/StrEnh.gsx",
+                      "package example\n" +
+                      "\n" +
+                      "enhancement StrEnh : String {\n" +
+                      "  function take( n : Named ) : String { return this }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return \"x\".take( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through an enhancement method, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueInAListLiteralForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named inside a list literal, and the AST pass has to follow what Rec offers there for the change
+    // to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function all( xs : List<Named> ) : Object { return xs }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.all( { new Rec() } ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "inside a list literal, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueObtainedElsewhereAndPassedForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named that another class returned, and the AST pass has to follow what Rec offers there for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  static function make() : Rec { return new Rec() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( Holder.make() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "that another class returned, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedForATypeVariableBoundedByAStructureReachesCaller()
+    throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // passes a Rec to pick<T extends Named>( x : T ). T is inferred as Rec, so the parser inserts no coercion to Named:
+    // only the AST pass's look at the invoked method, whose type variable is bounded by Named, follows what Rec offers.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick<T extends Named>( x : T ) : T { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, passing a Rec for a T bounded " +
+                 "by Named, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureReachesTheClassWritingIt() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // writes new Holder<Rec>() for a Holder<T extends Named>, so gosuc checks that Rec fits Named with no call or
+    // coercion involved: only the AST pass's look at the type literal follows what Rec offers.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder<T extends Named> {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return new Holder<Rec>() }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, writing Holder<Rec> for a Holder<T extends Named>, must be recompiled " +
+                 "and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureInADeclarationReachesTheClassWritingIt() throws Exception
+  {
+    // As testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureReachesTheClassWritingIt, with Holder<Rec> as the
+    // declared type of a field rather than in a new expression.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder<T extends Named> {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  var _h : Holder<Rec>\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, declaring a Holder<Rec> for a Holder<T extends Named>, must be recompiled " +
+                 "and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueTypedWithATypeVariableAndPassedForAStructureReachesCaller()
+    throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // passes a value typed T extends Rec, which offers what Rec does, so the AST pass has to follow T's bound for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f<T extends Rec>( t : T ) : Object { return Fixture.pick( t ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a T extends Rec to a " +
+                 "Named, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "Named" ) );
+  }
+
+  @Test
+  public void testLegacyIAnnotationConstructorChangeRecompilesTheAnnotatedClass() throws Exception
+  {
+    // A Gosu class implementing gw.lang.IAnnotation is used as an annotation through its constructor. Retyping the
+    // constructor's parameter must recompile the class it annotates, which then fails.
+    File anno = createSourceFile( "example/MyAnno.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class MyAnno implements gw.lang.IAnnotation {\n" +
+                                  "  construct( x : int ) {}\n" +
+                                  "}" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@MyAnno( 1 )\n" +
+                      "class Consumer {}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( anno, "construct( x : int ) {}", "construct( x : String ) {}" );
+    CompileResult incr = compile( List.of( anno ) );
+    assertFalse( "Consumer passes an int to MyAnno( x : String ), so it must be recompiled and fail", incr.success );
+    assertTrue( "Consumer should be the one rejected: " + incr.error, incr.error.contains( "Consumer.gs" ) );
+  }
+
+  @Test
+  public void testSourceRetentionJavaAnnotationChangeRecompilesTheAnnotatedClass() throws Exception
+  {
+    // A SOURCE-retention annotation never reaches the annotated class's class file, so its edge rests on the AST pass.
+    // Renaming the element the class sets must recompile it, which then fails.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jAnno = "package com.example;\n" +
+                   "import java.lang.annotation.*;\n" +
+                   "@Retention(RetentionPolicy.SOURCE)\n" +
+                   "public @interface JAnno { int count(); }";
+    compileDummyJavaType( "com.example.JAnno", jAnno, javaClassesDir );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@com.example.JAnno( :count = 1 )\n" +
+                      "class Consumer {}" );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JAnno" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JAnno", jAnno.replace( "int count();", "int total();" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JAnno" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Consumer sets JAnno's count, which is gone, so it must be recompiled and fail", incr.success );
+    assertTrue( "Consumer should be the one rejected: " + incr.error, incr.error.contains( "Consumer.gs" ) );
+  }
+
+  @Test
+  public void testTemplateBaseClassChangeRecompilesTheTemplate() throws Exception
+  {
+    // A template's <%@ extends %> directive gives it a base class whose static functions it calls unqualified. Renaming
+    // one must recompile the template, which then fails.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  static function helper() : String { return \"h\" }\n" +
+                                  "}" );
+    createSourceFile( "example/Tpl.gst",
+                      "<%@ extends example.Base %>\n" +
+                      "hello ${helper()}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( base, "static function helper()", "static function renamed()" );
+    CompileResult incr = compile( List.of( base ) );
+    assertFalse( "Tpl calls Base.helper(), which is gone, so it must be recompiled and fail", incr.success );
+    assertTrue( "Tpl should be the one rejected: " + incr.error, incr.error.contains( "Tpl.gst" ) );
+  }
+
+  @Test
+  public void testNewSamePackageTypeShadowingAWildcardImportIsNotDetected() throws Exception
+  {
+    // Pins known limitation 8 of incr_gosu_design.md. Caller names Foo, which resolves to other.Foo through its
+    // wildcard import. A new example.Foo shadows it, since a same-package type wins over a wildcard import, and a full
+    // build then rejects Caller, which calls a hi() the new Foo lacks. Nothing has an edge from a type that did not
+    // exist, so the incremental build compiles example.Foo alone and succeeds, leaving Caller bound to other.Foo.
+    createSourceFile( "other/Foo.gs",
+                      "package other\n" +
+                      "\n" +
+                      "class Foo {\n" +
+                      "  static function hi() : String { return \"other\" }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "uses other.*\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return Foo.hi() }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    File foo = createSourceFile( "example/Foo.gs",
+                                 "package example\n" +
+                                 "\n" +
+                                 "class Foo {\n" +
+                                 "  static function bye() : String { return \"example\" }\n" +
+                                 "}" );
+    CompileResult incr = compile( List.of( foo ) );
+    assertTrue( "Known limitation: the incremental build does not see that example.Foo now shadows other.Foo in " +
+                "Caller, so it succeeds where a full build fails: " + incr.error, incr.success );
+    assertEquals( "Known limitation: Caller is not recompiled",
+                  initialTimestamps.get( "Caller.class" ), recordTimestamps().get( "Caller.class" ) );
   }
 
   /** The raw bytes of a class file as text, for looking up string constants a compile baked into it. */

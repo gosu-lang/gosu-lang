@@ -185,9 +185,31 @@ public class AbiHashIT
     return depGraph.getAsJsonObject( fqcn ).get( "abi_hash" ).getAsString();
   }
 
+  /** The consumers {@code depFile} records for {@code fqcn}. */
+  private static List<String> consumersOf( Path depFile, String fqcn ) throws IOException
+  {
+    JsonObject depGraph = JsonParser.parseString( Files.readString( depFile ) ).getAsJsonObject().getAsJsonObject( "dep_graph" );
+    List<String> consumers = new ArrayList<>();
+    depGraph.getAsJsonObject( fqcn ).getAsJsonArray( "consumers" ).forEach( consumer -> consumers.add( consumer.getAsString() ) );
+    return consumers;
+  }
+
+  /** The raw bytes of a class file as text, for looking up string constants a compile baked into it. */
+  private static String classFileText( Path classFile ) throws IOException
+  {
+    return new String( Files.readAllBytes( classFile ), StandardCharsets.ISO_8859_1 );
+  }
+
   private static void assertSameAbi( String why, Compiled before, Compiled after )
   {
     assertEquals( why, before.hash, after.hash );
+  }
+
+  /** Both versions are classes whose surface names a structure, which the walk reads as changed whenever recompiled. */
+  private static void assertStructural( String what, Compiled before, Compiled after )
+  {
+    assertEquals( what + " is not hashed", IncrementalCompilationManager.CANNOT_COMPUTE_ABI_HASH, before.hash );
+    assertEquals( what + " is not hashed", IncrementalCompilationManager.CANNOT_COMPUTE_ABI_HASH, after.hash );
   }
 
   private static void assertDifferentAbi( String why, Compiled before, Compiled after )
@@ -225,6 +247,17 @@ public class AbiHashIT
       }
     }
     throw new AssertionError( "no field " + name + " in " + node.name );
+  }
+
+  /** Every method gosuc wrote on {@code node}, as name, descriptor and generic signature. */
+  private static List<String> methodSignatures( ClassNode node )
+  {
+    List<String> methods = new ArrayList<>();
+    for( MethodNode method : node.methods )
+    {
+      methods.add( method.name + method.desc + " " + method.signature );
+    }
+    return methods;
   }
 
   private static int methodAccess( ClassNode node, String name )
@@ -541,6 +574,336 @@ public class AbiHashIT
     assertDifferentAbi( "A null default is ABI",
                         compileBody( "  static function greet(name : String) : String { return \"hi \" + name }\n" ),
                         compileBody( "  static function greet(name : String = null) : String { return \"hi \" + name }\n" ) );
+  }
+
+  /**
+   * A method's own type variables reach the Gosu surface only by name: {@code typeText} renders a type variable as
+   * {@code T} and {@code parameterSurface} does not render the method's type variables at all, so moving {@code T}'s
+   * bound leaves the type-info lines unchanged. The bound decides the erasure, though, and with it the descriptor a
+   * caller's invocation names; only the bytecode half of the hash sees that. A stale caller would fail with
+   * NoSuchMethodError. This is why the two halves are not consolidated into the type-info surface alone.
+   */
+  @Test
+  public void testMethodTypeVariableBoundIsAbi() throws IOException
+  {
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.pick( \"a\" ) }\n}\n";
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static function pick<T extends CharSequence>( x : T ) : T { return x }\n" +
+                     "}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "T extends CharSequence", "T extends Comparable<T>" ),
+                              "p/Caller.gs", caller );
+    assertTrue( "precondition: the caller invokes the CharSequence erasure",
+                classFileText( before.classFile.resolveSibling( "Caller.class" ) ).contains( "(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;" ) );
+    assertTrue( "precondition: the caller invokes the Comparable erasure",
+                classFileText( after.classFile.resolveSibling( "Caller.class" ) ).contains( "(Ljava/lang/Comparable;)Ljava/lang/Comparable;" ) );
+    assertDifferentAbi( "A method type variable's bound is ABI: it decides the descriptor callers invoke", before, after );
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Default values baked by value
+  // ---------------------------------------------------------------------------------------------
+
+  /** Calls {@code Fixture.greet()} without its argument, so it bakes greet's default. */
+  private static final String GREET_CALLER = "package p\n\nclass Caller {\n  function go() : String { return Fixture.greet() }\n}\n";
+
+  @Test
+  public void testDefaultValueFoldedFromAPrivateConstantIsAbi() throws IOException
+  {
+    // A default must be a compile-time constant, and a caller that omits the argument bakes its evaluated value
+    // (DefaultArgLiteral), not its expression. Here the default names a private constant: its expression text, DEF,
+    // does not move when DEF's value does, and DEF itself is private and so not on the surface. The preconditions
+    // show the value, not a reference to DEF, is what the caller carries.
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static final var DEF : String = \"world\"\n" +
+                     "  static function greet(name : String = DEF) : String { return \"hi \" + name }\n" +
+                     "}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", GREET_CALLER );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "\"world\"", "\"there\"" ), "p/Caller.gs", GREET_CALLER );
+    assertTrue( "precondition: the caller bakes the default's value",
+                classFileText( before.classFile.resolveSibling( "Caller.class" ) ).contains( "world" ) );
+    assertTrue( "precondition: the caller bakes the default's value",
+                classFileText( after.classFile.resolveSibling( "Caller.class" ) ).contains( "there" ) );
+    assertDifferentAbi( "A default's value is ABI, even when it is folded from a private constant", before, after );
+  }
+
+  @Test
+  public void testDefaultValueFoldedFromAnotherTypesConstantIsAbi() throws IOException
+  {
+    // As above, with the default naming another type's constant: only Consts changes, the fixture's source and its
+    // default's expression text, Consts.DEF, do not. Consts lists the fixture as a consumer, so the fixture is
+    // recompiled when Consts changes; its hash has to move then, or the cascade stops before the caller that baked
+    // the old value.
+    String consts = "package p\n\nclass Consts {\n  public static final var DEF : String = \"world\"\n}\n";
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static function greet(name : String = Consts.DEF) : String { return \"hi \" + name }\n" +
+                     "}\n";
+    Compiled before = compile( "p/Consts.gs", consts, "p/Fixture.gs", fixture, "p/Caller.gs", GREET_CALLER );
+    Compiled after = compile( "p/Consts.gs", consts.replace( "\"world\"", "\"there\"" ), "p/Fixture.gs", fixture, "p/Caller.gs", GREET_CALLER );
+    assertTrue( "precondition: the caller bakes the default's value",
+                classFileText( after.classFile.resolveSibling( "Caller.class" ) ).contains( "there" ) );
+    assertTrue( "precondition: a change to Consts recompiles the fixture",
+                consumersOf( after.depFile, "p.Consts" ).contains( "p.Fixture" ) );
+    assertDifferentAbi( "A default's value is ABI, even when it is folded from another type's constant", before, after );
+  }
+
+  @Test
+  public void testBlockTypeDefaultValuesAreAbi() throws IOException
+  {
+    // A block type can declare defaults of its own, and a caller that invokes a block omitting the argument bakes the
+    // default exactly as it does for a method. The block type reaches the class file only as IFunction1<String,
+    // String>, which carries neither its parameter names nor its defaults.
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static function greeter() : block(name : String = \"world\") : String { return \\ name -> \"hi \" + name }\n" +
+                     "}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.greeter()() }\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "\"world\"", "\"there\"" ), "p/Caller.gs", caller );
+    assertTrue( "precondition: the caller bakes the block type's default",
+                classFileText( before.classFile.resolveSibling( "Caller.class" ) ).contains( "world" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two defaults apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "A block type's default values are ABI", before, after );
+  }
+
+  @Test
+  public void testBlockTypeParameterNamesAreAbi() throws IOException
+  {
+    // Likewise a named argument to a block binds against the block type's parameter names. The caller compiles only
+    // against the first spelling, so it is compiled alongside that one alone.
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static function greeter() : block(name : String) : String { return \\ name -> \"hi \" + name }\n" +
+                     "}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.greeter()( :name = \"x\" ) }\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "block(name : String)", "block(who : String)" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two names apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "A block type's parameter names are ABI", before, after );
+  }
+
+  @Test
+  public void testBlockTypeParameterTypesAreAbi() throws IOException
+  {
+    // A block parameter typed int and one typed Integer are written alike, as an IFunction1 whose generic signature
+    // boxes the primitive. A caller's block literal compiles against the declared parameter type, so it is compiled
+    // alongside the first spelling alone.
+    String fixture = "package p\n\nclass Fixture {\n" +
+                     "  static function run( b : block( x : int ) : int ) : int { return b( 1 ) }\n" +
+                     "}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : int { return Fixture.run( \\ x -> x + 1 ) }\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "block( x : int )", "block( x : Integer )" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two types apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "A block type's parameter types are ABI", before, after );
+  }
+
+  @Test
+  public void testDynamicTypeIsAbi() throws IOException
+  {
+    // dynamic.Dynamic is not a bytecode type: gosuc writes it as Object, so a member typed Dynamic and one typed
+    // Object have the same descriptor. A caller that dispatches dynamically on the result compiles against the first
+    // and not against the second, so it is compiled alongside the first alone.
+    String fixture = "package p\n\nclass Fixture {\n  static function make() : dynamic.Dynamic { return \"x\" }\n}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : Object { return Fixture.make().length() }\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "dynamic.Dynamic", "Object" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two types apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "A member's Gosu type is ABI where its descriptor cannot tell it apart", before, after );
+  }
+
+  /** Two structures with nothing in common, so a caller binds to the members of one of them only. */
+  private static final String[] SHAPES = {
+    "p/Named.gs", "package p\n\nstructure Named {\n  function name() : String\n}\n",
+    "p/Sized.gs", "package p\n\nstructure Sized {\n  function size() : int\n}\n" };
+
+  /** {@link #SHAPES} followed by the given paths and sources. */
+  private static String[] withShapes( String... pathsAndSources )
+  {
+    String[] all = Arrays.copyOf( SHAPES, SHAPES.length + pathsAndSources.length );
+    System.arraycopy( pathsAndSources, 0, all, SHAPES.length, pathsAndSources.length );
+    return all;
+  }
+
+  @Test
+  public void testStructureReturnTypeIsAbi() throws IOException
+  {
+    // gosuc writes a structure-typed member as Object (GosuClassTransformer.getDescriptorNoStructures) and, the type
+    // not being parameterized, with no generic signature, so retyping a return value from one structure to another
+    // leaves the class file as it was. A caller calls the structure's members on the result, so it is compiled
+    // alongside the first type alone. A class whose surface names a structure is not hashed: it reports a change
+    // whenever it is recompiled, which covers the retyping.
+    String fixture = "package p\n\nclass Fixture {\n  static function make() : Named { return null }\n}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.make().name() }\n}\n";
+    Compiled before = compile( withShapes( "p/Fixture.gs", fixture, "p/Caller.gs", caller ) );
+    Compiled after = compile( withShapes( "p/Fixture.gs", fixture.replace( ": Named", ": Sized" ) ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two types apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertStructural( "A class with a structure-typed return value", before, after );
+  }
+
+  @Test
+  public void testStructurePropertyTypeIsAbi() throws IOException
+  {
+    // Likewise for a property.
+    String fixture = "package p\n\nclass Fixture {\n  static property get Shape() : Named { return null }\n}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.Shape.name() }\n}\n";
+    Compiled before = compile( withShapes( "p/Fixture.gs", fixture, "p/Caller.gs", caller ) );
+    Compiled after = compile( withShapes( "p/Fixture.gs", fixture.replace( ": Named", ": Sized" ) ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two types apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertStructural( "A class with a structure-typed property", before, after );
+  }
+
+  @Test
+  public void testClassNamingAStructureAnywhereOnItsSurfaceIsNotHashed() throws IOException
+  {
+    // Every way a class's consumer-visible surface can name a structure leaves the class unhashed, so that any
+    // recompile of it reaches its consumers (see DependenciesClassVisitor.namesStructure).
+    String[][] fixtures = {
+      { "a method parameter", "class Fixture {\n  function take( x : Named ) {}\n}\n" },
+      { "a method's type variable bound", "class Fixture {\n  function take<T extends Named>( x : T ) {}\n}\n" },
+      { "a property", "class Fixture {\n  property get Shape() : Named { return null }\n}\n" },
+      { "a constructor parameter", "class Fixture {\n  construct( x : Named ) {}\n}\n" },
+      { "a class type variable bound", "class Fixture<T extends Named> {}\n" },
+      { "a type argument", "class Fixture {\n  function all() : List<Named> { return null }\n}\n" },
+      { "a block type", "class Fixture {\n  function each( b : block( n : Named ) ) {}\n}\n" },
+      { "an inherited member", "class Fixture extends Base {}\n" } };
+    String base = "package p\n\nclass Base {\n  function take( x : Named ) {}\n}\n";
+    for( String[] fixture : fixtures )
+    {
+      Compiled compiled = compile( withShapes( "p/Fixture.gs", "package p\n\nuses java.util.List\n\n" + fixture[1],
+                                               "p/Base.gs", base ) );
+      assertEquals( "A class naming a structure through " + fixture[0] + " is not hashed",
+                    IncrementalCompilationManager.CANNOT_COMPUTE_ABI_HASH, compiled.hash );
+    }
+    assertEquals( "A structure is not hashed", IncrementalCompilationManager.CANNOT_COMPUTE_ABI_HASH,
+                  compile( "p/Fixture.gs", "package p\n\nstructure Fixture {\n  function name() : String\n}\n" ).hash );
+  }
+
+  @Test
+  public void testStructureNamedOnlyInABodyOrAPrivateMemberIsHashed() throws IOException
+  {
+    // Neither a method body nor a private member is on the consumer-visible surface, so naming a structure there leaves
+    // the class hashed like any other: its consumers compile against nothing that depends on the structure.
+    String[][] fixtures = {
+      { "a method body", "class Fixture {\n  function go() : Object { var n : Named = null\n return n }\n}\n" },
+      { "a private method", "class Fixture {\n  private function take( x : Named ) {}\n}\n" },
+      { "a private field", "class Fixture {\n  var _n : Named\n}\n" } };
+    for( String[] fixture : fixtures )
+    {
+      Compiled compiled = compile( withShapes( "p/Fixture.gs", "package p\n\n" + fixture[1] ) );
+      assertTrue( "A class naming a structure only in " + fixture[0] + " is hashed: " + compiled.hash,
+                  compiled.hash.matches( "[0-9a-f]{40}" ) );
+    }
+  }
+
+  @Test
+  public void testPropertyVersusGetterFunctionIsAbi() throws IOException
+  {
+    // A property and a getter function compile to the same getName() method, but a caller can read Name only from the
+    // property, so it is compiled alongside the first spelling alone.
+    String fixture = "package p\n\nclass Fixture {\n  static property get Name() : String { return \"x\" }\n}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return Fixture.Name }\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "property get Name()", "function getName()" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "Whether a member is a property or a function is ABI", before, after );
+  }
+
+  @Test
+  public void testEnhancedTypeArgumentsAreAbi() throws IOException
+  {
+    // An enhancement's methods are static, taking the enhanced type as an implicit first parameter that the generic
+    // signature renders raw, so the enhanced type's arguments do not reach the class file. A caller resolves the
+    // enhancement only on a matching receiver, so it is compiled alongside the first spelling alone.
+    String box = "package p\n\nclass Box<T> {}\n";
+    String fixture = "package p\n\nenhancement Fixture : Box<Integer> {\n  function total() : int { return 0 }\n}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : int { return new Box<Integer>().total() }\n}\n";
+    Compiled before = compile( "p/Box.gs", box, "p/Fixture.gsx", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Box.gs", box, "p/Fixture.gsx", fixture.replace( "Box<Integer>", "Box<String>" ) );
+    assertEquals( "precondition: the fixture's method descriptors and signatures do not tell the two apart",
+                  methodSignatures( readClass( before.classFile ) ), methodSignatures( readClass( after.classFile ) ) );
+    assertDifferentAbi( "An enhancement's enhanced type, with its arguments, is ABI", before, after );
+  }
+
+  @Test
+  public void testStructureVersusInterfaceIsAbi() throws IOException
+  {
+    // Declaring a type a structure rather than an interface changes how every consumer compiles against it: a
+    // member typed with a structure is written as Object, which the preconditions show on Taker. Unless the
+    // fixture's hash moves, Taker is not recompiled and keeps take(Fixture), while a caller compiled against the
+    // new source invokes take(Object).
+    String fixture = "package p\n\ninterface Fixture {\n  function foo() : int\n}\n";
+    String taker = "package p\n\nclass Taker {\n  static function take( f : Fixture ) {}\n}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Taker.gs", taker );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "interface Fixture", "structure Fixture" ), "p/Taker.gs", taker );
+    assertTrue( "precondition: an interface-typed parameter is written as the interface",
+                methodSignatures( readClass( before.classFile.resolveSibling( "Taker.class" ) ) ).contains( "take(Lp/Fixture;)V null" ) );
+    assertTrue( "precondition: a structure-typed parameter is written as Object",
+                methodSignatures( readClass( after.classFile.resolveSibling( "Taker.class" ) ) ).contains( "take(Ljava/lang/Object;)V null" ) );
+    assertDifferentAbi( "Whether a type is a structure is ABI", before, after );
+  }
+
+  @Test
+  public void testProtectedMemberClassIsAbi() throws IOException
+  {
+    // gosuc writes a protected member class as public; Gosu still forbids naming it outside a subclass. A consumer
+    // naming Fixture.Inner consumes Fixture$Inner, and the walk gives Fixture$Inner its own turn when Fixture's
+    // source is recompiled, so it is Inner's own hash that has to move.
+    Compiled before = compileBody( "  public static class Inner {}\n" );
+    Compiled after = compileBody( "  protected static class Inner {}\n" );
+    String innerBefore = abiHashOf( before.depFile, "p.Fixture$Inner" );
+    assertNotEquals( "A member class's protected access is ABI (both hashed to " + innerBefore + ")",
+                     innerBefore, abiHashOf( after.depFile, "p.Fixture$Inner" ) );
+  }
+
+  @Test
+  public void testProtectedEnhancementMethodIsAbi() throws IOException
+  {
+    // gosuc writes a protected enhancement method as public; Gosu still forbids calling it from an unrelated class.
+    String person = "package p\n\nclass Person {}\n";
+    String fixture = "package p\n\nenhancement Fixture : Person {\n  function greet() : String { return \"hi\" }\n}\n";
+    assertDifferentAbi( "An enhancement method's protected access is ABI",
+                        compile( "p/Person.gs", person, "p/Fixture.gsx", fixture ),
+                        compile( "p/Person.gs", person, "p/Fixture.gsx", fixture.replace( "function greet", "protected function greet" ) ) );
+  }
+
+  @Test
+  public void testDeclarationSiteVarianceIsAbi() throws IOException
+  {
+    // A type variable declared out (or in) changes which parameterizations of the type a caller may assign to one
+    // another, but the class signature has no notion of variance. The caller compiles against the first spelling
+    // alone.
+    String fixture = "package p\n\nclass Fixture<out T> {\n  function get() : T { return null }\n}\n";
+    String caller = "package p\n\nclass Caller {\n" +
+                    "  function go( f : Fixture<String> ) : Fixture<CharSequence> { return f }\n" +
+                    "}\n";
+    Compiled before = compile( "p/Fixture.gs", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Fixture.gs", fixture.replace( "<out T>", "<T>" ) );
+    assertEquals( "precondition: the fixture's class signature does not tell the two apart",
+                  readClass( before.classFile ).signature, readClass( after.classFile ).signature );
+    assertDifferentAbi( "A type variable's declared variance is ABI", before, after );
+  }
+
+  @Test
+  public void testEnhancementDefaultParameterValuesAreAbi() throws IOException
+  {
+    // An enhancement's methods are called like members of the enhanced type, and a call that omits an argument bakes
+    // the default as it does for a class.
+    String person = "package p\n\nclass Person {}\n";
+    String fixture = "package p\n\nenhancement Fixture : Person {\n" +
+                     "  function greet(name : String = \"world\") : String { return \"hi \" + name }\n" +
+                     "}\n";
+    String caller = "package p\n\nclass Caller {\n  function go() : String { return new Person().greet() }\n}\n";
+    Compiled before = compile( "p/Person.gs", person, "p/Fixture.gsx", fixture, "p/Caller.gs", caller );
+    Compiled after = compile( "p/Person.gs", person, "p/Fixture.gsx", fixture.replace( "\"world\"", "\"there\"" ), "p/Caller.gs", caller );
+    assertTrue( "precondition: the caller bakes the default",
+                classFileText( before.classFile.resolveSibling( "Caller.class" ) ).contains( "world" ) );
+    assertDifferentAbi( "An enhancement method's default values are ABI", before, after );
   }
 
   // ---------------------------------------------------------------------------------------------

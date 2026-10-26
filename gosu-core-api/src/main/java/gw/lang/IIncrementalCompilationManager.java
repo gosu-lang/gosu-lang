@@ -28,7 +28,7 @@ public interface IIncrementalCompilationManager {
      * <p>Runs the two-phase walk over {@code bytes} via DependenciesClassVisitor
      * (constant-pool scan in the constructor + structural {@code ClassVisitor} callbacks
      * via {@code accept}, which record the edges and assemble the canonical ABI text in one
-     * pass), then a narrow AST pass via trackTypeliteralsFromAST for references that don't
+     * pass), then a narrow AST pass via recordEdgesFromAST for references that don't
      * make it into bytecode.
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades

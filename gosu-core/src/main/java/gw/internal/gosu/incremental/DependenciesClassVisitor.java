@@ -9,16 +9,24 @@ import gw.internal.ext.org.objectweb.asm.signature.SignatureReader;
 import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
 import gw.lang.ir.Internal;
 import gw.lang.parser.IExpression;
+import gw.lang.parser.expressions.ITypeVariableDefinition;
+import gw.lang.reflect.IAttributedFeatureInfo;
 import gw.lang.reflect.IConstructorInfo;
+import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IOptionalParamCapable;
 import gw.lang.reflect.IParameterInfo;
 import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.IRelativeTypeInfo;
+import gw.lang.reflect.IType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
-import gw.lang.reflect.gs.IGosuClassTypeInfo;
+import gw.lang.reflect.gs.IGosuEnhancement;
 import gw.lang.reflect.java.ICompileTimeConstantValue;
 
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -101,16 +109,25 @@ import java.util.List;
  *
  * <h3>Gosu compile-time surface</h3>
  * <p>
- * Three things the compiler bakes from a producer's <em>source</em> into a consumer's bytecode
- * never reach the producer's own class file, so {@link #appendGosuCompileTimeSurface} adds them
- * from the producer's type info: the values of non-private {@code static final} compile-time
- * constants (gosuc initializes fields in {@code <clinit>} and emits no {@code ConstantValue}, yet
- * consumers fold constants into string concatenations, switch cases and annotation arguments),
- * the parameter names of non-private methods and constructors (named-argument call sites bind
- * against them), and their default parameter value expressions (the parser splices the default
- * into every call site that omits the argument).
+ * Much of what a consumer compiles against comes from the producer's <em>source</em> and never
+ * reaches the producer's own class file, so {@link #appendGosuCompileTimeSurface} adds it from the
+ * producer's type info: the values of non-private {@code static final} compile-time constants
+ * (gosuc initializes fields in {@code <clinit>} and emits no {@code ConstantValue}, yet consumers
+ * fold constants into string concatenations, switch cases and annotation arguments); the parameter
+ * names of non-private methods and constructors (named-argument call sites bind against them);
+ * their default parameter values, as evaluated (a call site that omits the argument bakes the
+ * value); the Gosu types of every non-private property, return value and parameter (gosuc writes
+ * {@code dynamic.Dynamic} as Object, and a block type without its parameter names and defaults);
+ * the Gosu access of each member and of the class (gosuc writes a protected member class and a
+ * protected enhancement member as public); the type an enhancement enhances; and the declared variance of its type variables. A digest of the surface it inherits
+ * from each in-project supertype is added too, since a consumer binds to inherited members through the subclass and
+ * records no edge from the supertype declaring them (see {@link #addInheritedMemberLines}).
  *
- * <p>Every compiled class is hashed, anonymous and block classes included. A hash that cannot be
+ * <p>A class whose surface names a structure is not hashed at all: its hash is
+ * {@link IncrementalCompilationManager#CANNOT_COMPUTE_ABI_HASH}, which the walk reads as changed whenever the class is
+ * recompiled (see {@link #namesStructure}).
+ *
+ * <p>Every other compiled class is hashed, anonymous and block classes included. A hash that cannot be
  * computed is not tolerated: the exception aborts the compile rather than degrading to a cascade.
  * Constructed with {@code verbose} on, it also prints the canonical text of every class;
  * {@link IncrementalCompilationManager#trackDependencies} leaves that flag off.
@@ -127,7 +144,6 @@ class DependenciesClassVisitor extends ClassVisitor
    * {@link #isSourceCodePrivate}.
    */
   private static final String INTERNAL_ANNOTATION_TEXT = "@" + Type.getDescriptor( Internal.class ) + "T[]";
-  private boolean isClassPrivate;
 
   private final IncrementalCompilationManager incrementalCompilationManager;
   private final String consumerFqcn;
@@ -147,7 +163,6 @@ class DependenciesClassVisitor extends ClassVisitor
   {
     super( ASM_API_VERSION );
     this.gosuClass = gosuClass;
-    isClassPrivate = false;
     consumerFqcn = getFqcn( reader.getClassName() );
     abiStr = new StringBuilder();
     abiFields = new ArrayList<>();
@@ -173,28 +188,20 @@ class DependenciesClassVisitor extends ClassVisitor
   @Override
   public void visit( int version, int access, String name, String signature, String superName, String[] interfaces )
   {
-    isClassPrivate = isPrivate( access );
-    if( isClassPrivate )
+    abiStr.append( version );
+    abiStr.append( ' ' );
+    abiStr.append( access );
+    abiStr.append( " class " );
+    abiStr.append( name );
+    if( signature != null )
     {
-      abiStr.append( "PRIVATE_CLASS" );
+      abiStr.append( signature );
     }
-    else
+    abiStr.append( " extends " );
+    abiStr.append( superName );
+    if( interfaces != null )
     {
-      abiStr.append( version );
-      abiStr.append( ' ' );
-      abiStr.append( access );
-      abiStr.append( " class " );
-      abiStr.append( name );
-      if( signature != null )
-      {
-        abiStr.append( signature );
-      }
-      abiStr.append( " extends " );
-      abiStr.append( superName );
-      if( interfaces != null )
-      {
-        abiInterfaces.addAll(  Arrays.asList( interfaces ) );
-      }
+      abiInterfaces.addAll(  Arrays.asList( interfaces ) );
     }
     maybeAddClassTypesFromSignature( signature );
     if( superName != null )
@@ -264,24 +271,32 @@ class DependenciesClassVisitor extends ClassVisitor
   @Override
   public void visitEnd()
   {
-    if( !isClassPrivate )
+    if( namesStructure( gosuClass ) )
     {
-      abiStr.append( " inners " );
-      appendAbiList( abiStr, abiInnerClasses, ", " );
-      abiStr.append( " implements " );
-      for( String iface : abiInterfaces )
+      abiHash = IncrementalCompilationManager.CANNOT_COMPUTE_ABI_HASH;
+      if( verbose )
       {
-        abiStr.append( iface );
-        abiStr.append( ", " );
+        System.out.println( consumerFqcn + ": not hashed, its surface names a structure" );
       }
-      abiStr.append( "\nannotations:\n" );
-      appendAbiList( abiStr, abiAnnotations, "\n" );
-      abiStr.append( "\nfields:\n" );
-      appendAbiList( abiStr, abiFields, "\n" );
-      abiStr.append( "\nmethods:\n" );
-      appendAbiList( abiStr, abiMethods, "\n" );
-      appendGosuCompileTimeSurface( gosuClass, abiStr );
+      return;
     }
+    // A private member class is hashed like any other. Its consumers all sit in its own source, which the walk has
+    // compiled whole by the time it reads the hash, so whether the hash moves decides nothing.
+    abiStr.append( " inners " );
+    appendAbiList( abiStr, abiInnerClasses, ", " );
+    abiStr.append( " implements " );
+    for( String iface : abiInterfaces )
+    {
+      abiStr.append( iface );
+      abiStr.append( ", " );
+    }
+    abiStr.append( "\nannotations:\n" );
+    appendAbiList( abiStr, abiAnnotations, "\n" );
+    abiStr.append( "\nfields:\n" );
+    appendAbiList( abiStr, abiFields, "\n" );
+    abiStr.append( "\nmethods:\n" );
+    appendAbiList( abiStr, abiMethods, "\n" );
+    appendGosuCompileTimeSurface( gosuClass, abiStr );
     if( verbose )
     {
       System.out.println( abiStr );
@@ -291,43 +306,17 @@ class DependenciesClassVisitor extends ClassVisitor
 
   /**
    * Appends, sorted, the parts of {@code gosuClass}'s consumer-visible surface that gosuc never
-   * writes into its class file.
+   * writes into its class file: what the class itself is (see {@link #typeHeader}), and, for every
+   * non-private property, method and constructor, its Gosu access and its types as Gosu sees them
+   * (see {@link #typeText}), plus a constant's value and a method's or constructor's parameter names
+   * and default values; and what it inherits from its in-project supertypes.
    */
-  static void appendGosuCompileTimeSurface( IGosuClass gosuClass, StringBuilder out )
+  void appendGosuCompileTimeSurface( IGosuClass gosuClass, StringBuilder out )
   {
-    IGosuClassTypeInfo typeInfo = gosuClass.getTypeInfo();
     List<String> lines = new ArrayList<>();
-
-    for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
-    {
-      if( property.isPrivate() || !property.isStatic() || !(property instanceof ICompileTimeConstantValue) )
-      {
-        continue;
-      }
-      ICompileTimeConstantValue constant = (ICompileTimeConstantValue)property;
-      if( constant.isCompileTimeConstantValue() )
-      {
-        lines.add( "const " + property.getName() +
-                   " : " + property.getFeatureType().getName() +
-                   " = " + quote( String.valueOf( ( constant.doCompileTimeEvaluation() ) ) ));
-      }
-    }
-
-    for( IMethodInfo method : typeInfo.getDeclaredMethods() )
-    {
-      if( !method.isPrivate() && method instanceof IOptionalParamCapable )
-      {
-        lines.add( "method " + method.getName() + parameterSurface( method.getParameters(), (IOptionalParamCapable)method ) );
-      }
-    }
-
-    for( IConstructorInfo constructor : typeInfo.getDeclaredConstructors() )
-    {
-      if( !constructor.isPrivate() && constructor instanceof IOptionalParamCapable )
-      {
-        lines.add( "constructor" + parameterSurface( constructor.getParameters(), (IOptionalParamCapable)constructor ) );
-      }
-    }
+    lines.add( typeHeader( gosuClass ) );
+    addDeclaredMemberLines( gosuClass.getTypeInfo(), "", true, lines );
+    addInheritedMemberLines( gosuClass, lines );
 
     Collections.sort( lines );
     for( String line : lines )
@@ -337,32 +326,370 @@ class DependenciesClassVisitor extends ClassVisitor
   }
 
   /**
+   * Adds a line for every in-project direct supertype of {@code type}: its name and the digest of its inherited
+   * surface (see {@link #inheritedSurfaceDigest}). A class's consumers bind to the members it inherits as well as to
+   * those it declares, and gosuc names the class itself, not the supertype, as the owner of such a call, so a consumer
+   * of {@code Mid} calling a method {@code Mid} inherits from {@code Base} records no edge from {@code Base}.
+   * {@code Mid}'s class file does not change when {@code Base}'s surface does, so without these lines its hash would
+   * stand still, the walk would stop at {@code Mid}, and its consumers would keep calling a member that may be gone.
+   * Supertypes outside the project are skipped: they change only with the classpath, which Gradle answers with a full
+   * rebuild.
+   */
+  private void addInheritedMemberLines( IType type, List<String> lines )
+  {
+    for( IType supertype : IncrementalCompilationManager.directSupertypes( type ) )
+    {
+      if( shouldTrackType( supertype ) )
+      {
+        lines.add( "inherited " + typeText( supertype ) + ' ' + inheritedSurfaceDigest( supertype ) );
+      }
+    }
+  }
+
+  /**
+   * The digest of what a subclass of {@code supertype} inherits from it: the non-private properties and methods it
+   * declares, constructors excepted since they are not inherited, and, through their own digests, what it inherits
+   * from its in-project supertypes in turn. It is read from type info, not from the supertype's ABI hash: type info
+   * resolves in-project Gosu types from source, so the digest describes the new {@code Base} whether or not the walk
+   * has compiled it yet this build, and a local Java supertype, which has no ABI hash, gets one all the same. Each
+   * digest is computed once per build, keyed by the supertype as written, type arguments included, and reused by
+   * every subclass.
+   */
+  private String inheritedSurfaceDigest( IType supertype )
+  {
+    String key = typeText( supertype );
+    String digest = incrementalCompilationManager.getInheritedSurfaceDigest( key );
+    if( digest == null )
+    {
+      List<String> lines = new ArrayList<>();
+      // Every tracked type, Gosu or local Java, has relative type info; anything else fails rather than hashing short.
+      addDeclaredMemberLines( (IRelativeTypeInfo)supertype.getTypeInfo(), "", false, lines );
+      addInheritedMemberLines( supertype, lines );
+      Collections.sort( lines );
+      digest = sha1( String.join( "\n", lines ) );
+      incrementalCompilationManager.putInheritedSurfaceDigest( key, digest );
+    }
+    return digest;
+  }
+
+  /**
+   * Whether {@code type} is a structure, or its consumer-visible surface names one: the declared types of a non-private
+   * property, method or constructor it declares, the bounds of its type variables, the type it enhances, or, through
+   * the same test, what it inherits from an in-project supertype. Such a class is not hashed. A structure is defined by
+   * its members and gosuc writes it as Object, so whether a consumer's code still fits it depends on more than any
+   * class file or member line says: when {@code Named} asks for a {@code sized() : Sized}, a {@code Rec} fits it only
+   * while its {@code sized()} fits {@code Sized}, and {@code Fixture.pick( x : Named )}'s callers compile only while
+   * what they pass fits {@code Named}. Reporting a change whenever such a class is recompiled carries any change to a
+   * structure on through every class that names it, to the consumers that pass values to it, at the cost of
+   * recompiling those consumers on any recompile of the class. What the passed values offer is covered by edges
+   * instead (see {@code IncrementalCompilationManager.trackStructuralArgument}).
+   */
+  private boolean namesStructure( IType type )
+  {
+    // Computed once per build for each type as written, type arguments included, and reused by every subclass.
+    String key = typeText( type );
+    Boolean names = incrementalCompilationManager.getNamesStructure( key );
+    if( names == null )
+    {
+      names = computeNamesStructure( type );
+      incrementalCompilationManager.putNamesStructure( key, names );
+    }
+    return names;
+  }
+
+  private boolean computeNamesStructure( IType type )
+  {
+    if( !(type instanceof IGosuClass) )
+    {
+      // A Java type can neither name a Gosu structure nor extend a Gosu type: javac compiles it first, without them.
+      return false;
+    }
+    IGosuClass gosuClass = (IGosuClass)type;
+    if( gosuClass.isStructure() )
+    {
+      return true;
+    }
+    if( membersNameAStructure( gosuClass.getTypeInfo() ) )
+    {
+      return true;
+    }
+    if( gosuClass instanceof IGosuEnhancement &&
+        IncrementalCompilationManager.namesAStructure( ((IGosuEnhancement)gosuClass).getEnhancedType() ) )
+    {
+      return true;
+    }
+    IGenericTypeVariable[] typeVariables = gosuClass.getGenericTypeVariables();
+    if( typeVariables != null )
+    {
+      for( IGenericTypeVariable typeVariable : typeVariables )
+      {
+        if( IncrementalCompilationManager.namesAStructure( typeVariable.getBoundingType() ) )
+        {
+          return true;
+        }
+      }
+    }
+    for( IConstructorInfo constructor : gosuClass.getTypeInfo().getDeclaredConstructors() )
+    {
+      if( !constructor.isPrivate() &&
+          IncrementalCompilationManager.namesAStructure( IncrementalCompilationManager.declaredTypes( constructor ) ) )
+      {
+        return true;
+      }
+    }
+    for( IType supertype : IncrementalCompilationManager.directSupertypes( type ) )
+    {
+      if( shouldTrackType( supertype ) && namesStructure( supertype ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Whether the declared type of a non-private property or method {@code typeInfo} declares names a structure. */
+  private static boolean membersNameAStructure( IRelativeTypeInfo typeInfo )
+  {
+    for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
+    {
+      if( !property.isPrivate() && IncrementalCompilationManager.namesAStructure( property.getFeatureType() ) )
+      {
+        return true;
+      }
+    }
+    for( IMethodInfo method : typeInfo.getDeclaredMethods() )
+    {
+      if( !method.isPrivate() &&
+          IncrementalCompilationManager.namesAStructure( IncrementalCompilationManager.declaredTypes( method ) ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Whether {@code type} is compiled in this project, so its surface can change without a classpath change. */
+  private boolean shouldTrackType( IType type )
+  {
+    return incrementalCompilationManager.shouldTrackType( incrementalCompilationManager.getClassFileName( type ) );
+  }
+
+  /**
+   * Adds, unsorted and each prefixed with {@code prefix}, a line for every non-private property and method
+   * {@code typeInfo} declares, and for every non-private constructor when {@code withConstructors} is set.
+   */
+  private static void addDeclaredMemberLines( IRelativeTypeInfo typeInfo, String prefix, boolean withConstructors,
+                                              List<String> lines )
+  {
+    for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
+    {
+      if( !property.isPrivate() )
+      {
+        lines.add( prefix + "property " + accessText( property ) + ' ' + property.getName() + " : " + typeText( property.getFeatureType() ) +
+                   (property.isReadable() ? " readable" : "") + (property.isWritable() ? " writable" : "") );
+        if( property.isStatic() && property instanceof ICompileTimeConstantValue )
+        {
+          ICompileTimeConstantValue constant = (ICompileTimeConstantValue)property;
+          if( constant.isCompileTimeConstantValue() )
+          {
+            lines.add( prefix + "const " + property.getName() +
+                       " : " + property.getFeatureType().getName() +
+                       " = " + quote( String.valueOf( (constant.doCompileTimeEvaluation()) ) ) );
+          }
+        }
+      }
+    }
+
+    for( IMethodInfo method : typeInfo.getDeclaredMethods() )
+    {
+      if( !method.isPrivate() )
+      {
+        lines.add( prefix + "method " + accessText( method ) + ' ' + method.getName() +
+                   parameterSurface( method.getParameters(), method ) + " : " + typeText( method.getReturnType() ) );
+      }
+    }
+
+    if( withConstructors )
+    {
+      for( IConstructorInfo constructor : typeInfo.getDeclaredConstructors() )
+      {
+        if( !constructor.isPrivate() )
+        {
+          lines.add( prefix + "constructor " + accessText( constructor ) + parameterSurface( constructor.getParameters(), constructor ) );
+        }
+      }
+    }
+  }
+
+  /**
+   * What the class itself is, beyond its class file: its Gosu modifiers, since gosuc writes a protected member
+   * class as public; the type an enhancement enhances, whose arguments reach the class file nowhere; and the declared variance of its type variables, which decides what its
+   * parameterizations are assignable to and which a class signature cannot express.
+   */
+  private static String typeHeader( IGosuClass gosuClass )
+  {
+    // Whether the class is a structure needs no line: a structure, and any class naming one, is not hashed.
+    StringBuilder header = new StringBuilder( "type " ).append( gosuClass.getModifiers() );
+    if( gosuClass instanceof IGosuEnhancement )
+    {
+      header.append( " enhances " ).append( typeText( ((IGosuEnhancement)gosuClass).getEnhancedType() ) );
+    }
+    IGenericTypeVariable[] typeVariables = gosuClass.getGenericTypeVariables();
+    if( typeVariables != null )
+    {
+      for( IGenericTypeVariable typeVariable : typeVariables )
+      {
+        ITypeVariableDefinition definition = typeVariable.getTypeVariableDefinition();
+        header.append( " typevar " ).append( typeVariable.getName() )
+          .append( ' ' ).append( definition == null ? "none" : String.valueOf( definition.getVariance() ) );
+        if( typeVariable.getBoundingType() != null )
+        {
+          header.append( " : " ).append( typeText( typeVariable.getBoundingType() ) );
+        }
+      }
+    }
+    return header.toString();
+  }
+
+  /** The Gosu access of a member, which gosuc does not always carry into the class file: it writes a protected enhancement member as public. */
+  private static String accessText( IAttributedFeatureInfo feature )
+  {
+    String access = feature.isPublic() ? "public" : feature.isProtected() ? "protected" : feature.isInternal() ? "internal" : "private";
+    return feature.isStatic() ? access + " static" : access;
+  }
+
+  /**
+   * {@code type} as Gosu sees it, which a descriptor or generic signature does not always tell apart: gosuc writes
+   * {@code dynamic.Dynamic} as Object, and a block type as an IFunctionN that carries neither its
+   * parameter names, which named arguments to the block bind against, nor its default values, which a call omitting
+   * the argument bakes. Type arguments, array components and the components of a compound type are rendered the same
+   * way, since a block type may sit inside any of them.
+   */
+  static String typeText( IType type )
+  {
+    if( type instanceof IFunctionType )
+    {
+      IFunctionType functionType = (IFunctionType)type;
+      IType[] parameterTypes = functionType.getParameterTypes();
+      String[] names = functionType.getParameterNames();
+      IExpression[] defaults = functionType.getDefaultValueExpressions();
+      StringBuilder text = new StringBuilder( "block(" );
+      for( int i = 0; i < parameterTypes.length; i++ )
+      {
+        if( i > 0 )
+        {
+          text.append( ", " );
+        }
+        if( names != null && i < names.length )
+        {
+          text.append( names[i] ).append( " : " );
+        }
+        text.append( typeText( parameterTypes[i] ) ).append( " = " ).append( defaultText( defaults, i ) );
+      }
+      return text.append( ") : " ).append( typeText( functionType.getReturnType() ) ).toString();
+    }
+    if( type.isArray() )
+    {
+      return typeText( type.getComponentType() ) + "[]";
+    }
+    if( type.isParameterizedType() )
+    {
+      StringBuilder text = new StringBuilder( typeText( type.getGenericType() ) ).append( '<' );
+      IType[] typeParameters = type.getTypeParameters();
+      for( int i = 0; i < typeParameters.length; i++ )
+      {
+        if( i > 0 )
+        {
+          text.append( ", " );
+        }
+        text.append( typeText( typeParameters[i] ) );
+      }
+      return text.append( '>' ).toString();
+    }
+    if( type.isCompoundType() )
+    {
+      List<String> components = new ArrayList<>();
+      for( IType component : type.getCompoundTypeComponents() )
+      {
+        components.add( typeText( component ) );
+      }
+      Collections.sort( components );
+      return String.join( " & ", components );
+    }
+    return type.getName();
+  }
+
+  /**
    * {@code (types) names=[...] defaults=[...]} for one method or constructor. Parameter types
    * make the line unique per overload.
    */
-  private static String parameterSurface( IParameterInfo[] parameters, IOptionalParamCapable optional )
+  private static String parameterSurface( IParameterInfo[] parameters, IFeatureInfo feature )
   {
     StringBuilder out = new StringBuilder( "(" );
     for( IParameterInfo parameter : parameters )
     {
-      out.append( " " ).append( parameter.getFeatureType().getName() );
+      out.append( " " ).append( typeText( parameter.getFeatureType() ) );
     }
-    out.append( ") names=" ).append( Arrays.toString( optional.getParameterNames() ) ).append( " defaults=[" );
-    // A parameter without a default renders as "none" whether the array carries a null entry for it or, as
-    // IOptionalParamCapable also allows, is empty; an explicit `= null` default is a NullExpression and renders
-    // as "null". The two must differ: a caller may omit the argument only in the second case. The sentinel is
-    // left unquoted, so an expression whose own text is `none` renders as `'none'` and stays distinct from it.
-    IExpression[] defaults = optional.getDefaultValueExpressions();
-    for( int i = 0; i < parameters.length; i++ )
+    out.append( ')' );
+    if( feature instanceof IOptionalParamCapable )
     {
-      String defaultValue = "none";
-      if( defaults != null && i < defaults.length && defaults[i] != null )
+      IOptionalParamCapable optional = (IOptionalParamCapable)feature;
+      out.append( " names=" ).append( Arrays.toString( optional.getParameterNames() ) ).append( " defaults=[" );
+      IExpression[] defaults = optional.getDefaultValueExpressions();
+      for( int i = 0; i < parameters.length; i++ )
       {
-        defaultValue = quote( String.valueOf( defaults[i] ) );
+        out.append( " " ).append( defaultText( defaults, i ) );
       }
-      out.append( " " ).append( defaultValue );
+      out.append( ']' );
     }
-    return out.append( ']' ).toString();
+    return out.toString();
+  }
+
+  /**
+   * The default value of parameter {@code i}, as a caller that omits the argument bakes it. A default must be a
+   * compile-time constant, and the call site carries its evaluated value (DefaultArgLiteral), not its expression:
+   * the expression's text alone does not move when it names a constant whose value changed, private or declared
+   * elsewhere, so the value is rendered after the text.
+   *
+   * <p>A parameter without a default renders as "none" whether the array carries a null entry for it or, as
+   * IOptionalParamCapable also allows, is empty; an explicit {@code = null} default is a NullExpression and renders
+   * as {@code 'null' = null}. The two must differ: a caller may omit the argument only in the second case. The
+   * sentinel is left unquoted, so an expression whose own text is {@code none} stays distinct from it.
+   */
+  private static String defaultText( IExpression[] defaults, int i )
+  {
+    if( defaults == null || i >= defaults.length || defaults[i] == null )
+    {
+      return "none";
+    }
+    return quote( String.valueOf( defaults[i] ) ) + " = " + valueText( defaults[i].evaluate() );
+  }
+
+  /**
+   * An evaluated constant: unquoted {@code null} for null, which no quoted value can spell; array elements one by one,
+   * so a null element and the string "null" differ; and otherwise the value's class and quoted text, so the int 1 and
+   * the string "1" differ.
+   */
+  private static String valueText( Object value )
+  {
+    if( value == null )
+    {
+      return "null";
+    }
+    if( value.getClass().isArray() )
+    {
+      StringBuilder text = new StringBuilder( "{" );
+      for( int i = 0; i < Array.getLength( value ); i++ )
+      {
+        text.append( valueText( Array.get( value, i ) ) ).append( ", " );
+      }
+      return text.append( '}' ).toString();
+    }
+    if( value instanceof IType )
+    {
+      return "type " + typeText( (IType)value );
+    }
+    return value.getClass().getName() + ' ' + quote( value.toString() );
   }
 
 
@@ -472,7 +799,7 @@ class DependenciesClassVisitor extends ClassVisitor
   public AnnotationVisitor visitAnnotation( String desc, boolean visible )
   {
     maybeAddDependentType( Type.getType( desc ) );
-    return new DepAnnotationVisitor( abiAnnotations, desc, visible, isClassPrivate, null );
+    return new DepAnnotationVisitor( abiAnnotations, desc, visible, false, null );
   }
 
   @Override
@@ -480,7 +807,7 @@ class DependenciesClassVisitor extends ClassVisitor
   {
     // A type annotation on the class declaration itself: on a supertype or a type parameter.
     maybeAddDependentType( Type.getType( descriptor ) );
-    return new DepAnnotationVisitor( abiAnnotations, typeAnnotationText( typeRef, typePath, descriptor ), visible, isClassPrivate, null );
+    return new DepAnnotationVisitor( abiAnnotations, typeAnnotationText( typeRef, typePath, descriptor ), visible, false, null );
   }
 
   @Override
@@ -535,12 +862,6 @@ class DependenciesClassVisitor extends ClassVisitor
   public String getAbiHash()
   {
     return abiHash;
-  }
-
-  /** The bytecode-shape FQCN of the class being visited, i.e. the consumer side of every edge it records. */
-  public String getConsumerFqcn()
-  {
-    return consumerFqcn;
   }
 
   private class DepFieldVisitor extends FieldVisitor
