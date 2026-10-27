@@ -3,12 +3,34 @@ package gw.internal.gosu.incremental;
 import gw.internal.ext.com.google.gson.stream.JsonReader;
 import gw.internal.ext.com.google.gson.stream.JsonWriter;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.internal.gosu.parser.expressions.Identifier;
+import gw.internal.gosu.parser.expressions.MemberAccess;
+import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.lang.IIncrementalCompilationManager;
+import gw.lang.parser.IExpression;
+import gw.lang.parser.IParsedElement;
+import gw.lang.parser.expressions.IBeanMethodCallExpression;
+import gw.lang.parser.expressions.IImplicitTypeAsExpression;
+import gw.lang.parser.expressions.IMethodCallExpression;
+import gw.lang.parser.expressions.INewExpression;
+import gw.lang.parser.expressions.ITypeAsExpression;
 import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.statements.IClassStatement;
+import gw.lang.reflect.IConstructorInfo;
+import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IFunctionType;
+import gw.lang.reflect.IGenericMethodInfo;
+import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IParameterInfo;
+import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.IPropertyInfoDelegate;
+import gw.lang.reflect.IRelativeTypeInfo;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.gs.GosuClassTypeLoader;
+import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.java.ICompileTimeConstantValue;
 import gw.lang.reflect.java.IJavaType;
 
 import java.io.File;
@@ -20,6 +42,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,15 +61,17 @@ import java.util.TreeMap;
  */
 public class IncrementalCompilationManager implements IIncrementalCompilationManager
 {
-  public static final String DEPENDENCY_VERSION = "0.1";  // Still in alpha
+  public static final String DEPENDENCY_VERSION = "0.2";  // Still in alpha
 
   // Dep-file field names, shared by the reader and the writer so the two cannot drift.
   private static final String FIELD_VERSION = "version";
   private static final String FIELD_CONSUMERS = "consumers";
 
   private final String dependencyFilePath;
-  private final Map<String, Set<String>> typeDependencies;
-  private final Map<String, Set<String>> currentUsedBy;
+  // The graph as persisted by the previous build. Empty when no usable file was loaded.
+  private Map<String, Set<String>> typeDependencies;
+  private final Map<String, Set<String>> currTypeDependencies;
+  private final boolean validDepFile;
   private final boolean verbose;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
@@ -70,9 +95,16 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     this.sourceRoots = roots;
     this.localJavaTypes = localJavaTypes;
     this.verbose = verbose;
-    this.typeDependencies = loadDependencyFile();
-    this.currentUsedBy = new HashMap<>();
+    this.typeDependencies = new HashMap<>();
+    this.validDepFile = loadDependencyFile();
+    this.currTypeDependencies = new HashMap<>();
     this.gosuFqcnToSourcePath = buildGosuFqcnToSourcePath( allSourceFiles );
+  }
+
+  @Override
+  public boolean hasValidExistingDepFile()
+  {
+    return validDepFile;
   }
 
   @Override
@@ -81,7 +113,48 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     ClassReader reader = new ClassReader( bytes );
     DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this );
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
-    trackTypeliteralsFromAST( gosuClass );
+    recordEdgesFromAST( gosuClass );
+    recordLocalJavaAncestorEdges( gosuClass, getClassFileName( gosuClass ), new HashSet<>() );
+  }
+
+  /**
+   * Records an edge to {@code consumerFqcn} from every local Java ancestor of {@code type} reached through local Java
+   * types alone. Like the type-literal edges, it comes from type info rather than the class file. A class file names
+   * only its direct supertype, and the graph records no edges between Java types, since gosuc compiles no Java. So
+   * when {@code JBase} changes under {@code Mid extends JMid extends JBase}, Gradle reports {@code JBase} alone, as
+   * {@code JMid}'s class file does not change, and nothing in the graph leads from {@code JBase} to {@code Mid}. The
+   * edge brings {@code Mid} into the walk, and from there the change reaches {@code Mid}'s subclasses and consumers.
+   * The walk stops at a Gosu ancestor, which needs no such edge, nor do the Java types above it: the walk compiles it,
+   * it has its own edges from its own Java ancestors, and each Gosu subclass is a consumer of its direct supertype, so
+   * the change goes down the chain one link at a time. Recorded for private classes too: their callers sit in the same
+   * source, which names only the private class, so without the edge nothing would bring that source into the walk.
+   */
+  private void recordLocalJavaAncestorEdges( IType type, String consumerFqcn, Set<String> visited )
+  {
+    for( IType supertype : directSupertypes( type ) )
+    {
+      String supertypeFqcn = getClassFileName( supertype );
+      if( !(supertype instanceof IGosuClass) && shouldTrackType( supertypeFqcn ) && visited.add( supertypeFqcn ) )
+      {
+        recordTypeDependency( supertypeFqcn, consumerFqcn );
+        recordLocalJavaAncestorEdges( supertype, consumerFqcn, visited );
+      }
+    }
+  }
+
+  /** The superclass, if any, followed by the interfaces of {@code type} in declaration order. */
+  static List<IType> directSupertypes( IType type )
+  {
+    List<IType> supertypes = new ArrayList<>();
+    if( type.getSupertype() != null )
+    {
+      supertypes.add( type.getSupertype() );
+    }
+    if( type.getInterfaces() != null )
+    {
+      supertypes.addAll( Arrays.asList( type.getInterfaces() ) );
+    }
+    return supertypes;
   }
 
   public String getClassFileName( IType type )
@@ -133,7 +206,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * but still descend into their compound structure.
    *
    * <p>{@code trackedTypes} is a shared dedup set across one
-   * {@link #trackTypeliteralsFromAST} invocation -- prevents redundant work and
+   * {@link #recordEdgesFromAST} invocation -- prevents redundant work and
    * guards against cyclic generic signatures (e.g. {@code class C<T extends C<T>>}).
    * Caller owns the set.
    *
@@ -192,9 +265,19 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
   /**
    * Narrow AST pass over {@code gsClass}'s class statement that records dep edges for
-   * compile-time-only type references the bytecode walk can't see (ex.
-   * {@link ITypeLiteralExpression} nodes form of type references in
-   * Gosu source stemming from compile time only expressions or feature literals).
+   * compile-time-only references the bytecode walk can't see:
+   * <ul>
+   *   <li>{@link ITypeLiteralExpression} nodes, type references in Gosu source stemming from
+   *       compile time only expressions or feature literals;</li>
+   *   <li>compile-time constants, which gosuc folds into string concatenations, int switch cases,
+   *       annotation arguments and default arguments, leaving no reference to the type declaring
+   *       them. A type literal covers a constant named through its declaring type, but not one
+   *       inherited and named unqualified or through a subtype, nor one imported as a feature
+   *       ({@code uses Base#FOO}), so the declaring type is recorded here;</li>
+   *   <li>what a value passed where a structure is expected offers, and what a type argument
+   *       checked against a type variable bounded by a structure offers; see
+   *       {@link #trackStructuralArgument} and {@link #trackTypeArgumentsBoundedByStructures}.</li>
+   * </ul>
    * The bytecode walk in {@link DependenciesClassVisitor} handles every
    * type reference that survives into the class file; this pass is the supplement.
    *
@@ -203,7 +286,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * Those nested compiled units get their own invocation of this method via
    * {@code populateGosuClassFile}'s recursion over {@code getInnerClasses()}.
    */
-  private void trackTypeliteralsFromAST( IGosuClass gsClass )
+  private void recordEdgesFromAST( IGosuClass gsClass )
   {
     String consumerFqcn = getClassFileName( gsClass );
     IClassStatement classStmt = gsClass.getClassStatementWithoutCompile();
@@ -213,12 +296,13 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       throw new IllegalStateException( "Expecting a class statement for this Gosu Class: " + gsClass.getName() );
     }
     Set<IType> trackedTypes = new HashSet<>();
+    Set<IType> structuralArguments = new HashSet<>();
     classStmt.visit( element -> {
       if( element.getGosuClass() != gsClass )
       {
         // This element belong to an inner class / block. We are interested about elements (ex type literals)
         // that are consumed by gsClass, not by other inner classes / blocks.
-        // The inner classes / blocks will be traversed by another call to trackTypeliteralsFromAST.
+        // The inner classes / blocks will be traversed by another call to recordEdgesFromAST.
         return;
       }
 
@@ -227,14 +311,404 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
         ITypeLiteralExpression typeLiteral = (ITypeLiteralExpression)element;
         IType referencedType = typeLiteral.getType().getType();
         trackTypeLiteralDependency( consumerFqcn, referencedType, trackedTypes );
+        trackTypeArgumentsBoundedByStructures( consumerFqcn, referencedType, trackedTypes, structuralArguments );
+      }
+      IType constantDeclaringType = constantDeclaringType( element );
+      if( constantDeclaringType != null )
+      {
+        trackTypeLiteralDependency( consumerFqcn, constantDeclaringType, trackedTypes );
+      }
+      IFeatureInfo invokedFeature = invokedFeature( element );
+      if( invokedFeature != null && namesAStructure( parameterTypes( invokedFeature ) ) )
+      {
+        for( IExpression argument : arguments( element ) )
+        {
+          trackStructuralArgument( consumerFqcn, argumentType( argument ), trackedTypes, structuralArguments );
+        }
+      }
+      if( element instanceof ITypeAsExpression && namesAStructure( ((ITypeAsExpression)element).getType() ) )
+      {
+        IExpression value = ((ITypeAsExpression)element).getLHS();
+        trackStructuralArgument( consumerFqcn, argumentType( value ), trackedTypes, structuralArguments );
       }
     } );
   }
 
   /**
-   * Load existing dependency data from file
+   * Follows what every type argument of {@code type} offers whose type variable is bounded by a structure (see
+   * {@link #trackStructuralArgument}), nested type arguments and array components included. gosuc checks a type
+   * argument against its variable's bound wherever the parameterized type is written: with
+   * {@code class Holder<T extends Named>}, {@code new Holder<Rec>()} and {@code var h : Holder<Rec>} compile only while
+   * {@code Rec} fits {@code Named}, and no call or coercion is involved (pinned by
+   * {@code testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureReachesTheClassWritingIt}).
    */
-  private Map<String, Set<String>> loadDependencyFile()
+  private void trackTypeArgumentsBoundedByStructures( String consumerFqcn, IType type, Set<IType> trackedTypes,
+                                                      Set<IType> structuralArguments )
+  {
+    if( type == null )
+    {
+      return;
+    }
+    if( type.isArray() )
+    {
+      trackTypeArgumentsBoundedByStructures( consumerFqcn, type.getComponentType(), trackedTypes, structuralArguments );
+      return;
+    }
+    if( !type.isParameterizedType() )
+    {
+      return;
+    }
+    IType[] typeArguments = type.getTypeParameters();
+    IGenericTypeVariable[] typeVariables = type.getGenericType().getGenericTypeVariables();
+    for( int i = 0; i < typeArguments.length; i++ )
+    {
+      if( typeVariables != null && i < typeVariables.length && namesAStructure( typeVariables[i].getBoundingType() ) )
+      {
+        trackStructuralArgument( consumerFqcn, typeArguments[i], trackedTypes, structuralArguments );
+      }
+      trackTypeArgumentsBoundedByStructures( consumerFqcn, typeArguments[i], trackedTypes, structuralArguments );
+    }
+  }
+
+  /**
+   * {@code type} is used where a structure is expected, so {@code type} and every in-project type it names, directly
+   * or indirectly, get an edge to where it is used, {@code consumerFqcn}: a change to any of them could invalidate
+   * the fact that {@code type} fits the structure, so the consumer must be recompiled. "Names" means through the
+   * declared types of its non-private members, its supertypes and its type arguments, and theirs in turn; a type
+   * variable stands for its bound, and a compound type for its components.
+   *
+   * <p>For example, {@code Named} asks for a {@code sized() : Sized}, and {@code Caller} passes a {@code Rec} whose
+   * {@code sized()} returns a {@code RecSized}: {@code Rec} fits {@code Named} only while {@code RecSized} fits
+   * {@code Sized}, so {@code RecSized -> Caller} is recorded. With local Java types nothing else would bring
+   * {@code Caller} into the walk: the graph has no edges between Java types, which gosuc never compiles, so when
+   * {@code JRecSized} changes, Gradle reports it alone and nothing leads from it to {@code Caller} (pinned by
+   * {@code testChangeToALocalJavaMemberTypeOfAJavaArgumentReachesCallersPassingItForAStructure}). With Gosu types
+   * the edge is direct where the graph would otherwise reach {@code Caller} only through {@code RecSized -> Rec ->
+   * Caller} (pinned by {@code testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure}).
+   *
+   * <p>The source compiled, so {@code type} does fit the structure; which members the structure asks for is not
+   * worked out, and every member is followed, which only adds edges. Private members are skipped: a fit seen from
+   * another source cannot use them, and a class in the same source is compiled with it. The walk stops at a
+   * structure, whose own changes reach {@code consumerFqcn} through the classes naming it, and at a type outside the
+   * project, which changes only with the classpath.
+   *
+   * @param visited per-walk set of the types already followed
+   */
+  private void trackStructuralArgument( String consumerFqcn, IType type, Set<IType> trackedTypes, Set<IType> visited )
+  {
+    if( type == null || type.isPrimitive() || !visited.add( type ) )
+    {
+      return;
+    }
+    if( type.isArray() )
+    {
+      trackStructuralArgument( consumerFqcn, type.getComponentType(), trackedTypes, visited );
+      return;
+    }
+    if( type.isParameterizedType() )
+    {
+      trackStructuralArgument( consumerFqcn, type.getGenericType(), trackedTypes, visited );
+      for( IType typeArgument : type.getTypeParameters() )
+      {
+        trackStructuralArgument( consumerFqcn, typeArgument, trackedTypes, visited );
+      }
+      return;
+    }
+    if( type instanceof ITypeVariableType )
+    {
+      // A value typed T extends Rec offers what Rec does.
+      trackStructuralArgument( consumerFqcn, ((ITypeVariableType)type).getBoundingType(), trackedTypes, visited );
+      return;
+    }
+    if( type.isCompoundType() )
+    {
+      for( IType component : type.getCompoundTypeComponents() )
+      {
+        trackStructuralArgument( consumerFqcn, component, trackedTypes, visited );
+      }
+      return;
+    }
+    if( !(type instanceof IJavaType || type instanceof IGosuClass) || !shouldTrackType( getClassFileName( type ) ) )
+    {
+      return;
+    }
+    trackTypeLiteralDependency( consumerFqcn, type, trackedTypes );
+    if( type instanceof IGosuClass && ((IGosuClass)type).isStructure() )
+    {
+      return;
+    }
+    // Every tracked type, Gosu or local Java, has relative type info.
+    IRelativeTypeInfo typeInfo = (IRelativeTypeInfo)type.getTypeInfo();
+    for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
+    {
+      if( !property.isPrivate() )
+      {
+        trackStructuralArgument( consumerFqcn, property.getFeatureType(), trackedTypes, visited );
+      }
+    }
+    for( IMethodInfo method : typeInfo.getDeclaredMethods() )
+    {
+      if( !method.isPrivate() )
+      {
+        for( IType declaredType : declaredTypes( method ) )
+        {
+          trackStructuralArgument( consumerFqcn, declaredType, trackedTypes, visited );
+        }
+      }
+    }
+    for( IType supertype : directSupertypes( type ) )
+    {
+      trackStructuralArgument( consumerFqcn, supertype, trackedTypes, visited );
+    }
+  }
+
+  /** The arguments {@code element} passes to the member it invokes: a call's arguments, or the value a property write assigns. */
+  private static List<IExpression> arguments( IParsedElement element )
+  {
+    IExpression[] args = null;
+    if( element instanceof IBeanMethodCallExpression )
+    {
+      args = ((IBeanMethodCallExpression)element).getArgs();
+    }
+    else if( element instanceof IMethodCallExpression )
+    {
+      args = ((IMethodCallExpression)element).getArgs();
+    }
+    else if( element instanceof INewExpression )
+    {
+      args = ((INewExpression)element).getArgs();
+    }
+    else if( element instanceof MemberAssignmentStatement )
+    {
+      args = new IExpression[] { ((MemberAssignmentStatement)element).getExpression() };
+    }
+    return args == null ? Collections.emptyList() : Arrays.asList( args );
+  }
+
+  /** The type of the value {@code expression} produces before the parser coerces it to the type it is passed as. */
+  private static IType argumentType( IExpression expression )
+  {
+    while( expression instanceof IImplicitTypeAsExpression )
+    {
+      expression = ((IImplicitTypeAsExpression)expression).getLHS();
+    }
+    return expression == null ? null : expression.getType();
+  }
+
+  /** The types {@code feature} expects its arguments as: a method's or constructor's parameter types, a property's type. */
+  private static List<IType> parameterTypes( IFeatureInfo feature )
+  {
+    List<IType> types = new ArrayList<>();
+    IParameterInfo[] parameters = feature instanceof IMethodInfo ? ((IMethodInfo)feature).getParameters()
+                                  : feature instanceof IConstructorInfo ? ((IConstructorInfo)feature).getParameters()
+                                  : null;
+    if( parameters != null )
+    {
+      for( IParameterInfo parameter : parameters )
+      {
+        types.add( parameter.getFeatureType() );
+      }
+    }
+    else if( feature instanceof IPropertyInfo )
+    {
+      types.add( ((IPropertyInfo)feature).getFeatureType() );
+    }
+    return types;
+  }
+
+  /** The method or constructor {@code element} calls, or the property it writes, or null if it does neither. */
+  private static IFeatureInfo invokedFeature( IParsedElement element )
+  {
+    if( element instanceof IBeanMethodCallExpression )
+    {
+      // The generic method, not its parameterization for this call, so a type variable keeps its bound.
+      IBeanMethodCallExpression call = (IBeanMethodCallExpression)element;
+      return call.getGenericMethodDescriptor() != null ? call.getGenericMethodDescriptor() : call.getMethodDescriptor();
+    }
+    if( element instanceof IMethodCallExpression )
+    {
+      IFunctionType functionType = ((IMethodCallExpression)element).getFunctionType();
+      return functionType == null ? null : functionType.getMethodOrConstructorInfo();
+    }
+    if( element instanceof INewExpression )
+    {
+      return ((INewExpression)element).getConstructor();
+    }
+    if( element instanceof MemberAssignmentStatement )
+    {
+      MemberAccess memberAccess = ((MemberAssignmentStatement)element).getMemberAccess();
+      return memberAccess == null ? null : memberAccess.getPropertyInfoWithoutThrowing();
+    }
+    return null;
+  }
+
+  /**
+   * The types {@code feature} declares, as a descriptor would name them but unerased: a method's parameter and return
+   * types and its type variables' bounds, a constructor's parameter types, a property's type.
+   */
+  static List<IType> declaredTypes( IFeatureInfo feature )
+  {
+    List<IType> types = new ArrayList<>();
+    if( feature instanceof IMethodInfo )
+    {
+      IMethodInfo method = (IMethodInfo)feature;
+      for( IParameterInfo parameter : method.getParameters() )
+      {
+        types.add( parameter.getFeatureType() );
+      }
+      types.add( method.getReturnType() );
+      if( method instanceof IGenericMethodInfo && ((IGenericMethodInfo)method).getTypeVariables() != null )
+      {
+        for( IGenericTypeVariable typeVariable : ((IGenericMethodInfo)method).getTypeVariables() )
+        {
+          types.add( typeVariable.getBoundingType() );
+        }
+      }
+    }
+    else if( feature instanceof IConstructorInfo )
+    {
+      for( IParameterInfo parameter : ((IConstructorInfo)feature).getParameters() )
+      {
+        types.add( parameter.getFeatureType() );
+      }
+    }
+    else if( feature instanceof IPropertyInfo )
+    {
+      types.add( ((IPropertyInfo)feature).getFeatureType() );
+    }
+    return types;
+  }
+
+  /** Whether any of {@code types} names a structure (see {@link #namesAStructure(IType)}). */
+  static boolean namesAStructure( Iterable<IType> types )
+  {
+    for( IType type : types )
+    {
+      if( namesAStructure( type ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Whether {@code type} names a structure: is one, or has one inside a block type, an array, a type argument, a
+   * compound type or a type variable's bound. The walk covers the type as written, never the members of the types it
+   * names, and stops at the first structure it finds.
+   */
+  static boolean namesAStructure( IType type )
+  {
+    return namesAStructure( type, null );
+  }
+
+  private static boolean namesAStructure( IType type, Set<IType> visitedTypeVariables )
+  {
+    if( type == null )
+    {
+      return false;
+    }
+    if( type instanceof IFunctionType )
+    {
+      for( IType parameterType : ((IFunctionType)type).getParameterTypes() )
+      {
+        if( namesAStructure( parameterType, visitedTypeVariables ) )
+        {
+          return true;
+        }
+      }
+      return namesAStructure( ((IFunctionType)type).getReturnType(), visitedTypeVariables );
+    }
+    if( type.isArray() )
+    {
+      return namesAStructure( type.getComponentType(), visitedTypeVariables );
+    }
+    if( type.isParameterizedType() )
+    {
+      if( namesAStructure( type.getGenericType(), visitedTypeVariables ) )
+      {
+        return true;
+      }
+      for( IType typeParameter : type.getTypeParameters() )
+      {
+        if( namesAStructure( typeParameter, visitedTypeVariables ) )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+    if( type.isCompoundType() )
+    {
+      for( IType component : type.getCompoundTypeComponents() )
+      {
+        if( namesAStructure( component, visitedTypeVariables ) )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+    if( type instanceof ITypeVariableType )
+    {
+      // A bound may name its own variable, as in T extends Comparable<T>. The set is made only once a variable is met.
+      Set<IType> visited = visitedTypeVariables == null ? new HashSet<>() : visitedTypeVariables;
+      return visited.add( type ) && namesAStructure( ((ITypeVariableType)type).getBoundingType(), visited );
+    }
+    return type instanceof IGosuClass && ((IGosuClass)type).isStructure();
+  }
+
+  /**
+   * The type declaring the compile-time constant {@code element} names, or null if it names none: a Gosu static final
+   * field named unqualified, possibly inherited or imported as a feature; or a constant named through a type, possibly
+   * a subtype of the one declaring it. The second matters for a Java constant named through a Java subclass where gosuc
+   * folds it, in an annotation argument or a switch case: when the declaring class changes, Gradle reports it alone,
+   * and the consumer names only the subclass.
+   */
+  private static IType constantDeclaringType( IParsedElement element )
+  {
+    if( element instanceof Identifier )
+    {
+      Identifier identifier = (Identifier)element;
+      if( identifier.isStaticFinalInitializedCompileTimeConstant() )
+      {
+        return identifier.getSymbol().getGosuClass();
+      }
+    }
+    else if( element instanceof MemberAccess )
+    {
+      MemberAccess memberAccess = (MemberAccess)element;
+      if( memberAccess.isCompileTimeConstant() )
+      {
+        return compileTimeConstantOwner( memberAccess.getCompileTimePropertyInfo() );
+      }
+    }
+    return null;
+  }
+
+  /** The type declaring {@code property} if it is a static compile-time constant, null otherwise. */
+  private static IType compileTimeConstantOwner( IPropertyInfo property )
+  {
+    // Unwrap as MemberAccess.isCompileTimeConstant does, so this sees the property the compiler folded.
+    while( property instanceof IPropertyInfoDelegate )
+    {
+      property = ((IPropertyInfoDelegate)property).getSource();
+    }
+    if( property != null && property.isStatic() && property instanceof ICompileTimeConstantValue &&
+        ((ICompileTimeConstantValue)property).isCompileTimeConstantValue() )
+    {
+      return property.getOwnersType();
+    }
+    return null;
+  }
+
+  /**
+   * Load the dependency graph from the dependency file into {@link #typeDependencies}.
+   *
+   * @return whether a usable file was loaded; {@code false} leaves the graph empty and means
+   *         the driver must compile everything (see {@link #hasValidExistingDepFile()})
+   */
+  private boolean loadDependencyFile()
   {
     File depFile = new File( dependencyFilePath );
     if( !depFile.exists() )
@@ -243,7 +717,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       {
         System.out.println( "No existing dependency file found at: " + dependencyFilePath );
       }
-      return new HashMap<>();
+      return false;
     }
 
     try (JsonReader reader = new JsonReader(
@@ -271,19 +745,20 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
       if( DEPENDENCY_VERSION.equals( version ) && consumersSet != null )
       {
-        return consumersSet;
+        typeDependencies = consumersSet;
+        return true;
       }
       if( verbose )
       {
-        System.out.println( "Dependency file version mismatch, starting fresh" );
+        System.out.println( "Dependency file is not version " + DEPENDENCY_VERSION +
+                            " or is incomplete; compiling everything to regenerate it" );
       }
-      return new HashMap<>();
     }
     catch( IOException | IllegalStateException e )
     {
       System.err.println( "Error loading dependency file: " + e.getMessage() );
-      return new HashMap<>();
     }
+    return false;
   }
 
   /**
@@ -313,7 +788,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   /**
-   * Apply this session's tracked dependencies ({@code currentUsedBy}) to the in-memory
+   * Apply this session's tracked dependencies ({@code currTypeDependencies}) to the in-memory
    * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
    * Does NOT write to disk. Callers that need persistence should use
    * {@link #updateDependencyFile(Set, Set)} instead.
@@ -336,11 +811,11 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       consumers.removeAll( removedTypes );
     }
 
-    // currentUsedBy has refreshed producers each one of them pointing to recomputed consumers resulting from the
+    // currTypeDependencies has refreshed producers each one of them pointing to recomputed consumers resulting from the
     // recompilation of typeFqcnsToCompile.
     // For each refreshed producer merge its consumers with the ones of the corresponding old producer so that the old
     // producer is now up to date.
-    for( Map.Entry<String, Set<String>> entry : currentUsedBy.entrySet() )
+    for( Map.Entry<String, Set<String>> entry : currTypeDependencies.entrySet() )
     {
       String refreshedProducer = entry.getKey();
       Set<String> refreshedConsumers = entry.getValue();
@@ -348,7 +823,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       typeDependencies.computeIfAbsent( refreshedProducer, k -> new HashSet<>() ).addAll( refreshedConsumers );
     }
     // Content no longer needed and now stale.
-    currentUsedBy.clear();
+    currTypeDependencies.clear();
   }
 
   @Override
@@ -447,7 +922,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    */
   public Set<String> getOrCreateCurrentConsumerSet( String producerFqcn )
   {
-    return currentUsedBy.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
+    return currTypeDependencies.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
   }
 
   /**

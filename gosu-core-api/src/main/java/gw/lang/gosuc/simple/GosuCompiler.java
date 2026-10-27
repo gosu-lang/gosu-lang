@@ -105,14 +105,9 @@ public class GosuCompiler implements IGosuCompiler
 
     _incrementalManager = GosuShop.createIncrementalCompilationManager( options.getDependencyFile(), sourceRoots,
                                                                         options.getLocalJavaTypes(), allSourceFiles, options.isVerbose() );
-    // A missing dep file is the only signal meaning "compile everything", so a driver wanting a full
-    // rebuild must delete it -- supplying no -changed-types/-removed-types is not enough, as that is
-    // indistinguishable from an incremental round whose cascade came out empty, which must compile
-    // nothing. The Gradle plugin deletes it in GosuCompile: declaring it an @OutputFile does not
-    // guarantee Gradle removes it first.
-    if( !new File( options.getDependencyFile() ).exists() )
+    if( !_incrementalManager.hasValidExistingDepFile() )
     {
-      // First incremental compilation: compile all source files to build initial dependency file.
+      // Compile all source files to build the dependency file from scratch.
       if( options.isVerbose() )
       {
         System.out.println( "Initial incremental compilation: compiling all " + allSourceFiles.size() + " source files" );
@@ -128,6 +123,16 @@ public class GosuCompiler implements IGosuCompiler
     }
 
     return compileGosuIncrementally( options, driver );
+  }
+
+  /** Puts {@code type} on the worklist unless the walk has already seen it. */
+  private static void enqueueType( String type, Set<String> visited, Queue<String> worklist )
+  {
+    if( !visited.contains( type ) )
+    {
+      visited.add( type );
+      worklist.add( type );
+    }
   }
 
   private boolean compileGosuIncrementally( CommandLineOptions options, ICompilerDriver driver )
@@ -155,19 +160,11 @@ public class GosuCompiler implements IGosuCompiler
     // Seed the worklist with the union of changed and removed types.
     for( String changedType : changedTypes )
     {
-      if( !visited.contains( changedType ) )
-      {
-        visited.add( changedType );
-        worklist.add( changedType );
-      }
+      enqueueType( changedType, visited, worklist );
     }
     for( String removedType : removedTypes )
     {
-      if( !visited.contains( removedType ) )
-      {
-        visited.add( removedType );
-        worklist.add( removedType );
-      }
+      enqueueType( removedType, visited, worklist );
     }
 
     /*
@@ -219,11 +216,7 @@ public class GosuCompiler implements IGosuCompiler
       Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
       for( String consumer : consumers )
       {
-        if( !visited.contains( consumer ) )
-        {
-          visited.add( consumer );
-          worklist.add( consumer );
-        }
+        enqueueType( consumer, visited, worklist );
       }
     }
 

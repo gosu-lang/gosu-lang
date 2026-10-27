@@ -434,7 +434,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initialResult = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed", initialResult.success );
 
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -472,7 +472,7 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( util )
     );
 
-    depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    depFileContent = readDepFile();
     assertEquals("Dep file should match the expected one", expectedDepFile, depFileContent );
 
     Map<String, FileTime> afterTimestamps = recordTimestamps();
@@ -510,7 +510,7 @@ public class IncrementalCompilationEndToEndIT
     // Initial compilation
     CompileResult initialResult = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed", initialResult.success );
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -871,7 +871,7 @@ public class IncrementalCompilationEndToEndIT
         {
           try
           {
-            String depContent = new String( java.nio.file.Files.readAllBytes( dependencyFile.toPath() ) );
+            String depContent = readDepFile();
             System.out.println( "Dependency file contents: " + depContent );
           }
           catch( Exception e )
@@ -910,8 +910,10 @@ public class IncrementalCompilationEndToEndIT
     {
       throw new IllegalStateException( "No system Java compiler available (tests must run on a JDK)" );
     }
+    // classesOutDir is on the classpath so a dummy type can extend one compiled before it.
     int rc = compiler.run( null, null, null,
                            "-d", classesOutDir.toAbsolutePath().toString(),
+                           "-classpath", classesOutDir.toAbsolutePath().toString(),
                            javaFile.toAbsolutePath().toString() );
     if( rc != 0 )
     {
@@ -951,6 +953,12 @@ public class IncrementalCompilationEndToEndIT
         }
       } );
     return timestamps;
+  }
+
+  /** The dependency file as the golden assertions compare it: its whole content, trimmed. */
+  private String readDepFile() throws IOException
+  {
+    return Files.readString( dependencyFile.toPath() ).trim();
   }
 
   @Test
@@ -1018,7 +1026,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 5: Verify dependency tracking in JSON file
-    String depsContent = new String( Files.readAllBytes( dependencyFile.toPath() ) );
+    String depsContent = readDepFile();
 
     // Check that PersonEnhancement depends on Person (v2 format uses FQCNs)
     assertTrue( "PersonEnhancement should depend on Person",
@@ -1114,7 +1122,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Compilation should succeed: " + result.error, result.success );
 
     // Read and parse dependency JSON
-    String depsContent = new String( Files.readAllBytes( dependencyFile.toPath() ) );
+    String depsContent = readDepFile();
 
     // Debug: Check what's actually in the JSON (v2 uses FQCNs, not file paths)
     System.out.println( "=== DETAILED JSON ANALYSIS ===" );
@@ -1311,7 +1319,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Compilation should succeed", result.success );
 
     // Verify exact dependency JSON structure
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
 
     String expectedDeps =
       "{\n" +
@@ -1481,7 +1489,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 4: Verify dependency file has only "Outer" entry, not "Outer.Inner"
-    String depsContent = Files.readString( dependencyFile.toPath() );
+    String depsContent = readDepFile();
 
     assertTrue( "Dependency file should contain Outer class",
                 depsContent.contains( "example.Outer" ) );
@@ -1573,7 +1581,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Step 4: Verify dependency file has only "RegionsUIHelper" entry
-    String depsContent = Files.readString( dependencyFile.toPath() );
+    String depsContent = readDepFile();
 
     assertTrue( "Dependency file should contain RegionsUIHelper",
                 depsContent.contains( "example.RegionsUIHelper" ) );
@@ -2136,7 +2144,7 @@ public class IncrementalCompilationEndToEndIT
 
     // Step 3: Verify both edges of the chain are recorded in the dep file —
     // this is what the BFS in calculateRecompilationSet walks.
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2243,7 +2251,7 @@ public class IncrementalCompilationEndToEndIT
 
     // Step 3: Verify all three cycle edges are recorded in the dep file. Every
     // class has exactly one consumer (the next link in the cycle).
-    String depFileContent = Files.readString( dependencyFile.toPath() ).trim();
+    String depFileContent = readDepFile();
     String expectedDepFile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2346,7 +2354,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult result = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2439,7 +2447,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
     // Every link of the chain Box<Middle<Leaf>> must record Consumer as a consumer.
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2539,7 +2547,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult result = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2618,7 +2626,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2652,7 +2660,7 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( new File( srcDir.toFile(), "example/TypeA.gs" ) ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2717,7 +2725,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2748,7 +2756,7 @@ public class IncrementalCompilationEndToEndIT
       Arrays.asList( new File( srcDir.toFile(), "example/Consumer.gs" ) ) );
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error, incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2812,7 +2820,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2839,7 +2847,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
                 incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2893,7 +2901,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult fullResult = compile( Collections.emptyList() );
     assertTrue( "Full compilation should succeed: " + fullResult.error, fullResult.success );
 
-    String afterFullCompile = Files.readString( dependencyFile.toPath() ).trim();
+    String afterFullCompile = readDepFile();
     String expectedAfterFullCompile =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2924,7 +2932,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Incremental compilation should succeed: " + incrementalResult.error,
                 incrementalResult.success );
 
-    String afterIncremental = Files.readString( dependencyFile.toPath() ).trim();
+    String afterIncremental = readDepFile();
     String expectedAfterIncremental =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -2978,7 +2986,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, dep file should list Alpha and Beta, each with no consumers",
-                  expectedDepsAfterInitial, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDepsAfterInitial, readDepFile() );
 
     Map<String, FileTime> initialTimestamps = recordTimestamps();
     Thread.sleep( SLEEP_MS );
@@ -3008,7 +3016,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After removing leaf Beta, dep file should contain only Alpha",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
   }
 
   @Test
@@ -3052,7 +3060,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, the dep file should record DummyJava -> [GosuConsumer]",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
 
     // Incremental: DummyJava reported changed (and still flagged as a local Java type). Capture the Gosu
     // consumer's .class timestamp first so we can assert it is actually recompiled.
@@ -3114,7 +3122,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "After initial compile, the dep file should not record DummyJava -> [GosuIndipendent]",
-                  expectedDeps, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedDeps, readDepFile() );
 
     Path dummyJavaClassInGosuOutput = outputDir.resolve( "com/example/DummyJava.class" );
     Map<String, FileTime> beforeTimestamps = recordTimestamps();
@@ -3142,7 +3150,7 @@ public class IncrementalCompilationEndToEndIT
       "  }\n" +
       "}";
     assertEquals( "Walking a changed local Java type with no consumers should add an empty entry for it",
-                  expectedAfterIncremental, Files.readString( dependencyFile.toPath() ).trim() );
+                  expectedAfterIncremental, readDepFile() );
   }
 
   @Test
@@ -3250,7 +3258,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both " +
@@ -3310,7 +3318,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "After Inner is removed (and Consumer adapts), Outer's consumer list " +
       "contains only Consumer. Outer$Inner is fully stripped from the dep " +
@@ -3372,7 +3380,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record the bidirectional " +
       "Outer <-> Outer$Inner edges plus Consumer as a consumer of both.",
@@ -3418,7 +3426,7 @@ public class IncrementalCompilationEndToEndIT
       "    \"example.Consumer\": []\n" +
       "  }\n" +
       "}";
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "After Outer.gs is removed, the dep file contains only Consumer. " +
       "Outer is stripped (it was in removedTypes -- key and value purge). " +
@@ -3516,7 +3524,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
     assertTrue( "Dependency file should exist after compile", dependencyFile.exists() );
 
-    String depFileContents = Files.readString( dependencyFile.toPath() );
+    String depFileContents = readDepFile();
 
     assertFalse(
       "java.lang.String must not appear in the dep graph. It is a JRE type, " +
@@ -3543,7 +3551,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Initial compilation should succeed: " + result.error, result.success );
     assertTrue( "Dependency file should exist after compile", dependencyFile.exists() );
 
-    String depFileContents = Files.readString( dependencyFile.toPath() );
+    String depFileContents = readDepFile();
 
     assertFalse(
       "gw.util.AutoMap must not appear in the dep graph. It is a Gosu type " +
@@ -3582,8 +3590,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "precondition: MyType.class should exist after initial compile",
                 Files.exists( myTypeClass ) );
 
-    String actualDepsInitial = new String(
-      Files.readAllBytes( dependencyFile.toPath() ), StandardCharsets.UTF_8 ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3628,7 +3635,7 @@ public class IncrementalCompilationEndToEndIT
       "List<MyType>).",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDeps = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDeps = readDepFile();
     assertEquals(
       "Dep graph after incremental compile should still record MyType -> Consumer.",
       expectedDeps, actualDeps );
@@ -3656,7 +3663,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3731,7 +3738,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3816,7 +3823,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -3969,7 +3976,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4016,6 +4023,215 @@ public class IncrementalCompilationEndToEndIT
       "Consumer.class should be recompiled when MyType changes -- MyType is " +
       "referenced as a class literal inside @Schema(type = MyType).",
       newConsumerTime.toMillis() > initialConsumerTime.toMillis() );
+  }
+
+  @Test
+  public void testTypeNamedOnlyInAnInvokedMethodDescriptorIsADependency() throws Exception
+  {
+    // Consumer's only tie to Foo is the return type of Other.get(), which lives in the invokestatic's descriptor:
+    // no constant-pool class entry, no local variable and none of Consumer's own signatures names Foo. The
+    // dependency visitor reads that descriptor in visitMethodInsn; without it Foo -> Consumer is never recorded,
+    // and a change to Foo that breaks Consumer leaves Consumer.class stale. Base -> Consumer comes from the same
+    // descriptor's parameter type.
+    createSourceFile( "example/Base.gs", "package example\n\nclass Base {}\n" );
+    File foo = createSourceFile( "example/Foo.gs", "package example\n\nclass Foo extends Base {}\n" );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  static function get() : Foo { return new Foo() }\n" +
+                      "  static function consume(b : Base) {}\n" +
+                      "}\n" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function run() { Other.consume( Other.get() ) }\n" +
+                      "}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Base\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Foo\",\n" +
+      "      \"example.Other\"\n" +
+      "    ],\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Foo\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Other\"\n" +
+      "    ],\n" +
+      "    \"example.Other\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file after initial compile should record Foo -> Consumer and Base -> Consumer, both from the " +
+                  "descriptors of the methods Consumer invokes on Other",
+                  expectedDeps, readDepFile() );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    Path otherClass = outputDir.resolve( "example/Other.class" );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+    FileTime initialOtherTime = getFileModificationTime( otherClass );
+    Thread.sleep( SLEEP_MS );
+
+    // An ABI change to Foo that keeps Consumer valid must still reach it.
+    Files.write( foo.toPath(), "package example\n\nclass Foo extends Base {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( foo ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Foo, Other (which names Foo in a signature) and Consumer (which names it only in a descriptor)",
+                  3, widened.filesCompiled );
+    assertTrue( "Consumer.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+    assertTrue( "Other.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( otherClass ).toMillis() > initialOtherTime.toMillis() );
+    assertEquals( "The recompile leaves the graph as it was", expectedDeps, readDepFile() );
+
+    // A change to Foo that breaks Consumer must surface as a compile error in Consumer, not as a stale class file
+    // that passes a Foo where a Base is expected and fails verification at run time.
+    Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult broken = compile( Arrays.asList( foo ) );
+    assertFalse( "Consumer no longer compiles once Foo stops extending Base, so the incremental compile must fail",
+                 broken.success );
+    assertTrue( "The failure must be reported in Consumer: " + broken.error, broken.error.contains( "Consumer.gs" ) );
+    assertEquals( "A failed compile must leave the dependency file untouched", expectedDeps, readDepFile() );
+  }
+
+  @Test
+  public void testTypeNamedOnlyInAnAccessedFieldDescriptorIsADependency() throws Exception
+  {
+    // The field-instruction counterpart: Consumer reads Holder.FOO with a getstatic whose descriptor is the only
+    // place Consumer.class names Foo. visitFieldInsn reads that descriptor.
+    createSourceFile( "example/Base.gs", "package example\n\nclass Base {}\n" );
+    File foo = createSourceFile( "example/Foo.gs", "package example\n\nclass Foo extends Base {}\n" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  public static var FOO : Foo = new Foo()\n" +
+                      "}\n" );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  static function consume(b : Base) {}\n" +
+                      "}\n" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function run() { Other.consume( Holder.FOO ) }\n" +
+                      "}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Base\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Foo\",\n" +
+      "      \"example.Other\"\n" +
+      "    ],\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Foo\": [\n" +
+      "      \"example.Consumer\",\n" +
+      "      \"example.Holder\"\n" +
+      "    ],\n" +
+      "    \"example.Holder\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Other\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file after initial compile should record Foo -> Consumer from the descriptor of Holder.FOO " +
+                  "and Base -> Consumer from the descriptor of Other.consume()",
+                  expectedDeps, readDepFile() );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    Path holderClass = outputDir.resolve( "example/Holder.class" );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+    FileTime initialHolderTime = getFileModificationTime( holderClass );
+    Thread.sleep( SLEEP_MS );
+
+    Files.write( foo.toPath(), "package example\n\nclass Foo extends Base {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( foo ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Foo, Holder (whose field is a Foo) and Consumer (which names Foo only in a descriptor)",
+                  3, widened.filesCompiled );
+    assertTrue( "Consumer.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+    assertTrue( "Holder.class must be rewritten when Foo's ABI changes",
+                getFileModificationTime( holderClass ).toMillis() > initialHolderTime.toMillis() );
+    assertEquals( "The recompile leaves the graph as it was", expectedDeps, readDepFile() );
+
+    Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
+    CompileResult broken = compile( Arrays.asList( foo ) );
+    assertFalse( "Consumer no longer compiles once Foo stops extending Base, so the incremental compile must fail",
+                 broken.success );
+    assertTrue( "The failure must be reported in Consumer: " + broken.error, broken.error.contains( "Consumer.gs" ) );
+    assertEquals( "A failed compile must leave the dependency file untouched", expectedDeps, readDepFile() );
+  }
+
+  @Test
+  public void testEnumAnnotationValueBakedFromADefaultIsADependency() throws Exception
+  {
+    // Fixture writes @Tag and nothing else, so its source never names Mode and the AST supplement records nothing
+    // for it. gosuc bakes Tag's default, Mode.A, into Fixture's annotation, where the enum type is present only as
+    // the descriptor of an enum element value, never as a constant-pool class entry. The dependency visitor reads
+    // it in visitEnum; without that, Mode -> Fixture is never recorded.
+    File mode = createSourceFile( "example/Mode.gs", "package example\n\nenum Mode { A, B }\n" );
+    createSourceFile( "example/Tag.gs",
+                      "package example\n" +
+                      "uses java.lang.annotation.ElementType\n" +
+                      "uses java.lang.annotation.Target\n" +
+                      "uses java.lang.annotation.Retention\n" +
+                      "uses java.lang.annotation.RetentionPolicy\n" +
+                      "\n" +
+                      "@Target({ElementType.TYPE})\n" +
+                      "@Retention(RetentionPolicy.RUNTIME)\n" +
+                      "annotation Tag {\n" +
+                      "  function mode() : Mode = Mode.A\n" +
+                      "}\n" );
+    createSourceFile( "example/Fixture.gs", "package example\n\n@Tag\nclass Fixture {}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Fixture\": [],\n" +
+      "    \"example.Mode\": [\n" +
+      "      \"example.Fixture\",\n" +
+      "      \"example.Tag\"\n" +
+      "    ],\n" +
+      "    \"example.Tag\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Mode -> Fixture must be recorded from the enum value gosuc baked into Fixture's annotation",
+                  expectedDeps, readDepFile() );
+    Path fixtureClass = outputDir.resolve( "example/Fixture.class" );
+    FileTime initialFixtureTime = getFileModificationTime( fixtureClass );
+    Thread.sleep( SLEEP_MS );
+
+    // An ABI change to Mode must reach Fixture, whose annotation carries a Mode constant.
+    Files.write( mode.toPath(), "package example\n\nenum Mode { A, B, C }\n".getBytes() );
+    CompileResult widened = compile( Arrays.asList( mode ) );
+    assertTrue( "Incremental compilation should succeed: " + widened.error, widened.success );
+    assertEquals( "Mode, Tag (whose member and default name Mode) and Fixture (whose baked default does)",
+                  3, widened.filesCompiled );
+    assertTrue( "Fixture.class must be rewritten when Mode's ABI changes",
+                getFileModificationTime( fixtureClass ).toMillis() > initialFixtureTime.toMillis() );
+    assertEquals( "The recompile leaves the graph as it was", expectedDeps, readDepFile() );
   }
 
   @Test
@@ -4068,7 +4284,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4243,7 +4459,7 @@ public class IncrementalCompilationEndToEndIT
     CompileResult initial = compile( Collections.emptyList() );
     assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
 
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     String expectedDeps =
       "{\n" +
       "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
@@ -4357,7 +4573,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should record both the consumer edges " +
       "(Outer -> Consumer and Outer$Inner -> Consumer from Consumer's field) " +
@@ -4397,10 +4613,112 @@ public class IncrementalCompilationEndToEndIT
       "is typed Outer.Inner).",
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record both " +
       "Outer -> Consumer and Outer$Inner -> Consumer (no drift).",
+      expectedDeps, actualDepsAfter );
+  }
+
+  @Test
+  public void testSelfReferencesAreNotRecorded() throws Exception
+  {
+    File builderFile = createSourceFile( "example/Builder.gs",
+                                         "package example\n" +
+                                         "\n" +
+                                         "class Builder {\n" +
+                                         "  var _value : String\n" +
+                                         "  \n" +
+                                         "  function withValue( v : String ) : Builder {\n" +
+                                         "    _value = v\n" +
+                                         "    return this\n" +
+                                         "  }\n" +
+                                         "  \n" +
+                                         "  function copy() : Builder {\n" +
+                                         "    return new Builder()\n" +
+                                         "  }\n" +
+                                         "}"
+    );
+
+    File consumer = createSourceFile( "example/Consumer.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class Consumer {\n" +
+                                      "  var _builder : Builder = new Builder()\n" +
+                                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    Path builderClass = outputDir.resolve( "example/Builder.class" );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    assertTrue( "precondition: Builder.class should exist", Files.exists( builderClass ) );
+    assertTrue( "precondition: Consumer.class should exist", Files.exists( consumerClass ) );
+
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Builder\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Consumer\": []\n" +
+      "  }\n" +
+      "}";
+    String actualDepsInitial = readDepFile();
+    assertEquals(
+      "After initial compile, Builder's only consumer must be Consumer -- the " +
+      "Builder -> Builder self-reference must be filtered out even though " +
+      "Builder's bytecode references itself throughout, and Builder must never " +
+      "list itself as a consumer.",
+      expectedDeps, actualDepsInitial );
+
+    FileTime initialBuilderTime = getFileModificationTime( builderClass );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+
+    Thread.sleep( SLEEP_MS );
+
+    // ABI change to Builder: add another self-returning method.
+    Files.write( builderFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Builder {\n" +
+      "  var _value : String\n" +
+      "  \n" +
+      "  function withValue( v : String ) : Builder {\n" +
+      "    _value = v\n" +
+      "    return this\n" +
+      "  }\n" +
+      "  \n" +
+      "  function copy() : Builder {\n" +
+      "    return new Builder()\n" +
+      "  }\n" +
+      "  \n" +
+      "  function reset() : Builder {\n" +
+      "    _value = null\n" +
+      "    return this\n" +
+      "  }\n" +
+      "}"
+    ).getBytes() );
+
+    CompileResult incr = compile( Arrays.asList( builderFile ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+
+    assertTrue( "Builder.class should be rewritten after incremental compile",
+                getFileModificationTime( builderClass ).toMillis() > initialBuilderTime.toMillis() );
+    assertTrue(
+      "Consumer.class should be recompiled when Builder's ABI changes (its " +
+      "field is typed Builder).",
+      getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+
+    // The graph shape is unchanged and Builder
+    // still does not list itself as a consumer (no self-edge drift).
+    String actualDepsAfter = readDepFile();
+    assertEquals(
+      "After incremental compile, Builder's consumer list must still be exactly " +
+      "[example.Consumer] -- the self-reference is filtered on every build, so " +
+      "the graph never drifts to include Builder -> Builder.",
       expectedDeps, actualDepsAfter );
   }
 
@@ -4473,7 +4791,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial );
@@ -4510,7 +4828,7 @@ public class IncrementalCompilationEndToEndIT
       "Outer$AnonymouS__1.class should be recompiled",
       getFileModificationTime( anonClass ).toMillis() > initialAnonTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4581,7 +4899,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, dep file should match the expected one",
       expectedDeps, actualDepsInitial );
@@ -4620,7 +4938,7 @@ public class IncrementalCompilationEndToEndIT
       "block is the actual referrer of Util).",
       getFileModificationTime( innerBlockClass ).toMillis() > initialInnerBlockTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4681,7 +4999,7 @@ public class IncrementalCompilationEndToEndIT
       "    ]\n" +
       "  }\n" +
       "}";
-    String actualDepsInitial = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsInitial = readDepFile();
     assertEquals(
       "After initial compile, the dep file should record both the consumer " +
       "edges (Outer$Class -> Consumer and Outer$Class$Inner -> Consumer from " +
@@ -4719,7 +5037,7 @@ public class IncrementalCompilationEndToEndIT
       "Consumer.class should be recompiled when Outer$Class.Inner changes",
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
-    String actualDepsAfter = Files.readString( dependencyFile.toPath() ).trim();
+    String actualDepsAfter = readDepFile();
     assertEquals(
       "Dep file after incremental compile should still record the same edges " +
       "(no drift).",
@@ -4759,8 +5077,7 @@ public class IncrementalCompilationEndToEndIT
                              "  }\n" +
                              "}";
 
-    assertTrue( "Expected dep file must match the generated one",
-                expectedDepFile.equals( Files.readString( dependencyFile.toPath() ) ) );
+    assertEquals(expectedDepFile, readDepFile() );
     Thread.sleep( SLEEP_MS );
 
     // Step 2: add a brand new source file that has no relationship to
@@ -4799,8 +5116,1987 @@ public class IncrementalCompilationEndToEndIT
                       "    \"example.Producer\": []\n" +
                       "  }\n" +
                       "}";
-    assertTrue( "Expected dep file must match the generated one",
-                expectedDepFile.equals( Files.readString( dependencyFile.toPath() ) ) );
+    assertEquals(expectedDepFile, readDepFile() );
+  }
+
+  @Test
+  public void testConstantValueChangeRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // gosuc initializes static final fields in <clinit> and writes no ConstantValue attribute, yet it
+    // folds a producer's compile-time constants into consumers: Consumer.class carries the literal
+    // A.FOO + 12 in its annotation, not a reference to A.FOO. Changing only FOO's value leaves every
+    // member and signature of A.class untouched while every consumer that folded FOO is stale, so the
+    // value itself must be part of the hashed surface.
+    File a = createSourceFile( "example/A.gs",
+                               "package example\n" +
+                               "\n" +
+                               "class A {\n" +
+                               "  public static final var FOO : int = 12\n" +
+                               "}"
+    );
+    createSourceFile( "example/MyAnno.gs",
+                      "package example\n" +
+                      "uses java.lang.annotation.ElementType\n" +
+                      "uses java.lang.annotation.Target\n" +
+                      "uses java.lang.annotation.Retention\n" +
+                      "uses java.lang.annotation.RetentionPolicy\n" +
+                      "\n" +
+                      "@Target({ElementType.TYPE})\n" +
+                      "@Retention(RetentionPolicy.RUNTIME)\n" +
+                      "annotation MyAnno {\n" +
+                      "  function value() : int\n" +
+                      "}"
+    );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@MyAnno(A.FOO + 12)\n" +
+                      "class Consumer {\n" +
+                      "  function id() : String { return \"consumer\" }\n" +
+                      "}"
+    );
+    createSourceFile( "example/Unrelated.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Unrelated {\n" +
+                      "  function id() : int { return 1 }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    assertEquals( "precondition: gosuc folds A.FOO + 12 into Consumer's annotation",
+                  24, readIntAnnotationMember( consumerClass, "Lexample/MyAnno;", "value" ) );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    // Change nothing but the value of the constant.
+    modifySourceFile( a, "FOO : int = 12", "FOO : int = 99" );
+
+    CompileResult incr = compile( Arrays.asList( a ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+
+    assertEquals( "Consumer's annotation should be folded from the new value, 99 + 12; 24 means Consumer was not " +
+                  "recompiled and its bytecode still carries the stale constant",
+                  111, readIntAnnotationMember( consumerClass, "Lexample/MyAnno;", "value" ) );
+    assertEquals( "A and the consumer that folded A.FOO should be recompiled", 2, incr.filesCompiled );
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue( "Consumer should be recompiled when a constant it folded changes value",
+                afterTimestamps.get( "Consumer.class" ).toMillis() > initialTimestamps.get( "Consumer.class" ).toMillis() );
+    assertEquals( "Unrelated should not be recompiled",
+                  initialTimestamps.get( "Unrelated.class" ), afterTimestamps.get( "Unrelated.class" ) );
+  }
+
+  @Test
+  public void testDefaultParameterValueChangeRecompilesCaller() throws Exception
+  {
+    // The parser splices a producer's default argument expression into every call site that omits the
+    // argument, so the caller's bytecode holds the default while Util.class says nothing about it. The
+    // hashed surface therefore has to carry default value expressions.
+    File util = createSourceFile( "example/Util.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Util {\n" +
+                                  "  static function greet(name : String = \"world\") : String {\n" +
+                                  "    return \"hi \" + name\n" +
+                                  "  }\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function go() : String {\n" +
+                      "    return Util.greet()\n" +
+                      "  }\n" +
+                      "}"
+    );
+    createSourceFile( "example/Unrelated.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Unrelated {\n" +
+                      "  function id() : int { return 1 }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    Path callerClass = outputDir.resolve( "example/Caller.class" );
+    assertTrue( "precondition: the default argument is baked into the caller's bytecode",
+                classFileText( callerClass ).contains( "world" ) );
+    Path utilClass = outputDir.resolve( "example/Util.class" );
+    assertFalse( "precondition: the default argument is not baked into the Util's bytecode",
+                 classFileText( utilClass ).contains( "world" ) );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( util, "name : String = \"world\"", "name : String = \"there\"" );
+
+    CompileResult incr = compile( Arrays.asList( util ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertEquals( "Util and its caller should be recompiled", 2, incr.filesCompiled );
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    assertTrue( "Caller should be recompiled when a default it inlined changes",
+                afterTimestamps.get( "Caller.class" ).toMillis() > initialTimestamps.get( "Caller.class" ).toMillis() );
+    assertTrue( "The caller's bytecode should carry the new default",
+                classFileText( callerClass ).contains( "there" ) );
+    assertFalse( "The caller's bytecode should no longer carry the old default",
+                 classFileText( callerClass ).contains( "world" ) );
+    assertEquals( "Unrelated should not be recompiled",
+                  initialTimestamps.get( "Unrelated.class" ), afterTimestamps.get( "Unrelated.class" ) );
+  }
+
+  @Test
+  public void testParameterRenameRecompilesNamedArgumentCaller() throws Exception
+  {
+    // Named-argument call sites bind against parameter names, which gosuc does not write into the class
+    // file, so names are part of the hashed surface. Renaming a parameter must reach the caller: here the
+    // caller no longer compiles, which is the right outcome -- silently keeping its stale bytecode is not.
+    File util = createSourceFile( "example/Util.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Util {\n" +
+                                  "  static function greet(name : String) : String {\n" +
+                                  "    return \"hi \" + name\n" +
+                                  "  }\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function go() : String {\n" +
+                      "    return Util.greet(:name = \"x\")\n" +
+                      "  }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String depFileBefore = readDepFile();
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( util, "greet(name : String)", "greet(who : String)" );
+    modifySourceFile( util, "\"hi \" + name", "\"hi \" + who" );
+
+    CompileResult incr = compile( Arrays.asList( util ) );
+    assertEquals( "Util and its named-argument caller should be recompiled", 2, incr.filesCompiled );
+    assertFalse( "The caller binds the old parameter name, so the incremental compile must fail", incr.success );
+    assertEquals( "A failed compile must leave the dependency file untouched",
+                  depFileBefore, readDepFile() );
+  }
+
+  @Test
+  public void testDependencyFileFromAnotherVersionForcesFullRebuild() throws Exception
+  {
+    // A dependency file gosuc cannot read is not an empty graph. Walking it as one would compile the
+    // changed type alone and leave its consumers stale, with exit code 0.
+    File producer = createSourceFile( "example/Producer.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class Producer {\n" +
+                                      "  function value() : int { return 1 }\n" +
+                                      "}"
+    );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function go() : int { return new Producer().value() }\n" +
+                      "}"
+    );
+    createSourceFile( "example/Unrelated.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Unrelated {\n" +
+                      "  function id() : int { return 1 }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+
+    // Rewrite the dep file as the previous gosuc left it: version 0.1, which lacks edges this version records.
+    Files.write( dependencyFile.toPath(), (
+      "{\n" +
+      "  \"version\": \"0.1\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Consumer\": [],\n" +
+      "    \"example.Producer\": [\n" +
+      "      \"example.Consumer\"\n" +
+      "    ],\n" +
+      "    \"example.Unrelated\": []\n" +
+      "  }\n" +
+      "}"
+    ).getBytes() );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( producer, "function value() : int { return 1 }",
+                      "function value() : int { return 1 }\n  function extra() : int { return 2 }" );
+
+    CompileResult incr = compile( Arrays.asList( producer ) );
+    assertTrue( "Compilation should succeed: " + incr.error, incr.success );
+    assertEquals( "An unreadable dependency file means every source is compiled", 3, incr.filesCompiled );
+
+    Map<String, FileTime> afterTimestamps = recordTimestamps();
+    for( String className : Arrays.asList( "Producer.class", "Consumer.class", "Unrelated.class" ) )
+    {
+      assertTrue( className + " should be recompiled by the full rebuild",
+                  afterTimestamps.get( className ).toMillis() > initialTimestamps.get( className ).toMillis() );
+    }
+    assertTrue( "The regenerated dep file should carry the current version",
+                readDepFile().contains( "\"version\": \"" + DEPENDENCY_VERSION + "\"" ) );
+  }
+
+  @Test
+  public void testDeletingDependencyFileRegeneratesItByteIdentical() throws Exception
+  {
+    createSourceFile( "example/Producer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Producer {\n" +
+                      "  public static final var LIMIT : int = 3\n" +
+                      "  static function greet(name : String = \"world\") : String { return name }\n" +
+                      "}"
+    );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function go() : String { return Producer.greet() + Producer.LIMIT }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    String firstDepFile = readDepFile();
+
+    assertTrue( Files.deleteIfExists( dependencyFile.toPath() ) );
+
+    CompileResult again = compile( Collections.emptyList() );
+    assertTrue( "Compilation without a dep file should succeed: " + again.error, again.success );
+    assertEquals( "Without a dep file every source is compiled", 2, again.filesCompiled );
+    assertEquals( "A regenerated dep file should be byte-identical",
+                  firstDepFile, readDepFile() );
+  }
+
+  @Test
+  public void testConstantInheritedThroughAnIntermediateClassRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Leaf names FOO unqualified, through Mid, and folds it, which leaves no reference to Base in its bytecode. Its
+    // type literal records only Mid -> Leaf; the AST pass adds Base -> Leaf.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends Base {}"
+    );
+    createSourceFile( "example/Leaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Leaf extends Mid {\n" +
+                      "  function id() : String { return \"leaf-\" + FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Leaf.class" );
+    assertTrue( "precondition: Leaf folds FOO", classFileText( consumer ).contains( "leaf-old" ) );
+    assertFalse( "precondition: Leaf does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Leaf should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "leaf-new" ) );
+  }
+
+  @Test
+  public void testConstantQualifiedBySubclassRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Other names FOO as Mid.FOO and folds it, which leaves no reference to Base in its bytecode. Its type literal
+    // records Mid -> Other, not Base -> Other.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends Base {}"
+    );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  function id() : String { return \"other-\" + Mid.FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertTrue( "precondition: Other folds FOO", classFileText( consumer ).contains( "other-old" ) );
+    assertFalse( "precondition: Other does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "other-new" ) );
+  }
+
+  @Test
+  public void testConstantImportedAsAFeatureRecompilesConsumerThatFoldedIt() throws Exception
+  {
+    // Imported names FOO through a feature import and never as a type literal, and folds it, which leaves no
+    // reference to Base in its bytecode.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  public static final var FOO : String = \"old\"\n" +
+                                  "}"
+    );
+    createSourceFile( "example/Imported.gs",
+                      "package example\n" +
+                      "\n" +
+                      "uses example.Base#FOO\n" +
+                      "\n" +
+                      "class Imported {\n" +
+                      "  function id() : String { return \"imported-\" + FOO }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Imported.class" );
+    assertTrue( "precondition: Imported folds FOO", classFileText( consumer ).contains( "imported-old" ) );
+    assertFalse( "precondition: Imported does not reference Base", classFileText( consumer ).contains( "example/Base" ) );
+    Thread.sleep( SLEEP_MS );
+
+    modifySourceFile( base, "\"old\"", "\"new\"" );
+    CompileResult incr = compile( Arrays.asList( base ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Imported should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "imported-new" ) );
+  }
+
+  @Test
+  public void testJavaConstantFoldedIntoAnAnnotationThroughAJavaSubclassRecompilesTheConsumer() throws Exception
+  {
+    // Other names JBase.FOO through JMid in an annotation argument, which gosuc folds. When JBase changes, Gradle
+    // reports JBase alone, since JMid's class file does not change, and Other's type literal records only
+    // JMid -> Other. The member access records JBase -> Other, which the dep file shows.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBase = "package com.example;\n" +
+                   "public class JBase {\n" +
+                   "  public static final String FOO = \"foo-old\";\n" +
+                   "}";
+    compileDummyJavaType( "com.example.JBase", jBase, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+    compileDummyJavaType( "com.example.Ann",
+                          "package com.example;\n" +
+                          "import java.lang.annotation.*;\n" +
+                          "@Retention(RetentionPolicy.RUNTIME)\n" +
+                          "public @interface Ann { String value(); }",
+                          javaClassesDir );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@com.example.Ann( com.example.JMid.FOO )\n" +
+                      "class Other {}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid", "com.example.Ann" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertTrue( "precondition: Other folds FOO", classFileText( consumer ).contains( "foo-old" ) );
+    assertFalse( "precondition: Other does not reference JBase", classFileText( consumer ).contains( "com/example/JBase" ) );
+    assertTrue( "The dep file should record JBase -> Other: " + readDepFile(), readDepFile().contains(
+      "\"com.example.JBase\": [\n" +
+      "      \"example.Other\"\n" +
+      "    ]" ) );
+    Thread.sleep( SLEEP_MS );
+
+    compileDummyJavaType( "com.example.JBase", jBase.replace( "foo-old", "foo-new" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other should be folded from the new value; the old one means it was not recompiled",
+                classFileText( consumer ).contains( "foo-new" ) );
+  }
+
+  @Test
+  public void testJavaConstantFoldedIntoASwitchCaseThroughAJavaSubclassRecompilesTheConsumer() throws Exception
+  {
+    // Other names JBase.N through JMid in a switch case, which gosuc folds. As for an annotation argument, only the
+    // member access records JBase -> Other.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBase = "package com.example;\n" +
+                   "public class JBase {\n" +
+                   "  public static final int N = 1;\n" +
+                   "}";
+    compileDummyJavaType( "com.example.JBase", jBase, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  function f( x : int ) : String {\n" +
+                      "    switch( x ) {\n" +
+                      "      case com.example.JMid.N:\n" +
+                      "        return \"a\"\n" +
+                      "    }\n" +
+                      "    return \"b\"\n" +
+                      "  }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumer = outputDir.resolve( "example/Other.class" );
+    assertFalse( "precondition: Other folds N and does not reference JBase",
+                 classFileText( consumer ).contains( "com/example/JBase" ) );
+    assertTrue( "The dep file should record JBase -> Other: " + readDepFile(), readDepFile().contains(
+      "\"com.example.JBase\": [\n" +
+      "      \"example.Other\"\n" +
+      "    ]" ) );
+    FileTime before = getFileModificationTime( consumer );
+    Thread.sleep( SLEEP_MS );
+
+    compileDummyJavaType( "com.example.JBase", jBase.replace( "N = 1", "N = 2" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue( "Other folded the old N, so it should be recompiled",
+                getFileModificationTime( consumer ).toMillis() > before.toMillis() );
+  }
+  /**
+   * A Gosu class inheriting through a local Java class from another local Java class is a consumer of the upper one
+   * too. When {@code JBase} changes, Gradle reports {@code JBase} alone: {@code JMid}'s own ABI fingerprint does not
+   * move. Neither Gosu class names {@code JBase} in its class file, so without an edge from it the walk reaches
+   * neither, and {@code Leaf} would keep calling a method that is gone. With the edge, {@code Mid} is recompiled, and
+   * the cascade reaches {@code Leaf}, whose compile then fails.
+   */
+  @Test
+  public void testLocalJavaSupertypeChangeReachesGosuSubclassesThroughALocalJavaClass() throws Exception
+  {
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jBaseV1 = "package com.example;\n" +
+                     "public class JBase {\n" +
+                     "  public String greet() { return \"hi\"; }\n" +
+                     "}";
+    compileDummyJavaType( "com.example.JBase", jBaseV1, javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Mid extends com.example.JMid {}"
+    );
+    createSourceFile( "example/Leaf.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Leaf extends Mid {\n" +
+                      "  function id() : String { return greet() }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String renamed() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Leaf calls the removed JBase.greet() through Mid, so the cascade must reach it and fail",
+                 incr.success );
+  }
+
+  /**
+   * The edge from a local Java ancestor is recorded for a private class too. Its callers sit in the same source,
+   * which names {@code Outer$P} only, so without the edge from {@code JBase} nothing brings {@code Outer.gs} into the walk when {@code JBase}
+   * changes, and {@code Outer.f()} would keep calling a method that is gone.
+   */
+  @Test
+  public void testLocalJavaAncestorChangeReachesTheSourceOfAPrivateSubclass() throws Exception
+  {
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String greet() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+    compileDummyJavaType( "com.example.JMid",
+                          "package com.example;\n" +
+                          "public class JMid extends JBase {}",
+                          javaClassesDir );
+
+    createSourceFile( "example/Outer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Outer {\n" +
+                      "  private static class P extends com.example.JMid {}\n" +
+                      "  function f() : String { return new P().greet() }\n" +
+                      "}"
+    );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JBase", "com.example.JMid" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JBase",
+                          "package com.example;\n" +
+                          "public class JBase {\n" +
+                          "  public String renamed() { return \"hi\"; }\n" +
+                          "}",
+                          javaClassesDir );
+
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JBase" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Outer calls the removed JBase.greet() through its private P, so Outer.gs must be recompiled and fail",
+                 incr.success );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfMemberTakingIt() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to Fixture.pick( x : Named ), and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfMethodWhoseTypeVariableItBounds() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    // Fixture's class file names Named only in pick's Signature, <T::Lexample/Named;>, which does not change with it.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick<T extends Named>( x : T ) : T { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to Fixture.pick<T extends Named>, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfInheritedMemberTakingIt() throws Exception
+  {
+    // Rec matches Named without declaring it. Named gains a member Rec lacks, so a full build rejects Caller, which
+    // passes a Rec where a Named is expected; gosuc writes structure-typed members as Object, so Caller's class file
+    // never names Named.
+    // Caller binds to take through Sub, and records no edge from Fixture, which declares it.
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  function take( x : Named ) : String { return x.name() }\n" +
+                      "}" );
+    createSourceFile( "example/Sub.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Sub extends Fixture {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return new Sub().take( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Fixture names Named, and Sub inherits take( x : Named ), so neither has a hash: a change to Named reaches
+    // Caller through them.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Sub\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Sub\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to the take( x : Named ) Sub inherits, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerOfConstructorTakingIt() throws Exception
+  {
+    // As testStructureChangeReachesCallerOfMemberTakingIt, with a constructor: Caller's new names Holder(Object).
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  construct( n : Named ) {}\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return new Holder( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Holder names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Holder\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Holder\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller passes a Rec to new Holder( n : Named ), and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testStructureChangeReachesCallerWritingAPropertyOfIt() throws Exception
+  {
+    // As testStructureChangeReachesCallerOfMemberTakingIt, with a property write: Caller calls setN(Object).
+    File named = createSourceFile( "example/Named.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Named {\n" +
+                                   "  function name() : String\n" +
+                                   "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function name() : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  var _n : Named as N\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var h = new Holder()\n" +
+                      "    h.N = new Rec()\n" +
+                      "    return h\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Holder names Named, so it has no hash: a change to Named recompiles it, and any recompile of it reaches Caller.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Holder\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Holder\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( named, "function name() : String", "function name() : String\n  function age() : int" );
+    CompileResult incr = compile( List.of( named ) );
+    assertFalse( "Caller assigns a Rec to Holder.N : Named, and Rec no longer satisfies Named, so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAStructureAStructureNamesReachesCallers() throws Exception
+  {
+    // Named asks for a sized() : Sized, which Rec meets with a RecSized. Sized gaining a member RecSized lacks breaks
+    // Rec's fit to Named, though Named itself is unchanged.
+    File sized = createSourceFile( "example/Sized.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Sized {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    createSourceFile( "example/RecSized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class RecSized {\n" +
+                      "  function size() : int { return 1 }\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // Named and Fixture have no hash, so a change to Sized reaches Caller through them. RecSized -> Caller comes
+    // from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.RecSized\": [\n" +
+      "      \"example.Caller\",\n" +
+      "      \"example.Rec\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( sized, "function size() : int", "function size() : int\n  function width() : int" );
+    CompileResult incr = compile( List.of( sized ) );
+    assertFalse( "Rec no longer satisfies Named once Sized gains width(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // Named asks for a sized() : Sized, which Rec
+    // meets with a RecSized, and here RecSized loses size(). Rec's fit to Named breaks though neither Named nor Rec
+    // changed. The AST pass records RecSized -> Caller from what Rec offers where a Named is expected, so Caller is
+    // reached directly rather than only through RecSized -> Rec -> Caller.
+    createSourceFile( "example/Sized.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Sized {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class RecSized {\n" +
+                      "  function size() : int { return 1 }\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.RecSized\": [\n" +
+      "      \"example.Caller\",\n" +
+      "      \"example.Rec\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAParameterTypeOfAnArgumentsMemberReachesCallersPassingItForAStructure() throws Exception
+  {
+    // Named asks for an accept( s : Sized ), which Rec meets with an accept( s : Small ): Rec fits only while every Sized
+    // fits Small. Small gaining a member Sized lacks breaks the fit though neither Named nor Rec changed; the edge from
+    // Small, which the AST pass follows from what the fit of Rec to Named reads, brings Caller into the walk.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    File small = createSourceFile( "example/Small.gs",
+                                   "package example\n" +
+                                   "\n" +
+                                   "structure Small {\n" +
+                                   "  function size() : int\n" +
+                                   "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function accept( s : Sized ) : String\n" +
+                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function accept( s : Small ) : String { return \"r\" }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // The AST pass records Small -> Caller from what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ],\n" +
+      "    \"example.Small\": [\n" +
+      "      \"example.Caller\",\n" +
+      "      \"example.Rec\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( small, "function size() : int", "function size() : int\n  function width() : int" );
+    CompileResult incr = compile( List.of( small ) );
+    assertFalse( "Sized no longer fits Small once Small gains width(), so Rec no longer satisfies Named and Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // As testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure, with the Rec inside a type argument:
+    // an ArrayList<Rec> is passed where a List<Named> is expected only while Rec fits Named.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pickAll( xs : List<Named> ) : Object { return xs }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var l = new java.util.ArrayList<Rec>()\n" +
+                      "    return Fixture.pickAll( l )\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows the type argument Rec where a List<Named> is
+    // expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.RecSized\": [\n" +
+      "      \"example.Caller\",\n" +
+      "      \"example.Rec\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so the ArrayList<Rec> no longer fits List<Named> and Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueAssignedToAStructureReachesTheAssigningClass() throws Exception
+  {
+    // As testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure, with the Rec assigned to a local
+    // typed Named rather than passed. The parser wraps the value in an implicit coercion to Named, which the AST pass
+    // follows like an argument; Named itself reaches Caller as the local's type literal.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object {\n" +
+                      "    var s : Named = new Rec()\n" +
+                      "    return s\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // RecSized -> Caller comes from the AST pass, which follows what Rec offers where a Named is expected.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Rec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.RecSized\": [\n" +
+      "      \"example.Caller\",\n" +
+      "      \"example.Rec\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToALocalJavaMemberTypeOfAJavaArgumentReachesCallersPassingItForAStructure() throws Exception
+  {
+    // The edges the AST pass records from what a value passed for a structure offers are the only route here. Named asks for a sized() : Sized, which the local Java JRec meets with a JRecSized sized(). JRecSized
+    // losing size() breaks the fit, but Gradle reports JRecSized alone, since JRec's ABI does not change, and the graph
+    // records no edges between Java types, which gosuc never compiles: nothing leads from JRecSized to Caller but the
+    // edge the AST pass records, and the walk reaches Caller through it directly.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jRecSized = "package com.example;\n" +
+                       "public class JRecSized {\n" +
+                       "  public int size() { return 1; }\n" +
+                       "}";
+    compileDummyJavaType( "com.example.JRecSized", jRecSized, javaClassesDir );
+    compileDummyJavaType( "com.example.JRec",
+                          "package com.example;\n" +
+                          "public class JRec {\n" +
+                          "  public JRecSized sized() { return new JRecSized(); }\n" +
+                          "}",
+                          javaClassesDir );
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new com.example.JRec() ) }\n" +
+                      "}" );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JRec", "com.example.JRecSized" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    // JRecSized -> Caller is the only edge from JRecSized: the AST pass records it from what JRec offers.
+    String expectedDepFile =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"consumers\": {\n" +
+      "    \"com.example.JRec\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"com.example.JRecSized\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Caller\": [],\n" +
+      "    \"example.Fixture\": [\n" +
+      "      \"example.Caller\"\n" +
+      "    ],\n" +
+      "    \"example.Named\": [\n" +
+      "      \"example.Fixture\"\n" +
+      "    ],\n" +
+      "    \"example.Sized\": [\n" +
+      "      \"example.Named\"\n" +
+      "    ]\n" +
+      "  }\n" +
+      "}";
+    assertEquals( "Dep file should match the expected one", expectedDepFile, readDepFile() );
+
+    compileDummyJavaType( "com.example.JRecSized", jRecSized.replace( "size()", "length()" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JRecSized" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "JRec no longer satisfies Named once JRecSized loses size(), so Caller must be recompiled and fail",
+                 incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedToABlockForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through a block invocation, and the AST pass has to follow what Rec offers there for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f( b : block( n : Named ) : Object ) : Object {\n" +
+                      "    return b( new Rec() )\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through a block invocation, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueAssignedToAnInheritedStructurePropertyReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through an inherited property written unqualified, and the AST pass has to follow what Rec
+    // offers there for the change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  var _n : Named as N\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller extends Holder {\n" +
+                      "  function f() {\n" +
+                      "    N = new Rec()\n" +
+                      "  }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through an inherited property written unqualified, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedToAnEnhancementMethodForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named through an enhancement method, and the AST pass has to follow what Rec offers there for
+    // the change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/StrEnh.gsx",
+                      "package example\n" +
+                      "\n" +
+                      "enhancement StrEnh : String {\n" +
+                      "  function take( n : Named ) : String { return this }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return \"x\".take( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "through an enhancement method, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueInAListLiteralForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named inside a list literal, and the AST pass has to follow what Rec offers there for the change
+    // to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function all( xs : List<Named> ) : Object { return xs }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.all( { new Rec() } ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "inside a list literal, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueObtainedElsewhereAndPassedForAStructureReachesCaller() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // hands a Rec to a Named that another class returned, and the AST pass has to follow what Rec offers there for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder {\n" +
+                      "  static function make() : Rec { return new Rec() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( Holder.make() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a Rec to a Named " +
+                 "that another class returned, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "example.Named" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValuePassedForATypeVariableBoundedByAStructureReachesCaller()
+    throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // passes a Rec to pick<T extends Named>( x : T ). T is inferred as Rec, so the parser inserts no coercion to Named:
+    // only the AST pass's look at the invoked method, whose type variable is bounded by Named, follows what Rec offers.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick<T extends Named>( x : T ) : T { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return Fixture.pick( new Rec() ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, passing a Rec for a T bounded " +
+                 "by Named, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureReachesTheClassWritingIt() throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // writes new Holder<Rec>() for a Holder<T extends Named>, so gosuc checks that Rec fits Named with no call or
+    // coercion involved: only the AST pass's look at the type literal follows what Rec offers.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder<T extends Named> {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : Object { return new Holder<Rec>() }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, writing Holder<Rec> for a Holder<T extends Named>, must be recompiled " +
+                 "and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureInADeclarationReachesTheClassWritingIt() throws Exception
+  {
+    // As testChangeToAMemberTypeOfATypeArgumentBoundedByAStructureReachesTheClassWritingIt, with Holder<Rec> as the
+    // declared type of a field rather than in a new expression.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Holder.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Holder<T extends Named> {}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  var _h : Holder<Rec>\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, declaring a Holder<Rec> for a Holder<T extends Named>, must be recompiled " +
+                 "and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error, incr.error.contains( "Caller.gs" ) );
+  }
+
+  @Test
+  public void testChangeToAMemberTypeOfAValueTypedWithATypeVariableAndPassedForAStructureReachesCaller()
+    throws Exception
+  {
+    // Rec meets Named, which asks for a sized() : Sized, with a sized() : RecSized; RecSized then loses size(). Caller
+    // passes a value typed T extends Rec, which offers what Rec does, so the AST pass has to follow T's bound for the
+    // change to reach Caller.
+    createSourceFile( "example/Sized.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Sized {\n" +
+                      "  function size() : int\n" +
+                      "}" );
+    createSourceFile( "example/Named.gs",
+                      "package example\n" +
+                      "\n" +
+                      "structure Named {\n" +
+                      "  function sized() : Sized\n" +
+                      "}" );
+    File recSized = createSourceFile( "example/RecSized.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "class RecSized {\n" +
+                                      "  function size() : int { return 1 }\n" +
+                                      "}" );
+    createSourceFile( "example/Rec.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Rec {\n" +
+                      "  function sized() : RecSized { return new RecSized() }\n" +
+                      "}" );
+    createSourceFile( "example/Fixture.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Fixture {\n" +
+                      "  static function pick( x : Named ) : Named { return x }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f<T extends Rec>( t : T ) : Object { return Fixture.pick( t ) }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( recSized, "function size() : int { return 1 }", "function length() : int { return 1 }" );
+    CompileResult incr = compile( List.of( recSized ) );
+    assertFalse( "Rec no longer satisfies Named once RecSized loses size(), so Caller, handing a T extends Rec to a " +
+                 "Named, must be recompiled and fail", incr.success );
+    assertTrue( "The caller should be the one rejected: " + incr.error,
+                incr.error.contains( "Caller.gs" ) && incr.error.contains( "Named" ) );
+  }
+
+  @Test
+  public void testLegacyIAnnotationConstructorChangeRecompilesTheAnnotatedClass() throws Exception
+  {
+    // A Gosu class implementing gw.lang.IAnnotation is used as an annotation through its constructor. Retyping the
+    // constructor's parameter must recompile the class it annotates, which then fails.
+    File anno = createSourceFile( "example/MyAnno.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class MyAnno implements gw.lang.IAnnotation {\n" +
+                                  "  construct( x : int ) {}\n" +
+                                  "}" );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@MyAnno( 1 )\n" +
+                      "class Consumer {}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( anno, "construct( x : int ) {}", "construct( x : String ) {}" );
+    CompileResult incr = compile( List.of( anno ) );
+    assertFalse( "Consumer passes an int to MyAnno( x : String ), so it must be recompiled and fail", incr.success );
+    assertTrue( "Consumer should be the one rejected: " + incr.error, incr.error.contains( "Consumer.gs" ) );
+  }
+
+  @Test
+  public void testSourceRetentionJavaAnnotationChangeRecompilesTheAnnotatedClass() throws Exception
+  {
+    // A SOURCE-retention annotation never reaches the annotated class's class file, so its edge rests on the AST pass.
+    // Renaming the element the class sets must recompile it, which then fails.
+    Path javaClassesDir = tempFolder.getRoot().toPath().resolve( "javaClasses" );
+    String jAnno = "package com.example;\n" +
+                   "import java.lang.annotation.*;\n" +
+                   "@Retention(RetentionPolicy.SOURCE)\n" +
+                   "public @interface JAnno { int count(); }";
+    compileDummyJavaType( "com.example.JAnno", jAnno, javaClassesDir );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "@com.example.JAnno( :count = 1 )\n" +
+                      "class Consumer {}" );
+
+    Set<String> localJavaTypes = Set.of( "com.example.JAnno" );
+    List<String> extraClasspath = List.of( javaClassesDir.toAbsolutePath().toString() );
+    CompileResult initial = runIncrementalCompile(
+      Collections.emptyList(), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    compileDummyJavaType( "com.example.JAnno", jAnno.replace( "int count();", "int total();" ), javaClassesDir );
+    CompileResult incr = runIncrementalCompile(
+      List.of( "com.example.JAnno" ), Collections.emptyList(), extraClasspath, localJavaTypes );
+    assertFalse( "Consumer sets JAnno's count, which is gone, so it must be recompiled and fail", incr.success );
+    assertTrue( "Consumer should be the one rejected: " + incr.error, incr.error.contains( "Consumer.gs" ) );
+  }
+
+  @Test
+  public void testTemplateBaseClassChangeRecompilesTheTemplate() throws Exception
+  {
+    // A template's <%@ extends %> directive gives it a base class whose static functions it calls unqualified. Renaming
+    // one must recompile the template, which then fails.
+    File base = createSourceFile( "example/Base.gs",
+                                  "package example\n" +
+                                  "\n" +
+                                  "class Base {\n" +
+                                  "  static function helper() : String { return \"h\" }\n" +
+                                  "}" );
+    createSourceFile( "example/Tpl.gst",
+                      "<%@ extends example.Base %>\n" +
+                      "hello ${helper()}\n" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    modifySourceFile( base, "static function helper()", "static function renamed()" );
+    CompileResult incr = compile( List.of( base ) );
+    assertFalse( "Tpl calls Base.helper(), which is gone, so it must be recompiled and fail", incr.success );
+    assertTrue( "Tpl should be the one rejected: " + incr.error, incr.error.contains( "Tpl.gst" ) );
+  }
+
+  @Test
+  public void testNewSamePackageTypeShadowingAWildcardImportIsNotDetected() throws Exception
+  {
+    // Pins known limitation 8 of incr_gosu_design.md. Caller names Foo, which resolves to other.Foo through its
+    // wildcard import. A new example.Foo shadows it, since a same-package type wins over a wildcard import, and a full
+    // build then rejects Caller, which calls a hi() the new Foo lacks. Nothing has an edge from a type that did not
+    // exist, so the incremental build compiles example.Foo alone and succeeds, leaving Caller bound to other.Foo.
+    createSourceFile( "other/Foo.gs",
+                      "package other\n" +
+                      "\n" +
+                      "class Foo {\n" +
+                      "  static function hi() : String { return \"other\" }\n" +
+                      "}" );
+    createSourceFile( "example/Caller.gs",
+                      "package example\n" +
+                      "\n" +
+                      "uses other.*\n" +
+                      "\n" +
+                      "class Caller {\n" +
+                      "  function f() : String { return Foo.hi() }\n" +
+                      "}" );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Map<String, FileTime> initialTimestamps = recordTimestamps();
+    Thread.sleep( SLEEP_MS );
+
+    File foo = createSourceFile( "example/Foo.gs",
+                                 "package example\n" +
+                                 "\n" +
+                                 "class Foo {\n" +
+                                 "  static function bye() : String { return \"example\" }\n" +
+                                 "}" );
+    CompileResult incr = compile( List.of( foo ) );
+    assertTrue( "Known limitation: the incremental build does not see that example.Foo now shadows other.Foo in " +
+                "Caller, so it succeeds where a full build fails: " + incr.error, incr.success );
+    assertEquals( "Known limitation: Caller is not recompiled",
+                  initialTimestamps.get( "Caller.class" ), recordTimestamps().get( "Caller.class" ) );
+  }
+
+  /** The raw bytes of a class file as text, for looking up string constants a compile baked into it. */
+  private static String classFileText( Path classFile ) throws IOException
+  {
+    return new String( Files.readAllBytes( classFile ), StandardCharsets.ISO_8859_1 );
   }
 
   private static class CompileResult
