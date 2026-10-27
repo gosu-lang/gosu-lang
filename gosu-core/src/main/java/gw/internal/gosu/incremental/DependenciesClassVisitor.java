@@ -28,7 +28,8 @@ import gw.internal.ext.org.objectweb.asm.signature.SignatureVisitor;
  *       standard ASM {@link ClassVisitor} callbacks add signature-level type refs
  *       that the constant pool alone wouldn't surface (e.g. generic type parameters
  *       reachable only through the {@code Signature} attribute, annotation descriptors,
- *       local-variable signatures inside method bodies).</li>
+ *       local-variable signatures inside method bodies, and the descriptors of the methods
+ *       and fields an instruction invokes or accesses).</li>
  * </ol>
  * <p>
  * Both phases route every discovered type through {@link #maybeAddDependentType}, which
@@ -120,7 +121,7 @@ class DependenciesClassVisitor extends ClassVisitor
     }
   }
 
-  protected void maybeAddDependentType( Type type )
+  private void maybeAddDependentType( Type type )
   {
     while( type.getSort() == Type.ARRAY )
     {
@@ -179,6 +180,25 @@ class DependenciesClassVisitor extends ClassVisitor
     return new DepAnnotationVisitor();
   }
 
+  @Override
+  public AnnotationVisitor visitTypeAnnotation( int typeRef, TypePath typePath, String descriptor, boolean visible )
+  {
+    // A type annotation on the class declaration itself: on a supertype or a type parameter.
+    maybeAddDependentType( Type.getType( descriptor ) );
+    return new DepAnnotationVisitor();
+  }
+
+  @Override
+  public void visitOuterClass( String owner, String name, String descriptor )
+  {
+    // EnclosingMethod of a local or anonymous class. The enclosing class is a constant-pool entry and already
+    // recorded; the enclosing method's parameter and return types are present only in this descriptor.
+    if( descriptor != null )
+    {
+      addTypesFromMethodDescriptor( descriptor );
+    }
+  }
+
   private static boolean isAccessible( int access )
   {
     return (access & Opcodes.ACC_PRIVATE) == 0;
@@ -218,7 +238,6 @@ class DependenciesClassVisitor extends ClassVisitor
     {
       maybeAddClassTypesFromSignature( signature );
       maybeAddDependentType( Type.getType( desc ) );
-      super.visitLocalVariable( name, desc, signature, start, end, index );
     }
 
     @Override
@@ -243,6 +262,14 @@ class DependenciesClassVisitor extends ClassVisitor
     }
 
     @Override
+    public AnnotationVisitor visitAnnotationDefault()
+    {
+      // The default value of an annotation member: a class literal, enum or nested annotation inside it is a
+      // dependency, which the annotation visitor records.
+      return new DepAnnotationVisitor();
+    }
+
+    @Override
     public void visitInvokeDynamicInsn( String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments )
     {
       addTypesFromMethodDescriptor( descriptor );
@@ -252,6 +279,22 @@ class DependenciesClassVisitor extends ClassVisitor
       {
         addDependentTypeFromBootstrapMethodArgument( arg );
       }
+    }
+
+    @Override
+    public void visitFieldInsn( int opcode, String owner, String name, String descriptor )
+    {
+      // The owner is a constant-pool class entry and already recorded; the field's type is present only in this
+      // descriptor.
+      maybeAddDependentType( Type.getType( descriptor ) );
+    }
+
+    @Override
+    public void visitMethodInsn( int opcode, String owner, String name, String descriptor, boolean isInterface )
+    {
+      // The owner is a constant-pool class entry and already recorded; the invoked method's parameter and return types
+      // are present only in this descriptor.
+      addTypesFromMethodDescriptor( descriptor );
     }
 
     private void addDependentTypeFromBootstrapMethodArgument( Object arg )
@@ -281,6 +324,13 @@ class DependenciesClassVisitor extends ClassVisitor
       {
         maybeAddDependentType( (Type)value );
       }
+    }
+
+    @Override
+    public void visitEnum( String name, String desc, String value )
+    {
+      // The enum's type is present only in this descriptor, not as a constant-pool class entry.
+      maybeAddDependentType( Type.getType( desc ) );
     }
 
     @Override

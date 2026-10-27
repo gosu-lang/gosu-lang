@@ -8,12 +8,24 @@ import java.util.Set;
 public interface IIncrementalCompilationManager {
 
     /**
+     * Returns whether a usable dependency graph was loaded at construction: the dependency file
+     * existed, parsed, and carried the version this manager reads.
+     *
+     * <p>{@code false} means the driver has nothing to walk and must compile every source, then
+     * persist the graph from scratch. That covers an absent file (first build, or a driver that
+     * deleted it to force a full rebuild), an unreadable file, and a file written by a gosuc with a
+     * different dependency-file version. Treating any but the first as an empty graph instead would
+     * compile only the changed types and silently leave their consumers stale.
+     */
+    boolean hasValidExistingDepFile();
+
+    /**
      * Record the single-hop dependency edges produced when {@code gosuClass} is
      * compiled to the given bytecode.
      *
      * <p>Runs the two-phase walk over {@code bytes} via DependenciesClassVisitor
      * (constant-pool scan in the constructor + structural {@code ClassVisitor} callbacks
-     * via {@code accept}), then a narrow AST pass via trackTypeliteralsFromAST
+     * via {@code accept}), then a narrow AST pass via recordEdgesFromAST
      * for references that don't make it into bytecode.
      *
      * <p>Only <em>direct</em> producer-consumer edges are recorded; transitive cascades

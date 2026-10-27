@@ -51,7 +51,7 @@ forks:  gosuc -incremental
   ▼
 GosuCompiler.compile(options, driver)          ── §5
   ├─ create IncrementalCompilationManager       (loads dep file, builds fqcn→source map)
-  ├─ dep file absent? ⇒ compile ALL source files, then write the graph  (§5)
+  ├─ no usable dep file? ⇒ compile ALL source files, then write the graph  (§5)
   ▼
 compileGosuIncrementally(options, driver)      ── §5
   ├─ delete .class + $*.class + source copy for (changed ∪ removed)  ── §8 (up front, non-transactional)
@@ -88,6 +88,7 @@ collections.
 A new interface in `gosu-core-api` (`gw.lang`):
 
 ```java
+boolean      hasValidExistingDepFile();
 void         trackDependencies(byte[] bytes, IGosuClass gosuClass);
 void         updateDependencyFile(Set<String> typeFqcnsToCompile, Set<String> removedTypes);
 String       getGosuFilePathFromFqcn(String fqcn);
@@ -96,6 +97,9 @@ String       getClassFileName(IType type);
 Set<String>  calculateRecompilationSet(Set<String> changedTypes, Set<String> removedTypes);
 ```
 
+- **`hasValidExistingDepFile`** — whether construction loaded a usable graph: the dep
+  file existed, parsed, and carried the current format version (§9.3). `false` is the
+  driver's full-rebuild signal (§5).
 - **`trackDependencies`** — records the *direct* producer→consumer edges observed
   when `gosuClass` was compiled to `bytes` (§6). Transitive cascades are **not**
   computed here.
@@ -132,16 +136,19 @@ everything (this is the pre-existing behavior, now factored into a helper).
    passing the dep-file path, source roots, `-local-java-types`, the full source
    list, and the verbose flag. Construction **loads** the existing dep file into the
    in-memory `typeDependencies` graph and builds the `fqcn → source path` index.
-3. **Branch on the dep file's existence.** If it is **absent**, this is a full
-   rebuild: compile every source file, then write the graph from scratch (still
-   gated on step 7's conditions) and return. Everything below runs only when a dep
-   file was found, and lives in `compileGosuIncrementally`.
+3. **Branch on `hasValidExistingDepFile()`.** If the manager loaded **no usable
+   graph** — the dep file is absent, unreadable, or carries another format version
+   (§9.3) — this is a full rebuild: compile every source file, then write the graph
+   from scratch (still gated on step 7's conditions) and return. Everything below runs
+   only when a graph was loaded, and lives in `compileGosuIncrementally`.
 
-   This is the **only** signal that means "compile everything", so **a driver wanting
-   a full rebuild must delete the dep file** — empty `-changed-types`/`-removed-types`
+   The dep file is the **only** signal that means "compile everything", so **a driver
+   wanting a full rebuild must delete the dep file** — empty `-changed-types`/`-removed-types`
    will not do, being indistinguishable from an incremental round whose cascade came
    out empty, which must compile nothing. The Gradle plugin deletes it in
-   `GosuCompile` whenever `InputChanges.isIncremental()` is false.
+   `GosuCompile` whenever `InputChanges.isIncremental()` is false. Treating an
+   unreadable file as an empty graph instead would compile the changed types alone and
+   leave their consumers stale.
 4. **Make the change sets disjoint.** A type can be reported as both changed and
    removed — a source deleted and re-added inside one change window looks exactly like
    that — so `removedTypes.removeAll(changedTypes)` runs first: if the source is
@@ -195,13 +202,15 @@ with its own bytecode.
 
 ## 6. Dependency extraction (bytecode-driven, with an AST supplement)
 
-`trackDependencies(bytes, gosuClass)` runs two passes:
+`trackDependencies(bytes, gosuClass)` runs a bytecode pass and two type-info/AST
+supplements:
 
 ```java
 ClassReader reader = new ClassReader(bytes);
 DependenciesClassVisitor visitor = new DependenciesClassVisitor(reader, this);
-reader.accept(visitor, ClassReader.SKIP_FRAMES);   // bytecode pass
-trackTypeliteralsFromAST(gosuClass);               // AST supplement
+reader.accept(visitor, ClassReader.SKIP_FRAMES);   // bytecode pass (§6.1)
+recordEdgesFromAST(gosuClass);                     // AST supplement (§6.2)
+recordLocalJavaAncestorEdges(gosuClass, …);        // local Java ancestors (§6.1)
 ```
 
 ### 6.1 `DependenciesClassVisitor` — the bytecode pass
@@ -224,14 +233,28 @@ that treats the **class being visited as the consumer** and records an edge
    | `visitField` | field descriptor + generic signature; field & type annotations |
    | `visitMethod` | return type, parameter types, declared exceptions, generic signature |
    | `MethodVisitor.visitLocalVariable` | local-variable descriptor + signature |
+   | `MethodVisitor.visitMethodInsn` / `visitFieldInsn` | parameter and return types of every invoked method, type of every accessed field — present only in the member's descriptor, never as a constant-pool class entry |
    | `MethodVisitor.visit*Annotation` | method / parameter / type annotations |
    | `MethodVisitor.visitInvokeDynamicInsn` | bootstrap method descriptor, owner, and `Type`/`Handle` bootstrap args (lambda/`invokedynamic` desugaring) |
+   | `MethodVisitor.visitAnnotationDefault` | class literals, enum types and nested annotation types inside an annotation member's default value |
+   | `visitOuterClass` | the enclosing method's parameter and return types of a local or anonymous class |
    | `visitAnnotation` (class) | annotation type descriptor |
-   | `AnnotationVisitor.visit` | annotation **values** that are `Type` (class literals inside annotation args) |
+   | `visitTypeAnnotation` (class) | type annotation descriptors on the class declaration |
+   | `AnnotationVisitor.visit` / nested `visitAnnotation` / `visitEnum` | annotation **values** that are `Type` (class literals inside annotation args), nested annotation types, and the enum type of an enum value |
 
    Generic signatures are parsed with `SignatureReader` + a `SignatureVisitor` so
    that type arguments (e.g. `List<MyType>`) are captured, not just the erased
    descriptor.
+
+One edge comes from type info rather than bytecode: an edge from every **local Java
+ancestor** of the class, not only its direct supertype (`recordLocalJavaAncestorEdges`).
+Under `Mid extends JMid extends JBase` (`JMid`, `JBase` same-module Java), a change to
+`JBase` is reported alone, since `JMid`'s class file does not change, and `Mid`'s class
+file names `JMid` only. The edge brings `Mid` into the walk, and the cascade carries the
+change on to `Mid`'s own subclasses and consumers. Gosu ancestors need no such edge: each
+is recompiled with its own edges from its Java ancestors. Pinned by
+`testLocalJavaSupertypeChangeReachesGosuSubclassesThroughALocalJavaClass` and
+`testLocalJavaAncestorChangeReachesTheSourceOfAPrivateSubclass`.
 
 Every candidate flows through `maybeAddDependentType`, which unwraps array types to
 their element type, keeps only `OBJECT`-sort types, and calls
@@ -245,7 +268,7 @@ consumer)`. The constructor also calls `getOrCreateCurrentConsumerSet(consumerFq
 > branch does not implement. Consequently the recompile BFS (§7) over-approximates
 > (see §12).
 
-### 6.2 `trackTypeliteralsFromAST` — the compile-time-only supplement
+### 6.2 `recordEdgesFromAST` — the compile-time-only supplement
 
 Some Gosu references never survive into bytecode (notably **type-literal
 expressions** — `MyType` used as a value/feature literal). A narrow AST pass covers
@@ -254,6 +277,45 @@ each `ITypeLiteralExpression` records edges via `trackTypeLiteralDependency`, wh
 recurses through arrays, parameterized type arguments, and compound-type components
 (deduping through a shared `trackedTypes` set that also guards cyclic generic
 signatures like `class C<T extends C<T>>`).
+
+The same pass covers two more references that leave no trace in the consumer's class
+file:
+
+- **Compile-time constants.** gosuc folds a constant into string concatenations, int
+  `switch` cases, annotation arguments and default arguments, so the consumer's bytecode
+  carries the value and no reference to the type declaring it. A constant named through
+  its declaring type is covered by that type literal, but not one inherited and named
+  unqualified or through a subtype (`Mid.FOO`), nor one imported as a feature
+  (`uses Base#FOO`). For every identifier naming a Gosu static final constant, and every
+  member access naming a static compile-time constant, Gosu or Java, the pass records an
+  edge from the type that declares it (`constantDeclaringType`). The member access matters
+  most for a Java constant named through a Java subclass in an annotation argument or a
+  `switch` case: when `JBase` changes under `JMid extends JBase`, Gradle reports `JBase`
+  alone and the consumer names only `JMid`. Pinned by
+  `testConstantInheritedThroughAnIntermediateClassRecompilesConsumerThatFoldedIt`,
+  `testConstantQualifiedBySubclassRecompilesConsumerThatFoldedIt`,
+  `testConstantImportedAsAFeatureRecompilesConsumerThatFoldedIt`,
+  `testJavaConstantFoldedIntoAnAnnotationThroughAJavaSubclassRecompilesTheConsumer` and
+  `testJavaConstantFoldedIntoASwitchCaseThroughAJavaSubclassRecompilesTheConsumer`.
+- **What a value passed where a structure is expected offers.** A structure is defined by
+  its members and gosuc writes it as `Object`, so whether `Caller`'s
+  `Fixture.pick( new Rec() )` still compiles, with `pick( x : Named )` and a `Rec` that
+  merely matches `Named`, depends on what `Rec` offers, and on what the types `Rec`'s
+  members name offer in turn. With local Java types nothing in the graph leads from a
+  changed `JRecSized` (the return type of `JRec.sized()`) to `Caller`: the graph records
+  no edges between Java types, and Gradle reports `JRecSized` alone. For every method
+  call, `new` expression or property write whose parameters, or property, name a
+  structure, and for every `as` coercion, implicit or explicit, to a structure, the pass
+  records an edge to the class from the type of every value passed and from every
+  in-project type it reaches through its non-private members' declared types, its
+  supertypes and its type arguments (`trackStructuralArgument`). The same is followed for
+  every type argument written for a type variable bounded by a structure, since gosuc
+  checks it against the bound wherever the parameterized type is written
+  (`trackTypeArgumentsBoundedByStructures`). Which members the structure asks for is not
+  worked out; every member is followed, which only adds edges. The walk stops at a
+  structure, whose own changes reach the class through the classes naming it, and at a
+  type outside the project. Pinned by the
+  `testChangeToAMemberTypeOf…ForAStructure…`/`…BoundedByAStructure…` tests.
 
 Each visited node is gated by `element.getGosuClass() == gsClass`, so elements that
 lexically belong to a nested class/block are **skipped** here and instead tracked by
@@ -289,6 +351,11 @@ Concrete cases pinned by gosuc-level e2e tests in `IncrementalCompilationEndToEn
 - **parameterized types**, Java- and Gosu-flavored (`List<MyType>`, `Container<MyType>`) —
   `testGosuFieldOfParameterizedJavaTypeRecompilesOnTypeParamChange`,
   `testGosuFieldOfParameterizedGosuTypeRecompilesOnTypeParamChange`;
+- **types named only in a member descriptor** (the return type of an invoked method,
+  the type of an accessed field) — `testTypeNamedOnlyInAnInvokedMethodDescriptorIsADependency`,
+  `testTypeNamedOnlyInAnAccessedFieldDescriptorIsADependency`;
+- **an enum constant baked from an annotation default**, whose type the user's source
+  never names — `testEnumAnnotationValueBakedFromADefaultIsADependency`;
 - **cascade precision** — an unrelated consumer is *not* pulled in when an annotation
   type changes — `testTopLevelAnnotationChangeDoesNotOverRecompileUnrelatedSources`;
 - **graph hygiene** — JRE types and JAR-sourced (non-source-root) Gosu types stay out
@@ -389,10 +456,10 @@ in-memory graph:
 2. **Strip stale consumers**: from *every* producer's consumer set, remove all of
    `typeFqcnsToCompile` and `removedTypes` — a recompiled/removed type can no longer
    be assumed to still consume its old producers (its source changed).
-3. **Merge refreshed edges**: for each producer in `currentUsedBy` (this session's
+3. **Merge refreshed edges**: for each producer in `currTypeDependencies` (this session's
    freshly recorded edges), union its recomputed consumers into
    `typeDependencies` (`computeIfAbsent`), bringing the old producer up to date.
-4. Clear `currentUsedBy`.
+4. Clear `currTypeDependencies`.
 
 This drop-then-overlay pattern is what keeps dropped edges from lingering: a
 producer whose only consumer stopped referencing it ends up with that consumer
@@ -407,11 +474,11 @@ ATOMIC_MOVE, REPLACE_EXISTING)`. A crash mid-write cannot truncate the live file
 erasing the whole graph). Output is **deterministic** — producers via `TreeMap`,
 each consumer list sorted — so the file is stable for the Gradle build cache.
 
-### 9.3 On-disk format (version `0.1`)
+### 9.3 On-disk format (version `0.2`)
 
 ```json
 {
-  "version": "0.1",
+  "version": "0.2",
   "consumers": {
     "<producerFqcn>": [ "<consumerFqcn>", ... ]
   }
@@ -419,9 +486,14 @@ each consumer list sorted — so the file is stable for the Gradle build cache.
 ```
 
 FQCNs use bytecode shape, with `$` between an enclosing type and a nested one
-(`example.Outer$Inner`). `loadDependencyFile` returns an **empty map** (⇒ next build
-repopulates from a full compile) on a version mismatch, a missing file, or an
-`IOException | IllegalStateException` while parsing.
+(`example.Outer$Inner`). Version `0.2` added the edges from member descriptors,
+annotation defaults, enum annotation values, enclosing methods, local Java ancestors,
+folded constants and values passed for structures (§6.1, §6.2); a `0.1` file lacks
+them, so it is rejected like any other version. The file is **usable**
+(`hasValidExistingDepFile()`) only if it parses, its `version` is `0.2`, and it carries
+a `consumers` object; otherwise nothing is loaded and the driver compiles everything
+(§5 step 3), which also regenerates the file. Pinned by
+`testDependencyFileFromAnotherVersionForcesFullRebuild`.
 
 ---
 
@@ -484,7 +556,7 @@ simpler. Side by side:
 | Inlineable-constant ABI tracking | Yes (hash of `name\|value`) | **No** — consumers conservatively recompile on any producer change |
 | Annotation-processor subsystem | Full (isolating / aggregating, `generatedTypesByOrigin`) | **N/A** — gosuc runs no APs; `compileJava` handles them upstream (§6.3) |
 | Post-compile graph source | Re-derived from output `.class` files every build (self-healing) | Accumulated in memory, persisted as JSON; never re-derived (§12) |
-| Persistence format | Kryo binary `PreviousCompilationData` | JSON `gosuc-deps-*.json`, `version` `"0.1"` (§9) |
+| Persistence format | Kryo binary `PreviousCompilationData` | JSON `gosuc-deps-*.json`, `version` `"0.2"` (§9) |
 | Output safety on failure | `CompileTransaction` stash / restore | Delete-before-compile, non-transactional (§8) |
 | Within-project ABI-stable pruning | No | No — future work |
 
@@ -522,9 +594,9 @@ Documented limitations on this branch:
    bug can therefore persist in the dep file across builds. Mitigated (not closed)
    by: gating the write on `!hasErrors() && !thresholdExceeded` (§5) and the `effectivelyRemoved`
    inner-class sweep (§5).
-4. **The full-rebuild signal is out-of-band** — it is the dep file's absence, not
-   anything on the command line (§5). A driver that asks for a full rebuild while
-   leaving the file in place gets an incremental round with an empty cascade:
+4. **The full-rebuild signal is out-of-band** — it is the dep file's absence or
+   unusability, not anything on the command line (§5). A driver that asks for a full
+   rebuild while leaving a valid file in place gets an incremental round with an empty cascade:
    nothing compiled, exit 0, stale outputs. Nothing here can detect that; the
    obligation sits entirely with the driver.
 5. **No ABI-level pruning, no `dependencyToAll`/SOURCE-retention/`module-info`
@@ -539,3 +611,11 @@ Documented limitations on this branch:
    visible consequence: a graph regenerated from scratch (dep file deleted, §5 step 3)
    omits these keys, because the full-rebuild path never runs the walk, so it is a
    strict subset of the file it replaces rather than a byte-identical copy.
+7. **A new type can change how an unchanged consumer resolves a name, and no edge points
+   from a type that did not exist.** A same-package class shadowing a wildcard import, an
+   enhancement colliding with one the consumer uses, or a new enum constant making an
+   unqualified one ambiguous is not detected. The first is reproduced and pinned by
+   `testNewSamePackageTypeShadowingAWildcardImportIsNotDetected`: the incremental build
+   succeeds where a full build fails. One way to close the shadowing case: when a type is
+   new this build, also enqueue the consumers of every existing type with the same simple
+   name; an enhancement changing resolution would need an index of method names.
