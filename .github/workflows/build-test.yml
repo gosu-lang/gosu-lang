@@ -28,7 +28,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and run tests
-        run: mvn clean verify -B -V
+        run: ./mvnw clean verify -B -V
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4

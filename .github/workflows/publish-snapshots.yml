@@ -49,7 +49,7 @@ jobs:
 
       - name: Publish snapshot to Maven Central
         if: steps.check-perms.outputs.can-publish == 'true'
-        run: mvn deploy -Pcentral -Dmaven.test.skip=true -s $GITHUB_WORKSPACE/settings.xml -B
+        run: ./mvnw deploy -Pcentral -Dmaven.test.skip=true -s $GITHUB_WORKSPACE/settings.xml -B
         env:
           SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
           SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
@@ -57,7 +57,7 @@ jobs:
       - name: Report published version
         if: steps.check-perms.outputs.can-publish == 'true'
         run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "## 📦 Snapshot Published" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "**Repository:** Maven Central Snapshots" >> $GITHUB_STEP_SUMMARY
