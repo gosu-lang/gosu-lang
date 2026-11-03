@@ -3,12 +3,17 @@ package gw.internal.gosu.incremental;
 import gw.internal.ext.com.google.gson.stream.JsonReader;
 import gw.internal.ext.com.google.gson.stream.JsonWriter;
 import gw.internal.ext.org.objectweb.asm.ClassReader;
+import gw.internal.gosu.parser.DynamicSymbol;
+import gw.internal.gosu.parser.GosuVarPropertyInfo;
+import gw.internal.gosu.parser.IGosuClassInternal;
 import gw.internal.gosu.parser.expressions.Identifier;
 import gw.internal.gosu.parser.expressions.MemberAccess;
+import gw.internal.gosu.parser.statements.VarStatement;
 import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.lang.IIncrementalCompilationManager;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
+import gw.lang.parser.ISymbol;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IImplicitTypeAsExpression;
 import gw.lang.parser.expressions.IMethodCallExpression;
@@ -32,6 +37,7 @@ import gw.lang.reflect.gs.IGenericTypeVariable;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.java.ICompileTimeConstantValue;
 import gw.lang.reflect.java.IJavaType;
+import gw.lang.reflect.java.JavaTypes;
 
 import java.io.File;
 import java.io.IOException;
@@ -664,13 +670,21 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    * a subtype of the one declaring it. The second matters for a Java constant named through a Java subclass where gosuc
    * folds it, in an annotation argument or a switch case: when the declaring class changes, Gradle reports it alone,
    * and the consumer names only the subclass.
+   *
+   * <p>To answer whether a Gosu field is a constant, Gosu parses the bodies of the class declaring it (its definitions)
+   * if it has not yet. That writes no class file, but it leaves shared compiler state behind, such as entries in the
+   * {@code CompoundType} cache, and the classes compiled after this one are compiled against that state: a class
+   * parsed only because of this pass can change their bytecode. So the question is not asked about a field whose class
+   * has not had its definitions parsed. Nothing is lost by that: gosuc asks the same question, parsing them, before it
+   * folds a constant into the consumer, so a class whose definitions are not parsed has had none of its constants
+   * folded.
    */
   private static IType constantDeclaringType( IParsedElement element )
   {
     if( element instanceof Identifier )
     {
       Identifier identifier = (Identifier)element;
-      if( identifier.isStaticFinalInitializedCompileTimeConstant() )
+      if( !mayParseDefinitions( identifier ) && identifier.isStaticFinalInitializedCompileTimeConstant() )
       {
         return identifier.getSymbol().getGosuClass();
       }
@@ -678,22 +692,145 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     else if( element instanceof MemberAccess )
     {
       MemberAccess memberAccess = (MemberAccess)element;
-      if( memberAccess.isCompileTimeConstant() )
+      // Only a static property can be a constant; checking that first skips asking about the root of most accesses
+      IPropertyInfo property = compileTimePropertyInfo( memberAccess );
+      if( property != null && property.isStatic() && property instanceof ICompileTimeConstantValue &&
+          !mayParseDefinitions( memberAccess ) && memberAccess.isCompileTimeConstant() )
       {
-        return compileTimeConstantOwner( memberAccess.getCompileTimePropertyInfo() );
+        return compileTimeConstantOwner( property );
       }
     }
     return null;
+  }
+
+  /**
+   * Whether asking {@code expression} if it is a compile-time constant could parse the definitions of a class.
+   * {@link IExpression#isCompileTimeConstant} asks it of the subexpressions too, e.g. of the root {@code A.B} in
+   * {@code A.B.C}, or of both operands in {@code A.B + "x"}, so each of them is checked. Only two of them can parse a
+   * class, each through a Gosu static final field that may be a constant:
+   * <ul>
+   *   <li>an {@link Identifier} naming such a field, see {@link Identifier#isStaticFinalInitializedCompileTimeConstant};</li>
+   *   <li>a {@link MemberAccess} naming one, see {@link GosuVarPropertyInfo#isCompileTimeConstantValue}.</li>
+   * </ul>
+   * Either parses the definitions of the class declaring the field if they are not parsed yet. If they are, it asks
+   * the same question of the field's initializer, so for {@code FOO = Other.BAR} the initializer is checked in turn.
+   */
+  private static boolean mayParseDefinitions( IParsedElement expression )
+  {
+    return mayParseDefinitions( expression, new HashSet<>() );
+  }
+
+  /** @param visitedFields the fields whose initializers are already checked, so fields naming each other end */
+  private static boolean mayParseDefinitions( IParsedElement expression, Set<VarStatement> visitedFields )
+  {
+    List<VarStatement> fields = new ArrayList<>();
+    boolean[] mayParse = {false};
+    expression.visit( element -> {
+      IType owner = null;
+      String name = null;
+      if( element instanceof Identifier )
+      {
+        ISymbol symbol = ((Identifier)element).getSymbol();
+        if( symbol instanceof DynamicSymbol && symbol.isStatic() && symbol.isFinal() )
+        {
+          owner = symbol.getGosuClass();
+          name = symbol.getName();
+        }
+      }
+      else if( element instanceof MemberAccess )
+      {
+        IPropertyInfo property = compileTimePropertyInfo( (MemberAccess)element );
+        if( property instanceof GosuVarPropertyInfo && mayBeConstant( (GosuVarPropertyInfo)property ) )
+        {
+          owner = property.getOwnersType();
+          name = property.getName();
+        }
+      }
+      if( owner instanceof IGosuClassInternal )
+      {
+        if( !definitionsCompiled( owner ) )
+        {
+          mayParse[0] = true;
+        }
+        else
+        {
+          VarStatement field = ((IGosuClassInternal)owner).getStaticField( name );
+          if( field != null && field.getAsExpression() != null && visitedFields.add( field ) )
+          {
+            fields.add( field );
+          }
+        }
+      }
+    } );
+    if( mayParse[0] )
+    {
+      return true;
+    }
+    for( VarStatement field : fields )
+    {
+      if( mayParseDefinitions( field.getAsExpression(), visitedFields ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Whether {@link GosuVarPropertyInfo#isCompileTimeConstantValue} goes on to look at the class declaring
+   * {@code property}, as it does for a static final field of a type a constant can have, String, primitive or enum,
+   * once that class's declarations are compiled.
+   */
+  private static boolean mayBeConstant( GosuVarPropertyInfo property )
+  {
+    IType type = property.getFeatureType();
+    return property.isStatic() && property.isFinal() &&
+           (type == JavaTypes.STRING() || type.isPrimitive() || type.isEnum()) &&
+           property.getOwnersType().isDeclarationsCompiled();
+  }
+
+  /**
+   * The property {@code memberAccess} names, unwrapped as {@link MemberAccess#isCompileTimeConstant} does, or null if
+   * none can be found, which that method also reads as not a constant.
+   */
+  private static IPropertyInfo compileTimePropertyInfo( MemberAccess memberAccess )
+  {
+    try
+    {
+      return unwrapDelegates( memberAccess.getCompileTimePropertyInfo() );
+    }
+    catch( RuntimeException e )
+    {
+      // e.g. an instance property named through a type; MemberAccess.isCompileTimeConstant swallows this too
+      return null;
+    }
+  }
+
+  /** Whether the definitions of {@code type} are parsed, or {@code type} has none to parse: it is not a Gosu class. */
+  private static boolean definitionsCompiled( IType type )
+  {
+    if( !(type instanceof IGosuClass) )
+    {
+      return true;
+    }
+    IGosuClass gsClass = (IGosuClass)type;
+    return gsClass.isDefinitionsCompiled() || gsClass.isCompilingDefinitions();
+  }
+
+  private static IPropertyInfo unwrapDelegates( IPropertyInfo property )
+  {
+    while( property instanceof IPropertyInfoDelegate )
+    {
+      property = ((IPropertyInfoDelegate)property).getSource();
+    }
+    return property;
   }
 
   /** The type declaring {@code property} if it is a static compile-time constant, null otherwise. */
   private static IType compileTimeConstantOwner( IPropertyInfo property )
   {
     // Unwrap as MemberAccess.isCompileTimeConstant does, so this sees the property the compiler folded.
-    while( property instanceof IPropertyInfoDelegate )
-    {
-      property = ((IPropertyInfoDelegate)property).getSource();
-    }
+    property = unwrapDelegates( property );
     if( property != null && property.isStatic() && property instanceof ICompileTimeConstantValue &&
         ((ICompileTimeConstantValue)property).isCompileTimeConstantValue() )
     {
