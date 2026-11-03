@@ -314,15 +314,6 @@ only its direct supertype. Under `Mid extends JMid extends JBase` (`JMid`, `JBas
 only. The edge brings `Mid` into the walk, and its hash, which covers its inherited surface (§6.4), carries the change
 on to `Mid`'s own subclasses and consumers. Gosu ancestors need no such edge: each is recompiled whenever its own
 supertypes' surface moves, and its hash moves with it. Pinned by
-`testLocalJavaSupertypeChangeReachesGosuSubclassesThroughALocalJavaClass`.
-
-One edge comes from type info rather than bytecode: an edge from every **local Java
-ancestor** of the class, not only its direct supertype (`recordLocalJavaAncestorEdges`).
-Under `Mid extends JMid extends JBase` (`JMid`, `JBase` same-module Java), a change to
-`JBase` is reported alone, since `JMid`'s class file does not change, and `Mid`'s class
-file names `JMid` only. The edge brings `Mid` into the walk, and the cascade carries the
-change on to `Mid`'s own subclasses and consumers. Gosu ancestors need no such edge: each
-is recompiled with its own edges from its Java ancestors. Pinned by
 `testLocalJavaSupertypeChangeReachesGosuSubclassesThroughALocalJavaClass` and
 `testLocalJavaAncestorChangeReachesTheSourceOfAPrivateSubclass`.
 
@@ -400,45 +391,6 @@ The same pass covers two more references that leave no trace in the consumer's c
   `testChangeToAMemberTypeOfAValue…ForAStructureReachesCaller` tests; the cost of following every member is shown by
   `testArgumentPassedForAStructureRecompilesCallerOnChangesToTypesItsOtherMembersReach`, and
   §6.5 weighs it against following only what the structure asks for.
-
-The same pass covers two more references that leave no trace in the consumer's class
-file:
-
-- **Compile-time constants.** gosuc folds a constant into string concatenations, int
-  `switch` cases, annotation arguments and default arguments, so the consumer's bytecode
-  carries the value and no reference to the type declaring it. A constant named through
-  its declaring type is covered by that type literal, but not one inherited and named
-  unqualified or through a subtype (`Mid.FOO`), nor one imported as a feature
-  (`uses Base#FOO`). For every identifier naming a Gosu static final constant, and every
-  member access naming a static compile-time constant, Gosu or Java, the pass records an
-  edge from the type that declares it (`constantDeclaringType`). The member access matters
-  most for a Java constant named through a Java subclass in an annotation argument or a
-  `switch` case: when `JBase` changes under `JMid extends JBase`, Gradle reports `JBase`
-  alone and the consumer names only `JMid`. Pinned by
-  `testConstantInheritedThroughAnIntermediateClassRecompilesConsumerThatFoldedIt`,
-  `testConstantQualifiedBySubclassRecompilesConsumerThatFoldedIt`,
-  `testConstantImportedAsAFeatureRecompilesConsumerThatFoldedIt`,
-  `testJavaConstantFoldedIntoAnAnnotationThroughAJavaSubclassRecompilesTheConsumer` and
-  `testJavaConstantFoldedIntoASwitchCaseThroughAJavaSubclassRecompilesTheConsumer`.
-- **What a value passed where a structure is expected offers.** A structure is defined by
-  its members and gosuc writes it as `Object`, so whether `Caller`'s
-  `Fixture.pick( new Rec() )` still compiles, with `pick( x : Named )` and a `Rec` that
-  merely matches `Named`, depends on what `Rec` offers, and on what the types `Rec`'s
-  members name offer in turn. With local Java types nothing in the graph leads from a
-  changed `JRecSized` (the return type of `JRec.sized()`) to `Caller`: the graph records
-  no edges between Java types, and Gradle reports `JRecSized` alone. For every method
-  call, `new` expression or property write whose parameters, or property, name a
-  structure, and for every `as` coercion, implicit or explicit, to a structure, the pass
-  records an edge to the class from the type of every value passed and from every
-  in-project type it reaches through its non-private members' declared types, its
-  supertypes and its type arguments (`trackStructuralArgument`). The same is followed for
-  every type argument written for a type variable bounded by a structure, since gosuc
-  checks it against the bound wherever the parameterized type is written
-  (`trackTypeArgumentsBoundedByStructures`). Which members the structure asks for is not
-  worked out; every member is followed, which only adds edges. The walk stops at a
-  structure, whose own changes reach the class through the classes naming it, and at a
-  type outside the project. Pinned by the
-  `testChangeToAMemberTypeOf…ForAStructure…`/`…BoundedByAStructure…` tests.
 
 Each visited node is gated by `element.getGosuClass() == gsClass`, so elements that
 lexically belong to a nested class/block are **skipped** here and instead tracked by that
@@ -1036,11 +988,3 @@ Known limitations:
     names, directly or indirectly, whether or not the structure asks for it, and the walk loads
     the type info of all of them. Correctness-neutral; §6.5 describes how to follow only what the
     structure asks for.
-7. **A new type can change how an unchanged consumer resolves a name, and no edge points
-   from a type that did not exist.** A same-package class shadowing a wildcard import, an
-   enhancement colliding with one the consumer uses, or a new enum constant making an
-   unqualified one ambiguous is not detected. The first is reproduced and pinned by
-   `testNewSamePackageTypeShadowingAWildcardImportIsNotDetected`: the incremental build
-   succeeds where a full build fails. One way to close the shadowing case: when a type is
-   new this build, also enqueue the consumers of every existing type with the same simple
-   name; an enhancement changing resolution would need an index of method names.
