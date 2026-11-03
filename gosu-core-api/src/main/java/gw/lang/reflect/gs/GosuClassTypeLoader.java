@@ -166,7 +166,11 @@ public class GosuClassTypeLoader extends SimpleTypeLoader
           strFullyQualifiedName.startsWith( IGosuClass.PROXY_PREFIX ) )
       {
         IType javaType = TypeSystem.getByFullNameIfValid( IGosuClass.ProxyUtil.getNameSansProxy( strFullyQualifiedName ) );
-        if( javaType instanceof IJavaType )
+        // Primitives don't get adapter classes: "_proxy_.int" is not a real type. Without this
+        // guard, resolveTypesInAllNamespaces on a proxy in the default package would match the
+        // primitive and generate a nonsense "class int {}" source that later surfaces as
+        // "_proxy_.int" in type errors.
+        if( javaType instanceof IJavaType && !javaType.isPrimitive() )
         {
           IGosuClass adapterClass = ((IJavaType)javaType).getAdapterClass();
           if( adapterClass == null )
