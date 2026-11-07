@@ -762,7 +762,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
 
           verify( program, match( null, SourceCodeTokenizer.TT_EOF ), Res.MSG_END_OF_STMT );
           _bParsed = true;
-          PostCompilationAnalysis.maybeAnalyze( program );
+          PostCompilationAnalysis.analyze( program );
           if( !bDoNotThrowParseResultsException )
           {
             verifyParsedElement( program );

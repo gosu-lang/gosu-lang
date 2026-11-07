@@ -4,6 +4,7 @@
 
 package gw.lang.parser;
 
+import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.parser.resources.ResourceKey;
@@ -32,6 +33,7 @@ public class ParserOptions
   private boolean _throwawayProgram;
   private Object _ctxInferenceMgr;
   private Set<ResourceKey> _ignoreWarnings = new HashSet<ResourceKey>();
+  private Restrictions _restrictions;
   private boolean _allowUses;
   private boolean _bAnon;
 
@@ -56,6 +58,12 @@ public class ParserOptions
   public ParserOptions withDefaultTypeUsesMap()
   {
     _typeUsesMap = TypeSystem.getDefaultTypeUsesMap().copy();
+    return this;
+  }
+
+  public ParserOptions withRestrictions( Restrictions restrictions )
+  {
+    _restrictions = restrictions;
     return this;
   }
 
@@ -163,6 +171,11 @@ public class ParserOptions
   public IFileContext getFileContext()
   {
     return _fileContext;
+  }
+
+  public Restrictions getRestrictions()
+  {
+    return _restrictions;
   }
 
   public ITypeUsesMap getTypeUsesMap()

@@ -148,7 +148,13 @@ public class GosuTestUtil
   }
 
   public static Object evalGosu(String script, ISymbolTable table) throws ParseResultsException {
-    IGosuProgram gosuProgram = GosuParserFactory.createProgramParser().parseExpressionOrProgram( script, table, new ParserOptions() ).getProgram();
+    return evalGosu( script, table, new ParserOptions() );
+  }
+  public static Object evalGosu(String script, ParserOptions options) throws ParseResultsException {
+    return evalGosu( script, new StandardSymbolTable( true ), options );
+  }
+  public static Object evalGosu(String script, ISymbolTable table, ParserOptions options ) throws ParseResultsException {
+    IGosuProgram gosuProgram = GosuParserFactory.createProgramParser().parseExpressionOrProgram( script, table, options ).getProgram();
     return gosuProgram.evaluate(new ExternalSymbolMapSymbolTableWrapper(table));
   }
 

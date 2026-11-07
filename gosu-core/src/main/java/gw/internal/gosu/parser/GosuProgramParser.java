@@ -220,6 +220,7 @@ public class GosuProgramParser implements IGosuProgramParser
       program.setThrowaway( options.isThrowawayProgram() );
       program.setAnonymous( program.isAnonymous() || options.isAnonymous() );
       program.setAllowUses( options.allowUses() );
+      program.setRestrictions( options.getRestrictions() );
       program.setCtxInferenceMgr( options.getCtxInferenceMgr() );
       if( options.getScriptPartId() != null )
       {

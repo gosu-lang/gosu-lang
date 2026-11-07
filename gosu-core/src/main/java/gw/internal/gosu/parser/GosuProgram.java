@@ -13,6 +13,7 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
+import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.parser.expressions.IFieldAccessExpression;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -43,6 +44,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   private boolean _bStatementsOnly;
   private IType _contextType;
   private ContextInferenceManager _ctxInferenceMgr;
+  private Restrictions _restrictions;
   private boolean _bParsingExecutableProgramStmts;
   private boolean _allowUses;
 
@@ -478,6 +480,17 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   public void setParsingExecutableProgramStatements( boolean b )
   {
     _bParsingExecutableProgramStmts = b;
+  }
+
+  @Override
+  public Restrictions getRestrictions()
+  {
+    return _restrictions;
+  }
+  @Override
+  public void setRestrictions( Restrictions restrictions )
+  {
+    _restrictions = restrictions;
   }
 
   @Override

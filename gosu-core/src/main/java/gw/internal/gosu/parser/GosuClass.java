@@ -32,7 +32,6 @@ import gw.lang.parser.ISource;
 import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.PostCompilationAnalysis;
 import gw.lang.parser.ScriptPartId;
 import gw.lang.parser.ScriptabilityModifiers;
 import gw.lang.parser.TypeVarToTypeMap;
@@ -1619,14 +1618,13 @@ public class GosuClass extends InnerClassCapableType implements IGosuClassIntern
 
   private void postAnalyze()
   {
-    if( !isAnonymous()  )
+    if( isAnonymous() || getEnclosingType() != null )
     {
-      if( getEnclosingType() == null )
-      {
-        // Only analyze from top-level class
-        PostCompilationAnalysis.maybeAnalyze( getClassStatement().getClassFileStatement(), getClassStatement() );
-      }
+      // Only analyze from top-level class
+      return;
     }
+
+    PostCompilationAnalysis.analyze( getClassStatement() );
   }
 
   private boolean hasParseIssuesInUsesStatements()

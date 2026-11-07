@@ -647,7 +647,9 @@ public abstract class ParsedElement implements IParsedElement
 
     for( IParseIssue pw : getParseWarnings() )
     {
-      if( GosuObjectUtil.equals( pw.getTokenStart(), pi.getTokenStart() ) &&
+      if( (pw.getTokenStart() != null
+           ? pw.getTokenStart().equals( pi.getTokenStart() )
+           : pw.getLine() == pi.getLine() && pw.getColumn() == pi.getColumn()) &&
           pw.getMessageKey() == pi.getMessageKey() &&
           GosuObjectUtil.equals( pw.getConsoleMessage(), pi.getConsoleMessage() ) )
       {
@@ -657,7 +659,9 @@ public abstract class ParsedElement implements IParsedElement
 
     for( IParseIssue pe : _lnf._parseExceptions )
     {
-      if( pe.getTokenStart() != null && pe.getTokenStart().equals( pi.getTokenStart() ) &&
+      if( (pe.getTokenStart() != null
+           ? pe.getTokenStart().equals( pi.getTokenStart() )
+           : pe.getLine() == pi.getLine() && pe.getColumn() == pi.getColumn()) &&
           pe.getMessageKey() == pi.getMessageKey() &&
           GosuObjectUtil.equals( pe.getPlainMessage(), pi.getPlainMessage() ) )
       {
