@@ -46,7 +46,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   private boolean _bStatementsOnly;
   private IType _contextType;
   private ContextInferenceManager _ctxInferenceMgr;
-  private Set<AstProcessorProvider> _astProcessorProviders;
+  private Set<AstProcessorProvider> _astProcessorProviders = Set.of();
   private boolean _bParsingExecutableProgramStmts;
   private boolean _allowUses;
 
@@ -492,7 +492,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   @Override
   public void setAstProcessorProviders( Set<AstProcessorProvider> astProcessorProviders )
   {
-    _astProcessorProviders = astProcessorProviders;
+    _astProcessorProviders = astProcessorProviders == null ? Set.of() : astProcessorProviders;
   }
 
   @Override
