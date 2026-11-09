@@ -9,7 +9,7 @@ public class PostCompilationAnalysis
    */
   public static void analyze( IParsedElement pe )
   {
-    RestrictionsChecker.instance().enforceRestrictions( pe );
+    RestrictionsChecker.instance().checkRestrictions( pe );
 
     //todo: other analysis/metaprogramming tasks can be added dynamically via SPI
   }

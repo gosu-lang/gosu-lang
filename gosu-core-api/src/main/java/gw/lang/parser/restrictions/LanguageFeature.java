@@ -6,7 +6,8 @@ public enum LanguageFeature
   FEATURE_LITERAL( "feature literals (#method(), #property)" ),
   EVAL( "eval expressions" ),
   DYNAMIC( "dynamic expressions / types" ),
-  LAMBDA( "lambda expressions / types" );
+  LAMBDA( "lambda expressions / types" ),
+  STRUCTURAL( "structural types" ); // an object of any type, allowed or not, coerces to a structure
 
   private final String _displayName;
 

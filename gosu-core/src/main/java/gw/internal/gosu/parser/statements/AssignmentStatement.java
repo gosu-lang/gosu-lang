@@ -27,6 +27,7 @@ public final class AssignmentStatement extends Statement implements IAssignmentS
 {
   protected Identifier _identifier;
   protected Expression _expression;
+  private boolean _compoundStatement;
 
   /**
    * @return The left-hand-side identifier of the expression.
@@ -43,6 +44,19 @@ public final class AssignmentStatement extends Statement implements IAssignmentS
   {
     _identifier = identifier;
     resetIdentifierType();
+  }
+
+  public void setCompoundStatement( boolean compoundStatement )
+  {
+    _compoundStatement = compoundStatement;
+  }
+
+  /**
+   * @return True if the assignment also reads the identifier, e.g., +=, ++
+   */
+  public boolean isCompoundStatement()
+  {
+    return _compoundStatement;
   }
 
   /**

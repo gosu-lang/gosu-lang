@@ -73,7 +73,16 @@ public final class Builder
   }
 
   /**
-   * Denies one method name (all overloads) or the matching property accessors.
+   * Denies one method (all overloads) or property. The rule matches a member access where the type is the declaring
+   * type, the static type of the caller, or any supertype of either. So a rule on a type also denies the member on
+   * all its subtypes, including overrides, e.g., {@code java.lang.Object#toString} denies {@code "abc".toString()}.
+   * A static member is not overridden, so a rule on a static member matches only its declaring type and the type it
+   * is accessed on, e.g., {@code java.lang.Enum#valueOf} does not deny {@code DayOfWeek.valueOf("MONDAY")}.
+   * <p>
+   * A rule naming an accessor method also denies the corresponding property access: {@code getX}/{@code isX} deny
+   * reading property {@code X} and {@code setX} denies writing it. A rule naming the property {@code X} denies both.
+   * <p>>
+   * For an enhancement method or property the declaring type is the <i>enhanced</i> type, not the enhancement type.
    */
   public Builder denyMember( String declaringType, String memberName )
   {

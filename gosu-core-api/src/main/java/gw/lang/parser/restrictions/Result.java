@@ -12,6 +12,8 @@ public final class Result
     NOT_ALLOWED
   }
 
+  public static final Result ALLOWED = new Result( Status.ALLOWED, null, null );
+
   private final Status _status;
   private final String _matchedRule;
   private final String _message;
@@ -54,7 +56,7 @@ public final class Result
 
   static Result allowed( Rule rule )
   {
-    return new Result( Status.ALLOWED, rule == null ? null : rule.text(), null );
+    return rule == null ? ALLOWED : new Result( Status.ALLOWED, rule.text(), null );
   }
 
   static Result denied( String kind, String subject, Rule rule )

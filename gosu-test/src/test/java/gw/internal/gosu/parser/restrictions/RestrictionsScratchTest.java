@@ -10,6 +10,11 @@ import gw.lang.parser.restrictions.Restrictions;
 import gw.test.TestClass;
 import gw.util.GosuTestUtil;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  */
 public class RestrictionsScratchTest extends TestClass
@@ -22,7 +27,7 @@ public class RestrictionsScratchTest extends TestClass
       .denyMember( "java.lang.StringBuilder", "append" )
       .denyMember( "java.lang.Integer", "<init>" )
       .allowType( "java.util.concurrent.atomic.AtomicInteger" ) // allows a specific type regardless of depth in not allowed packages
-      .allowType( "java.lang.reflect.Method" )
+      .allowType( "java.lang.reflect.Method" ) // no effect: deny rules trump allow rules (baseline denies java.lang.reflect.**)
       .denyType( "java.lang.Double" )
       .build();
 
@@ -60,7 +65,38 @@ public class RestrictionsScratchTest extends TestClass
     }
     catch( ParseResultsException pre )
     {
-      assertEquals( 27, pre.getParseExceptions().size() );
+      List<String> errors = pre.getParseExceptions().stream()
+        .map( e -> e.getLine() + ":" + e.getColumn() + " " + e.getPlainMessage() )
+        .sorted( Comparator.comparingInt( (String e) -> Integer.parseInt( e.substring( 0, e.indexOf( ':' ) ) ) ) )
+        .collect( Collectors.toList() );
+      assertEquals( Arrays.asList(
+        "1:6 Type 'java.lang.reflect.Method' is blocked by the restrictions baseline (rule: java.lang.reflect.**).",
+        "5:19 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "7:8 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "8:1 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "8:14 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "9:5 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "9:15 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "10:1 Member 'java.lang.StringBuilder#append' is blocked by the restrictions profile (rule: java.lang.StringBuilder#append).",
+        "10:34 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
+        "11:1 Member 'java.lang.Object#getClass' is blocked by the restrictions baseline (rule: java.lang.Object#getClass).",
+        "12:11 Type 'dynamic.Dynamic' is blocked by the restrictions baseline (rule: dynamic.Dynamic).",
+        "13:2 Type 'dynamic.Dynamic' is blocked by the restrictions baseline (rule: dynamic.Dynamic).",
+        "14:9 Type 'gw.lang.reflect.ReflectUtil' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
+        "15:8 Type 'Type' is not an allowed type or package in the restrictions profile.",
+        "16:14 Language feature 'eval expressions' is not permitted by the restrictions profile.",
+        "21:14 Language feature 'dynamic expressions / types' is not permitted by the restrictions profile.",
+        "22:2 Type 'gw.lang.reflect.features.MethodReference' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
+        "22:18 Language feature 'feature literals (#method(), #property)' is not permitted by the restrictions profile.",
+        "23:2 Type 'gw.lang.reflect.features.MethodReference' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
+        "23:2 Language feature 'feature literals (#method(), #property)' is not permitted by the restrictions profile.",
+        "24:2 Type 'gw.lang.reflect.features.PropertyReference' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
+        "24:18 Language feature 'feature literals (#method(), #property)' is not permitted by the restrictions profile.",
+        "25:2 Type 'gw.lang.reflect.features.BoundMethodReference' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
+        "25:17 Language feature 'feature literals (#method(), #property)' is not permitted by the restrictions profile.",
+        "28:8 Language feature 'typeof expressions' is not permitted by the restrictions profile.",
+        "29:8 Member 'java.lang.Integer#<init>' is blocked by the restrictions profile (rule: java.lang.Integer#<init>)." ),
+        errors );
     }
   }
 }

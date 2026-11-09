@@ -23,6 +23,8 @@ public class BaselineTest extends TestClass
 //      .allowPackage( "gw.lang.function" );
 
     GosuTestUtil.evalGosu( "uses java.math.BigDecimal\n" +
+                           "static class Foo { void m() {} }\n" +
+                           "new Foo().m()\n" +
                            "var s = \"hi\"\n" +
                            "var ss: String = \"hi\"\n" +
                            "var bd: BigDecimal = BigDecimal.valueOf(1)\n" +

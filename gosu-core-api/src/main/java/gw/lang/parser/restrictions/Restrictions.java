@@ -106,6 +106,8 @@ public final class Restrictions
       "java.lang.StackTraceElement", "java.lang.SecurityManager", "java.lang.Compiler",
       "java.util.ServiceLoader", "java.util.ResourceBundle", "java.util.Properties",
       "java.util.Scanner", "java.util.Timer", "java.util.TimerTask",
+      "java.util.Formatter", // Formatter(String fileName) creates/truncates a file
+      "java.time.zone.ZoneRulesProvider", // JVM-global registry
       "dynamic.Dynamic",} )
     {
       b.denyType( t );
@@ -121,6 +123,13 @@ public final class Restrictions
      .denyMember( "java.lang.Throwable", "getStackTrace" )
      .denyMember( "java.lang.Throwable", "setStackTrace" )
      .denyMember( "java.lang.Throwable", "printStackTrace" )
+     .denyMember( "java.lang.Throwable", "StackTraceAsString" )
+     .denyMember( "java.util.Map", "writeToPropertiesFile" )
+     .denyMember( "java.util.Map", "readFromPropertiesFile" )
+     // system properties
+     .denyMember( "java.lang.Boolean", "getBoolean" )
+     .denyMember( "java.lang.Integer", "getInteger" )
+     .denyMember( "java.lang.Long", "getLong" )
      // JVM-global mutable state
      .denyMember( "java.util.Locale", "setDefault" )
      .denyMember( "java.util.TimeZone", "setDefault" );
@@ -177,7 +186,7 @@ public final class Restrictions
       return Result.allowed( a );
     }
     // A package that merely contains individually allowed types is still importable.
-    return _allow.hasRuleWithin( pkg ) ? Result.allowed( null ) : Result.notAllowed( "Package", pkg );
+    return _allow.hasRuleWithin( pkg ) ? Result.ALLOWED : Result.notAllowed( "Package", pkg );
   }
 
   /**
@@ -191,13 +200,22 @@ public final class Restrictions
     {
       return result;
     }
+    return checkMemberOnly( type, memberName );
+  }
+
+  /**
+   * Deny-only check of a member, without checking whether the declaring type is allowed.
+   */
+  public Result checkMemberOnly(String declaringType, String memberName )
+  {
+    String type = normalize( declaringType );
     Rule d = _deny.matchMember( type, memberName );
-    return d != null ? Result.denied( "Member", type + "#" + memberName, d ) : Result.allowed( null );
+    return d != null ? Result.denied( "Member", type + "#" + memberName, d ) : Result.ALLOWED;
   }
 
   public Result checkFeature( LanguageFeature feature )
   {
-    return _enabledFeatures.contains( feature ) ? Result.allowed( null ) : Result.featureDenied( feature );
+    return _enabledFeatures.contains( feature ) ? Result.ALLOWED : Result.featureDenied( feature );
   }
 
   /**

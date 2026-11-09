@@ -13056,6 +13056,7 @@ public final class GosuParser extends ParserBase implements IGosuParser
       AssignmentStatement as = new AssignmentStatement();
       statement = as;
       as.setIdentifier( id );
+      as.setCompoundStatement( !"=".equals( assignOp ) );
 
       IType expectedType = id.getAssignableType();
 

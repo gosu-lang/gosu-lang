@@ -1,35 +1,46 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.dynamic.DynamicType;
-import gw.internal.gosu.parser.expressions.BlockType;
+import gw.internal.gosu.parser.expressions.InitializerAssignment;
 import gw.internal.gosu.parser.expressions.LocalVarDeclaration;
 import gw.internal.gosu.parser.expressions.TypeLiteral;
+import gw.internal.gosu.parser.statements.AssignmentStatement;
+import gw.internal.gosu.parser.statements.MemberAssignmentStatement;
 import gw.internal.gosu.parser.statements.VarStatement;
-import gw.lang.function.IBlock;
+import gw.lang.parser.IDynamicPropertySymbol;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParseTree;
 import gw.lang.parser.IParsedElement;
-import gw.lang.parser.expressions.INewExpression;
-import gw.lang.parser.restrictions.LanguageFeature;
-import gw.lang.parser.restrictions.Restrictions;
+import gw.lang.parser.ISymbol;
 import gw.lang.parser.expressions.IBeanMethodCallExpression;
 import gw.lang.parser.expressions.IEvalExpression;
 import gw.lang.parser.expressions.IFeatureLiteralExpression;
 import gw.lang.parser.expressions.IFieldAccessExpression;
 import gw.lang.parser.expressions.IMemberAccessExpression;
+import gw.lang.parser.expressions.IMethodCallExpression;
+import gw.lang.parser.expressions.INewExpression;
+import gw.lang.parser.expressions.IPropertyAccessIdentifier;
+import gw.lang.parser.expressions.IStaticTypeOfExpression;
 import gw.lang.parser.expressions.ITypeOfExpression;
+import gw.lang.parser.restrictions.LanguageFeature;
+import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.parser.restrictions.Result;
 import gw.lang.reflect.IBlockType;
+import gw.lang.reflect.ICompoundType;
 import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IErrorType;
+import gw.lang.reflect.IFeatureInfo;
 import gw.lang.reflect.IMethodInfo;
+import gw.lang.reflect.IMethodInfoDelegate;
 import gw.lang.reflect.IPropertyInfo;
+import gw.lang.reflect.IPropertyInfoDelegate;
 import gw.lang.reflect.IType;
+import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.gs.IGosuClass;
+import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.java.JavaTypes;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.*;
 
 import static gw.lang.parser.resources.Res.MSG_ANY;
 
@@ -46,7 +57,7 @@ class RestrictionsChecker
     return instance;
   }
 
-  void enforceRestrictions( IParsedElement pe )
+  void checkRestrictions(IParsedElement pe )
   {
     IGosuClass gosuClass = pe.getGosuClass();
     if( !(gosuClass instanceof IGosuProgramInternal) )
@@ -63,238 +74,504 @@ class RestrictionsChecker
       return;
     }
 
-    visit( pe, e -> {
+    new Checker( restrictions, gosuClass ).visit( pe );
+  }
+
+  /**
+   * State for one pass over a program
+   */
+  private static class Checker
+  {
+    private final Restrictions _restrictions;
+    private final IGosuClass _programClass;
+    private final Set<String> _reported = new LinkedHashSet<>();
+
+    Checker( Restrictions restrictions, IGosuClass program )
+    {
+      _restrictions = restrictions;
+      _programClass = program;
+    }
+
+    void visit( IParsedElement pe )
+    {
+      for( IParseTree e : pe.getLocation().getChildren() )
+      {
+        visit( e.getParsedElement() );
+      }
+      check( pe );
+    }
+
+    private void check( IParsedElement e )
+    {
       if( e instanceof TypeLiteral )
       {
-        checkTypeLiterals( (TypeLiteral)e, restrictions );
+        checkTypeLiteral( (TypeLiteral)e );
       }
       else if( e instanceof VarStatement )
       {
-        checkVarStatements( (VarStatement)e, restrictions );
+        checkVarStatement( (VarStatement)e );
       }
       else if( e instanceof LocalVarDeclaration )
       {
-        checkLocalVarDeclaration( (LocalVarDeclaration)e, restrictions );
+        checkLocalVarDeclaration( (LocalVarDeclaration)e );
       }
       else if( e instanceof IMemberAccessExpression )
       {
-        checkMemberAccessExpression( (IMemberAccessExpression)e, restrictions );
+        checkMemberAccessExpression( (IMemberAccessExpression)e );
+      }
+      else if( e instanceof IMethodCallExpression )
+      {
+        checkMethodCallExpression( (IMethodCallExpression)e );
+      }
+      else if( e instanceof IPropertyAccessIdentifier )
+      {
+        checkPropertyAccessIdentifier( (IPropertyAccessIdentifier)e );
+      }
+      else if( e instanceof InitializerAssignment )
+      {
+        checkInitializerAssignment( (InitializerAssignment)e );
       }
       else if( e instanceof INewExpression )
       {
-        checkNewExpression( (INewExpression)e, restrictions );
+        checkNewExpression( (INewExpression)e );
       }
       else if( e instanceof IEvalExpression )
       {
-        checkEvalExpression( (IEvalExpression)e, restrictions );
+        checkFeature( e, LanguageFeature.EVAL );
       }
-      else if( e instanceof ITypeOfExpression )
+      else if( e instanceof ITypeOfExpression ||
+               e instanceof IStaticTypeOfExpression )
       {
-        checkTypeOfExpression( (ITypeOfExpression)e, restrictions );
+        checkFeature( e, LanguageFeature.TYPEOF );
       }
       else if( e instanceof IFeatureLiteralExpression )
       {
-        checkFeatureLiteralExpression( (IFeatureLiteralExpression)e, restrictions );
+        checkFeature( e, LanguageFeature.FEATURE_LITERAL );
       }
-    }, new LinkedHashSet<>() );
-  }
+    }
 
-  private void checkTypeLiterals( TypeLiteral tl, Restrictions restrictions )
-  {
-    MetaType type = tl.getType();
-    if( type != null )
+    /**
+     * Adds the issue unless the same message was already reported at the same position. Programs split top-level var
+     * statements (as a field and as an assignment statement in the program's function), and a type reference may be
+     * reported both as a type literal and as the declaring type of a member access e.g., Foo.staticMethod().
+     */
+    private void report( IParsedElement e, Result result )
     {
-      IType t = type.getType();
-      if( t != null && !(t instanceof IErrorType) && !t.isPrimitive() && !isInSamePackage( t, tl.getGosuClass() ) )
+      if( _reported.add( e.getLineNum() + ":" + e.getColumn() + ":" + result.getMessage() ) )
       {
-        Result result = checkType( t, restrictions );
+        e.addParseException( MSG_ANY, result.getMessage() );
+      }
+    }
+
+    private void checkFeature( IParsedElement e, LanguageFeature feature )
+    {
+      Result result = _restrictions.checkFeature( feature );
+      if( !result.isAllowed() )
+      {
+        report( e, result );
+      }
+    }
+
+    private void checkTypeLiteral( TypeLiteral tl )
+    {
+      MetaType type = tl.getType();
+      if( type != null && type.getType() != null )
+      {
+        Result result = checkType( type.getType() );
         if( !result.isAllowed() )
         {
-          tl.addParseException( MSG_ANY, result.getMessage() );
+          report( tl, result );
         }
       }
     }
-  }
 
-  private void visit( IParsedElement pe, Consumer<IParsedElement> consumer, Set<IParsedElement> visited )
-  {
-    if( visited.stream().anyMatch( e -> e.getClass() == pe.getClass() && e.getLineNum() == pe.getLineNum() && e.getColumn() == pe.getColumn() ) )
+    private void checkVarStatement( VarStatement vs )
     {
-      // programs copy top-level var declarations, so we need to avoid visiting them twice
-      return;
-    }
-    visited.add( pe );
-
-    for( IParseTree e : pe.getLocation().getChildren() )
-    {
-      visit( e.getParsedElement(), consumer, visited );
-    }
-    consumer.accept( pe );
-  }
-
-  private void checkVarStatements( VarStatement vs, Restrictions restrictions )
-  {
-    if( vs.getTypeLiteral() == null )
-    {
-      Result result = checkType( vs.getType(), restrictions );
-      if( !result.isAllowed() )
+      if( vs.getTypeLiteral() == null )
       {
-        vs.addParseException( MSG_ANY, result.getMessage() );
+        // inferred type
+        Result result = checkType( vs.getType() );
+        if( !result.isAllowed() )
+        {
+          report( vs, result );
+        }
       }
     }
-  }
 
-  private void checkLocalVarDeclaration( LocalVarDeclaration localToStmt, Restrictions restrictions )
-  {
-    if( localToStmt.getTypeLiteral() == null )
+    private void checkLocalVarDeclaration( LocalVarDeclaration localToStmt )
     {
-      Result result = checkType( localToStmt.getType(), restrictions );
-      if( !result.isAllowed() )
+      if( localToStmt.getTypeLiteral() == null )
       {
-        localToStmt.addParseException( MSG_ANY, result.getMessage() );
+        // inferred type
+        Result result = checkType( localToStmt.getType() );
+        if( !result.isAllowed() )
+        {
+          report( localToStmt, result );
+        }
       }
     }
-  }
 
-  private void checkMemberAccessExpression( IMemberAccessExpression expr, Restrictions restrictions )
-  {
-    if( expr.getType() instanceof NamespaceType )
+    private void checkMemberAccessExpression( IMemberAccessExpression expr )
     {
-      // namespace access is handled as package/type access
-      return;
-    }
-
-    if( expr.getType() instanceof DynamicType )
-    {
-      Result result = restrictions.checkFeature( LanguageFeature.DYNAMIC );
-      if( !result.isAllowed() )
+      if( expr.getType() instanceof NamespaceType )
       {
-        // dynamic type use not allowed
-        expr.addParseException( MSG_ANY, result.getMessage() );
+        // namespace access is handled as package/type access
         return;
       }
+
+      if( expr.getType() instanceof DynamicType )
+      {
+        Result result = _restrictions.checkFeature( LanguageFeature.DYNAMIC );
+        if( !result.isAllowed() )
+        {
+          // dynamic type use not allowed
+          report( expr, result );
+          return;
+        }
+      }
+
+      if( expr instanceof IFieldAccessExpression &&
+          checkAssociativeArrayAccessExpression( (IFieldAccessExpression)expr ) )
+      {
+        // associate array access not allowed
+        return;
+      }
+
+      if( expr instanceof IBeanMethodCallExpression )
+      {
+        IMethodInfo mi = sourceOf( ((IBeanMethodCallExpression)expr).getMethodDescriptor() );
+        checkMember( expr, expr.getRootType(), mi, Collections.singletonList( expr.getMemberName() ) );
+      }
+      else
+      {
+        MemberAssignmentStatement assignment = expr.getParent() instanceof MemberAssignmentStatement &&
+                                               ((MemberAssignmentStatement)expr.getParent()).getMemberAccess() == expr
+                                               ? (MemberAssignmentStatement)expr.getParent()
+                                               : null;
+        checkMember( expr, expr.getRootType(), sourceOf( expr.getPropertyInfo() ),
+                     propertyMemberNames( expr.getMemberName(),
+                                          assignment == null || assignment.isCompoundStatement(), assignment != null ) );
+      }
     }
 
-    if( expr instanceof IFieldAccessExpression &&
-        checkAssociativeArrayAccessExpression( (IFieldAccessExpression)expr, restrictions ) )
+    /**
+     * A call with no qualifier: a method of the enclosing class, inherited or not, or a statically imported method
+     */
+    private void checkMethodCallExpression( IMethodCallExpression expr )
     {
-      // associate array access not allowed
-      return;
+      IMethodInfo mi = expr.getFunctionType() == null ? null : sourceOf( expr.getFunctionType().getMethodInfo() );
+      if( mi != null )
+      {
+        checkMember( expr, null, mi, Collections.singletonList( mi.getDisplayName() ) );
+      }
     }
 
-    IType declaringType;
-    if( expr instanceof IBeanMethodCallExpression )
+    /**
+     * A property reference with no qualifier: a property of the enclosing class, inherited or not, or a statically
+     * imported property. Gosu also parses a call to a getter with no qualifier, e.g., getX(), as this.
+     */
+    private void checkPropertyAccessIdentifier( IPropertyAccessIdentifier expr )
     {
-      IMethodInfo mi = ((IBeanMethodCallExpression)expr).getMethodDescriptor();
-      declaringType = mi == null ? null : mi.getOwnersType();
-    }
-    else
-    {
-      IPropertyInfo pi = expr.getPropertyInfo();
-      declaringType = pi == null ? null : pi.getOwnersType();
+      ISymbol symbol = expr.getSymbol();
+      IFeatureInfo fi = symbol instanceof IDynamicPropertySymbol ? ((IDynamicPropertySymbol)symbol).getPropertyInfo() : null;
+      if( fi instanceof IPropertyInfo )
+      {
+        AssignmentStatement assignment = expr.getParent() instanceof AssignmentStatement &&
+                                         ((AssignmentStatement)expr.getParent()).getIdentifier() == expr
+                                         ? (AssignmentStatement)expr.getParent()
+                                         : null;
+        checkMember( expr, null, sourceOf( (IPropertyInfo)fi ),
+                     propertyMemberNames( symbol.getName(),
+                                          assignment == null || assignment.isCompoundStatement(), assignment != null ) );
+      }
     }
 
-    if( declaringType instanceof MetaType )
+    /**
+     * `:P = value` in an object initializer writes property P
+     */
+    private void checkInitializerAssignment( InitializerAssignment expr )
     {
-      declaringType = ((MetaType)declaringType).getType();
+      checkMember( expr, expr.getOwnerType(), sourceOf( expr.getPropertyInfo() ),
+                   propertyMemberNames( expr.getPropertyName(), false, true ) );
     }
 
-    if( declaringType != null && !(declaringType instanceof IErrorType) && !declaringType.isPrimitive() &&
-        !isInSamePackage( declaringType, expr.getGosuClass() ) )
+    /**
+     * @param receiverType The static type of the qualifier, null if there is none
+     */
+    private void checkMember( IParsedElement e, IType receiverType, IFeatureInfo member, List<String> memberNames )
     {
-      Result result = restrictions.checkMember( declaringType.getName(), expr.getMemberName() );
+      if( member == null || memberNames.isEmpty() )
+      {
+        return;
+      }
+      IType declaringType = resolve( member.getOwnersType() );
+      if( declaringType == null || declaringType instanceof IErrorType )
+      {
+        return;
+      }
+
+      if( declaringType instanceof IGosuEnhancement )
+      {
+        declaringType = ((IGosuEnhancement)declaringType).getEnhancedType();
+      }
+
+      boolean bStatic = member instanceof IMethodInfo ? ((IMethodInfo)member).isStatic() : ((IPropertyInfo)member).isStatic();
+      Result result = checkType( declaringType );
+      if( result.isAllowed() )
+      {
+        // A member rule on the receiver's type or the declaring type matches, so the user need not know which type
+        // declares the member. For an instance member a rule on any of their supertypes also matches, since that covers
+        // overrides of the member. A static member is not overridden; a subtype's static of the same name is unrelated.
+        Set<IType> hierarchy = new LinkedHashSet<>();
+        addHierarchy( resolve( receiverType ), hierarchy, !bStatic );
+        addHierarchy( declaringType, hierarchy, !bStatic );
+        if( !bStatic )
+        {
+          // Gosu classes extending Object and interfaces have no supertype
+          hierarchy.add( JavaTypes.OBJECT() );
+        }
+        for( IType type : hierarchy )
+        {
+          result = checkMemberOnly( type, memberNames );
+          if( !result.isAllowed() )
+          {
+            break;
+          }
+        }
+      }
+
       if( !result.isAllowed() )
       {
         // access to member is denied
-        expr.addParseException( MSG_ANY, result.getMessage() );
+        report( e, result );
       }
     }
-  }
 
-  private void checkNewExpression( INewExpression expr, Restrictions restrictions )
-  {
-    IConstructorInfo constructor = expr.getConstructor();
-    if( constructor == null )
+    /**
+     * The owner of an inherited static member's delegate is the subtype it is accessed on, not the declaring type.
+     * (A meta type's delegates to the instance members of IType are static, but their sources are not.)
+     */
+    private static IMethodInfo sourceOf( IMethodInfo mi )
     {
-      return;
+      while( mi instanceof IMethodInfoDelegate && mi.isStatic() && ((IMethodInfoDelegate)mi).getSource().isStatic() )
+      {
+        mi = ((IMethodInfoDelegate)mi).getSource();
+      }
+      return mi;
     }
 
-    IType type = constructor.getOwnersType();
-    if( type == null || type instanceof IErrorType )
+    private static IPropertyInfo sourceOf( IPropertyInfo pi )
     {
-      return;
+      while( pi instanceof IPropertyInfoDelegate && pi.isStatic() && ((IPropertyInfoDelegate)pi).getSource().isStatic() )
+      {
+        pi = ((IPropertyInfoDelegate)pi).getSource();
+      }
+      return pi;
     }
 
-    Result result = checkType( type, restrictions );
-    if( !result.isAllowed() )
+    /**
+     * A property is denied by a rule naming the property or the accessor method used: getX/isX to read, setX to write.
+     */
+    private static List<String> propertyMemberNames( String name, boolean bRead, boolean bWrite )
     {
-      // sb covered by TypeLiteral check
-      return;
+      List<String> memberNames = new ArrayList<>();
+      if( name == null || name.isEmpty() )
+      {
+        return memberNames;
+      }
+      memberNames.add( name );
+
+      String capitalized = Character.toUpperCase( name.charAt( 0 ) ) + name.substring( 1 );
+      if( bRead )
+      {
+        memberNames.add( "get" + capitalized );
+        memberNames.add( "is" + capitalized );
+      }
+      if( bWrite )
+      {
+        memberNames.add( "set" + capitalized );
+      }
+      return memberNames;
     }
 
-    result = restrictions.checkMember( type.getName(), "<init>" );
-    if( !result.isAllowed() )
+    private static void addHierarchy( IType type, Set<IType> hierarchy, boolean bSupertypes )
     {
-      // dynamic type use not allowed
-      expr.addParseException( MSG_ANY, result.getMessage() );
+      if( type == null || type instanceof IErrorType || type.isArray() )
+      {
+        return;
+      }
+      if( type instanceof ITypeVariableType )
+      {
+        addHierarchy( ((ITypeVariableType)type).getBoundingType(), hierarchy, bSupertypes );
+        return;
+      }
+      if( type instanceof ICompoundType )
+      {
+        for( IType t : ((ICompoundType)type).getTypes() )
+        {
+          addHierarchy( t, hierarchy, bSupertypes );
+        }
+        return;
+      }
+      if( type.isParameterizedType() )
+      {
+        type = type.getGenericType();
+      }
+      if( hierarchy.add( type ) && bSupertypes )
+      {
+        addHierarchy( type.getSupertype(), hierarchy, true );
+        for( IType iface : type.getInterfaces() )
+        {
+          addHierarchy( iface, hierarchy, true );
+        }
+      }
     }
-  }
 
-  private void checkEvalExpression( IEvalExpression expr, Restrictions restrictions )
-  {
-    Result result = restrictions.checkFeature( LanguageFeature.EVAL );
-    if( !result.isAllowed() )
+    private Result checkMemberOnly(IType declaringType, List<String> memberNames )
     {
-      expr.addParseException( MSG_ANY, result.getMessage() );
+      for( String memberName : memberNames )
+      {
+        Result result = _restrictions.checkMemberOnly( declaringType.getName(), memberName );
+        if( !result.isAllowed() )
+        {
+          return result;
+        }
+      }
+      return Result.ALLOWED;
     }
-  }
-  
-  private void checkTypeOfExpression( ITypeOfExpression expr, Restrictions restrictions )
-  {
-    Result result = restrictions.checkFeature( LanguageFeature.TYPEOF );
-    if( !result.isAllowed() )
-    {
-      expr.addParseException( MSG_ANY, result.getMessage() );
-    }
-  }
 
-  private void checkFeatureLiteralExpression( IFeatureLiteralExpression expr, Restrictions restrictions )
-  {
-    Result result = restrictions.checkFeature( LanguageFeature.FEATURE_LITERAL );
-    if( !result.isAllowed() )
+    private void checkNewExpression( INewExpression expr )
     {
-      expr.addParseException( MSG_ANY, result.getMessage() );
-    }
-  }
+      IConstructorInfo constructor = expr.getConstructor();
+      if( constructor == null )
+      {
+        return;
+      }
 
-  private boolean checkAssociativeArrayAccessExpression( IFieldAccessExpression expr, Restrictions restrictions )
-  {
-    IExpression memberExpression = expr.getMemberExpression();
-    if( memberExpression == null )
+      IType type = constructor.getOwnersType();
+      while( type instanceof IGosuClass && ((IGosuClass)type).isAnonymous() && isOwnType( type ) )
+      {
+        // an anonymous class calls its super constructor
+        type = type.getSupertype();
+      }
+      if( type == null || type instanceof IErrorType || isOwnType( type ) )
+      {
+        return;
+      }
+
+      Result result = checkType( type );
+      if( !result.isAllowed() )
+      {
+        // reported by the TypeLiteral check
+        return;
+      }
+
+      result = _restrictions.checkMemberOnly( type.getName(), "<init>" );
+      if( !result.isAllowed() )
+      {
+        // constructor is denied
+        report( expr, result );
+      }
+    }
+
+    private boolean checkAssociativeArrayAccessExpression( IFieldAccessExpression expr )
     {
+      IExpression memberExpression = expr.getMemberExpression();
+      if( memberExpression == null )
+      {
+        return false;
+      }
+
+      Result result = _restrictions.checkFeature( LanguageFeature.DYNAMIC );
+      if( !result.isAllowed() )
+      {
+        report( expr, result );
+        return true;
+      }
       return false;
     }
 
-    Result result = restrictions.checkFeature( LanguageFeature.DYNAMIC );
-    if( !result.isAllowed() )
+    private Result checkType( IType type )
     {
-      expr.addParseException( MSG_ANY, result.getMessage() );
-      return true;
+      type = unproxy( type );
+      if( type == null || type instanceof IErrorType )
+      {
+        return Result.ALLOWED;
+      }
+      while( type.isArray() )
+      {
+        type = type.getComponentType();
+      }
+      if( type instanceof IGosuClass && ((IGosuClass)type).isStructure() )
+      {
+        Result result = _restrictions.checkFeature( LanguageFeature.STRUCTURAL );
+        if( !result.isAllowed() )
+        {
+          return result;
+        }
+      }
+      if( type.isPrimitive() || isOwnType( type ) )
+      {
+        return Result.ALLOWED;
+      }
+      if( type instanceof IBlockType )
+      {
+        return _restrictions.checkFeature( LanguageFeature.LAMBDA );
+      }
+      if( type instanceof ITypeVariableType )
+      {
+        // a type variable is as restricted as its bound
+        return checkType( ((ITypeVariableType)type).getBoundingType() );
+      }
+      if( type instanceof ICompoundType )
+      {
+        // e.g., the inferred type of `true ? 1 : "s"` is `Serializable & Comparable`; since members are checked
+        // against their declaring types, the compound type is usable if any of its component types is allowed
+        Result result = null;
+        for( IType t : ((ICompoundType)type).getTypes() )
+        {
+          result = checkType( t );
+          if( result.isAllowed() )
+          {
+            return result;
+          }
+        }
+        return result == null ? Result.ALLOWED : result;
+      }
+      return _restrictions.checkType( type.getName() );
     }
-    return false;
-  }
 
-  private static Result checkType( IType type, Restrictions restrictions )
-  {
-    if( type instanceof IBlockType )
+    /**
+     * True if the type is the program or a type declared in it, including anonymous classes
+     */
+    private boolean isOwnType( IType type )
     {
-      return restrictions.checkFeature( LanguageFeature.LAMBDA );
+      while( type.getEnclosingType() != null )
+      {
+        type = type.getEnclosingType();
+      }
+      return type == _programClass;
     }
-    return restrictions.checkType( type.getName() );
-  }
 
-  private boolean isInSamePackage( IType t, IGosuClass gosuClass )
-  {
-    return t.getNamespace().equals( gosuClass.getNamespace() );
+    private static IType unwrapMetaType( IType type )
+    {
+      return type instanceof MetaType ? ((MetaType)type).getType() : type;
+    }
+
+    /**
+     * The type itself, unwrapped from a meta type or a Gosu proxy of a Java type
+     */
+    private static IType resolve( IType type )
+    {
+      return unproxy( unwrapMetaType( type ) );
+    }
+
+    /**
+     * The Java type of a Gosu proxy, e.g., from a static import
+     */
+    private static IType unproxy( IType type )
+    {
+      return type != null && IGosuClass.ProxyUtil.isProxy( type ) ? IGosuClass.ProxyUtil.getProxiedType( type ) : type;
+    }
   }
 }
