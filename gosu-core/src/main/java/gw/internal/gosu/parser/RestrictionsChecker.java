@@ -266,10 +266,6 @@ class RestrictionsChecker
       }
     }
 
-    /**
-     * A property reference with no qualifier: a property of the enclosing class, inherited or not, or a statically
-     * imported property. Gosu also parses a call to a getter with no qualifier, e.g., getX(), as this.
-     */
     private void checkPropertyAccessIdentifier( IPropertyAccessIdentifier expr )
     {
       ISymbol symbol = expr.getSymbol();
@@ -514,9 +510,9 @@ class RestrictionsChecker
       {
         return Result.ALLOWED;
       }
-      if( type instanceof IBlockType )
+      if( type instanceof IBlockType ) // lambda use
       {
-        return _restrictions.checkFeature( LanguageFeature.LAMBDA );
+        return Result.ALLOWED;
       }
       if( type instanceof ITypeVariableType )
       {
@@ -559,7 +555,7 @@ class RestrictionsChecker
     }
 
     /**
-     * The type itself, unwrapped from a meta type or a Gosu proxy of a Java type
+     * The type itself, unwrapped from a metatype or a Gosu proxy of a Java type
      */
     private static IType resolve( IType type )
     {
@@ -571,7 +567,7 @@ class RestrictionsChecker
      */
     private static IType unproxy( IType type )
     {
-      return type != null && IGosuClass.ProxyUtil.isProxy( type ) ? IGosuClass.ProxyUtil.getProxiedType( type ) : type;
+      return IGosuClass.ProxyUtil.isProxy( type ) ? IGosuClass.ProxyUtil.getProxiedType( type ) : type;
     }
   }
 }

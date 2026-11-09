@@ -263,8 +263,6 @@ public class RestrictionsTest extends TestClass
     assertErrors( "structure S { function charAt(i: int): char }\nvar s: S = \"abc\"", error );
     // reported at the type reference and at the call, whose declaring type is S
     assertErrors( "structure S { function charAt(i: int): char }\nprint((\"abc\" as S).charAt(0))", error, error );
-    assertErrors( Restrictions.baseline().allowFeature( gw.lang.parser.restrictions.LanguageFeature.STRUCTURAL ).build(),
-                  "structure S { function charAt(i: int): char }\nvar s: S = \"abc\"\nprint(s.charAt(0))" );
   }
 
   public void testObjectInitializerAssignmentIsChecked()

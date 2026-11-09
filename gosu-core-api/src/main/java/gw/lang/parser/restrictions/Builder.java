@@ -108,15 +108,6 @@ public final class Builder
   }
 
   /**
-   * Language features are default-deny; hosts opt in per feature.
-   */
-  public Builder allowFeature( LanguageFeature feature )
-  {
-    _features.add( feature );
-    return this;
-  }
-
-  /**
    * Explicit escape hatch: removes one baseline deny rule (by its rule text, e.g.
    * {@code "java.lang.Thread"} or {@code "java.io.**"}). Host-added deny rules cannot be removed
    * this way, and a plain allow never overrides a deny.

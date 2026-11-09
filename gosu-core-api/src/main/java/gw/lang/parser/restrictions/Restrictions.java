@@ -66,7 +66,7 @@ public final class Restrictions
    */
   public static Builder baseline()
   {
-    Builder b = new Builder( Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.of( LanguageFeature.LAMBDA ) );
+    Builder b = new Builder( Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
 
     // whitelist:
     // (the blacklist below removes the dangerous bits out of this list)
@@ -144,11 +144,14 @@ public final class Restrictions
   }
 
   /**
-   * No baseline: for hosts that want complete control
+   * No baseline: for hosts that want complete control.
+   * <p>
+   * Caution! Enabling a language feature compromises the safety guarantees of nominal type checking. Types and packages
+   * that are restricted may be dynamically accessible through the enabled features.
    */
-  public static Builder empty()
+  public static Builder empty( LanguageFeature... features )
   {
-    return new Builder( new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
+    return new Builder( new RuleSet(), new RuleSet(), Set.of( features ) );
   }
 
   public Result checkType( String qualifiedTypeName )
