@@ -5,6 +5,7 @@
 package gw.lang.reflect.gs;
 
 import gw.internal.gosu.parser.IParameterizableType;
+import gw.lang.parser.AstProcessorProvider;
 import gw.lang.parser.ICompilationState;
 import gw.lang.parser.IDynamicFunctionSymbol;
 import gw.lang.parser.IDynamicPropertySymbol;
@@ -130,6 +131,8 @@ public interface IGosuClass extends ICompilableType, IEnumType, IEnhanceableType
   public List<IGosuClass> getBlocks();
 
   String getSource();
+
+  default Set<AstProcessorProvider> getAstProcessorProviders() { return Set.of(); };
 
   static class ProxyUtil
   {

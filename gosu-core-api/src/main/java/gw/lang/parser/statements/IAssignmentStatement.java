@@ -13,4 +13,6 @@ public interface IAssignmentStatement extends IStatement
   IIdentifierExpression getIdentifier();
 
   IExpression getExpression();
+
+  boolean isCompoundStatement();
 }

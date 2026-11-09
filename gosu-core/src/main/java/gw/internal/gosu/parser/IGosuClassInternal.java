@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.statements.VarStatement;
+import gw.lang.parser.AstProcessorProvider;
 import gw.lang.parser.IBlockClass;
 import gw.lang.parser.ICapturedSymbol;
 import gw.lang.parser.ISymbol;
@@ -22,6 +23,7 @@ import gw.lang.reflect.java.IJavaType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -225,4 +227,6 @@ public interface IGosuClassInternal extends IGosuClass, ICompilableTypeInternal
   void setTypeUsesMap( ITypeUsesMap usesMap );
 
   void setHasAssertions( boolean bHasAssertions );
+
+  default void setAstProcessorProviders( Set<AstProcessorProvider> providers ) {};
 }

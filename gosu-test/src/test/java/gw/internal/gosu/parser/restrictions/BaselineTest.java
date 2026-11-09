@@ -43,7 +43,7 @@ public class BaselineTest extends TestClass
       .baseline()
       .build();
 
-    options.withRestrictions( baselineRestrictions );
+    options.withAstProcessorProviders( baselineRestrictions );
     return options;
   }
 }

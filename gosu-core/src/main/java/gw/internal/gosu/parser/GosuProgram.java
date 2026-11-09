@@ -5,6 +5,7 @@
 package gw.internal.gosu.parser;
 
 import gw.internal.gosu.parser.expressions.Identifier;
+import gw.lang.parser.AstProcessorProvider;
 import gw.lang.parser.ExternalSymbolMapForMap;
 import gw.lang.parser.IExpression;
 import gw.lang.parser.IParsedElement;
@@ -30,6 +31,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -44,7 +46,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   private boolean _bStatementsOnly;
   private IType _contextType;
   private ContextInferenceManager _ctxInferenceMgr;
-  private Restrictions _restrictions;
+  private Set<AstProcessorProvider> _astProcessorProviders;
   private boolean _bParsingExecutableProgramStmts;
   private boolean _allowUses;
 
@@ -483,14 +485,14 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   }
 
   @Override
-  public Restrictions getRestrictions()
+  public Set<AstProcessorProvider> getAstProcessorProviders()
   {
-    return _restrictions;
+    return _astProcessorProviders;
   }
   @Override
-  public void setRestrictions( Restrictions restrictions )
+  public void setAstProcessorProviders( Set<AstProcessorProvider> astProcessorProviders )
   {
-    _restrictions = restrictions;
+    _astProcessorProviders = astProcessorProviders;
   }
 
   @Override

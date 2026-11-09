@@ -4,11 +4,14 @@
 
 package gw.internal.gosu.parser;
 
+import gw.lang.parser.AstProcessorProvider;
 import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.IType;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
+
+import java.util.Set;
 
 /**
  */
@@ -48,7 +51,4 @@ public interface IGosuProgramInternal extends IGosuProgram, IGosuClassInternal
 
   boolean isParsingExecutableProgramStatements();
   void setParsingExecutableProgramStatements( boolean b );
-
-  Restrictions getRestrictions();
-  void setRestrictions( Restrictions restrictions );
 }

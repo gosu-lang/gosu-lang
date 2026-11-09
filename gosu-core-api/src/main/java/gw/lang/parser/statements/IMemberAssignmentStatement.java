@@ -19,4 +19,6 @@ public interface IMemberAssignmentStatement extends IStatement
   IExpression getMemberExpression();
 
   IMemberAccessExpression getMemberAccess();
+
+  boolean isCompoundStatement();
 }

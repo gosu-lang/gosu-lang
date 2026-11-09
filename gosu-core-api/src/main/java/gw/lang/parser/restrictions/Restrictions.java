@@ -1,5 +1,8 @@
 package gw.lang.parser.restrictions;
 
+import gw.lang.parser.AstProcessor;
+import gw.lang.parser.AstProcessorProvider;
+
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -40,13 +43,14 @@ import java.util.Set;
  * segment starting with a non-lowercase character begins the type name. Use the {@link #checkType(String, String)}
  * overload when the package is known.
  */
-public final class Restrictions
+public final class Restrictions implements AstProcessorProvider
 {
   private final RuleSet _allow;
   private final RuleSet _deny;
   private final Set<LanguageFeature> _enabledFeatures;
 
   enum Origin {BASELINE, HOST}
+
   enum Kind {TYPE, PACKAGE, PACKAGE_TREE, MEMBER}
 
 
@@ -58,6 +62,12 @@ public final class Restrictions
       EnumSet.copyOf( enabledFeatures.isEmpty()
                       ? EnumSet.noneOf( LanguageFeature.class )
                       : enabledFeatures );
+  }
+
+  @Override
+  public AstProcessor getAstProcessor()
+  {
+    return new RestrictionsChecker( this );
   }
 
   /**
@@ -115,24 +125,24 @@ public final class Restrictions
 
     // blacklist: members on otherwise whitelisted types
     b.denyMember( "java.lang.Object", "getClass" )
-     .denyMember( "java.lang.Object", "wait" )
-     .denyMember( "java.lang.Object", "notify" )
-     .denyMember( "java.lang.Object", "notifyAll" )
-     .denyMember( "java.lang.Enum", "getDeclaringClass" )
-     .denyMember( "java.lang.Enum", "valueOf" )
-     .denyMember( "java.lang.Throwable", "getStackTrace" )
-     .denyMember( "java.lang.Throwable", "setStackTrace" )
-     .denyMember( "java.lang.Throwable", "printStackTrace" )
-     .denyMember( "java.lang.Throwable", "StackTraceAsString" )
-     .denyMember( "java.util.Map", "writeToPropertiesFile" )
-     .denyMember( "java.util.Map", "readFromPropertiesFile" )
-     // system properties
-     .denyMember( "java.lang.Boolean", "getBoolean" )
-     .denyMember( "java.lang.Integer", "getInteger" )
-     .denyMember( "java.lang.Long", "getLong" )
-     // JVM-global mutable state
-     .denyMember( "java.util.Locale", "setDefault" )
-     .denyMember( "java.util.TimeZone", "setDefault" );
+      .denyMember( "java.lang.Object", "wait" )
+      .denyMember( "java.lang.Object", "notify" )
+      .denyMember( "java.lang.Object", "notifyAll" )
+      .denyMember( "java.lang.Enum", "getDeclaringClass" )
+      .denyMember( "java.lang.Enum", "valueOf" )
+      .denyMember( "java.lang.Throwable", "getStackTrace" )
+      .denyMember( "java.lang.Throwable", "setStackTrace" )
+      .denyMember( "java.lang.Throwable", "printStackTrace" )
+      .denyMember( "java.lang.Throwable", "StackTraceAsString" )
+      .denyMember( "java.util.Map", "writeToPropertiesFile" )
+      .denyMember( "java.util.Map", "readFromPropertiesFile" )
+      // system properties
+      .denyMember( "java.lang.Boolean", "getBoolean" )
+      .denyMember( "java.lang.Integer", "getInteger" )
+      .denyMember( "java.lang.Long", "getLong" )
+      // JVM-global mutable state
+      .denyMember( "java.util.Locale", "setDefault" )
+      .denyMember( "java.util.TimeZone", "setDefault" );
 
     b._origin = Origin.HOST;
     return b;
@@ -209,7 +219,7 @@ public final class Restrictions
   /**
    * Deny-only check of a member, without checking whether the declaring type is allowed.
    */
-  public Result checkMemberOnly(String declaringType, String memberName )
+  public Result checkMemberOnly( String declaringType, String memberName )
   {
     String type = normalize( declaringType );
     Rule d = _deny.matchMember( type, memberName );

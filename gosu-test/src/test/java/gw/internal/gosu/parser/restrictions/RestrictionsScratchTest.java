@@ -31,7 +31,7 @@ public class RestrictionsScratchTest extends TestClass
       .denyType( "java.lang.Double" )
       .build();
 
-    options.withRestrictions( restrictions );
+    options.withAstProcessorProviders( restrictions );
 
     try
     {
@@ -81,7 +81,7 @@ public class RestrictionsScratchTest extends TestClass
         "10:34 Type 'java.lang.Double' is blocked by the restrictions profile (rule: java.lang.Double).",
         "11:1 Member 'java.lang.Object#getClass' is blocked by the restrictions baseline (rule: java.lang.Object#getClass).",
         "12:11 Type 'dynamic.Dynamic' is blocked by the restrictions baseline (rule: dynamic.Dynamic).",
-        "13:2 Type 'dynamic.Dynamic' is blocked by the restrictions baseline (rule: dynamic.Dynamic).",
+        "13:2 Language feature 'dynamic expressions / types' is not permitted by the restrictions profile.",
         "14:9 Type 'gw.lang.reflect.ReflectUtil' is blocked by the restrictions baseline (rule: gw.lang.reflect.**).",
         "15:8 Type 'Type' is not an allowed type or package in the restrictions profile.",
         "16:14 Language feature 'eval expressions' is not permitted by the restrictions profile.",

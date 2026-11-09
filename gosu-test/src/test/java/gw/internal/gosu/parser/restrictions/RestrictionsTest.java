@@ -293,7 +293,7 @@ public class RestrictionsTest extends TestClass
    */
   private static List<String> compile( Restrictions restrictions, String script )
   {
-    ParserOptions options = new ParserOptions().withRestrictions( restrictions );
+    ParserOptions options = new ParserOptions().withAstProcessorProviders( restrictions );
     try
     {
       GosuParserFactory.createProgramParser().parseExpressionOrProgram( script, new StandardSymbolTable( true ), options );

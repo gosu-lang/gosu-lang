@@ -1,6 +1,8 @@
 package gw.internal.gosu.parser;
 
+import gw.lang.parser.AstProcessorProvider;
 import gw.lang.parser.IParsedElement;
+import gw.lang.reflect.gs.IGosuClass;
 
 public class PostCompilationAnalysis
 {
@@ -9,8 +11,23 @@ public class PostCompilationAnalysis
    */
   public static void analyze( IParsedElement pe )
   {
-    RestrictionsChecker.instance().checkRestrictions( pe );
+    if( pe == null )
+    {
+      return;
+    }
 
-    //todo: other analysis/metaprogramming tasks can be added dynamically via SPI
+    // process the program is it exists, it covers the wrapped class
+    IGosuClass gosuClass = pe.getGosuProgram();
+    if( gosuClass == null )
+    {
+      gosuClass = pe.getGosuClass();
+    }
+    if( gosuClass != null )
+    {
+      for( AstProcessorProvider provider: gosuClass.getAstProcessorProviders() )
+      {
+        provider.getAstProcessor().process( pe );
+      }
+    }
   }
 }

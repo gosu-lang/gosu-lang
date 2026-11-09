@@ -4,11 +4,11 @@
 
 package gw.lang.parser;
 
-import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.reflect.IType;
 import gw.lang.reflect.TypeSystem;
 import gw.lang.parser.resources.ResourceKey;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +32,8 @@ public class ParserOptions
   private IScriptPartId _partId;
   private boolean _throwawayProgram;
   private Object _ctxInferenceMgr;
-  private Set<ResourceKey> _ignoreWarnings = new HashSet<ResourceKey>();
-  private Restrictions _restrictions;
+  private final Set<ResourceKey> _ignoreWarnings = new HashSet<>();
+  private Set<AstProcessorProvider> _astProcessorProviders = Set.of();
   private boolean _allowUses;
   private boolean _bAnon;
 
@@ -61,9 +61,9 @@ public class ParserOptions
     return this;
   }
 
-  public ParserOptions withRestrictions( Restrictions restrictions )
+  public ParserOptions withAstProcessorProviders( AstProcessorProvider... providers )
   {
-    _restrictions = restrictions;
+    _astProcessorProviders = providers == null ? Set.of() : new LinkedHashSet<>( List.of( providers ) );
     return this;
   }
 
@@ -173,9 +173,9 @@ public class ParserOptions
     return _fileContext;
   }
 
-  public Restrictions getRestrictions()
+  public Set<AstProcessorProvider> getAstProcessorProviders()
   {
-    return _restrictions;
+    return _astProcessorProviders;
   }
 
   public ITypeUsesMap getTypeUsesMap()
