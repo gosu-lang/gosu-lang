@@ -61,7 +61,7 @@ public final class Result
 
   static Result denied( String kind, String subject, Rule rule )
   {
-    String source = rule._origin == Restrictions.Origin.BASELINE ? "baseline" : "profile";
+    String source = rule._origin == Builder.Origin.BASELINE ? "baseline" : "profile";
     return new Result( Status.DENIED, rule.text(),
                        kind + " '" + subject + "' is blocked by the restrictions " + source
                        + " (rule: " + rule.text() + ")." );

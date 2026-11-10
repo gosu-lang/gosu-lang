@@ -20,7 +20,7 @@ final class RuleSet
     return c;
   }
 
-  private Map<String, Rule> map( Restrictions.Kind kind )
+  private Map<String, Rule> map( Rule.Kind kind )
   {
     switch( kind )
     {

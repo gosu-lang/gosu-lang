@@ -61,10 +61,6 @@ public final class Restrictions implements AstProcessorProvider
   private final RuleSet _deny;
   private final Set<LanguageFeature> _enabledFeatures;
 
-  enum Origin {BASELINE, HOST}
-
-  enum Kind {TYPE, PACKAGE, PACKAGE_TREE, MEMBER}
-
 
   Restrictions( RuleSet allow, RuleSet deny, Set<LanguageFeature> enabledFeatures )
   {
@@ -76,19 +72,13 @@ public final class Restrictions implements AstProcessorProvider
                       : enabledFeatures );
   }
 
-  @Override
-  public AstProcessor getAstProcessor()
-  {
-    return new RestrictionsChecker( this );
-  }
-
   /**
    * Conservative baseline whitelist with the baseline blacklist.
    * Extend it using the builder.
    */
   public static Builder baseline()
   {
-    Builder b = new Builder( Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
+    Builder b = new Builder( Builder.Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
 
     // whitelist:
     // (the blacklist below removes the dangerous bits out of this list)
@@ -156,7 +146,7 @@ public final class Restrictions implements AstProcessorProvider
       .denyMember( "java.util.Locale", "setDefault" )
       .denyMember( "java.util.TimeZone", "setDefault" );
 
-    b._origin = Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     return b;
   }
 
@@ -282,5 +272,14 @@ public final class Restrictions implements AstProcessorProvider
       }
       segStart = dot + 1;
     }
+  }
+
+  /**
+   * For internal use with the AST processor provider API.
+   */
+  @Override
+  public AstProcessor getAstProcessor()
+  {
+    return new RestrictionsChecker( this );
   }
 }

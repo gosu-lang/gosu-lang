@@ -2,11 +2,13 @@ package gw.lang.parser.restrictions;
 
 final class Rule
 {
-  final Restrictions.Kind _kind;
+  final Kind _kind;
   final String _key;
-  final Restrictions.Origin _origin;
+  final Builder.Origin _origin;
 
-  Rule( Restrictions.Kind kind, String key, Restrictions.Origin origin )
+  enum Kind {TYPE, PACKAGE, PACKAGE_TREE, MEMBER}
+
+  Rule( Kind kind, String key, Builder.Origin origin )
   {
     _kind = kind;
     _key = key;
@@ -26,7 +28,7 @@ final class Rule
     }
   }
 
-  static Rule parse( String text, Restrictions.Origin origin )
+  static Rule parse( String text, Builder.Origin origin )
   {
     if( text == null || text.trim().isEmpty() )
     {
@@ -36,11 +38,11 @@ final class Rule
     Rule rule;
     if( text.endsWith( ".**" ) )
     {
-      rule = new Rule( Restrictions.Kind.PACKAGE_TREE, text.substring( 0, text.length() - 3 ), origin );
+      rule = new Rule( Kind.PACKAGE_TREE, text.substring( 0, text.length() - 3 ), origin );
     }
     else if( text.endsWith( ".*" ) )
     {
-      rule = new Rule( Restrictions.Kind.PACKAGE, text.substring( 0, text.length() - 2 ), origin );
+      rule = new Rule( Kind.PACKAGE, text.substring( 0, text.length() - 2 ), origin );
     }
     else if( text.indexOf( '#' ) >= 0 )
     {
@@ -52,12 +54,12 @@ final class Rule
         throw new IllegalArgumentException( "Malformed member rule: " + text );
       }
       rule = member.equals( "*" )
-             ? new Rule( Restrictions.Kind.TYPE, type, origin )
-             : new Rule( Restrictions.Kind.MEMBER, type + "#" + member, origin );
+             ? new Rule( Kind.TYPE, type, origin )
+             : new Rule( Kind.MEMBER, type + "#" + member, origin );
     }
     else
     {
-      rule = new Rule( Restrictions.Kind.TYPE, Restrictions.normalize( text ), origin );
+      rule = new Rule( Kind.TYPE, Restrictions.normalize( text ), origin );
     }
     if( rule._key.isEmpty() )
     {
