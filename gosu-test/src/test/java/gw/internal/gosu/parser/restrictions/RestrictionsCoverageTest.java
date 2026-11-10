@@ -87,6 +87,26 @@ public class RestrictionsCoverageTest extends TestClass
                    "Type 'java.lang.reflect.Method' is blocked by the restrictions baseline (rule: java.lang.reflect.**)." );
   }
 
+  public void testDeniedPackageImport()
+  {
+    assertBlocked( "uses java.net.*",
+                   "Package 'java.net' is blocked by the restrictions baseline (rule: java.net.**)." );
+    assertBlocked( Restrictions.baseline().denyPackage( "java.util.function" ).build(), "uses java.util.function.*",
+                   "Package 'java.util.function' is blocked by the restrictions profile (rule: java.util.function.*)." );
+    assertBlocked( "uses java.util.concurrent.atomic.*",
+                   "Package 'java.util.concurrent.atomic' is not an allowed type or package in the restrictions profile." );
+    // a package with an individually allowed type is importable
+    assertAllowed( Restrictions.baseline().allowType( "java.util.concurrent.TimeUnit" ).build(),
+                   "uses java.util.concurrent.*\nvar t = TimeUnit.SECONDS" );
+  }
+
+  public void testAnonymousSubclassOfDeniedConstructorReportedOnce()
+  {
+    Restrictions restrictions = Restrictions.baseline().denyMember( "java.util.Date", "<init>" ).build();
+    List<String> errors = compile( restrictions, "var d = new java.util.Date() { function f() {} }" );
+    assertEquals( errors.toString(), 1, errors.size() );
+  }
+
   public void testAllowedPackageImport()
   {
     assertAllowed( "uses java.util.*\nvar l: ArrayList<String> = {}" );
@@ -394,6 +414,11 @@ public class RestrictionsCoverageTest extends TestClass
   private static void assertAllowed( String script )
   {
     assertAllAllowed( Restrictions.baseline().build(), script );
+  }
+
+  private static void assertAllowed( Restrictions restrictions, String script )
+  {
+    assertAllAllowed( restrictions, script );
   }
 
   private static boolean isRestrictionError( String message )
