@@ -21,6 +21,7 @@ import gw.lang.parser.expressions.ITypeLiteralExpression;
 import gw.lang.parser.expressions.ITypeOfExpression;
 import gw.lang.parser.expressions.IVarStatement;
 import gw.lang.parser.statements.IAssignmentStatement;
+import gw.lang.parser.statements.IClassStatement;
 import gw.lang.parser.statements.IMemberAssignmentStatement;
 import gw.lang.reflect.IBlockType;
 import gw.lang.reflect.ICompoundType;
@@ -28,6 +29,7 @@ import gw.lang.reflect.IConstructorInfo;
 import gw.lang.reflect.IDynamicType;
 import gw.lang.reflect.IErrorType;
 import gw.lang.reflect.IFeatureInfo;
+import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMetaType;
 import gw.lang.reflect.IMethodInfo;
 import gw.lang.reflect.IMethodInfoDelegate;
@@ -38,6 +40,7 @@ import gw.lang.reflect.IType;
 import gw.lang.reflect.ITypeVariableType;
 import gw.lang.reflect.gs.IGosuClass;
 import gw.lang.reflect.gs.IGosuEnhancement;
+import gw.lang.reflect.gs.IGosuProgram;
 import gw.lang.reflect.java.JavaTypes;
 
 import java.util.ArrayList;
@@ -109,6 +112,10 @@ class RestrictionsChecker implements AstProcessor
     else if( e instanceof INewExpression )
     {
       checkNewExpression( (INewExpression)e );
+    }
+    else if( e instanceof IClassStatement )
+    {
+      checkClassStatement( (IClassStatement)e );
     }
     else if( e instanceof IEvalExpression )
     {
@@ -223,10 +230,31 @@ class RestrictionsChecker implements AstProcessor
                                               ((IMemberAssignmentStatement)expr.getParent()).getMemberAccess() == expr
                                               ? (IMemberAssignmentStatement)expr.getParent()
                                               : null;
-      checkMember( expr, expr.getRootType(), sourceOf( expr.getPropertyInfo() ),
-                   propertyMemberNames( expr.getMemberName(),
-                                        assignment == null || assignment.isCompoundStatement(), assignment != null ) );
+      if( !checkImportType( expr ) )
+      {
+        checkMember( expr, expr.getRootType(), sourceOf( expr.getPropertyInfo() ),
+                     propertyMemberNames( expr.getMemberName(),
+                                          assignment == null || assignment.isCompoundStatement(), assignment != null ) );
+      }
     }
+  }
+
+  private boolean checkImportType( IMemberAccessExpression expr )
+  {
+    if( expr.getType() instanceof IErrorType )
+    {
+      String memberName = expr.getMemberName();
+      if( memberName != null && memberName.equals( "*" ) )
+      {
+        IExpression rootExpr = expr.getRootExpression();
+        if( rootExpr.getType() instanceof INamespaceType )
+        {
+          checkType( rootExpr.getType() );
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -234,10 +262,33 @@ class RestrictionsChecker implements AstProcessor
    */
   private void checkMethodCallExpression( IMethodCallExpression expr )
   {
-    IMethodInfo mi = expr.getFunctionType() == null ? null : sourceOf( expr.getFunctionType().getMethodInfo() );
-    if( mi != null )
+    IFunctionType functionType = expr.getFunctionType();
+    IFeatureInfo info = functionType == null ? null : functionType.getMethodOrConstructorInfo();
+    if( info instanceof IConstructorInfo )
     {
-      checkMember( expr, null, mi, Collections.singletonList( mi.getDisplayName() ) );
+      // handle super(...) calls
+      IType type = ((IConstructorInfo)info).getType();
+      if( isOwnType( type ) )
+      {
+        return;
+      }
+      Result result = _restrictions.checkMemberOnly( type.getName(), "<init>" );
+      if( !result.isAllowed() )
+      {
+        // constructor access to super(...) is not allowed
+
+        report( expr, result );
+      }
+    }
+    else
+    {
+      // normal stand-alone method call
+
+      IMethodInfo mi = functionType == null ? null : sourceOf( functionType.getMethodInfo() );
+      if( mi != null )
+      {
+        checkMember( expr, null, mi, Collections.singletonList( mi.getDisplayName() ) );
+      }
     }
   }
 
@@ -445,6 +496,25 @@ class RestrictionsChecker implements AstProcessor
     }
   }
 
+  private void checkClassStatement( IClassStatement stmt )
+  {
+    IGosuClass cls = stmt.getGosuClass();
+    if( cls == null || cls instanceof IGosuEnhancement )
+    {
+      return;
+    }
+    IType supertype = cls.getSupertype();
+    if( supertype != null )
+    {
+      Result result = _restrictions.checkMemberOnly( supertype.getName(), "<init>" );
+      if( !result.isAllowed() )
+      {
+        // constructor is denied therefore can't extend class
+        report( stmt, result );
+      }
+    }
+  }
+
   private boolean checkAssociativeArrayAccessExpression( IFieldAccessExpression expr )
   {
     IExpression memberExpression = expr.getMemberExpression();
@@ -469,10 +539,17 @@ class RestrictionsChecker implements AstProcessor
     {
       return Result.ALLOWED;
     }
+
+    if( type instanceof INamespaceType )
+    {
+      return _restrictions.checkPackage( type.getName() );
+    }
+
     while( type.isArray() )
     {
       type = type.getComponentType();
     }
+
     if( type instanceof IGosuClass && ((IGosuClass)type).isStructure() )
     {
       Result result = _restrictions.checkFeature( LanguageFeature.STRUCTURAL );

@@ -61,6 +61,9 @@ public class ParserOptions
     return this;
   }
 
+  /**
+   * Note, the order of the providers is preserved; they are processed in the order they are passed in.
+   */
   public ParserOptions withAstProcessorProviders( AstProcessorProvider... providers )
   {
     _astProcessorProviders = providers == null ? Set.of() : new LinkedHashSet<>( List.of( providers ) );

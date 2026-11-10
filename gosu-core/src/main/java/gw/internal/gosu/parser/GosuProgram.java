@@ -14,7 +14,6 @@ import gw.lang.parser.ISymbol;
 import gw.lang.parser.ISymbolTable;
 import gw.lang.parser.ITokenizerInstructor;
 import gw.lang.parser.ITypeUsesMap;
-import gw.lang.parser.restrictions.Restrictions;
 import gw.lang.parser.expressions.IFieldAccessExpression;
 import gw.lang.reflect.IFunctionType;
 import gw.lang.reflect.IMethodInfo;
@@ -46,7 +45,7 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   private boolean _bStatementsOnly;
   private IType _contextType;
   private ContextInferenceManager _ctxInferenceMgr;
-  private Set<AstProcessorProvider> _astProcessorProviders = Set.of();
+  private Set<AstProcessorProvider> _astProcessorProviders;
   private boolean _bParsingExecutableProgramStmts;
   private boolean _allowUses;
 
@@ -487,12 +486,12 @@ public class GosuProgram extends GosuClass implements IGosuProgramInternal
   @Override
   public Set<AstProcessorProvider> getAstProcessorProviders()
   {
-    return _astProcessorProviders;
+    return _astProcessorProviders == null ? Set.of() : _astProcessorProviders;
   }
   @Override
   public void setAstProcessorProviders( Set<AstProcessorProvider> astProcessorProviders )
   {
-    _astProcessorProviders = astProcessorProviders == null ? Set.of() : astProcessorProviders;
+    _astProcessorProviders = astProcessorProviders;
   }
 
   @Override

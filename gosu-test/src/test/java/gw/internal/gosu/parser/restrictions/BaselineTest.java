@@ -12,19 +12,11 @@ public class BaselineTest extends TestClass
   {
     ParserOptions options = baselineRestrictions();
 
-//      .allowPackage( "java.lang" )
-//      .allowPackage( "java.math" )
-//      .allowPackage( "java.util" )
-//      .allowPackage( "java.util.function" )
-//      .allowPackage( "java.util.stream" )
-//      .allowPackage( "java.util.regex" )
-//      .allowPackage( "java.text" )
-//      .allowPackageTree( "java.time" )
-//      .allowPackage( "gw.lang.function" );
-
     GosuTestUtil.evalGosu( "uses java.math.BigDecimal\n" +
                            "static class Foo { function m() {} }\n" +
                            "new Foo().m()\n" +
+                           "static class Bar extends java.util.Date { function m() {} }\n" +
+                           "new Bar().m()\n" +
                            "var s = \"hi\"\n" +
                            "var ss: String = \"hi\"\n" +
                            "var bd: BigDecimal = BigDecimal.valueOf(1)\n" +
