@@ -9,6 +9,7 @@ import gw.lang.parser.restrictions.Restrictions;
 import gw.test.TestClass;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -27,35 +28,51 @@ public class RestrictionsCoverageTest extends TestClass
   private static final String GET_STACK_TRACE_BLOCKED =
     "Member 'java.lang.Throwable#getStackTrace' is blocked by the restrictions baseline (rule: java.lang.Throwable#getStackTrace).";
 
+  /**
+   * %T is a type's qualified name, %N its simple name
+   */
+  private static final String[] TYPE_POSITIONS = {
+      "var t: %T",
+      "var a: %T[]",
+      "var l: java.util.List<%T>",
+      "var m: java.util.Map<String, java.util.List<%T>>",
+      "var l = new java.util.ArrayList<%T>()",
+      "function f(t: %T) {}",
+      "function f(): %T { return null }",
+      "function f<T extends %T>() {}",
+      "function f<T extends java.util.List<%T>>() {}",
+      "var b = \\ t: %T -> t",
+      "var b: block(t: %T)",
+      "var b: block(): %T",
+      "class C { var _t: %T }",
+      "class C { property get P(): %T { return null } }",
+      "class C { construct(t: %T) {} }",
+      "class C extends %T {}",
+      "class C<T extends %T> {}",
+      "interface I { function f(t: %T) }",
+      "enum E { A  function f(t: %T) {} }",
+      "var o: Object = null\nprint(o as %T)",
+      "var o: Object = null\nprint(o typeis %T)",
+      "try { print(1) } catch( e: java.lang.InterruptedException ) { } catch( e: java.lang.Throwable ) { var t: %T }",
+      "uses %T\nvar t: %N",
+  };
+
   public void testDeniedTypeInEveryTypePosition()
   {
-    String[] scripts = {
-      "var t: java.lang.Thread",
-      "var a: java.lang.Thread[]",
-      "var l: java.util.List<java.lang.Thread>",
-      "var m: java.util.Map<String, java.util.List<java.lang.Thread>>",
-      "var l = new java.util.ArrayList<java.lang.Thread>()",
-      "function f(t: java.lang.Thread) {}",
-      "function f(): java.lang.Thread { return null }",
-      "function f<T extends java.lang.Thread>() {}",
-      "function f<T extends java.util.List<java.lang.Thread>>() {}",
-      "var b = \\ t: java.lang.Thread -> t",
-      "var b: block(t: java.lang.Thread)",
-      "var b: block(): java.lang.Thread",
-      "class C { var _t: java.lang.Thread }",
-      "class C { property get P(): java.lang.Thread { return null } }",
-      "class C { construct(t: java.lang.Thread) {} }",
-      "class C extends java.lang.Thread {}",
-      "class C<T extends java.lang.Thread> {}",
-      "interface I { function f(t: java.lang.Thread) }",
-      "enum E { A  function f(t: java.lang.Thread) {} }",
-      "var o: Object = null\nprint(o as java.lang.Thread)",
-      "var o: Object = null\nprint(o typeis java.lang.Thread)",
-      "try { print(1) } catch( e: java.lang.InterruptedException ) { } catch( e: java.lang.Throwable ) { var t: java.lang.Thread }",
-      "uses java.lang.Thread\nvar t: Thread",
-      "print(java.lang.Thread.currentThread())",
-    };
-    assertAllBlocked( Restrictions.baseline().build(), THREAD_BLOCKED, scripts );
+    assertAllBlocked( Restrictions.baseline().build(), THREAD_BLOCKED, withType( "java.lang.Thread" ) );
+    assertBlocked( "print(java.lang.Thread.currentThread())", THREAD_BLOCKED );
+  }
+
+  public void testAllowedTypeInEveryTypePosition()
+  {
+    assertAllAllowed( Restrictions.baseline().build(), withType( "java.util.Date" ) );
+    assertAllowed( "print(java.util.Date.from(null))" );
+  }
+
+  private static String[] withType( String fqn )
+  {
+    String simpleName = fqn.substring( fqn.lastIndexOf( '.' ) + 1 );
+    return Arrays.stream( TYPE_POSITIONS ).map( t -> t.replace( "%T", fqn ).replace( "%N", simpleName ) ).toArray( String[]::new );
   }
 
   public void testDeniedTypeInCatchClause()
@@ -84,50 +101,64 @@ public class RestrictionsCoverageTest extends TestClass
                    "Type 'java.lang.Class' is blocked by the restrictions baseline (rule: java.lang.Class)." );
   }
 
+  /**
+   * %s is a call returning long
+   */
+  private static final String[] CODE_CONTEXTS = {
+      "%s",
+      "var x = %s",
+      "var x: long = %s",
+      "function f(): long { return %s }",
+      "class C { function f(): long { return %s } }",
+      "class C { var _x = %s }",
+      "class C { construct() { print(%s) } }",
+      "class C { property get P(): long { return %s } }",
+      "class C { property set P(v: long) { print(%s) } }",
+      "class C { class D { function f(): long { return %s } } }",
+      "enum E { A(%s)  private construct(l: long) {} }",
+      "enum E { A  function f(): long { return %s } }",
+      "var o = new Object() { function f(): long { return %s } }",
+      "var b = \\-> %s",
+      "var b = \\-> \\-> %s",
+      "print(\"${%s}\")",
+      "print(\"<%= %s %>\")",
+      "print(true ? %s : 0)",
+      "if( %s > 0 ) { print(1) }",
+      "while( %s < 0 ) { print(1) }",
+      "for( i in 0..|%s ) { print(i) }",
+      "switch( %s ) { case 0: print(0) }",
+      "throw new RuntimeException(\"\" + %s)",
+      "try { print(%s) } catch( e: Exception ) { }",
+      "try { print(1) } catch( e: Exception ) { print(%s) }",
+      "try { print(1) } finally { print(%s) }",
+      "assert %s > 0",
+      "var x = 0L\nx += %s",
+      "var l = {%s}",
+      "var m = {\"a\" -> %s}",
+      "var d = new java.util.Date() { :Time = %s }",
+      "var a = new long[] { %s }",
+      "var a = new int[1]\nprint(a[%s as int])",
+  };
+
   public void testCodeInEveryContextIsChecked()
   {
-    String call = "java.lang.System.currentTimeMillis()";
-    String[] scripts = {
-      call,
-      "var x = " + call,
-      "var x: long = " + call,
-      "function f(): long { return " + call + " }",
-      "class C { function f(): long { return " + call + " } }",
-      "class C { var _x = " + call + " }",
-      "class C { construct() { print(" + call + ") } }",
-      "class C { property get P(): long { return " + call + " } }",
-      "class C { property set P(v: long) { print(" + call + ") } }",
-      "class C { class D { function f(): long { return " + call + " } } }",
-      "enum E { A(" + call + ")  private construct(l: long) {} }",
-      "enum E { A  function f(): long { return " + call + " } }",
-      "var o = new Object() { function f(): long { return " + call + " } }",
-      "var b = \\-> " + call,
-      "var b = \\-> \\-> " + call,
-      "print(\"${" + call + "}\")",
-      "print(\"<%= " + call + " %>\")",
-      "print(true ? " + call + " : 0)",
-      "if( " + call + " > 0 ) { print(1) }",
-      "while( " + call + " < 0 ) { print(1) }",
-      "for( i in 0..|" + call + " ) { print(i) }",
-      "switch( " + call + " ) { case 0: print(0) }",
-      "throw new RuntimeException(\"\" + " + call + ")",
-      "try { print(" + call + ") } catch( e: Exception ) { }",
-      "try { print(1) } catch( e: Exception ) { print(" + call + ") }",
-      "try { print(1) } finally { print(" + call + ") }",
-      "assert " + call + " > 0",
-      "var x = 0L\nx += " + call,
-      "var l = {" + call + "}",
-      "var m = {\"a\" -> " + call + "}",
-      "var d = new java.util.Date() { :Time = " + call + " }",
-      "var a = new long[] { " + call + " }",
-      "var a = new int[1]\nprint(a[" + call + " as int])",
-    };
-    assertAllBlocked( Restrictions.baseline().build(), SYSTEM_BLOCKED, scripts );
+    assertAllBlocked( Restrictions.baseline().build(), SYSTEM_BLOCKED, withCall( "java.lang.System.currentTimeMillis()" ) );
   }
 
-  public void testDeniedMemberInEveryAccessForm()
+  public void testAllowedCodeInEveryContext()
   {
-    String[] scripts = {
+    assertAllAllowed( Restrictions.baseline().build(), withCall( "java.lang.Math.abs(1L)" ) );
+  }
+
+  private static String[] withCall( String call )
+  {
+    return Arrays.stream( CODE_CONTEXTS ).map( c -> c.replace( "%s", call ) ).toArray( String[]::new );
+  }
+
+  /**
+   * Access forms of Throwable's StackTrace property, replaced with Message for the allowed counterparts
+   */
+  private static final String[] MEMBER_ACCESS_FORMS = {
       "print(new Throwable().getStackTrace())",
       "print(new Throwable().StackTrace)",
       "var t = new Throwable()\nprint(t.StackTrace)",
@@ -147,17 +178,31 @@ public class RestrictionsCoverageTest extends TestClass
       "function f<T extends Throwable>(t: T): Object { return t.StackTrace }",
       "var l = {new Throwable()}.map(\\ t -> t.StackTrace)",
       "var l = {new Throwable()}\nprint(l.get(0).StackTrace)",
-    };
-    assertAllBlocked( Restrictions.baseline().build(), GET_STACK_TRACE_BLOCKED, scripts );
+  };
+
+  public void testDeniedMemberInEveryAccessForm()
+  {
+    assertAllBlocked( Restrictions.baseline().build(), GET_STACK_TRACE_BLOCKED, MEMBER_ACCESS_FORMS );
   }
 
-  public void testConstructorRuleCoverage()
+  public void testAllowedMemberInEveryAccessForm()
   {
-    Restrictions restrictions = Restrictions.baseline()
-      .denyMember( "java.util.Date", "<init>" )
-      .build();
-    String error = "Member 'java.util.Date#<init>' is blocked by the restrictions profile (rule: java.util.Date#<init>).";
-    assertAllBlocked( restrictions, error,
+    assertAllAllowed( Restrictions.baseline().build(),
+      Arrays.stream( MEMBER_ACCESS_FORMS ).map( f -> f.replace( "StackTrace", "Message" ) ).toArray( String[]::new ) );
+  }
+
+  public void testOwnMembersNamedLikeDeniedMembers()
+  {
+    // the rules apply to Throwable and its subtypes, not to unrelated types
+    assertAllAllowed( Restrictions.baseline().build(),
+      "class C { function getStackTrace(): int { return 1 } }\nprint(new C().getStackTrace())",
+      "class C { property get StackTrace(): int { return 1 } }\nprint(new C().StackTrace)",
+      "class C { function getStackTrace(): int { return 1 }  function f(): int { return getStackTrace() } }",
+      "interface I { function getStackTrace(): int }\nvar i: I = null\nprint(i?.getStackTrace())",
+      "var m = {\"StackTrace\" -> 1}\nprint(m[\"StackTrace\"])" );
+  }
+
+  private static final String[] DATE_CONSTRUCTIONS = {
       "var d = new java.util.Date()",
       "var d = new java.util.Date(10)",
       "var d = new java.util.Date() { function f() {} }",
@@ -165,7 +210,23 @@ public class RestrictionsCoverageTest extends TestClass
       "class D extends java.util.Date {}\nvar d = new D()",
       "class D extends java.util.Date { construct() { super() } }",
       "class D extends java.util.Date { construct() { super(10) } }",
-      "class D extends java.util.Date { construct() { this(10) }  construct(s: long) { super(s) } }" );
+      "class D extends java.util.Date { construct() { this(10) }  construct(s: long) { super(s) } }",
+  };
+
+  public void testConstructorRuleCoverage()
+  {
+    Restrictions restrictions = Restrictions.baseline()
+      .denyMember( "java.util.Date", "<init>" )
+      .build();
+    String error = "Member 'java.util.Date#<init>' is blocked by the restrictions profile (rule: java.util.Date#<init>).";
+    assertAllBlocked( restrictions, error, DATE_CONSTRUCTIONS );
+  }
+
+  public void testConstructionWithoutConstructorRule()
+  {
+    assertAllAllowed( Restrictions.baseline().build(), DATE_CONSTRUCTIONS );
+    // a rule on another type's constructor
+    assertAllAllowed( Restrictions.baseline().denyMember( "java.util.ArrayList", "<init>" ).build(), DATE_CONSTRUCTIONS );
   }
 
   public void testTypeNameBoundaries()
@@ -189,18 +250,21 @@ public class RestrictionsCoverageTest extends TestClass
                    "Type 'java.lang.invoke.MethodHandle' is blocked by the restrictions baseline (rule: java.lang.invoke.**)." );
   }
 
+  private static final Map<LanguageFeature, String> FEATURE_SAMPLES = new EnumMap<>( LanguageFeature.class );
+  static
+  {
+    FEATURE_SAMPLES.put( LanguageFeature.TYPEOF, "print(typeof \"x\")" );
+    FEATURE_SAMPLES.put( LanguageFeature.FEATURE_LITERAL, "print(String#length())" );
+    FEATURE_SAMPLES.put( LanguageFeature.EVAL, "print(eval(\"1\"))" );
+    FEATURE_SAMPLES.put( LanguageFeature.DYNAMIC, "var d: dynamic.Dynamic = \"x\"\nprint(d.length())" );
+    FEATURE_SAMPLES.put( LanguageFeature.STRUCTURAL, "structure S { function charAt(i: int): char }\nvar s: S = \"abc\"" );
+  }
+
   public void testEveryLanguageFeatureIsGated()
   {
-    Map<LanguageFeature, String> samples = new EnumMap<>( LanguageFeature.class );
-    samples.put( LanguageFeature.TYPEOF, "print(typeof \"x\")" );
-    samples.put( LanguageFeature.FEATURE_LITERAL, "print(String#length())" );
-    samples.put( LanguageFeature.EVAL, "print(eval(\"1\"))" );
-    samples.put( LanguageFeature.DYNAMIC, "var d: dynamic.Dynamic = \"x\"\nprint(d.length())" );
-    samples.put( LanguageFeature.STRUCTURAL, "structure S { function charAt(i: int): char }\nvar s: S = \"abc\"" );
-
     for( LanguageFeature feature : LanguageFeature.values() )
     {
-      String script = samples.get( feature );
+      String script = FEATURE_SAMPLES.get( feature );
       assertNotNull( "no sample script for " + feature, script );
       String error = featureError( feature );
 
@@ -216,6 +280,49 @@ public class RestrictionsCoverageTest extends TestClass
         .build();
       List<String> errors = compile( enabled, script );
       assertFalse( script + " " + errors, errors.contains( error ) );
+    }
+  }
+
+  public void testCommonScriptsAllowed()
+  {
+    assertAllAllowed( Restrictions.baseline().build(),
+      "uses java.lang.Math#*\nprint(max(1, 2))",
+      "var l = {3, 1, 2}\nprint(l.where(\\ i -> i > 1).orderBy(\\ i -> i).map(\\ i -> i * 2))",
+      "var l = {\"a\", \"b\"}\nl.each(\\ s -> print(s.toUpperCase()))",
+      "var m = {\"a\" -> 1}\nm[\"b\"] = 2\nprint(m.Keys)",
+      "var s = \"abc\"\nprint(s.HasContent && s.length() > 0)",
+      "var n = 1\nprint(\"n is ${n} and <%= n + 1 %>\")",
+      "var b: block(i: int): int = \\ i -> i + 1\nprint(b(1))",
+      "function f<T>(t: T): T { return t }\nprint(f(\"x\"))",
+      "var x = 10\nx += 2\nx *= 3\nx++\nprint(x)",
+      "class C { var _p: int as P }\nvar c = new C()\nc.P = 1\nc.P += 1\nprint(c.P)",
+      "class C { var _p: int as P  function f() { P += 1 } }",
+      "class C implements Comparable<C> { override function compareTo(o: C): int { return 0 } }",
+      "class C { override function toString(): String { return \"C\" }  override function hashCode(): int { return 1 } }",
+      "class E extends Exception { construct(m: String) { super(m) } }\ntry { throw new E(\"x\") } catch( e: E ) { print(e.Message) }",
+      "enum E { A, B }\nprint(E.A.Name)\nprint(E.A.ordinal())\nprint(E.values())",
+      "var d = new java.util.Date() { :Time = 0 }",
+      "var bd = java.math.BigDecimal.valueOf(1).add(java.math.BigDecimal.ONE)",
+      "var r = java.util.regex.Pattern.compile(\"a+\").matcher(\"aa\").matches()",
+      "var t = java.time.LocalDate.now().plusDays(1)",
+      "var o: Object = \"x\"\nif( o typeis String ) { print(o.length()) }",
+      "var o: Object = \"x\"\nprint((o as String).length())",
+      "var a = new int[] { 1, 2 }\nfor( i in a index j ) { print(i + j) }",
+      "var sb = new StringBuilder()\nsb.append(\"a\").append(1)\nprint(sb)",
+      "var s = {1, 2}.stream().map(\\ i -> i + 1).count()" );
+  }
+
+  public void testEnabledFeatureCompilesCleanly()
+  {
+    for( LanguageFeature feature : LanguageFeature.values() )
+    {
+      Restrictions enabled = Restrictions.empty( feature )
+        .allowPrimitives()
+        .allowPackage( "java.lang" )
+        .allowPackageTree( "gw.lang.reflect" )
+        .allowType( "dynamic.Dynamic" )
+        .build();
+      assertAllAllowed( enabled, FEATURE_SAMPLES.get( feature ) );
     }
   }
 
@@ -251,6 +358,23 @@ public class RestrictionsCoverageTest extends TestClass
     assertTrue( failures.size() + " of " + scripts.length + " failed:\n" + String.join( "\n", failures ), failures.isEmpty() );
   }
 
+  /**
+   * Reports every script that has errors, not just the first
+   */
+  private static void assertAllAllowed( Restrictions restrictions, String... scripts )
+  {
+    List<String> failures = new ArrayList<>();
+    for( String script : scripts )
+    {
+      List<String> errors = compile( restrictions, script );
+      if( !errors.isEmpty() )
+      {
+        failures.add( "flagged: " + script + " " + errors );
+      }
+    }
+    assertTrue( failures.size() + " of " + scripts.length + " failed:\n" + String.join( "\n", failures ), failures.isEmpty() );
+  }
+
   private static void assertBlocked( String script, String expected )
   {
     assertBlocked( Restrictions.baseline().build(), script, expected );
@@ -269,8 +393,7 @@ public class RestrictionsCoverageTest extends TestClass
 
   private static void assertAllowed( String script )
   {
-    List<String> errors = compile( Restrictions.baseline().build(), script );
-    assertTrue( script + " " + errors, errors.isEmpty() );
+    assertAllAllowed( Restrictions.baseline().build(), script );
   }
 
   private static boolean isRestrictionError( String message )
