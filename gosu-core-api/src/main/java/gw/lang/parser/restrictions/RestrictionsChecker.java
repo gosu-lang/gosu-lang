@@ -249,7 +249,11 @@ class RestrictionsChecker implements AstProcessor
         IExpression rootExpr = expr.getRootExpression();
         if( rootExpr.getType() instanceof INamespaceType )
         {
-          checkType( rootExpr.getType() );
+          Result result = checkType( rootExpr.getType() );
+          if( !result.isAllowed() )
+          {
+            report( expr, result );
+          }
         }
       }
       return true;
@@ -499,7 +503,7 @@ class RestrictionsChecker implements AstProcessor
   private void checkClassStatement( IClassStatement stmt )
   {
     IGosuClass cls = stmt.getGosuClass();
-    if( cls == null || cls instanceof IGosuEnhancement )
+    if( cls == null || cls.isAnonymous() || cls instanceof IGosuEnhancement )
     {
       return;
     }
