@@ -16,7 +16,6 @@ public class PostCompilationAnalysis
       return;
     }
 
-    // process the program is it exists, it covers the wrapped class
     IGosuClass gosuClass = pe.getGosuProgram();
     if( gosuClass == null )
     {

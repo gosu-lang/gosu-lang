@@ -1,7 +1,7 @@
 package gw.lang.parser.restrictions;
 
 /**
- * Dynamic or reflective language features that should be disabled for restricted scripts.
+ * Dynamic / reflective language features that should be disabled for restricted scripts.
  */
 public enum LanguageFeature
 {

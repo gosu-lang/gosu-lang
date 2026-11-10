@@ -7,41 +7,53 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Compile-time restrictions profile for a Gosu script.
+ * Compile-time Gosu restrictions profile for use with {@code ParserOptions}.
+ *
  * <p>
- * A {@code null} restrictions (the default in ParserOptions) means unrestricted.
- * <p>
- * Restrictions are a set of rules that restrict access to types, packages, members, and language features.
- * There are two kinds of rules: <i>deny</i> rules and <i>allow</i> rules. Access is allowed only with <i>allow</i> rules
- * and <i>deny</i> rules trump allow rules: if no rules match a check for access, access is <i>not allowed</i>*.
+ * Restrictions define rules governing access to types, packages, members, and language features.
+ * Rules are expressed as <i>allow</i> or <i>deny</i> rules. Access is denied by default unless
+ * explicitly allowed, and deny rules take precedence over allow rules. For example, allowing
+ * access to all types in the {@code java.lang} package does not allow access to
+ * {@code java.lang.System} if that type is explicitly denied.
+ *
  * <p>
  * Example usage:
  *
  * <pre><code>
- * Restrictions r = Restrictions.baseline()
+ * Restrictions r = Restrictions
+ *     .baseline()
  *     .allowType("java.util.concurrent.atomic.AtomicInteger")
  *     .allowPackageTree("org.example.api")
  *     .denyPackage("org.example.api.internal")
  *     .denyMember("org.example.api.Account", "password")
  *     .build();
- * options.withRestrictions(r);
+ *
+ * ParserOptions options = new ParserOptions();
+ * options.withAstProcessorProviders(r);
  * </code></pre>
+ *
  * <p>
- * Rule syntax (used by {@code allow(String)} / {@code deny(String)})
+ * Rule syntax for methods accepting a single {@code String} argument, such as {@link Builder#allow(String)}:
+ *
  * <ul>
  *   <li>{@code "org.example.Foo"}           type and all its inner types</li>
- *   <li>{@code "org.example.*"}             all types in package</li>
- *   <li>{@code "org.example.**"}            all types in package and all its subpackages</li>
- *   <li>{@code "org.example.Foo#myMethod"}  member and all overloads; for use with {@code deny(String)} only</li>
- *   <li>{@code "org.example.Foo#<init>"}    all constructors; for use with {@code deny(String)} only</li>
+ *   <li>{@code "org.example.*"}             all types in a package</li>
+ *   <li>{@code "org.example.**"}            all types in a package and its subpackages</li>
+ *   <li>{@code "org.example.Foo#myMethod"}  member and all overloads; for use with deny methods only</li>
+ *   <li>{@code "org.example.Foo#<init>"}    all constructors; for use with deny methods only</li>
  * </ul>
  *
  * <p>
- * Rules are based on erased type names: no generic arguments, no array brackets.
- * {@code '$'} is treated as {@code '.'} for nested types. When only a single qualified string
- * is available, the package/type boundary is inferred by the Java convention that the first
- * segment starting with a non-lowercase character begins the type name. Use the {@link #checkType(String, String)}
- * overload when the package is known.
+ * Rules are based on erased type names: generic arguments and array brackets are omitted.
+ * {@code '$'} is treated as {@code '.'} for nested types. When only a qualified name is
+ * available, the package/type boundary is inferred using the Java naming convention that
+ * the first segment beginning with a non-lowercase character starts the type name.
+ *
+ * <p>
+ * The {@link #baseline()} method returns a conservative restrictions profile suitable for
+ * most hosts. Use {@link Builder#withoutBaselineDeny(String)} to remove individual baseline
+ * deny rules. Use {@link #empty(LanguageFeature...)} instead when the baseline does not suit your host and you
+ * want complete control over the restrictions profile.
  */
 public final class Restrictions implements AstProcessorProvider
 {
@@ -146,11 +158,6 @@ public final class Restrictions implements AstProcessorProvider
 
     b._origin = Origin.HOST;
     return b;
-  }
-
-  public Builder toBuilder()
-  {
-    return new Builder( _allow.copy(), _deny.copy(), _enabledFeatures );
   }
 
   /**
