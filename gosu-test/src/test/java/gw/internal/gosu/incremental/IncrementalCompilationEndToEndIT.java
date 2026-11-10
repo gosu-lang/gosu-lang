@@ -793,6 +793,7 @@ public class IncrementalCompilationEndToEndIT
       // gosuc falls back to a full rebuild of the positional sources,
       // populating the dep file as a side effect.
       args.add( "-incremental" );
+      args.add( "-abi-checking" );
       args.add( "-dependency-file" );
       args.add( dependencyFile.getAbsolutePath() );
 

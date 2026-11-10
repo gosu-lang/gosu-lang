@@ -170,6 +170,10 @@ public class GosuCompiler implements IGosuCompiler
       enqueueType(removedType, visited, worklist);
     }
 
+    if( options.isVerbose() && options.hasAbiChecking() )
+    {
+      System.out.println( "Incremental compilation: ABI checking is enabled" );
+    }
     /*
       typeDependencies[X] holds every type that consumes X as of the previously compiled .class files, while
       changedTypes/removedTypes describe source changes not yet reflected in those .class files. The walk below
@@ -226,7 +230,7 @@ public class GosuCompiler implements IGosuCompiler
         }
       }
 
-      if( _incrementalManager.hasNewABI( type ) )
+      if( !options.hasAbiChecking() || _incrementalManager.hasNewABI( type ) )
       {
         Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
         for( String consumer : consumers )

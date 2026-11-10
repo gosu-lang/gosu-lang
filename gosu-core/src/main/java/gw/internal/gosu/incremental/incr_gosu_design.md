@@ -13,6 +13,14 @@ one; that is the premise of separate compilation. This makes pruning within a pr
 than Gradle's Java incremental compiler, which recompiles a changed class's dependents without
 checking whether its ABI moved and applies ABI checks only across subproject boundaries (§11).
 
+**ABI checking is opt-in, for now.** The gate is enabled by `-abi-checking` (§3), a debugging
+switch kept while the gate is being validated; once it is, the gate becomes unconditional and
+the flag goes away, so it is left out of user-facing documentation. Without it the walk
+cascades past every type it visits, so the recompile set is the full transitive closure of
+consumers of the changed and removed types. Hashes are computed and persisted either way, so
+the dep file has the same shape and content with or without the flag, and a build may switch
+it on or off without invalidating the graph (§9.3).
+
 **Safety premise.** Skipping a consumer is sound iff the hash covers everything the consumer
 compiles against. The bytecode covers the plain JVM surface; Gosu bakes more into consumers
 than the producer's class file carries (default values, block parameter names, structure and
@@ -31,8 +39,8 @@ private dependents. Hashing gives that for free and more: a consumer using `X` o
 recompiles to an unchanged hash of its own, so the walk stops there, with no second list to
 maintain.
 
-**Non-goals.** No change to the Gradle plugin: the whole compile, hash and walk loop lives in
-gosuc (§1, §3). No finer than per-class granularity (§12, limitation 1). No re-analysis of the
+**Non-goals.** No logic in the Gradle plugin: the whole compile, hash and walk loop lives in
+gosuc (§1, §3); the plugin only forwards the `-abi-checking` opt-in. No finer than per-class granularity (§12, limitation 1). No re-analysis of the
 dependency graph from the output directory (§12, limitation 3).
 
 ## 1. Two-layer architecture
@@ -78,6 +86,7 @@ Gradle plugin (separate repo)
   │  computes changed/removed/local-java type FQCNs from InputChanges
   ▼
 forks:  gosuc -incremental
+              [-abi-checking]
               -dependency-file build/tmp/gosuc-deps-{task}.json
               -changed-types  <fqcn:fqcn:…>
               -removed-types  <fqcn:fqcn:…>
@@ -93,9 +102,10 @@ compileGosuIncrementally(options, driver)      ── §5
   ├─ seed a worklist with (changed ∪ removed), then walk it          ── §7
   │    ├─ compile the visited type's source on demand (once per source file)
   │    │    └─ per compiled class: trackDependencies(bytes, gosuClass) ── §6  (edges + ABI hash, one walk)
-  │    ├─ enqueue the consumers of each type whose ABI hash moved, and of every type gosuc has
-  │    │  no fresh hash for (local Java, removed, no longer declared by its source, or a class
-  │    │  whose surface names a structure, which is not hashed)
+  │    ├─ without -abi-checking: enqueue the consumers of every visited type
+  │    ├─ with -abi-checking: enqueue the consumers of each type whose ABI hash moved, and of
+  │    │  every type gosuc has no fresh hash for (local Java, removed, no longer declared by its
+  │    │  source, or a class whose surface names a structure, which is not hashed)
   │    └─ otherwise, if this turn compiled the source, enqueue every nested class the compile
   │       produced, so each is gated on its own hash
   └─ if no errors and no threshold abort: updateDependencyFile(compiled, effectivelyRemoved)  ── §9 (atomic write)
@@ -111,11 +121,12 @@ entire surface the Gradle plugin uses:
 | Flag | Field | Meaning |
 |---|---|---|
 | `-incremental` | `boolean _incremental` | Enables the incremental path. Absent ⇒ compile all sources (legacy behavior). |
+| `-abi-checking` | `boolean _abiChecking` | Gates the cascade on the ABI hash (§7). Absent ⇒ the walk enqueues the consumers of every type it visits, recompiling the full transitive closure. Exposed as `hasAbiChecking()`. Read only on the incremental round: a full rebuild compiles everything either way. Hashes are computed and persisted whether or not it is given. **Default off**; a temporary debugging switch (see the goal section). |
 | `-dependency-file <path>` | `String _dependencyFile` | Path to the dependency file. **Default `.gosuc-deps.json`**; the plugin passes `build/tmp/gosuc-deps-{taskName}.json`. |
 | `-changed-types <fqcns>` | `String _changedTypes` | Path-separator-delimited FQCNs (Java **and** Gosu) whose source changed. Exposed as `Set<String> getChangedTypes()`. |
 | `-removed-types <fqcns>` | `String _removedTypes` | Path-separator-delimited FQCNs whose source was deleted. Exposed as `Set<String> getRemovedTypes()`. **May overlap `-changed-types` as supplied** — a source deleted and re-added inside one change window is reported as both — and the driver makes the two disjoint before use (§5). |
 | `-local-java-types <fqcns>` | `String _localJavaTypes` | Path-separator-delimited FQCNs of **same-module Java types** (the plugin populates this by scanning `build/classes/java/main`). Exposed as `Set<String> getLocalJavaTypes()`. |
-| `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path: which path was taken (a full rebuild, or an incremental round and the source files it recompiled), dependency-file loading and saving, and, for every type the walk decides on, whether its ABI counted as changed and why (§7). Stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
+| `-verbose` | `boolean _verbose` | Diagnostic logging along the incremental path: which path was taken (a full rebuild, or an incremental round and the source files it recompiled), dependency-file loading and saving, and, with `-abi-checking`, a line saying ABI checking is enabled and, for every type the walk decides on, whether its ABI counted as changed and why (§7). Stale-output deletion (§8) reports failures unconditionally and logs nothing otherwise. |
 
 Delimiter is `File.pathSeparator` throughout; empty/blank strings parse to empty
 collections.
@@ -204,8 +215,8 @@ everything.
 5. **Delete stale outputs** for `changedTypes` and for `removedTypes` **before** compiling
    (`deleteClassAndSourceFiles`, §8). This is **non-transactional**: a compile failure after
    deletion has no rollback.
-6. **Walk the reverse-dependency graph, compiling on demand and gating the cascade on ABI
-   hashes** (§7). The worklist is seeded with `changedTypes ∪ removedTypes`. Each visited
+6. **Walk the reverse-dependency graph, compiling on demand and, with `-abi-checking`,
+   gating the cascade on ABI hashes** (§7). The worklist is seeded with `changedTypes ∪ removedTypes`. Each visited
    FQCN is handled by kind:
    - a **local Java type** is walked through, never compiled: its consumers are enqueued
      unconditionally, since gosuc has no fresh hash for it and Gradle only reports it when
@@ -221,7 +232,10 @@ everything.
      explains, and the failure is kept loud for debugging. Otherwise the source is compiled,
      unless an earlier FQCN already compiled it — inner classes collapse onto the same
      source file, which is compiled once;
-   - **its consumers are then enqueued iff `hasNewABI`**, which is true when its hash moved
+   - **without `-abi-checking`, its consumers are then always enqueued**, and the rest of
+     this item does not apply: `hasNewABI` is never consulted and the walk is the full
+     transitive closure;
+   - **with `-abi-checking`, its consumers are enqueued iff `hasNewABI`**, which is true when its hash moved
      and whenever there is no fresh hash to compare: a walked-through type, a class its
      recompiled source no longer declares (the sweep in step 7 purges it), a class whose
      surface names a structure, which is not hashed (§6.4). **Otherwise, if
@@ -441,9 +455,13 @@ Concrete cases pinned by gosuc-level e2e tests in `IncrementalCompilationEndToEn
 Every compiled class, except one whose surface names a structure (below), gets a SHA-1 hex digest of a canonical text of everything a separately
 compiled consumer can observe about it at compile time (change detection, not security, so
 the shorter digest is enough). Two class files with the same ABI hash identically; the
-driver uses that to stop a cascade at a class whose recompile left its consumer-visible
-surface unchanged (§7). With `-verbose`, the walk prints each type's verdict, `ABI CHANGED`
-or `ABI STABLE`, with the reason and both digests; the canonical text itself is not printed.
+driver uses that, under `-abi-checking`, to stop a cascade at a class whose recompile left its
+consumer-visible surface unchanged (§7). The hash is computed and persisted on every
+incremental compile, flag or not, so a graph written without the flag is ready for a build
+that enables it; the cost is the hashing work, and a class that cannot be hashed aborts the
+compile in either mode (below). With `-verbose` and `-abi-checking`, the walk prints each
+type's verdict, `ABI CHANGED` or `ABI STABLE`, with the reason and both digests; the
+canonical text itself is not printed.
 
 **Bytecode ABI.** The §6.1 walk collects, alongside the edges: the class file version, the
 class access flags, name, generic `Signature` and superclass; the **member classes** it
@@ -654,15 +672,19 @@ while worklist not empty and not thresholdExceeded:
         if F == null:  throw unless X contains '$'         // stale nested-class producer
         else if F ∉ sourceFilesCompiled:
             sourceFilesCompiled.add(F); compile(F); compiledHere = true
-    if hasNewABI(X):                                       // also true whenever X has no fresh hash
+    if not abiChecking or hasNewABI(X):                    // hasNewABI is also true whenever X has no fresh hash
         for consumer in getOrCreateConsumersFor(X): enqueue(consumer)   // X's nested classes are among them
-    else if compiledHere:
+    else if compiledHere:                                  // reached only with -abi-checking
         for N in nested classes written by compile(F): enqueue(N)      // each is gated on its own hash
 ```
 
 Key properties:
 
-- **Transitive, gated on ABI.** A compiled class's consumers are enqueued only when its
+- **Without `-abi-checking`, transitive and ungated.** Every visited type enqueues all of
+  its consumers, so the walk compiles the same set `calculateRecompilationSet` returns. The
+  nested-class bullets below still hold, through the first route only: a nested class is
+  always among its enclosing class's consumers.
+- **With `-abi-checking`, transitive, gated on ABI.** A compiled class's consumers are enqueued only when its
   ABI hash moved (§6.4). A body-only, comment-only or private-only edit therefore
   recompiles the edited source and nothing else; a public-surface edit recompiles the
   direct consumers, and the cascade continues past a consumer only if *its* recompile
@@ -702,8 +724,8 @@ Key properties:
   empty set for an FQCN with no entry, so the loop needs no null guard. That insertion is
   observable: it registers the FQCN as a graph key and is persisted (§9.3, §12).
 
-`calculateRecompilationSet` computes the full, ungated closure in a single call without
-compiling anything. It is not on this path; it is retained as a test-only oracle for the
+`calculateRecompilationSet` computes the full, ungated closure (what the walk compiles
+without `-abi-checking`) in a single call without compiling anything. It is not on this path; it is retained as a test-only oracle for the
 graph.
 
 ---
@@ -857,19 +879,19 @@ side:
 | Capability | Gradle Java incr. compiler | gosuc |
 |---|---|---|
 | Per-class dep extraction | ASM bytecode scan (`ClassDependenciesVisitor`) | ASM bytecode scan (`DependenciesClassVisitor`) + narrow AST supplement for type literals (§6) |
-| Transitive cascade | Yes (`ClassSetAnalysis.findTransitiveDependents`) | Yes — worklist walk interleaved with compilation, gated per class on the ABI hash (§7) |
-| Accessible vs. private edge buckets | Yes — asymmetric cascade (private deps don't propagate) | **No** — single bucket; the consumer's own ABI hash decides whether the cascade continues past it (§6.4, §7) |
+| Transitive cascade | Yes (`ClassSetAnalysis.findTransitiveDependents`) | Yes — worklist walk interleaved with compilation, gated per class on the ABI hash with `-abi-checking`, the full closure without it (§7) |
+| Accessible vs. private edge buckets | Yes — asymmetric cascade (private deps don't propagate) | **No** — single bucket; with `-abi-checking`, the consumer's own ABI hash decides whether the cascade continues past it (§6.4, §7) |
 | Annotations as dependency edges | Yes | Yes — constant pool + `visitAnnotation` (§6.3) |
 | `dependencyToAll` (SOURCE-retention, `module-info`) | Yes | **N/A** — structurally unnecessary / no such constructs (§6.3) |
-| Inlineable-constant ABI tracking | Yes (hash of `name\|value`) | Yes — compile-time constant values are part of the ABI hash, read from type info since gosuc emits no `ConstantValue` (§6.4) |
+| Inlineable-constant ABI tracking | Yes (hash of `name\|value`) | Yes, with `-abi-checking` — compile-time constant values are part of the ABI hash, read from type info since gosuc emits no `ConstantValue` (§6.4) |
 | Annotation-processor subsystem | Full (isolating / aggregating, `generatedTypesByOrigin`) | **N/A** — gosuc runs no APs; `compileJava` handles them upstream (§6.3) |
 | Post-compile graph source | Re-derived from output `.class` files every build (self-healing) | Accumulated in memory, persisted as JSON; never re-derived (§12) |
 | Persistence format | Kryo binary `PreviousCompilationData` | JSON `gosuc-deps-*.json`, `version` `"0.3"` (§9) |
 | Output safety on failure | `CompileTransaction` stash / restore | Delete-before-compile, non-transactional (§8) |
 | Analysis failure | Falls back to a full rebuild with a logged cause | Fails the build: a class that cannot be hashed aborts the compile (§6.4) |
-| Within-project ABI-stable pruning | No — a comment edit to `A` recompiles `A`'s direct dependents | **Yes** — per-class ABI hash compared after each recompile (§6.4, §7) |
+| Within-project ABI-stable pruning | No — a comment edit to `A` recompiles `A`'s direct dependents | **Yes, with `-abi-checking`** — per-class ABI hash compared after each recompile (§6.4, §7); without it, a comment edit to `A` recompiles its whole downstream cone |
 
-Two divergences are worth calling out. First, Gosu **needs no** SOURCE-retention /
+The comparison below assumes `-abi-checking`. Two divergences are worth calling out. First, Gosu **needs no** SOURCE-retention /
 `module-info` / annotation-processor machinery — those are bytecode-extraction artifacts or
 Java-language constructs that don't apply to Gosu's source/AST-based tracking. Second, Gosu
 replaces Gradle's accessible/private edge buckets with an ABI check on the freshly compiled
@@ -893,7 +915,10 @@ everything the Gosu compiler consumes from a producer at compile time. For JVM s
 gosuc bakes into callers without writing it to the producer's class file — constant values,
 default parameter values, parameter names — the hash reads the producer's type info (§6.4).
 The old graph may be over-approximate (an edge dropped this build is still acted on until
-the graph is rewritten) but never under-approximate.
+the graph is rewritten) but never under-approximate. Without `-abi-checking` the ABI premise
+is not needed: the walk recompiles the full closure of the graph, so soundness rests on the
+edges alone (§6.1–§6.3). Limitation 9 below, and the hash-coverage part of limitation 8, then
+do not apply; the edge gaps of limitation 8 (a type new this build) still do.
 
 **Why source-order doesn't matter.** In-project Gosu types resolve from `.gs` **source** via
 the TypeSystem, never from a sibling `.class`. So recompiling `X` always sees the *new*
@@ -903,8 +928,9 @@ what lets stale-output deletion be confined to the changed and removed sets (§8
 
 Known limitations:
 
-1. **Per-class ABI granularity.** Any ABI change to `X` recompiles every consumer of `X`,
-   including consumers that use none of the changed members. Correctness-neutral;
+1. **Per-class ABI granularity.** With `-abi-checking`, any ABI change to `X` recompiles
+   every consumer of `X`, including consumers that use none of the changed members; without
+   it, any change to `X` recompiles its whole downstream cone. Correctness-neutral;
    per-member precision is possible later if profiling justifies it. A class whose surface
    names a structure goes further: it is not hashed, so any recompile of it, a comment edit
    included, recompiles all its consumers (§6.4).
