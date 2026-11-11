@@ -8,13 +8,15 @@ public final class Builder
   private final RuleSet _allow;
   private final RuleSet _deny;
   private final Set<LanguageFeature> _features;
-  Restrictions.Origin _origin;
+  Origin _origin;
 
+  enum Origin {BASELINE, HOST}
+  
   Builder( RuleSet allow, RuleSet deny, Set<LanguageFeature> features )
   {
-    this( Restrictions.Origin.HOST, allow, deny, features );
+    this( Origin.HOST, allow, deny, features );
   }
-  Builder( Restrictions.Origin origin, RuleSet allow, RuleSet deny, Set<LanguageFeature> features )
+  Builder( Origin origin, RuleSet allow, RuleSet deny, Set<LanguageFeature> features )
   {
     _origin = origin;
     _allow = allow;
@@ -28,7 +30,7 @@ public final class Builder
    */
   public Builder allowType( String typeName )
   {
-    return add( _allow, new Rule( Restrictions.Kind.TYPE, Restrictions.normalize( typeName ), _origin ) );
+    return add( _allow, new Rule( Rule.Kind.TYPE, Restrictions.normalize( typeName ), _origin ) );
   }
 
   /**
@@ -36,7 +38,7 @@ public final class Builder
    */
   public Builder allowPackage( String packageName )
   {
-    return add( _allow, new Rule( Restrictions.Kind.PACKAGE, Restrictions.normalize( packageName ), _origin ) );
+    return add( _allow, new Rule( Rule.Kind.PACKAGE, Restrictions.normalize( packageName ), _origin ) );
   }
 
   /**
@@ -44,7 +46,7 @@ public final class Builder
    */
   public Builder allowPackageTree( String packageName )
   {
-    return add( _allow, new Rule( Restrictions.Kind.PACKAGE_TREE, Restrictions.normalize( packageName ), _origin ) );
+    return add( _allow, new Rule( Rule.Kind.PACKAGE_TREE, Restrictions.normalize( packageName ), _origin ) );
   }
 
   /**
@@ -68,7 +70,7 @@ public final class Builder
    */
   public Builder denyType( String typeName )
   {
-    return add( _deny, new Rule( Restrictions.Kind.TYPE, Restrictions.normalize( typeName ), _origin ) );
+    return add( _deny, new Rule( Rule.Kind.TYPE, Restrictions.normalize( typeName ), _origin ) );
   }
 
   /**
@@ -76,7 +78,7 @@ public final class Builder
    */
   public Builder denyPackage( String packageName )
   {
-    return add( _deny, new Rule( Restrictions.Kind.PACKAGE, Restrictions.normalize( packageName ), _origin ) );
+    return add( _deny, new Rule( Rule.Kind.PACKAGE, Restrictions.normalize( packageName ), _origin ) );
   }
 
   /**
@@ -84,7 +86,7 @@ public final class Builder
    */
   public Builder denyPackageTree( String packageName )
   {
-    return add( _deny, new Rule( Restrictions.Kind.PACKAGE_TREE, Restrictions.normalize( packageName ), _origin ) );
+    return add( _deny, new Rule( Rule.Kind.PACKAGE_TREE, Restrictions.normalize( packageName ), _origin ) );
   }
 
   /**
@@ -103,7 +105,7 @@ public final class Builder
    */
   public Builder denyMember( String declaringType, String memberName )
   {
-    return add( _deny, new Rule( Restrictions.Kind.MEMBER, Restrictions.normalize( declaringType ) + "#" + memberName, _origin ) );
+    return add( _deny, new Rule( Rule.Kind.MEMBER, Restrictions.normalize( declaringType ) + "#" + memberName, _origin ) );
   }
 
   /**
@@ -114,7 +116,7 @@ public final class Builder
   public Builder allow( String rule )
   {
     Rule r = Rule.parse( rule, _origin );
-    if( r._kind == Restrictions.Kind.MEMBER )
+    if( r._kind == Rule.Kind.MEMBER )
     {
       throw new IllegalArgumentException( "Member rules are only supported as deny rules: " + rule );
     }
@@ -138,9 +140,9 @@ public final class Builder
    */
   public Builder withoutBaselineDeny( String rule )
   {
-    Rule parsed = Rule.parse( rule, Restrictions.Origin.HOST );
+    Rule parsed = Rule.parse( rule, Origin.HOST );
     Rule existing = _deny.get( parsed );
-    if( existing == null || existing._origin != Restrictions.Origin.BASELINE )
+    if( existing == null || existing._origin != Origin.BASELINE )
     {
       throw new IllegalArgumentException( "Not a baseline deny rule: " + rule );
     }
