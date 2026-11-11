@@ -153,7 +153,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   {
     ClassReader reader = new ClassReader( bytes );
     // One walk records the class's dependency edges and assembles its canonical ABI text.
-    DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false /*TODO verbose*/ );
+    DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false /*verbose*/ );
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
     // Store the fresh ABI hash on the class's own record; the visitor's constructor registered
     // the class's FQCN as a producer, so the record exists and the hash lands next to its edges.

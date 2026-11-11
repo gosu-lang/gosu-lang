@@ -315,7 +315,7 @@ class DependenciesClassVisitor extends ClassVisitor
   {
     List<String> lines = new ArrayList<>();
     lines.add( typeHeader( gosuClass ) );
-    addDeclaredMemberLines( gosuClass.getTypeInfo(), "", true, lines );
+    addDeclaredMemberLines( gosuClass.getTypeInfo(), true, lines );
     addInheritedMemberLines( gosuClass, lines );
 
     Collections.sort( lines );
@@ -371,7 +371,7 @@ class DependenciesClassVisitor extends ClassVisitor
     {
       List<String> lines = new ArrayList<>();
       // Every tracked type, Gosu or local Java, has relative type info; anything else fails rather than hashing short.
-      addDeclaredMemberLines( (IRelativeTypeInfo)supertype.getTypeInfo(), "", false, lines );
+      addDeclaredMemberLines( (IRelativeTypeInfo)supertype.getTypeInfo(), false, lines );
       addInheritedMemberLines( supertype, lines );
       StringBuilder order = new StringBuilder( "supertypes" );
       for( IType superSupertype : IncrementalCompilationManager.directSupertypes( supertype ) )
@@ -489,24 +489,24 @@ class DependenciesClassVisitor extends ClassVisitor
   }
 
   /**
-   * Adds, unsorted and each prefixed with {@code prefix}, a line for every non-private property and method
+   * Adds, unsorted, a line for every non-private property and method
    * {@code typeInfo} declares, and for every non-private constructor when {@code withConstructors} is set.
    */
-  private static void addDeclaredMemberLines( IRelativeTypeInfo typeInfo, String prefix, boolean withConstructors,
+  private static void addDeclaredMemberLines( IRelativeTypeInfo typeInfo, boolean withConstructors,
                                               List<String> lines )
   {
     for( IPropertyInfo property : typeInfo.getDeclaredProperties() )
     {
       if( !property.isPrivate() )
       {
-        lines.add( prefix + "property " + accessText( property ) + ' ' + property.getName() + " : " + typeText( property.getFeatureType() ) +
+        lines.add( "property " + accessText( property ) + ' ' + property.getName() + " : " + typeText( property.getFeatureType() ) +
                    (property.isReadable() ? " readable" : "") + (property.isWritable() ? " writable" : "") );
         if( property.isStatic() && property instanceof ICompileTimeConstantValue )
         {
           ICompileTimeConstantValue constant = (ICompileTimeConstantValue)property;
           if( constant.isCompileTimeConstantValue() )
           {
-            lines.add( prefix + "const " + property.getName() +
+            lines.add( "const " + property.getName() +
                        " : " + property.getFeatureType().getName() +
                        " = " + quote( String.valueOf( (constant.doCompileTimeEvaluation()) ) ) );
           }
@@ -518,7 +518,7 @@ class DependenciesClassVisitor extends ClassVisitor
     {
       if( !method.isPrivate() )
       {
-        lines.add( prefix + "method " + accessText( method ) + ' ' + method.getName() +
+        lines.add( "method " + accessText( method ) + ' ' + method.getName() +
                    parameterSurface( method.getParameters(), method ) + " : " + typeText( method.getReturnType() ) );
       }
     }
@@ -529,7 +529,7 @@ class DependenciesClassVisitor extends ClassVisitor
       {
         if( !constructor.isPrivate() )
         {
-          lines.add( prefix + "constructor " + accessText( constructor ) + parameterSurface( constructor.getParameters(), constructor ) );
+          lines.add( "constructor " + accessText( constructor ) + parameterSurface( constructor.getParameters(), constructor ) );
         }
       }
     }
