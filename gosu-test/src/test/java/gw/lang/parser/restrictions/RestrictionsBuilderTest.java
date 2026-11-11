@@ -1,7 +1,5 @@
-package gw.internal.gosu.parser.restrictions;
+package gw.lang.parser.restrictions;
 
-import gw.lang.parser.restrictions.Builder;
-import gw.lang.parser.restrictions.Restrictions;
 import gw.test.TestClass;
 
 /**

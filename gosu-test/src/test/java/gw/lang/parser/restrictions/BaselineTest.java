@@ -1,8 +1,7 @@
-package gw.internal.gosu.parser.restrictions;
+package gw.lang.parser.restrictions;
 
 import gw.lang.parser.ParserOptions;
 import gw.lang.parser.exceptions.ParseResultsException;
-import gw.lang.parser.restrictions.Restrictions;
 import gw.test.TestClass;
 import gw.util.GosuTestUtil;
 
