@@ -27,7 +27,6 @@ public class RestrictionsScratchTest extends TestClass
       .denyMember( "java.lang.StringBuilder", "append" )
       .denyMember( "java.lang.Integer", "<init>" )
       .allowType( "java.util.concurrent.atomic.AtomicInteger" ) // allows a specific type regardless of depth in not allowed packages
-      .allowType( "java.lang.reflect.Method" ) // no effect: deny rules trump allow rules (baseline denies java.lang.reflect.**)
       .denyType( "java.lang.Double" )
       .build();
 

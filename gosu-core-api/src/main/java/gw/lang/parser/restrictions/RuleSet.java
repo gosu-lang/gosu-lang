@@ -1,6 +1,8 @@
 package gw.lang.parser.restrictions;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 final class RuleSet
@@ -17,6 +19,19 @@ final class RuleSet
     c._packages.putAll( _packages );
     c._trees.putAll( _trees );
     c._members.putAll( _members );
+    return c;
+  }
+
+  RuleSet withOrigin( Restrictions.Origin origin )
+  {
+    RuleSet c = new RuleSet();
+    for( Rule r : rules() )
+    {
+      if( r._origin == origin )
+      {
+        c.add( r );
+      }
+    }
     return c;
   }
 
@@ -86,14 +101,18 @@ final class RuleSet
   Rule matchPackage( String pkg )
   {
     Rule r = _packages.get( pkg );
-    if( r != null )
-    {
-      return r;
-    }
+    return r != null ? r : matchPackageTree( pkg );
+  }
+
+  /**
+   * Package tree rule on the package or any enclosing package
+   */
+  Rule matchPackageTree( String pkg )
+  {
     String p = pkg;
     while( true )
     {
-      r = _trees.get( p );
+      Rule r = _trees.get( p );
       if( r != null )
       {
         return r;
@@ -105,6 +124,16 @@ final class RuleSet
       }
       p = p.substring( 0, i );
     }
+  }
+
+  List<Rule> rules()
+  {
+    List<Rule> rules = new ArrayList<>();
+    rules.addAll( _types.values() );
+    rules.addAll( _packages.values() );
+    rules.addAll( _trees.values() );
+    rules.addAll( _members.values() );
+    return rules;
   }
 
   Rule matchMember( String declaringType, String member )

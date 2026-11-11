@@ -148,9 +148,62 @@ public final class Builder
     return this;
   }
 
+  /**
+   * @throws IllegalStateException if a deny rule overrides everything a host allow rule allows, since the allow rule
+   * would have no effect
+   */
   public Restrictions build()
   {
+    checkShadowedAllows();
     return new Restrictions( _allow.copy(), _deny.copy(), _features );
+  }
+
+  private void checkShadowedAllows()
+  {
+    // a host deny rule may override a baseline allow rule, so a baseline allow rule is checked against only the
+    // baseline deny rules
+    RuleSet baselineDeny = _deny.withOrigin( Restrictions.Origin.BASELINE );
+    StringBuilder errors = new StringBuilder();
+    for( Rule allow : _allow.rules() )
+    {
+      boolean baselineAllow = allow._origin == Restrictions.Origin.BASELINE;
+      Rule deny = shadowingDeny( allow, baselineAllow ? baselineDeny : _deny );
+      if( deny != null )
+      {
+        boolean baseline = deny._origin == Restrictions.Origin.BASELINE;
+        errors.append( "\n  " ).append( baselineAllow ? "baseline " : "" ).append( "allow " ).append( allow.text() )
+          .append( " has no effect, it is overridden by " ).append( baseline ? "baseline " : "" )
+          .append( "deny " ).append( deny.text() );
+        if( baseline && !baselineAllow )
+        {
+          errors.append( ", see withoutBaselineDeny(\"" ).append( deny.text() ).append( "\")" );
+        }
+      }
+    }
+    if( errors.length() > 0 )
+    {
+      throw new IllegalStateException( "Allow rules overridden by deny rules:" + errors );
+    }
+  }
+
+  /**
+   * A deny rule covering everything the allow rule covers, or null
+   */
+  private static Rule shadowingDeny( Rule allow, RuleSet deny )
+  {
+    switch( allow._kind )
+    {
+      case TYPE:
+        String[] parts = Restrictions.splitName( allow._key );
+        return deny.matchType( parts[0], parts[1] );
+      case PACKAGE:
+        return deny.matchPackage( allow._key );
+      case PACKAGE_TREE:
+        // a package deny rule leaves the subpackages allowed
+        return deny.matchPackageTree( allow._key );
+      default:
+        return null;
+    }
   }
 
   Builder add( RuleSet set, Rule rule )
