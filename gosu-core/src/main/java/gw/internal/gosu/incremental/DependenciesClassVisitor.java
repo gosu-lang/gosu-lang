@@ -354,6 +354,14 @@ class DependenciesClassVisitor extends ClassVisitor
    * has compiled it yet this build, and a local Java supertype, which has no ABI hash, gets one all the same. Each
    * digest is computed once per build, keyed by the supertype as written, type arguments included, and reused by
    * every subclass.
+   *
+   * <p>The digest also covers the order {@code supertype} declares its own supertypes in, those outside the project
+   * included. Gosu binds an inherited member to the first supertype declaring it, so with
+   * {@code interface Base extends I1, I2} and an {@code m()} in both, swapping the two changes which {@code m()} a
+   * consumer of {@code Mid extends Base} calls. {@code Base}'s own class file keeps that order, but its per-supertype
+   * lines here are sorted, so without this line {@code Mid}'s hash would stand still and the walk would stop at
+   * {@code Mid} (pinned by
+   * {@code testReorderingTheSupertypesOfAnInheritedInterfaceRecompilesConsumersOfASubinterface}).
    */
   private String inheritedSurfaceDigest( IType supertype )
   {
@@ -365,6 +373,12 @@ class DependenciesClassVisitor extends ClassVisitor
       // Every tracked type, Gosu or local Java, has relative type info; anything else fails rather than hashing short.
       addDeclaredMemberLines( (IRelativeTypeInfo)supertype.getTypeInfo(), "", false, lines );
       addInheritedMemberLines( supertype, lines );
+      StringBuilder order = new StringBuilder( "supertypes" );
+      for( IType superSupertype : IncrementalCompilationManager.directSupertypes( supertype ) )
+      {
+        order.append( ' ' ).append( typeText( superSupertype ) ).append( ',' );
+      }
+      lines.add( order.toString() );
       Collections.sort( lines );
       digest = sha1( String.join( "\n", lines ) );
       incrementalCompilationManager.putInheritedSurfaceDigest( key, digest );

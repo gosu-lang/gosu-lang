@@ -2461,13 +2461,13 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.ResultBase\": {\n" +
-      "      \"abi_hash\": \"d626271908436700abd2c9acf110661f6bde74b2\",\n" +
+      "      \"abi_hash\": \"580abd78653f7521ae71eb779cc2a7330cb3a705\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.StringResult\"\n" +
       "      ]\n" +
       "    },\n" +
       "    \"example.StringResult\": {\n" +
-      "      \"abi_hash\": \"4e86812e9061fbff79d9fc9c9b5716368fd75199\",\n" +
+      "      \"abi_hash\": \"36b5ce7cf6a365b7b4a710feaa66a31376fa6b6f\",\n" +
       "      \"consumers\": []\n" +
       "    }\n" +
       "  }\n" +
@@ -4328,7 +4328,7 @@ public class IncrementalCompilationEndToEndIT
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Foo\": {\n" +
-      "      \"abi_hash\": \"36eae74918144756d59ff9af8a513963d677bcc1\",\n" +
+      "      \"abi_hash\": \"00b48ce8b77d11c826e5f6b856233c872d94c68d\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Other\"\n" +
@@ -4362,7 +4362,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Other.class must be rewritten when Foo's ABI changes",
                 getFileModificationTime( otherClass ).toMillis() > initialOtherTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "36eae74918144756d59ff9af8a513963d677bcc1", "94e70827d881c499f6112b0b699022169737a5ae" );   // example.Foo: ABI change
+      .replace( "00b48ce8b77d11c826e5f6b856233c872d94c68d", "ccd6b7c10ae4d00d22ce8ad1bcd11685bda99768" );   // example.Foo: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
 
     // A change to Foo that breaks Consumer must surface as a compile error in Consumer, not as a stale class file
@@ -4420,7 +4420,7 @@ public class IncrementalCompilationEndToEndIT
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Foo\": {\n" +
-      "      \"abi_hash\": \"36eae74918144756d59ff9af8a513963d677bcc1\",\n" +
+      "      \"abi_hash\": \"00b48ce8b77d11c826e5f6b856233c872d94c68d\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Consumer\",\n" +
       "        \"example.Holder\"\n" +
@@ -4459,7 +4459,7 @@ public class IncrementalCompilationEndToEndIT
     assertTrue( "Holder.class must be rewritten when Foo's ABI changes",
                 getFileModificationTime( holderClass ).toMillis() > initialHolderTime.toMillis() );
     expectedDeps = expectedDeps
-      .replace( "36eae74918144756d59ff9af8a513963d677bcc1", "94e70827d881c499f6112b0b699022169737a5ae" );   // example.Foo: ABI change
+      .replace( "00b48ce8b77d11c826e5f6b856233c872d94c68d", "ccd6b7c10ae4d00d22ce8ad1bcd11685bda99768" );   // example.Foo: ABI change
     assertEquals( "The recompile leaves the graph as it was; only Foo's hash moves", expectedDeps, readDepFile() );
 
     Files.write( foo.toPath(), "package example\n\nclass Foo {\n  function extra() : int { return 1 }\n}\n".getBytes() );
@@ -5219,14 +5219,9 @@ public class IncrementalCompilationEndToEndIT
       "be checked even though Outer's hash also moved and Inner's did not.",
       getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
 
-    ClassNode consumerNode = new ClassNode();
-    new ClassReader( Files.readAllBytes( consumerClass ) ).accept( consumerNode, 0 );
-    boolean callsNewDescriptor = consumerNode.methods.stream()
-      .flatMap( m -> java.util.stream.StreamSupport.stream( m.instructions.spliterator(), false ) )
-      .filter( insn -> insn instanceof gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode )
-      .map( insn -> (gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode)insn )
-      .anyMatch( call -> call.name.equals( "innermost" ) && call.desc.equals( "()I" ) );
-    assertTrue( "Consumer.class should call innermost()I, as a full build would", callsNewDescriptor );
+    assertEquals( "Consumer.class should call innermost()I, as a full build would",
+                  Collections.singletonList( "example/Outer$Inner$Innermost.innermost()I" ),
+                  invokedMethods( consumerClass, "innermost" ) );
 
     expectedDeps = expectedDeps
       .replace( "a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f", "484c8ca30494ce121dbc9477fb9f528c7e09438d" )   // example.Outer: ABI change
@@ -5235,6 +5230,98 @@ public class IncrementalCompilationEndToEndIT
       "Dep file after incremental compile should record the same edges, with only Outer's and Innermost's digests " +
       "moved (no drift).",
       expectedDeps, readDepFile() );
+  }
+
+  @Test
+  public void testReorderingTheSupertypesOfAnInheritedInterfaceRecompilesConsumersOfASubinterface() throws Exception
+  {
+    // Gosu binds an inherited member to the first supertype declaring it, in declaration order, so permuting
+    // Base's extends clause can change which m() a consumer of Mid binds to. Consumer names Mid only, so it is
+    // reached only if Mid's hash moves when Base's supertypes are reordered. Base's own hash covers its direct
+    // interface order; Mid's hash must carry that order on through its digest of what Base passes on.
+    createSourceFile( "example/I1.gs",
+                      "package example\n" +
+                      "\n" +
+                      "interface I1 {\n" +
+                      "  function m() : Object\n" +
+                      "}"
+    );
+    createSourceFile( "example/I2.gs",
+                      "package example\n" +
+                      "\n" +
+                      "interface I2 {\n" +
+                      "  function m() : String\n" +
+                      "}"
+    );
+    File baseFile = createSourceFile( "example/Base.gs",
+                                      "package example\n" +
+                                      "\n" +
+                                      "interface Base extends I1, I2 {\n" +
+                                      "}"
+    );
+    createSourceFile( "example/Mid.gs",
+                      "package example\n" +
+                      "\n" +
+                      "interface Mid extends Base {\n" +
+                      "}"
+    );
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function use( mid : Mid ) : Object { return mid.m() }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    List<String> callsBefore = invokedMethods( consumerClass, "m" );
+
+    Thread.sleep( SLEEP_MS );
+
+    Files.write( baseFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "interface Base extends I2, I1 {\n" +
+      "}"
+    ).getBytes() );
+
+    CompileResult incr = compile( Arrays.asList( baseFile ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    List<String> callsIncremental = invokedMethods( consumerClass, "m" );
+
+    // What a full build makes of the same sources: drop the dep file so gosuc compiles everything.
+    assertTrue( Files.deleteIfExists( dependencyFile.toPath() ) );
+    CompileResult full = compile( Collections.emptyList() );
+    assertTrue( "Full compilation should succeed: " + full.error, full.success );
+    List<String> callsFull = invokedMethods( consumerClass, "m" );
+
+    assertNotEquals( "precondition: reordering Base's supertypes should change what mid.m() binds to in a full build",
+                     callsBefore, callsFull );
+    assertEquals( "Consumer.class after the incremental build should call what a full build calls",
+                  callsFull, callsIncremental );
+  }
+
+  /** {@code owner.name descriptor} of every call to a method named {@code name} in the class file at {@code classFile}. */
+  private static List<String> invokedMethods( Path classFile, String name ) throws IOException
+  {
+    ClassNode node = new ClassNode();
+    new ClassReader( Files.readAllBytes( classFile ) ).accept( node, 0 );
+    List<String> calls = new ArrayList<>();
+    for( gw.internal.ext.org.objectweb.asm.tree.MethodNode method : node.methods )
+    {
+      for( gw.internal.ext.org.objectweb.asm.tree.AbstractInsnNode insn : method.instructions )
+      {
+        if( insn instanceof gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode &&
+            ((gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode)insn).name.equals( name ) )
+        {
+          gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode call = (gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode)insn;
+          calls.add( call.owner + '.' + call.name + call.desc );
+        }
+      }
+    }
+    return calls;
   }
 
   @Test
@@ -6905,11 +6992,11 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Leaf\": {\n" +
-      "      \"abi_hash\": \"6e85622248972f2e3f2965d86a16893381b5aefc\",\n" +
+      "      \"abi_hash\": \"0c5067a56da471f45da28c17b17ab75683af002d\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Mid\": {\n" +
-      "      \"abi_hash\": \"3a935577300e8ef9db1f065f476d2d1f31c9f428\",\n" +
+      "      \"abi_hash\": \"42ec1487e70bbe59fdc877b10deee2e283fec5f0\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Leaf\"\n" +
       "      ]\n" +
@@ -6974,11 +7061,11 @@ public class IncrementalCompilationEndToEndIT
       "      ]\n" +
       "    },\n" +
       "    \"example.Leaf\": {\n" +
-      "      \"abi_hash\": \"eb119615fdbe2521a13f13a256dcfc8a3ee79cbd\",\n" +
+      "      \"abi_hash\": \"6aa6bd82bb1d21a262e86c6f18fdc0363f1750ab\",\n" +
       "      \"consumers\": []\n" +
       "    },\n" +
       "    \"example.Mid\": {\n" +
-      "      \"abi_hash\": \"050ed6750327ff9bc4b4b47696df342d7076e00c\",\n" +
+      "      \"abi_hash\": \"4dfc088b33dd1609f5001dff391cc1ac62a8ba49\",\n" +
       "      \"consumers\": [\n" +
       "        \"example.Leaf\"\n" +
       "      ]\n" +
