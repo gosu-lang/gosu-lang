@@ -5110,6 +5110,134 @@ public class IncrementalCompilationEndToEndIT
   }
 
   @Test
+  public void testDeepNestedClassChangeIsCheckedWhenTheOutermostHashAlsoMoves() throws Exception
+  {
+    File outerFile = createSourceFile( "example/Outer.gs",
+                                       "package example\n" +
+                                       "\n" +
+                                       "class Outer {\n" +
+                                       "  class Inner {\n" +
+                                       "    class Innermost {\n" +
+                                       "      function innermost() : String { return \"v1\" }\n" +
+                                       "    }\n" +
+                                       "    function inner() : String { return \"inner\" }\n" +
+                                       "  }\n" +
+                                       "  function outer() : String { return \"outer\" }\n" +
+                                       "}"
+    );
+
+    createSourceFile( "example/Other.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Other {\n" +
+                      "  static function get() : Outer.Inner.Innermost { return null }\n" +
+                      "}"
+    );
+
+    createSourceFile( "example/Consumer.gs",
+                      "package example\n" +
+                      "\n" +
+                      "class Consumer {\n" +
+                      "  function use() : Object { return Other.get().innermost() }\n" +
+                      "}"
+    );
+
+    CompileResult initial = compile( Collections.emptyList() );
+    assertTrue( "Initial compilation should succeed: " + initial.error, initial.success );
+
+    // The scenario rests on this edge shape: Consumer is a consumer of Innermost only, so the moved Outer hash cannot
+    // recompile it directly, and Outer's consumers are Inner and Other but not Innermost.
+    String expectedDeps =
+      "{\n" +
+      "  \"version\": \"" + DEPENDENCY_VERSION + "\",\n" +
+      "  \"dep_graph\": {\n" +
+      "    \"example.Consumer\": {\n" +
+      "      \"abi_hash\": \"062d38dbb8266978e1dd7bc510da219022a1d99c\",\n" +
+      "      \"consumers\": []\n" +
+      "    },\n" +
+      "    \"example.Other\": {\n" +
+      "      \"abi_hash\": \"f05dfcfd8a3b80fbd644a2d5935fb68ca86df152\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer\": {\n" +
+      "      \"abi_hash\": \"a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Other\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner\": {\n" +
+      "      \"abi_hash\": \"62de5dffcab269ed21ae5f16f7123f5de639b311\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Other\",\n" +
+      "        \"example.Outer\",\n" +
+      "        \"example.Outer$Inner$Innermost\"\n" +
+      "      ]\n" +
+      "    },\n" +
+      "    \"example.Outer$Inner$Innermost\": {\n" +
+      "      \"abi_hash\": \"cf4c9bb48e2e8b4bcf0ffd17c852ecf9467694f3\",\n" +
+      "      \"consumers\": [\n" +
+      "        \"example.Consumer\",\n" +
+      "        \"example.Other\",\n" +
+      "        \"example.Outer$Inner\"\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  }\n" +
+      "}";
+    assertEquals(
+      "After initial compile, Consumer should be a consumer of Innermost and Other only, and Innermost should not " +
+      "be a consumer of Outer.",
+      expectedDeps, readDepFile() );
+
+    Path consumerClass = outputDir.resolve( "example/Consumer.class" );
+    FileTime initialConsumerTime = getFileModificationTime( consumerClass );
+
+    Thread.sleep( SLEEP_MS );
+
+    // One edit: Outer.outer() and Innermost.innermost() change return type, Inner is untouched. Consumer still
+    // compiles (an int boxes to Object), but against a different innermost() descriptor.
+    Files.write( outerFile.toPath(), (
+      "package example\n" +
+      "\n" +
+      "class Outer {\n" +
+      "  class Inner {\n" +
+      "    class Innermost {\n" +
+      "      function innermost() : int { return 1 }\n" +
+      "    }\n" +
+      "    function inner() : String { return \"inner\" }\n" +
+      "  }\n" +
+      "  function outer() : int { return 0 }\n" +
+      "}"
+    ).getBytes() );
+
+    CompileResult incr = compile( Arrays.asList( outerFile ) );
+    assertTrue( "Incremental compilation should succeed: " + incr.error, incr.success );
+    assertTrue(
+      "Consumer.class must be recompiled: Innermost.innermost() changed its return type, and Innermost's hash must " +
+      "be checked even though Outer's hash also moved and Inner's did not.",
+      getFileModificationTime( consumerClass ).toMillis() > initialConsumerTime.toMillis() );
+
+    ClassNode consumerNode = new ClassNode();
+    new ClassReader( Files.readAllBytes( consumerClass ) ).accept( consumerNode, 0 );
+    boolean callsNewDescriptor = consumerNode.methods.stream()
+      .flatMap( m -> java.util.stream.StreamSupport.stream( m.instructions.spliterator(), false ) )
+      .filter( insn -> insn instanceof gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode )
+      .map( insn -> (gw.internal.ext.org.objectweb.asm.tree.MethodInsnNode)insn )
+      .anyMatch( call -> call.name.equals( "innermost" ) && call.desc.equals( "()I" ) );
+    assertTrue( "Consumer.class should call innermost()I, as a full build would", callsNewDescriptor );
+
+    expectedDeps = expectedDeps
+      .replace( "a343128aa9a1fc4be4e4380a961bdb1fb0b50c4f", "484c8ca30494ce121dbc9477fb9f528c7e09438d" )   // example.Outer: ABI change
+      .replace( "cf4c9bb48e2e8b4bcf0ffd17c852ecf9467694f3", "22ce21816e39c41bb273adc007846f60b77b7e2e" );  // example.Outer$Inner$Innermost: ABI change
+    assertEquals(
+      "Dep file after incremental compile should record the same edges, with only Outer's and Innermost's digests " +
+      "moved (no drift).",
+      expectedDeps, readDepFile() );
+  }
+
+  @Test
   public void testSelfReferencesAreNotRecorded() throws Exception
   {
     File builderFile = createSourceFile( "example/Builder.gs",

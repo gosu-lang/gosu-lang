@@ -106,8 +106,8 @@ compileGosuIncrementally(options, driver)      ── §5
   │    ├─ with -abi-checking: enqueue the consumers of each type whose ABI hash moved, and of
   │    │  every type gosuc has no fresh hash for (local Java, removed, no longer declared by its
   │    │  source, or a class whose surface names a structure, which is not hashed)
-  │    └─ otherwise, if this turn compiled the source, enqueue every nested class the compile
-  │       produced, so each is gated on its own hash
+  │    └─ in either case, if this turn compiled the source, enqueue every nested class the
+  │       compile produced, so each is gated on its own hash
   └─ if no errors and no threshold abort: updateDependencyFile(compiled, effectivelyRemoved)  ── §9 (atomic write)
 ```
 
@@ -221,10 +221,10 @@ everything.
    - a **local Java type** is walked through, never compiled: its consumers are enqueued
      unconditionally, since gosuc has no fresh hash for it and Gradle only reports it when
      its ABI changed;
-   - a **removed type** is walked through the same way. Its nested classes are among its
-     consumers — each names its enclosing class in its own `InnerClasses` entry — so they
-     are reached through the graph and, having no source, take the stale-producer path
-     below;
+   - a **removed type** is walked through the same way. Its member classes are among its
+     consumers — each names its direct enclosing class in its own `InnerClasses` entry — so
+     they are reached through the graph, one nesting level per turn, and, having no source,
+     take the stale-producer path below;
    - any other FQCN joins `typeFqcnsToCompile` and is mapped to a source via
      `getGosuFilePathFromFqcn`. A `$`-FQCN that resolves to no source is a **stale
      nested-class producer**: nothing regenerates it. A top-level FQCN that resolves to no
@@ -238,14 +238,16 @@ everything.
    - **with `-abi-checking`, its consumers are enqueued iff `hasNewABI`**, which is true when its hash moved
      and whenever there is no fresh hash to compare: a walked-through type, a class its
      recompiled source no longer declares (the sweep in step 7 purges it), a class whose
-     surface names a structure, which is not hashed (§6.4). **Otherwise, if
+     surface names a structure, which is not hashed (§6.4). **Whatever the hash did, if
      this turn compiled the source, every nested class the compile produced is enqueued
-     instead**, so each takes its own turn and is gated on its own hash: a nested class whose
+     too**, so each takes its own turn and is gated on its own hash: a nested class whose
      own hash moved cascades to its own consumers regardless of what its enclosing class's
-     hash did. When the enclosing class's hash did move, its nested classes are among the
-     consumers just enqueued, since each names its enclosing class in its own `InnerClasses`
-     entry. A recompiled class whose hash is unchanged therefore enqueues nothing beyond its
-     own nested classes, which is what stops the cascade.
+     hash did. The consumers alone would not do even when the enclosing class's hash moved:
+     a nested class names only its direct enclosing class in its own `InnerClasses` entry,
+     so `Outer$Inner$Innermost` is no consumer of `Outer` (pinned by
+     `testDeepNestedClassChangeIsCheckedWhenTheOutermostHashAlsoMoves`). A recompiled class
+     whose hash is unchanged therefore enqueues nothing beyond its own nested classes, which
+     is what stops the cascade.
 
    The walk stops early if a compile trips the error/warning **threshold**. A walk that
    reaches no compilable type compiles nothing — that is an empty cascade, not a full
@@ -673,8 +675,8 @@ while worklist not empty and not thresholdExceeded:
         else if F ∉ sourceFilesCompiled:
             sourceFilesCompiled.add(F); compile(F); compiledHere = true
     if not abiChecking or hasNewABI(X):                    // hasNewABI is also true whenever X has no fresh hash
-        for consumer in getOrCreateConsumersFor(X): enqueue(consumer)   // X's nested classes are among them
-    else if compiledHere:                                  // reached only with -abi-checking
+        for consumer in getOrCreateConsumersFor(X): enqueue(consumer)   // X's direct member classes are among them
+    if compiledHere:                                       // whatever X's hash did
         for N in nested classes written by compile(F): enqueue(N)      // each is gated on its own hash
 ```
 
@@ -682,8 +684,8 @@ Key properties:
 
 - **Without `-abi-checking`, transitive and ungated.** Every visited type enqueues all of
   its consumers, so the walk compiles the same set `calculateRecompilationSet` returns. The
-  nested-class bullets below still hold, through the first route only: a nested class is
-  always among its enclosing class's consumers.
+  nested classes a compile produced are enqueued too, though the closure would reach them
+  anyway: a nested class is always among its direct enclosing class's consumers.
 - **With `-abi-checking`, transitive, gated on ABI.** A compiled class's consumers are enqueued only when its
   ABI hash moved (§6.4). A body-only, comment-only or private-only edit therefore
   recompiles the edited source and nothing else; a public-surface edit recompiles the
@@ -696,17 +698,24 @@ Key properties:
   whether or not its enclosing class's hash moved, and a change three levels down reaches
   only the consumers bound to that level: each enclosing class's hash covers its member
   classes' names, not their members (pinned by
-  `testThreeLevelNestedMemberClassChangeRecompilesConsumerWithExpectedDepFile`). It reaches
-  the worklist by one of two routes. When the enclosing class's hash moved, it is among that
-  class's consumers — every nested class names each of its enclosing classes in its own
-  `InnerClasses` attribute — and is enqueued with them. When the hash is unchanged, the walk
-  enqueues the nested classes the compile produced directly, since nothing else would.
+  `testThreeLevelNestedMemberClassChangeRecompilesConsumerWithExpectedDepFile`). The walk
+  enqueues the nested classes a compile produced directly, whether or not the enclosing
+  class's hash moved, because the graph does not lead to all of them: gosuc writes into a
+  class's `InnerClasses` attribute only the class itself and its direct member classes, so a
+  nested class consumes its direct enclosing class but not the ones above it. Were they
+  enqueued only when the hash is unchanged, an edit moving both `Outer`'s and
+  `Outer$Inner$Innermost`'s hashes but not `Outer$Inner`'s would reach `Outer$Inner` through
+  `Outer`'s consumers and stop there, leaving `Innermost`'s consumers stale and its new hash
+  persisted unchecked (pinned by
+  `testDeepNestedClassChangeIsCheckedWhenTheOutermostHashAlsoMoves`).
 - **Classes no compile produced need no enumeration.** Every nested class consumes its
-  enclosing class (its own `InnerClasses` entry names it), and an enclosing class's hash
-  covers the names of its non-private member classes (§6.4). A removed outer therefore
-  reaches its nested classes through `enqueue`, and a deleted member class moves the outer's
-  hash and is enqueued as the outer's consumer; nothing compiles it, so it has no fresh hash,
-  `hasNewABI` cascades to its consumers, and the sweep purges it.
+  direct enclosing class (its own `InnerClasses` entry names it), and an enclosing class's
+  hash covers the names of its non-private member classes (§6.4). A removed outer therefore
+  reaches its nested classes through `enqueue`, one nesting level per turn: each has no
+  source and no fresh hash, so `hasNewABI` cascades to its consumers, the next level among
+  them. A deleted member class moves the outer's hash and is enqueued as the outer's
+  consumer; nothing compiles it, so it has no fresh hash, `hasNewABI` cascades to its
+  consumers, and the sweep purges it.
 - **Compilation is keyed on the source file, not the FQCN.** A source declaring several
   compiled units is compiled once however many of its FQCNs the walk reaches. Compile order
   does not affect the result: in-project Gosu types resolve from source, never from a
