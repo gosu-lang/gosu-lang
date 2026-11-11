@@ -13,7 +13,7 @@ public class BaselineShadowedAllowTest extends TestClass
   {
     Builder b = baseline();
     b.allowPackage( "org.example" ).denyPackageTree( "org" );
-    b._origin = Restrictions.Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     assertShadowed( b, "baseline allow org.example.* has no effect, it is overridden by baseline deny org.**" );
   }
 
@@ -22,7 +22,7 @@ public class BaselineShadowedAllowTest extends TestClass
     // the conflict is in the baseline, not the host's to fix
     Builder b = baseline();
     b.allowType( "org.example.Foo" ).denyType( "org.example.Foo" );
-    b._origin = Restrictions.Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     String message = buildError( b );
     assertTrue( message, message.contains( "baseline allow org.example.Foo has no effect, it is overridden by baseline deny org.example.Foo" ) );
     assertFalse( message, message.contains( "withoutBaselineDeny" ) );
@@ -32,7 +32,7 @@ public class BaselineShadowedAllowTest extends TestClass
   {
     Builder b = baseline();
     b.allowPackage( "org.example" );
-    b._origin = Restrictions.Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     b.denyPackageTree( "org" ).build();
   }
 
@@ -40,7 +40,7 @@ public class BaselineShadowedAllowTest extends TestClass
   {
     Builder b = baseline();
     b.allowPackage( "org.example" ).denyPackageTree( "org" );
-    b._origin = Restrictions.Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     b.withoutBaselineDeny( "org.**" ).build();
   }
 
@@ -48,7 +48,7 @@ public class BaselineShadowedAllowTest extends TestClass
   {
     Builder b = baseline();
     b.allowPackage( "org.example" ).denyPackageTree( "org" );
-    b._origin = Restrictions.Origin.HOST;
+    b._origin = Builder.Origin.HOST;
     b.allowType( "org.other.Bar" );
     String message = buildError( b );
     assertTrue( message, message.contains( "baseline allow org.example.* has no effect, it is overridden by baseline deny org.**" ) );
@@ -57,7 +57,7 @@ public class BaselineShadowedAllowTest extends TestClass
 
   private static Builder baseline()
   {
-    return new Builder( Restrictions.Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
+    return new Builder( Builder.Origin.BASELINE, new RuleSet(), new RuleSet(), EnumSet.noneOf( LanguageFeature.class ) );
   }
 
   private static void assertShadowed( Builder b, String expected )

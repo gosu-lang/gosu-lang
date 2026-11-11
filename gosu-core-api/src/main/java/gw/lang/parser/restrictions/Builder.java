@@ -164,15 +164,15 @@ public final class Builder
   {
     // a host deny rule may override a baseline allow rule, so a baseline allow rule is checked against only the
     // baseline deny rules
-    RuleSet baselineDeny = _deny.withOrigin( Restrictions.Origin.BASELINE );
+    RuleSet baselineDeny = _deny.withOrigin( Builder.Origin.BASELINE );
     StringBuilder errors = new StringBuilder();
     for( Rule allow : _allow.rules() )
     {
-      boolean baselineAllow = allow._origin == Restrictions.Origin.BASELINE;
+      boolean baselineAllow = allow._origin == Builder.Origin.BASELINE;
       Rule deny = shadowingDeny( allow, baselineAllow ? baselineDeny : _deny );
       if( deny != null )
       {
-        boolean baseline = deny._origin == Restrictions.Origin.BASELINE;
+        boolean baseline = deny._origin == Builder.Origin.BASELINE;
         errors.append( "\n  " ).append( baselineAllow ? "baseline " : "" ).append( "allow " ).append( allow.text() )
           .append( " has no effect, it is overridden by " ).append( baseline ? "baseline " : "" )
           .append( "deny " ).append( deny.text() );

@@ -22,7 +22,7 @@ final class RuleSet
     return c;
   }
 
-  RuleSet withOrigin( Restrictions.Origin origin )
+  RuleSet withOrigin( Builder.Origin origin )
   {
     RuleSet c = new RuleSet();
     for( Rule r : rules() )
