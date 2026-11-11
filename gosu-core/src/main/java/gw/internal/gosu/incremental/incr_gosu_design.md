@@ -277,16 +277,22 @@ block class — is tracked and hashed individually** with its own bytecode.
 ## 6. Dependency extraction and ABI hashing: one walk over the bytecode
 
 `trackDependencies(bytes, gosuClass)` walks the class file once, recording dependency edges
-and assembling the class's canonical ABI text in the same visitor, then runs the AST
-supplement and stores the hash:
+and assembling the class's canonical ABI text in the same visitor, stores the hash, then runs
+the AST supplement and records the edges from local Java ancestors:
 
 ```java
 ClassReader reader = new ClassReader(bytes);
 DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false);   // its flag for printing the text stays off
 reader.accept(visitor, ClassReader.SKIP_FRAMES);   // edges (§6.1) + canonical ABI text (§6.4)
-currTypeDependencies.get(visitor.getConsumerFqcn()).abiHash = visitor.getAbiHash();
+String gosuClassFqcn = getClassFileName(gosuClass);   // the key the walk uses (§10)
+currTypeDependencies.get(gosuClassFqcn).abiHash = visitor.getAbiHash();
 recordEdgesFromAST(gosuClass);               // AST supplement (§6.2)
+recordLocalJavaAncestorEdges(gosuClass, gosuClassFqcn, new HashSet<>());   // §6.1
 ```
+
+The record the hash lands on was created by the visitor's constructor under the class file's
+own name, so this relies on `getClassFileName(gosuClass)` naming the class exactly as its
+bytecode does.
 
 The walk runs with `SKIP_FRAMES` only: edge extraction needs method bodies and
 local-variable tables, and the ABI side records nothing from any code-level callback.
@@ -460,8 +466,8 @@ the shorter digest is enough). Two class files with the same ABI hash identicall
 driver uses that, under `-abi-checking`, to stop a cascade at a class whose recompile left its
 consumer-visible surface unchanged (§7). The hash is computed and persisted on every
 incremental compile, flag or not, so a graph written without the flag is ready for a build
-that enables it; the cost is the hashing work, and a class that cannot be hashed aborts the
-compile in either mode (below). With `-verbose` and `-abi-checking`, the walk prints each
+that enables it; the cost is the hashing work, and a class that cannot be hashed fails the
+build in either mode (below). With `-verbose` and `-abi-checking`, the walk prints each
 type's verdict, `ABI CHANGED` or `ABI STABLE`, with the reason and both digests; the
 canonical text itself is not printed.
 
@@ -539,7 +545,11 @@ names a structure (below): each is a compiled unit with its own record. A privat
 its own source, which the walk has compiled whole by the time it reads the hash, so whether the hash moves decides
 nothing. Only local Java types, which gosuc never compiles, carry `NO_ABI_HASH`, and the classes
 below carry `CANNOT_COMPUTE_ABI_HASH`; `hasNewABI` reads either as "changed". A class whose hash
-cannot be computed is not tolerated: the exception aborts the compile, and no dep file is written.
+cannot be computed is not tolerated. The exception does not stop the compile: the driver's
+handler around writing a class file (`populateGosuClassFile`, §5) reports it as a compile error
+on the source (`Cannot create .class files.`) and moves on, leaving that class's own nested
+classes unwritten. The error fails the build, and the error gate in §5 step 7 keeps the dep file
+from being written.
 Reconciliation likewise throws if a type credited as compiled has `NO_ABI_HASH` (§9.1). Hashing
 therefore never silently degrades; a defect in it surfaces as a failed build rather than as a
 permanently cascading type.
@@ -897,7 +907,7 @@ side:
 | Post-compile graph source | Re-derived from output `.class` files every build (self-healing) | Accumulated in memory, persisted as JSON; never re-derived (§12) |
 | Persistence format | Kryo binary `PreviousCompilationData` | JSON `gosuc-deps-*.json`, `version` `"0.3"` (§9) |
 | Output safety on failure | `CompileTransaction` stash / restore | Delete-before-compile, non-transactional (§8) |
-| Analysis failure | Falls back to a full rebuild with a logged cause | Fails the build: a class that cannot be hashed aborts the compile (§6.4) |
+| Analysis failure | Falls back to a full rebuild with a logged cause | Fails the build: a class that cannot be hashed is reported as a compile error and the dep file is not written (§6.4) |
 | Within-project ABI-stable pruning | No — a comment edit to `A` recompiles `A`'s direct dependents | **Yes, with `-abi-checking`** — per-class ABI hash compared after each recompile (§6.4, §7); without it, a comment edit to `A` recompiles its whole downstream cone |
 
 The comparison below assumes `-abi-checking`. Two divergences are worth calling out. First, Gosu **needs no** SOURCE-retention /
