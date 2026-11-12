@@ -2279,6 +2279,39 @@ public abstract class ParserBase implements IParserPart
   {
     return possiblyWrapWithCoercion( expressionToCoerce, typeToCoerceTo, true );
   }
+
+  /**
+   * True if both types are the type variable of one generic function, whether or not they are the same instance.
+   * <p>
+   * Type variable types are not canonical: each compile phase of a function header makes new ones, so a function's
+   * own T can be reached as two instances. <code>possiblyWrapWithCoercion</code> must not add a coercion between
+   * them. A coercion to a type variable is a runtime conversion that needs T at runtime, so for a function that is
+   * not <code>reified</code> it reports "must be declared with the reified modifier" for code that is valid.
+   * <p>
+   * Instances are matched on the variable name, the name of the declaring function and the type that encloses it.
+   * The parameter signature is not compared, because it can differ between instances of the same function.
+   */
+  static boolean isSameFunctionTypeVariable( IType to, IType from )
+  {
+    if( !(to instanceof ITypeVariableType) || !(from instanceof ITypeVariableType) )
+    {
+      return false;
+    }
+    if( to == from )
+    {
+      return true;
+    }
+    IType toDeclarer = ((ITypeVariableType)to).getTypeVarDef().getEnclosingType();
+    IType fromDeclarer = ((ITypeVariableType)from).getTypeVarDef().getEnclosingType();
+    if( !(toDeclarer instanceof IFunctionType) || !(fromDeclarer instanceof IFunctionType) )
+    {
+      return false;
+    }
+    return to.getRelativeName().equals( from.getRelativeName() ) &&
+           toDeclarer.getName().equals( fromDeclarer.getName() ) &&
+           toDeclarer.getEnclosingType() == fromDeclarer.getEnclosingType();
+  }
+
   protected Expression possiblyWrapWithCoercion( Expression expressionToCoerce, IType typeToCoerceTo, boolean bImplicit )
   {
     if( expressionToCoerce == null )
@@ -2308,6 +2341,11 @@ public abstract class ParserBase implements IParserPart
     }
 
     IType typeToCoerceFrom = expressionToCoerce.getType();
+    if( isSameFunctionTypeVariable( typeToCoerceTo, typeToCoerceFrom ) )
+    {
+      // ISSTUDIO-1908: not a coercion. See isSameFunctionTypeVariable().
+      return expressionToCoerce;
+    }
     ICoercionManager cocerionManager = CommonServices.getCoercionManager();
     ICoercer coercer = cocerionManager.resolveCoercerStatically( resolvedTypeToCoerceTo, typeToCoerceFrom );
 
