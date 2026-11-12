@@ -80,6 +80,9 @@ public class GosuCompiler implements IGosuCompiler
 
   protected GosuInitialization _gosuInitialization;
   protected File _compilingSourceFile;
+  // The nested classes written by the most recent per-file compile, for the incremental walk; allocated once,
+  // cleared per file.
+  private final List<IGosuClass> _compilingInnerClasses = new ArrayList<>();
   private IIncrementalCompilationManager _incrementalManager;
 
   @Override
@@ -160,27 +163,41 @@ public class GosuCompiler implements IGosuCompiler
     // Seed the worklist with the union of changed and removed types.
     for( String changedType : changedTypes )
     {
-      enqueueType( changedType, visited, worklist );
+      enqueueType(changedType, visited, worklist);
     }
     for( String removedType : removedTypes )
     {
-      enqueueType( removedType, visited, worklist );
+      enqueueType(removedType, visited, worklist);
     }
 
+    if( options.isVerbose() && options.hasAbiChecking() )
+    {
+      System.out.println( "Incremental compilation: ABI checking is enabled" );
+    }
     /*
-      Note that the typeDependencies[X] give you all the types that consume/refer to X: if X is modified all types in
-      typeDependencies[X] must be recompiled.
-      This map reflects the status of the previously compiled .class files. The changedTypes/removedTypes are
-      referring to source code changes, not yet reflected on the .class files.
-      Given that source files X, Y, Z just changed, the below BFS tracks down the types whose .class are stale and need
-      to be recompiled.
-      Once the toRecompile files are recompiled, _incrementalManager.updateDependencyFile updates the dependency file to
-      reflect the modified dependencies in changedTypes/removedTypes and synchronize with the new .class file on disk.
+      typeDependencies[X] holds every type that consumes X as of the previously compiled .class files, while
+      changedTypes/removedTypes describe source changes not yet reflected in those .class files. The walk below
+      bridges the two. Each type taken off the worklist has its source compiled on demand. Its consumers are then
+      enqueued only if hasNewABI says so, which it does when the ABI hash moved and whenever there is no fresh hash
+      to compare: a local Java type or removed type that gosuc never compiles, a class its source no longer
+      declares, or a class whose surface names a structure, which is not hashed. Whatever the hash did, if this turn
+      compiled the source, every nested class the compile produced is enqueued too, so that each takes its own turn
+      gated on its own hash. Nothing else guarantees a nested class is reached: it names only its direct enclosing
+      class in its InnerClasses entry, so Outer$Inner$Innermost is no consumer of Outer, and a moved Outer hash
+      reaches it only if Outer$Inner's hash moved as well. A recompile that left a class's consumer-visible surface
+      unchanged cannot have invalidated anything compiled against it, so the cascade stops there, while a nested
+      class whose own hash moved still cascades to its own consumers. Classes no compile produced need no
+      enumeration: every nested class consumes its direct enclosing class, and the enclosing class's hash covers the
+      names of its member classes, so a removed outer or a deleted member class reaches the worklist through the
+      graph like any other consumer, one nesting level per turn.
+      Once the walk is done, _incrementalManager.updateDependencyFile brings the graph and the hashes in line with
+      the new .class files on disk.
     */
     boolean thresholdExceeded = false;
     while( !worklist.isEmpty() && !thresholdExceeded )
     {
       String type = worklist.remove();
+      boolean wasTypeCompiled = false;
       // Only add if it's a Gosu type (not a known local Java type, java types are already compiled) and
       // it is not a removed type (no file to compile).
       if( !localJavaTypes.contains( type ) && !removedTypes.contains( type ) )
@@ -210,13 +227,29 @@ public class GosuCompiler implements IGosuCompiler
         {
           sourceFilesCompiled.add( sourceFile );
           thresholdExceeded = compileGosuSource( options, driver, sourceFile );
+          wasTypeCompiled = true;
         }
       }
 
-      Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
-      for( String consumer : consumers )
+      if( !options.hasAbiChecking() || _incrementalManager.hasNewABI( type ) )
       {
-        enqueueType( consumer, visited, worklist );
+        Set<String> consumers = _incrementalManager.getOrCreateConsumersFor( type );
+        for( String consumer : consumers )
+        {
+          enqueueType(consumer, visited, worklist);
+        }
+      }
+      if( wasTypeCompiled )
+      {
+        // Regardless of whether type's ABI has changed, we still need to inspect every inner class this compile
+        // produced, since any of them might have changed. Only type's direct inner classes are among its consumers,
+        // so deeper ones would not be enqueued when an intermediate inner class has no new ABI.
+        // See testDeepNestedClassChangeIsCheckedWhenTheOutermostHashAlsoMoves.
+        for( IGosuClass innerClass : _compilingInnerClasses )
+        {
+          String innerFqcn = _incrementalManager.getClassFileName( innerClass );
+          enqueueType(innerFqcn, visited, worklist);
+        }
       }
     }
 
@@ -420,6 +453,7 @@ public class GosuCompiler implements IGosuCompiler
   public boolean compile( File sourceFile, ICompilerDriver driver )
   {
     _compilingSourceFile = sourceFile;
+    _compilingInnerClasses.clear();
 
     IType type = getType( _compilingSourceFile );
     if( type == null )
@@ -753,6 +787,7 @@ public class GosuCompiler implements IGosuCompiler
     }
     for( IGosuClass innerClass : gosuClass.getInnerClasses() )
     {
+      _compilingInnerClasses.add( innerClass );
       final String innerClassName = String.format( "%s$%s.class", outputFile.getName().substring( 0, outputFile.getName().lastIndexOf( '.' ) ), innerClass.getRelativeName() );
       File innerClassFile = new File( outputFile.getParent(), innerClassName );
       if( innerClassFile.isFile() )

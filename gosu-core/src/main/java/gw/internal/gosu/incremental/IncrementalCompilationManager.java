@@ -62,25 +62,60 @@ import java.util.TreeMap;
  * Manages dependency tracking and incremental compilation for gosuc.
  * Tracks:
  * - Source file to output files mapping (handles blocks/inner classes)
- * - Dependencies between source files
- * - API signatures for detecting breaking changes
+ * - Dependencies between compiled types (producer -> consumers)
+ * - An ABI hash per compiled type, so a recompile that leaves a type's consumer-visible
+ *   surface unchanged does not cascade to its consumers
+ * Both the persisted graph and this build's records are maps of {@link ProducerInfo}, one per
+ * type, which is also how the dependency file lays them out.
  */
 public class IncrementalCompilationManager implements IIncrementalCompilationManager
 {
-  public static final String DEPENDENCY_VERSION = "0.2";  // Still in alpha
+  public static final String DEPENDENCY_VERSION = "0.3";  // Still in alpha
+  /**
+   * The {@code abi_hash} written for a type that has none: a local Java type, which gosuc never
+   * compiles. {@link #hasNewABI} reads it as "changed".
+   */
+  public static final String NO_ABI_HASH = "NO_ABI_HASH";
+  /**
+   * The {@code abi_hash} written for a compiled class whose consumer-visible surface names a
+   * structure, which is not hashed (see {@code DependenciesClassVisitor.namesStructure}).
+   * {@link #hasNewABI} reads it as "changed" whenever the class is recompiled. Unlike
+   * {@link #NO_ABI_HASH} it is stored like a hash, so a class that later stops naming a structure
+   * is compared with it rather than with a hash from before, and a compiled class without a hash
+   * of either kind is still an internal inconsistency.
+   */
+  public static final String CANNOT_COMPUTE_ABI_HASH = "CANNOT_COMPUTE_ABI_HASH";
 
   // Dep-file field names, shared by the reader and the writer so the two cannot drift.
   private static final String FIELD_VERSION = "version";
+  private static final String FIELD_DEP_GRAPH = "dep_graph";
+  private static final String FIELD_ABI_HASH = "abi_hash";
   private static final String FIELD_CONSUMERS = "consumers";
 
   private final String dependencyFilePath;
-  // The graph as persisted by the previous build. Empty when no usable file was loaded.
-  private Map<String, Set<String>> typeDependencies;
-  private final Map<String, Set<String>> currTypeDependencies;
+  // The graph as persisted by the previous build: one record per type, holding its ABI hash and its
+  // consumers, exactly as the dep file lays it out. Empty when no usable file was loaded.
+  private Map<String, ProducerInfo> typeDependencies;
+  // The same shape for what this build recorded: the consumers observed in freshly compiled bytecode,
+  // keyed by producer, and the ABI hash of every class compiled this build. A producer that was only
+  // referenced, not compiled, carries NO_ABI_HASH here.
+
+  private final Map<String, ProducerInfo> currTypeDependencies;
   private final boolean validDepFile;
   private final boolean verbose;
   private final Set<Path> sourceRoots;
   private final Set<String> localJavaTypes;
+  /**
+   * This build's digests of what each in-project supertype passes on to its subclasses, keyed by the supertype as
+   * written; see {@code DependenciesClassVisitor.inheritedSurfaceDigest}. Sources do not change during a build, so a
+   * digest computed for one subclass holds for every other.
+   */
+  private final Map<String, String> inheritedSurfaceDigests = new HashMap<>();
+  /**
+   * This build's answers to whether a type's consumer-visible surface names a structure, keyed by the type as written;
+   * see {@code DependenciesClassVisitor.namesStructure}. Each subclass asks again about the same supertypes.
+   */
+  private final Map<String, Boolean> namesStructureByType = new HashMap<>();
   private final Map<String, String> gosuFqcnToSourcePath;
 
   public IncrementalCompilationManager( String dependencyFilePath, List<String> sourceRoots,
@@ -117,10 +152,15 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   public void trackDependencies( byte[] bytes, IGosuClass gosuClass )
   {
     ClassReader reader = new ClassReader( bytes );
-    DependenciesClassVisitor visitor = new DependenciesClassVisitor( reader, this );
+    // One walk records the class's dependency edges and assembles its canonical ABI text.
+    DependenciesClassVisitor visitor = new DependenciesClassVisitor(gosuClass, reader, this, false /*verbose*/ );
     reader.accept( visitor, ClassReader.SKIP_FRAMES );
+    // Store the fresh ABI hash on the class's own record; the visitor's constructor registered
+    // the class's FQCN as a producer, so the record exists and the hash lands next to its edges.
+    String gosuClassFqcn = getClassFileName( gosuClass );
+    currTypeDependencies.get( gosuClassFqcn ).abiHash = visitor.getAbiHash();
     recordEdgesFromAST( gosuClass );
-    recordLocalJavaAncestorEdges( gosuClass, getClassFileName( gosuClass ), new HashSet<>() );
+    recordLocalJavaAncestorEdges( gosuClass, gosuClassFqcn, new HashSet<>() );
   }
 
   /**
@@ -385,18 +425,23 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    *
    * <p>For example, {@code Named} asks for a {@code sized() : Sized}, and {@code Caller} passes a {@code Rec} whose
    * {@code sized()} returns a {@code RecSized}: {@code Rec} fits {@code Named} only while {@code RecSized} fits
-   * {@code Sized}, so {@code RecSized -> Caller} is recorded. With local Java types nothing else would bring
-   * {@code Caller} into the walk: the graph has no edges between Java types, which gosuc never compiles, so when
-   * {@code JRecSized} changes, Gradle reports it alone and nothing leads from it to {@code Caller} (pinned by
-   * {@code testChangeToALocalJavaMemberTypeOfAJavaArgumentReachesCallersPassingItForAStructure}). With Gosu types
-   * the edge is direct where the graph would otherwise reach {@code Caller} only through {@code RecSized -> Rec ->
-   * Caller} (pinned by {@code testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure}).
+   * {@code Sized}, so {@code RecSized -> Caller} is recorded. Nothing else would bring {@code Caller} into the walk:
+   * <ul>
+   *   <li>with local Java types, the graph has no edges between Java types, which gosuc never compiles, so when
+   *       {@code JRecSized} changes, Gradle reports it alone and nothing leads from it to {@code Caller}, whatever the
+   *       hashes say (pinned by
+   *       {@code testChangeToALocalJavaMemberTypeOfAJavaArgumentReachesCallersPassingItForAStructure});</li>
+   *   <li>with Gosu types, {@code RecSized -> Rec -> Caller} exists but stops at {@code Rec}, whose member line still
+   *       says {@code sized() : RecSized}, so its hash stands still (pinned by
+   *       {@code testChangeToAMemberTypeOfAnArgumentReachesCallersPassingItForAStructure}).</li>
+   * </ul>
    *
    * <p>The source compiled, so {@code type} does fit the structure; which members the structure asks for is not
    * worked out, and every member is followed, which only adds edges. Private members are skipped: a fit seen from
    * another source cannot use them, and a class in the same source is compiled with it. The walk stops at a
-   * structure, whose own changes reach {@code consumerFqcn} through the classes naming it, and at a type outside the
-   * project, which changes only with the classpath.
+   * structure, which has no hash and so reports a change whenever it is recompiled (see
+   * {@link #CANNOT_COMPUTE_ABI_HASH}), and at
+   * a type outside the project, which changes only with the classpath.
    *
    * @param visited per-walk set of the types already followed
    */
@@ -840,7 +885,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   }
 
   /**
-   * Load the dependency graph from the dependency file into {@link #typeDependencies}.
+   * Load the dependency graph -- each type's ABI hash and consumers -- from the dependency
+   * file into {@link #typeDependencies}.
    *
    * @return whether a usable file was loaded; {@code false} leaves the graph empty and means
    *         the driver must compile everything (see {@link #hasValidExistingDepFile()})
@@ -861,7 +907,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       Files.newBufferedReader( depFile.toPath(), StandardCharsets.UTF_8 ) ))
     {
       String version = null;
-      Map<String, Set<String>> consumersSet = null;
+      Map<String, ProducerInfo> depGraph = null;
 
       reader.beginObject();
       while( reader.hasNext() )
@@ -871,8 +917,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
           case FIELD_VERSION:
             version = reader.nextString();
             break;
-          case FIELD_CONSUMERS:
-            consumersSet = readConsumers( reader );
+          case FIELD_DEP_GRAPH:
+            depGraph = readDepGraph( reader );
             break;
           default:
             reader.skipValue();
@@ -880,9 +926,9 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
       }
       reader.endObject();
 
-      if( DEPENDENCY_VERSION.equals( version ) && consumersSet != null )
+      if( DEPENDENCY_VERSION.equals( version ) && depGraph != null )
       {
-        typeDependencies = consumersSet;
+        typeDependencies = depGraph;
         return true;
       }
       if( verbose )
@@ -898,35 +944,73 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     return false;
   }
 
-  /**
-   * Read the {@code consumers} object (producer FQCN -&gt; array of consumer FQCNs) from
-   * {@code reader}, which must be positioned just before the object's opening brace.
-   * Consumes the matching closing brace. Producer sets are stored as {@link HashSet}s
-   * (order is irrelevant in memory; the writer sorts on flush).
-   */
-  private static Map<String, Set<String>> readConsumers( JsonReader reader ) throws IOException
+  private Map<String, ProducerInfo> readDepGraph( JsonReader reader ) throws IOException
   {
-    Map<String, Set<String>> consumersSet = new HashMap<>();
+    Map<String, ProducerInfo> depGraph = new HashMap<>();
     reader.beginObject();
     while( reader.hasNext() )
     {
       String producer = reader.nextName();
-      Set<String> consumers = new HashSet<>();
-      reader.beginArray();
-      while( reader.hasNext() )
-      {
-        consumers.add( reader.nextString() );
-      }
-      reader.endArray();
-      consumersSet.put( producer, consumers );
+      depGraph.put( producer, readProdInfo( reader, producer ) );
     }
     reader.endObject();
-    return consumersSet;
+    return depGraph;
   }
 
   /**
-   * Apply this session's tracked dependencies ({@code currTypeDependencies}) to the in-memory
-   * graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}.
+   * Read one type's record -- its {@code abi_hash} and {@code consumers} -- from {@code reader},
+   * positioned just before the record's opening brace; consumes the matching closing brace. gosuc
+   * is the only writer of the file and always writes both fields, so an entry lacking either is
+   * not a file this gosuc wrote: the whole file is rejected and the driver compiles everything,
+   * rather than loading a record whose null hash would only be written back as JSON {@code null}
+   * and fail to parse one build later.
+   *
+   * @throws IllegalStateException if the entry lacks {@code abi_hash} or {@code consumers}
+   */
+  private ProducerInfo readProdInfo( JsonReader reader, String producer ) throws IOException
+  {
+    reader.beginObject();
+    String abiHash = null;
+    Set<String> consumers = null;
+    while( reader.hasNext() )
+    {
+      switch( reader.nextName() )
+      {
+        case FIELD_ABI_HASH:
+          abiHash = reader.nextString();
+          break;
+        case FIELD_CONSUMERS:
+          consumers = new HashSet<>();
+          reader.beginArray();
+          while( reader.hasNext() )
+          {
+            consumers.add( reader.nextString() );
+          }
+          reader.endArray();
+          break;
+        default:
+          reader.skipValue();
+      }
+    }
+    reader.endObject();
+    if( abiHash == null || consumers == null )
+    {
+      throw new IllegalStateException( "Dependency file entry for " + producer + " lacks " +
+                                       (abiHash == null ? FIELD_ABI_HASH : FIELD_CONSUMERS) );
+    }
+    return new ProducerInfo( abiHash, consumers );
+  }
+
+
+  /**
+   * Apply this build's records ({@code currTypeDependencies}: tracked dependencies and ABI hashes) to
+   * the persisted graph and reconcile against {@code typeFqcnsToCompile} / {@code removedTypes}:
+   * removed types lose their record, recompiled and removed types are stripped from every
+   * consumer list, this build's consumers are merged in, and a fresh hash replaces the persisted
+   * one, {@code CANNOT_COMPUTE_ABI_HASH} included. A producer that was merely referenced carries
+   * {@code NO_ABI_HASH} and keeps its persisted hash; a producer credited as compiled with
+   * {@code NO_ABI_HASH} is an internal inconsistency and throws, since every class gosuc compiles
+   * gets a hash or {@code CANNOT_COMPUTE_ABI_HASH}.
    * Does NOT write to disk. Callers that need persistence should use
    * {@link #updateDependencyFile(Set, Set)} instead.
    *
@@ -942,8 +1026,9 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
     // For each old producer, remove consumers that have been modified(recompiled) or removed: we cannot assume they are
     // still consumers due to source file changes.
-    for( Set<String> consumers : typeDependencies.values() )
+    for( ProducerInfo info : typeDependencies.values() )
     {
+      Set<String> consumers = info.consumers;
       consumers.removeAll( typeFqcnsToCompile );
       consumers.removeAll( removedTypes );
     }
@@ -952,15 +1037,55 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     // recompilation of typeFqcnsToCompile.
     // For each refreshed producer merge its consumers with the ones of the corresponding old producer so that the old
     // producer is now up to date.
-    for( Map.Entry<String, Set<String>> entry : currTypeDependencies.entrySet() )
+    for( Map.Entry<String, ProducerInfo> entry : currTypeDependencies.entrySet() )
     {
       String refreshedProducer = entry.getKey();
-      Set<String> refreshedConsumers = entry.getValue();
+      String newAbiHash = entry.getValue().abiHash;
+      Set<String> refreshedConsumers = entry.getValue().consumers;
 
-      typeDependencies.computeIfAbsent( refreshedProducer, k -> new HashSet<>() ).addAll( refreshedConsumers );
+      ProducerInfo prodInfo = typeDependencies.computeIfAbsent( refreshedProducer, k -> new ProducerInfo() );
+      prodInfo.consumers.addAll( refreshedConsumers );
+      if( !newAbiHash.equals( NO_ABI_HASH ) )
+      {
+        prodInfo.abiHash = newAbiHash;
+      }
+      else if( typeFqcnsToCompile.contains( refreshedProducer ) )
+      {
+        throw new IllegalStateException( "The freshly compiled type " + refreshedProducer + " does not have a new ABI hash" );
+      }
     }
     // Content no longer needed and now stale.
     currTypeDependencies.clear();
+  }
+
+  void writeDepGraph( JsonWriter writer ) throws IOException
+  {
+    writer.beginObject();
+    // Sort keys for deterministic, cache-stable output.
+    for( Map.Entry<String, ProducerInfo> entry : new TreeMap<>( typeDependencies ).entrySet() )
+    {
+      String producer = entry.getKey();
+      writer.name( producer );
+      writeProducerInfo( writer, entry.getValue() );
+    }
+    writer.endObject();
+  }
+
+  void writeProducerInfo( JsonWriter writer, ProducerInfo prodInfo ) throws IOException
+  {
+    writer.beginObject();
+    writer.name( FIELD_ABI_HASH ).value( prodInfo.abiHash );
+    writer.name( FIELD_CONSUMERS );
+    writer.beginArray();
+    List<String> consumers = new ArrayList<>( prodInfo.consumers );
+    // Sort consumers for deterministic, cache-stable output.
+    Collections.sort( consumers );
+    for( String consumer : consumers )
+    {
+      writer.value( consumer );
+    }
+    writer.endArray();
+    writer.endObject();
   }
 
   @Override
@@ -989,22 +1114,8 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
 
         writer.beginObject();
         writer.name( FIELD_VERSION ).value( DEPENDENCY_VERSION );
-        writer.name( FIELD_CONSUMERS ).beginObject();
-        // Sort keys and consumer lists for deterministic, cache-stable output.
-        for( Map.Entry<String, Set<String>> entry : new TreeMap<>( typeDependencies ).entrySet() )
-        {
-          String producer = entry.getKey();
-          writer.name( producer );
-          writer.beginArray();
-          List<String> consumers = new ArrayList<>( entry.getValue() );
-          Collections.sort( consumers );
-          for( String consumer : consumers )
-          {
-            writer.value( consumer );
-          }
-          writer.endArray();
-        }
-        writer.endObject();
+        writer.name( FIELD_DEP_GRAPH );
+        writeDepGraph( writer );
         writer.endObject();
       }
       Files.move( tmpFile.toPath(), depFile.toPath(),
@@ -1019,6 +1130,28 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
     {
       System.err.println( "Error saving dependency file: " + e.getMessage() );
     }
+  }
+
+  /** The inherited-surface digest computed this build for {@code supertype}, or null if none was. */
+  String getInheritedSurfaceDigest( String supertype )
+  {
+    return inheritedSurfaceDigests.get( supertype );
+  }
+
+  void putInheritedSurfaceDigest( String supertype, String digest )
+  {
+    inheritedSurfaceDigests.put( supertype, digest );
+  }
+
+  /** Whether {@code type}'s surface names a structure, as computed this build, or null if it was not. */
+  Boolean getNamesStructure( String type )
+  {
+    return namesStructureByType.get( type );
+  }
+
+  void putNamesStructure( String type, boolean names )
+  {
+    namesStructureByType.put( type, names );
   }
 
   /**
@@ -1059,7 +1192,7 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
    */
   public Set<String> getOrCreateCurrentConsumerSet( String producerFqcn )
   {
-    return currTypeDependencies.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
+    return currTypeDependencies.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
   }
 
   /**
@@ -1200,7 +1333,75 @@ public class IncrementalCompilationManager implements IIncrementalCompilationMan
   @Override
   public Set<String> getOrCreateConsumersFor( String producerFqcn )
   {
-    return typeDependencies.computeIfAbsent( producerFqcn, k -> new HashSet<>() );
+    return typeDependencies.computeIfAbsent( producerFqcn, k -> new ProducerInfo() ).consumers;
+  }
+
+  @Override
+  public boolean hasNewABI( String fqcn )
+  {
+    // Plain lookups: computeIfAbsent would register the FQCN as a key in both maps as a side effect, and
+    // getOrDefault would allocate a throwaway record per call. An absent record means no hash.
+    String oldAbiHash = NO_ABI_HASH;
+    ProducerInfo oldInfo = typeDependencies.get( fqcn );
+    if( oldInfo != null )
+    {
+      oldAbiHash = oldInfo.abiHash;
+    }
+    String newAbiHash = NO_ABI_HASH;
+    ProducerInfo newInfo = currTypeDependencies.get( fqcn );
+    if( newInfo != null )
+    {
+      newAbiHash = newInfo.abiHash;
+    }
+    boolean changed = newAbiHash.equals( NO_ABI_HASH ) || newAbiHash.equals( CANNOT_COMPUTE_ABI_HASH ) ||
+                      !newAbiHash.equals( oldAbiHash );
+    if( verbose )
+    {
+      // The reason is what explains a surprising cascade: "changed" covers several different situations.
+      String reason;
+      if( newAbiHash.equals( NO_ABI_HASH ) )
+      {
+        if( localJavaTypes.contains( fqcn ) )
+        {
+          reason = "no fresh hash: local Java type, which gosuc never compiles";
+        }
+        else if( newInfo == null && getGosuFilePathFromFqcn( fqcn ) == null )
+        {
+          reason = "no fresh hash: its source was removed";
+        }
+        else
+        {
+          reason = "no fresh hash: its source no longer declares it, or failed to compile";
+        }
+      }
+      else if( newAbiHash.equals( CANNOT_COMPUTE_ABI_HASH ) )
+      {
+        reason = "not hashed: its surface names a structure";
+      }
+      else if( oldAbiHash.equals( NO_ABI_HASH ) || oldAbiHash.equals( CANNOT_COMPUTE_ABI_HASH ) )
+      {
+        reason = "no previous hash";
+      }
+      else if( changed )
+      {
+        reason = "hash changed";
+      }
+      else
+      {
+        reason = "hash same";
+      }
+      String verdict;
+      if( changed )
+      {
+        verdict = "ABI CHANGED";
+      }
+      else
+      {
+        verdict = "ABI STABLE";
+      }
+      System.out.println( verdict + " (" + reason + "): " + fqcn + " old=" + oldAbiHash + " new=" + newAbiHash );
+    }
+    return changed;
   }
 
   @Override
