@@ -159,7 +159,7 @@ class DependenciesClassVisitor extends ClassVisitor
   private final boolean verbose;
 
   // TODO consider using a string interner here and in the IncrementalCompilationManager
-  public DependenciesClassVisitor(IGosuClass gosuClass,  ClassReader reader, IncrementalCompilationManager incrementalCompilationManager, boolean verbose )
+  public DependenciesClassVisitor( IGosuClass gosuClass, ClassReader reader, IncrementalCompilationManager incrementalCompilationManager, boolean verbose )
   {
     super( ASM_API_VERSION );
     this.gosuClass = gosuClass;
