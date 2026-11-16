@@ -610,10 +610,11 @@ public class StandardCoercionManagerTest extends TestClass
    *
    * <p>Two separately constructed instances of {@code List}'s {@code E} reproduce that without needing a
    * compile: not identical, so the identity fast path cannot answer, but {@code equals()} reports them
-   * interchangeable -- so whichever of {@code equals()} and the {@code ITypeVariableType} check runs
-   * first decides the result.
+   * interchangeable. They are the same type variable, so there is nothing to coerce. A coercer here makes
+   * the parser require the {@code reified} modifier for valid code, see
+   * {@code TypeVariableCoercionAfterRefreshTest}.
    */
-  public void testCoercingBetweenTwoNonCanonicalInstancesOfTheSameTypeVariableResolvesToTypeVariableCoercer()
+  public void testCoercingBetweenTwoNonCanonicalInstancesOfTheSameTypeVariableNeedsNoCoercer()
   {
     IType listType = JavaTypes.LIST();
     IGenericTypeVariable typeVar = listType.getGenericTypeVariables()[0];
@@ -621,17 +622,15 @@ public class StandardCoercionManagerTest extends TestClass
     IType first = new TypeVariableType( listType, typeVar );
     IType second = new TypeVariableType( listType, typeVar );
 
-    // Preconditions. Without both of these the assertion below would hold whatever the branch order is,
-    // and the test would pass vacuously.
-    assertNotSame( "the two instances must be distinct, or the identity fast path answers before either" +
-                   " branch is reached", first, second );
-    assertTrue( "equals() must report the two instances interchangeable, or the equals() test falls" +
-                " through and the branch order stops mattering", first.equals( second ) );
+    // Preconditions. Without both of these the identity fast path or the type variable branches answer,
+    // and the test would not reach the code it is about.
+    assertNotSame( "the two instances must be distinct, or the identity fast path answers", first, second );
+    assertTrue( "equals() must report the two instances interchangeable", first.equals( second ) );
 
-    assertSame( "coercing between two instances of the same type variable must still yield a coercer:" +
-                " the choice must not be routed through ITypeVariableType.equals()",
-                TypeVariableCoercer.instance(),
+    assertNull( "two instances of the same type variable are the same type: no coercer",
                 CommonServices.getCoercionManager().resolveCoercerStatically( first, second ) );
+    assertNull( "the same holds for the array types of the two instances",
+                CommonServices.getCoercionManager().resolveCoercerStatically( first.getArrayType(), second.getArrayType() ) );
   }
 
 

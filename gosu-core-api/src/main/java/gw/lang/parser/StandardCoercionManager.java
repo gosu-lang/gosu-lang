@@ -1265,6 +1265,18 @@ public class StandardCoercionManager extends BaseService implements ICoercionMan
     {
       return null;
     }
+    else if( (typeToCoerceFrom instanceof ITypeVariableType || typeToCoerceFrom instanceof ITypeVariableArrayType) &&
+             typeToCoerceTo.equals( typeToCoerceFrom ) )
+    {
+      // The same type variable (or its array) reached through two instances, see the note on
+      // TypeVariableType.equals(). The value already is a T, so this is not a coercion. A coercer
+      // here makes the parser require `reified` for valid code such as
+      //   function get<T>( type : Class<T> ) : T { return other.get( type ) }
+      // once T exists twice, e.g. after an in-place refresh of the class. Only a type variable
+      // source is tested: any other source, such as the compound `T & Date`, still reaches the
+      // branches below without asking equals().
+      return null;
+    }
     else if( typeToCoerceTo instanceof ITypeVariableArrayType )
     {
       return RuntimeCoercer.instance();

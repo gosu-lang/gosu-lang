@@ -72,13 +72,52 @@ public class CompoundType extends AbstractType implements INonLoadableType, ICom
     }
     String strName = getNameFrom( types, false );
     CompoundType compoundType = CACHE.get( strName );
-    if( compoundType == null )
+    if( compoundType == null || !compoundType.isComposedOf( types ) )
     {
       listenToTypeSystemRefresh();
       compoundType = new CompoundType( types, strName );
       CACHE.put( strName, compoundType );
     }
     return compoundType;
+  }
+
+  /**
+   * The cache is keyed by name, and a name does not identify a type. Every type variable named T has
+   * the name "T", whichever class or function declares it, so "T & java.util.Date" is the key for all
+   * of them. A cached type is the answer only if it is made of the types asked for. Otherwise the T of
+   * one declaration is handed out as the T of another, and a value narrowed with <code>typeis</code>
+   * is no longer assignable to its own type variable in whichever declaration is parsed second.
+   * <p>
+   * The types are compared with equals(), so two instances that TypeVariableType.equals() takes
+   * for the same type variable still share a compound type.
+   */
+  private boolean isComposedOf( Set<IType> types )
+  {
+    if( _types.size() != types.size() )
+    {
+      return false;
+    }
+    for( IType type : types )
+    {
+      if( !hasType( type ) )
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Not _types.contains(): _types is ordered by name, so that would compare names only
+  private boolean hasType( IType type )
+  {
+    for( IType mine : _types )
+    {
+      if( mine.equals( type ) )
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static Set<IType> removeRedundantTypes( Set<IType> types )
