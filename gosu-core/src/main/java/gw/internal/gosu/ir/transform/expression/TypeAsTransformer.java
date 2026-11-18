@@ -424,7 +424,11 @@ public class TypeAsTransformer extends AbstractExpressionTransformer<ITypeAsExpr
     {
       if( !lhsType.isPrimitive() && lhsType != exprType )
       {
-        if( (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && (isBytecodeType( exprType ) && !isStructureType( exprType )) )
+        // Not for a compound type. Its descriptor is Object, so the instanceof test of the hack is true for
+        // every value and the runtime coercion never runs. But the coercion reads the type at runtime, type
+        // variables included, and for that alone a function had to be reified to narrow a List<T> with typeis.
+        if( !(exprType instanceof CompoundType) &&
+            (lhsType == JavaTypes.OBJECT() || lhsType.isInterface()) && (isBytecodeType( exprType ) && !isStructureType( exprType )) )
         {
           //## hack:
 

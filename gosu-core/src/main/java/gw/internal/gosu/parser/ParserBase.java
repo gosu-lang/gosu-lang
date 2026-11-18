@@ -2319,6 +2319,10 @@ public abstract class ParserBase implements IParserPart
     {
       return expressionToCoerce;
     }
+    else if( isOfTypeVariableThatIsNotReified( typeToCoerceFrom, resolvedTypeToCoerceTo ) )
+    {
+      return expressionToCoerce;
+    }
     else
     {
       TypeAsExpression tas = bImplicit ? new ImplicitTypeAsExpression() : new TypeAsExpression();
@@ -2332,11 +2336,34 @@ public abstract class ParserBase implements IParserPart
       tas.setType( typeToCoerceTo );
       tas.setCoercer( coercer );
 
-      verifyTypeVarAreReified( expressionToCoerce, typeToCoerceTo );
+      if( !(expressionToCoerce instanceof NullExpression) && !(typeToCoerceTo instanceof CompoundType) )
+      {
+        // TypeAsTransformer compiles two casts without reading a type at runtime, so their type variables
+        // need not be reified: the cast of the null literal, as in cond ? item : null, and the cast to a
+        // compound type, such as the T & java.util.Date a value of type T is narrowed to inside
+        // if( item typeis Date ).
+        verifyTypeVarAreReified( expressionToCoerce, typeToCoerceTo );
+      }
 
       setLocationForImplicitTypeAs( expressionToCoerce, tas );
       return tas;
     }
+  }
+
+  /**
+   * A value of the compound type {@code T & java.util.Date}, which a value of type T has inside
+   * {@code if( item typeis Date )}, is a T. resolveCoercerStatically() answers TypeVariableCoercer for it all
+   * the same, so that the class file does not depend on TypeVariableType.equals(), see the comment there.
+   * That coercer does nothing to such a value at runtime, but it reads T to find that out. Where T is not
+   * reified the coercer cannot be compiled, and there is one class file to produce: the one without it.
+   */
+  private boolean isOfTypeVariableThatIsNotReified( IType type, IType typeVar )
+  {
+    // isTypeVarInReifiedContext() reports as it checks: it is given an expression that is thrown away
+    return typeVar instanceof ITypeVariableType &&
+           type instanceof CompoundType &&
+           typeVar.isAssignableFrom( type ) &&
+           !isTypeVarInReifiedContext( new NullExpression(), (ITypeVariableType)typeVar );
   }
 
   void verifyTypeVarAreReified( Expression expr, IType rhsType )

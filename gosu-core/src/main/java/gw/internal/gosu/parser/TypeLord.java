@@ -1008,6 +1008,19 @@ public class TypeLord
         visited.remove( paramType );
       }
     }
+    else if( bWithEnclosingType && paramType instanceof CompoundType )
+    {
+      // A type variable inside a compound type needs its enclosing type as much as one on its own. Without
+      // it "T & java.util.Date" names the compound type of every T, and the caches keyed by this name hand
+      // the ArrayList<T & java.util.Date> of one declaration to another.
+      String strSeparator = "";
+      for( IType type : ((CompoundType)paramType).getTypes() )
+      {
+        sb.append( strSeparator );
+        appendTypeName( bWithEnclosingType, bIncludeModule, sb, type, visited );
+        strSeparator = " & ";
+      }
+    }
     else if( bWithEnclosingType && paramType.isParameterizedType() )
     {
       sb.append( paramType.getGenericType().getName() );
