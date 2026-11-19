@@ -139,6 +139,17 @@ public class CommandLineOptions
     return _incremental;
   }
 
+  @Parameter(names = "-abi-checking", description = "Enable ABI checking in incremental compilation mode")
+  private boolean _abiChecking;
+
+  /**
+   * @return true if '-abi-checking' was specified on the command line
+   */
+  public boolean hasAbiChecking()
+  {
+    return _abiChecking;
+  }
+
   @Parameter(names = "-dependency-file", description = "Path to dependency tracking file for incremental compilation")
   private String _dependencyFile;
 
