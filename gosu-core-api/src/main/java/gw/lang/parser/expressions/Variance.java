@@ -102,7 +102,10 @@ public enum Variance
       {
         IType typeParam = typeParameters[i];
         IGenericTypeVariable[] gtvs = type.getGenericType().getGenericTypeVariables();
-        if( i < gtvs.length )
+        // gtvs may be null when an incremental build drops the type parameters from the
+        // generic type's declaration while a parameterized usage still references them —
+        // the parser would rather emit that as a proper error downstream than NPE here.
+        if( gtvs != null && i < gtvs.length )
         {
           Variance tv = null;
           if( typeParam instanceof ITypeVariableType )
