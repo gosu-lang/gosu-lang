@@ -79,7 +79,7 @@ jobs:
 
       - name: prepare release
         if: steps.check-perms.outputs.can-publish == 'true'
-        run: mvn release:prepare -B -DdevelopmentVersion=1-X-SNAPSHOT -DreleaseVersion=${{ inputs.version }}
+        run: ./mvnw release:prepare -B -DdevelopmentVersion=1-X-SNAPSHOT -DreleaseVersion=${{ inputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,7 +89,7 @@ jobs:
           gpg --list-secret-keys --keyid-format LONG
 
       - name: release Gosu
-        run: mvn release:perform -B -s $GITHUB_WORKSPACE/settings.xml -Prelease
+        run: ./mvnw release:perform -B -s $GITHUB_WORKSPACE/settings.xml -Prelease
         env:
           SNAPSHOT_USER_CENTRAL: ${{ secrets.SNAPSHOT_USER_CENTRAL }}
           SNAPSHOT_PASS_CENTRAL: ${{ secrets.SNAPSHOT_PASS_CENTRAL }}
